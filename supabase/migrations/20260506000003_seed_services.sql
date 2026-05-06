@@ -1,6 +1,6 @@
--- Areen CUBs Studio — Seed data
--- Pre-loads the service catalog from the historical devis (EST-0034/0035/0036).
--- Idempotent: safe to re-run.
+-- Areen CUBs Studio — Seed service catalog
+-- Pre-loads the 17 services from the historical devis (EST-0034/0035/0036).
+-- Treated as a migration so `supabase db push` applies it. Idempotent.
 
 insert into public.services (name_fr, name_en, category, default_price_dt, default_unit)
 values

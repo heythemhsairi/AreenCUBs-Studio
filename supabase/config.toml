@@ -1,0 +1,4 @@
+# Areen CUBs Studio — Supabase project config
+# Used by the Supabase CLI. The project_id is the ref of the linked Supabase project.
+
+project_id = "exdatjsgeomejhdofgvw"

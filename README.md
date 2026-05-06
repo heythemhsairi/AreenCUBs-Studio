@@ -21,8 +21,7 @@ What works now:
 - Supabase auth with **username + password** (synthetic email under the hood)
 - Auth middleware protects every route except `/login`
 - Role-aware `/dashboard` page that branches into Admin / Worker / Freelancer views (placeholders)
-- Full SQL schema + RLS policies in `supabase/migrations/` ready to apply
-- Service catalog pre-seeded with all 17 services from your past devis
+- Full SQL schema + RLS policies + service catalog as Supabase CLI migrations — applied via `npm run db:push`
 
 Next: Phase 1 (clients + projects + tasks CRUD).
 
@@ -49,13 +48,17 @@ npm install
 3. Save the **database password** somewhere safe.
 4. Wait ~2 min for the project to provision.
 
-### 3. Apply the database schema
+### 3. Apply the database schema (Supabase CLI — one command)
 
-In your Supabase project → **SQL Editor** → paste each file in this order, hit **Run**:
+We use the [Supabase CLI](https://supabase.com/docs/guides/cli) so the schema lives in version control and ships with one command. The CLI is already declared as a devDependency, so `npm install` (step 1) already installed it.
 
-1. [`supabase/migrations/0001_initial_schema.sql`](./supabase/migrations/0001_initial_schema.sql) — tables, enums, indexes, triggers
-2. [`supabase/migrations/0002_rls_policies.sql`](./supabase/migrations/0002_rls_policies.sql) — RLS policies (admin / worker / freelancer)
-3. [`supabase/seed.sql`](./supabase/seed.sql) — pre-loads the 17 services with prices
+```bash
+npx supabase login                # one-time, opens your browser to authenticate
+npm run db:link                   # links to project ref exdatjsgeomejhdofgvw (asks for DB password)
+npm run db:push                   # applies all 3 migrations (schema + RLS + seed services)
+```
+
+That's it — the database is provisioned. You'll be prompted for the database password you saved in step 2.
 
 ### 4. Configure environment variables
 
@@ -141,11 +144,12 @@ AreenCUBs-Studio/
 │     ├─ ui/                       ← Button, Input, Card
 │     └─ language-toggle.tsx
 └─ supabase/
+   ├─ config.toml                                        ← project_id for the CLI
    ├─ migrations/
-   │  ├─ 0001_initial_schema.sql   ← tables, enums, triggers
-   │  └─ 0002_rls_policies.sql     ← role-based row-level security
-   ├─ seed.sql                     ← service catalog
-   └─ bootstrap_admin.sql          ← promote first user to admin
+   │  ├─ 20260506000001_initial_schema.sql              ← tables, enums, triggers
+   │  ├─ 20260506000002_rls_policies.sql                ← role-based row-level security
+   │  └─ 20260506000003_seed_services.sql               ← 17-service catalog (idempotent)
+   └─ bootstrap_admin.sql                                ← promote first user to admin
 ```
 
 ---
