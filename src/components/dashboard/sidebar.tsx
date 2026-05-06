@@ -34,6 +34,11 @@ export function Sidebar({ role }: { role: UserRole }) {
       rolesAllowed: ["admin", "worker"],
     },
     {
+      href: "/dashboard/devis",
+      label: t.nav.devis,
+      rolesAllowed: ["admin"],
+    },
+    {
       href: "/dashboard/team",
       label: t.nav.team,
       rolesAllowed: ["admin"],
@@ -93,6 +98,11 @@ export function MobileNav({ role }: { role: UserRole }) {
       href: "/dashboard/projects",
       label: t.nav.projects,
       rolesAllowed: ["admin", "worker"],
+    },
+    {
+      href: "/dashboard/devis",
+      label: t.nav.devis,
+      rolesAllowed: ["admin"],
     },
     {
       href: "/dashboard/team",
