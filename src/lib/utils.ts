@@ -9,7 +9,10 @@ const USERNAME_DOMAIN =
   process.env.USERNAME_EMAIL_DOMAIN ?? "areencubs.studio";
 
 export function usernameToEmail(username: string): string {
-  return `${username.trim().toLowerCase()}@${USERNAME_DOMAIN}`;
+  // Forgive users who paste the full synthetic email instead of just the username:
+  // "heythem@areencubs.studio" -> "heythem"; "heythem" -> "heythem".
+  const localPart = username.trim().toLowerCase().split("@")[0];
+  return `${localPart}@${USERNAME_DOMAIN}`;
 }
 
 export function emailToUsername(email: string): string {

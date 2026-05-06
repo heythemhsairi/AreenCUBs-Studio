@@ -10,6 +10,7 @@ export const dict = {
     login: {
       title: "Connexion",
       username: "Nom d'utilisateur",
+      usernameHint: "Uniquement la partie avant @ (ex. heythem)",
       password: "Mot de passe",
       submit: "Se connecter",
       errorInvalid: "Identifiants invalides.",
@@ -54,6 +55,7 @@ export const dict = {
     login: {
       title: "Sign in",
       username: "Username",
+      usernameHint: "Just the part before @ (e.g. heythem)",
       password: "Password",
       submit: "Sign in",
       errorInvalid: "Invalid credentials.",

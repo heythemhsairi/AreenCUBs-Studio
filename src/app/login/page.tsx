@@ -56,8 +56,12 @@ export default function LoginPage() {
                   type="text"
                   autoComplete="username"
                   autoCapitalize="none"
+                  placeholder="heythem"
                   required
                 />
+                <p className="text-xs text-slate-500">
+                  {t.login.usernameHint}
+                </p>
               </div>
               <div className="space-y-1.5">
                 <label
