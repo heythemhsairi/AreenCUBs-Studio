@@ -2,10 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireSession } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { Button } from "@/components/ui/button";
-import { PageHeader } from "@/components/dashboard/page-header";
 import { TaskForm } from "../task-form";
 import { TaskDeleteButton } from "./delete-button";
+import { SubtasksCard, type Subtask } from "./subtasks-client";
 
 export default async function TaskEditPage({
   params,
@@ -16,19 +15,25 @@ export default async function TaskEditPage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const [{ data: task }, { data: assignees }] = await Promise.all([
-    supabase
-      .from("tasks")
-      .select(
-        "id, project_id, title, description, status, priority, assignee_id, deadline, deliverable_url, projects:project_id(name, clients:client_id(name))",
-      )
-      .eq("id", id)
-      .single(),
-    supabase
-      .from("profiles")
-      .select("id, username, full_name, role")
-      .order("full_name"),
-  ]);
+  const [{ data: task }, { data: assignees }, { data: subtasks }] =
+    await Promise.all([
+      supabase
+        .from("tasks")
+        .select(
+          "id, project_id, title, description, status, priority, assignee_id, deadline, deliverable_url, parent_task_id, projects:project_id(name, clients:client_id(name))",
+        )
+        .eq("id", id)
+        .single(),
+      supabase
+        .from("profiles")
+        .select("id, username, full_name, role")
+        .order("full_name"),
+      supabase
+        .from("tasks")
+        .select("id, title, status")
+        .eq("parent_task_id", id)
+        .order("created_at", { ascending: true }),
+    ]);
 
   if (!task) notFound();
 
@@ -44,7 +49,7 @@ export default async function TaskEditPage({
   return (
     <div className="space-y-6">
       {project && (
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-ink/55">
           {client && <>{client.name} · </>}
           <Link
             href={`/dashboard/projects/${task.project_id}`}
@@ -61,11 +66,15 @@ export default async function TaskEditPage({
         assignees={assignees ?? []}
       />
 
-      {session.role !== "freelancer" && (
-        <TaskDeleteButton
-          taskId={task.id}
-          projectId={task.project_id}
+      {!task.parent_task_id && (
+        <SubtasksCard
+          parentId={task.id}
+          initial={(subtasks ?? []) as Subtask[]}
         />
+      )}
+
+      {session.role !== "freelancer" && (
+        <TaskDeleteButton taskId={task.id} projectId={task.project_id} />
       )}
     </div>
   );

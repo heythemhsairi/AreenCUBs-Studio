@@ -52,7 +52,7 @@ export default function LoginPage() {
           <LanguageToggle />
         </div>
 
-        <Card bordered="gradient" className="overflow-hidden">
+        <Card variant="ring" className="overflow-hidden">
           <div className="bg-white/95 backdrop-blur-sm">
             <CardHeader className="pb-2">
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-brand">

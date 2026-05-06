@@ -32,6 +32,7 @@ function pickTaskFields(formData: FormData) {
     assignee_id: stringOrNull(formData.get("assignee_id")),
     deadline: stringOrNull(formData.get("deadline")),
     deliverable_url: stringOrNull(formData.get("deliverable_url")),
+    parent_task_id: stringOrNull(formData.get("parent_task_id")),
   };
 }
 
@@ -66,7 +67,7 @@ export async function createTaskAction(
 export async function updateTaskAction(
   formData: FormData,
 ): Promise<ActionResult> {
-  await requireSession(); // RLS enforces who can update
+  await requireSession();
   const id = String(formData.get("id") ?? "");
   if (!id) return { ok: false, error: "ID manquant." };
 
@@ -96,8 +97,6 @@ export async function updateTaskAction(
   return { ok: true };
 }
 
-// Quick status change from the Kanban (drag/drop or dropdown).
-// Allowed for any user whose RLS lets them update the row.
 export async function changeTaskStatusAction(
   taskId: string,
   status: TaskStatus,
@@ -118,6 +117,7 @@ export async function changeTaskStatusAction(
   revalidatePath("/dashboard/tasks");
   if (data?.project_id)
     revalidatePath(`/dashboard/projects/${data.project_id}`);
+  revalidatePath(`/dashboard/tasks/${taskId}`);
   return { ok: true };
 }
 
@@ -136,4 +136,84 @@ export async function deleteTaskAction(
   revalidatePath("/dashboard/tasks");
   if (projectId) revalidatePath(`/dashboard/projects/${projectId}`);
   redirect(projectId ? `/dashboard/projects/${projectId}` : "/dashboard/tasks");
+}
+
+// ===== Subtasks =====
+
+export async function createSubtaskAction(
+  formData: FormData,
+): Promise<ActionResult> {
+  const session = await requireSession();
+  const parentId = String(formData.get("parent_task_id") ?? "");
+  const title = String(formData.get("title") ?? "").trim();
+  if (!parentId || !title) {
+    return { ok: false, error: "Titre requis." };
+  }
+
+  const supabase = await createClient();
+  // Lookup parent to inherit project_id + assignee
+  const { data: parent } = await supabase
+    .from("tasks")
+    .select("project_id, assignee_id")
+    .eq("id", parentId)
+    .single();
+  if (!parent) return { ok: false, error: "Tâche parente introuvable." };
+
+  const { error } = await supabase.from("tasks").insert({
+    project_id: parent.project_id,
+    parent_task_id: parentId,
+    title,
+    status: "todo",
+    priority: "normal",
+    assignee_id: parent.assignee_id,
+    created_by: session.id,
+  });
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath(`/dashboard/tasks/${parentId}`);
+  revalidatePath(`/dashboard/projects/${parent.project_id}`);
+  return { ok: true };
+}
+
+export async function toggleSubtaskAction(
+  subtaskId: string,
+  done: boolean,
+): Promise<ActionResult> {
+  await requireSession();
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("tasks")
+    .update({ status: done ? "done" : "todo" })
+    .eq("id", subtaskId)
+    .select("parent_task_id, project_id")
+    .single();
+  if (error) return { ok: false, error: error.message };
+
+  if (data?.parent_task_id)
+    revalidatePath(`/dashboard/tasks/${data.parent_task_id}`);
+  if (data?.project_id)
+    revalidatePath(`/dashboard/projects/${data.project_id}`);
+  return { ok: true };
+}
+
+export async function deleteSubtaskAction(
+  formData: FormData,
+): Promise<ActionResult> {
+  await requireSession();
+  const id = String(formData.get("id") ?? "");
+  if (!id) return { ok: false, error: "ID manquant." };
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("tasks")
+    .delete()
+    .eq("id", id)
+    .select("parent_task_id, project_id")
+    .single();
+  if (error) return { ok: false, error: error.message };
+
+  if (data?.parent_task_id)
+    revalidatePath(`/dashboard/tasks/${data.parent_task_id}`);
+  if (data?.project_id)
+    revalidatePath(`/dashboard/projects/${data.project_id}`);
+  return { ok: true };
 }

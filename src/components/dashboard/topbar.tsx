@@ -32,27 +32,24 @@ export function Topbar({ role, username, avatarUrl }: Props) {
   }
 
   return (
-    <header className="sticky top-0 z-30 surface-glass border-b border-ink/8">
+    <header className="sticky top-0 z-30 border-b border-white/30 bg-white/55 backdrop-blur-xl backdrop-saturate-150">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-6">
-        <Link href="/dashboard" className="group flex items-center gap-3">
+        <Link href="/dashboard" className="group flex items-center">
           <BrandLogo
             width={130}
             className="text-brand transition-transform duration-200 group-hover:scale-[1.02]"
           />
-          <span className="hidden text-[10px] font-semibold uppercase tracking-[0.22em] text-ink/45 sm:inline">
-            Studio
-          </span>
         </Link>
         <div className="flex items-center gap-3">
           <LanguageToggle />
           <Link
             href="/dashboard/team"
-            className="group flex items-center gap-2.5 rounded-full border border-ink/10 bg-white px-1 py-1 pr-3 transition-all duration-150 hover:border-brand/30 hover:shadow-sm"
+            className="group flex items-center gap-2.5 rounded-full border border-white/60 bg-white/70 px-1 py-1 pr-3 backdrop-blur transition-all duration-150 hover:border-brand/30 hover:bg-white/90 hover:shadow-soft"
           >
             <Avatar src={avatarUrl} name={username} size="sm" />
             <div className="hidden text-xs leading-tight sm:block">
               <p className="font-semibold text-ink">@{username}</p>
-              <p className="text-ink/50">{t.roles[role]}</p>
+              <p className="text-ink/55">{t.roles[role]}</p>
             </div>
           </Link>
           <Button

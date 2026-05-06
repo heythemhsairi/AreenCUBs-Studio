@@ -4,47 +4,32 @@ import { cn } from "@/lib/utils";
 type CardProps = HTMLAttributes<HTMLDivElement> & {
   /** Adds a subtle hover-lift + shadow transition */
   interactive?: boolean;
-  /** Use a gradient border (brand → accent). Best for hero cards. */
-  bordered?: "default" | "gradient" | "accent";
+  /** Visual variant. `glass` is the default, frosted white surface. */
+  variant?: "glass" | "glass-strong" | "ring" | "accent" | "ink" | "solid";
 };
 
 export function Card({
   className,
   interactive,
-  bordered = "default",
+  variant = "glass",
   ...rest
 }: CardProps) {
-  if (bordered === "gradient") {
-    return (
-      <div
-        className={cn(
-          "ring-gradient rounded-2xl shadow-soft",
-          interactive && "lift",
-          className,
-        )}
-        {...rest}
-      />
-    );
-  }
-  if (bordered === "accent") {
-    return (
-      <div
-        className={cn(
-          "rounded-2xl border border-accent/30 bg-white shadow-soft",
-          interactive && "lift",
-          className,
-        )}
-        {...rest}
-      />
-    );
-  }
+  const variantClass =
+    variant === "glass-strong"
+      ? "glass-strong rounded-2xl"
+      : variant === "ring"
+        ? "ring-gradient rounded-2xl shadow-soft"
+        : variant === "accent"
+          ? "rounded-2xl border border-accent/35 bg-white/85 backdrop-blur shadow-soft"
+          : variant === "ink"
+            ? "glass-dark rounded-2xl"
+            : variant === "solid"
+              ? "rounded-2xl border border-ink/8 bg-white shadow-soft"
+              : "glass rounded-2xl";
+
   return (
     <div
-      className={cn(
-        "rounded-2xl border border-ink/8 bg-white shadow-soft",
-        interactive && "lift",
-        className,
-      )}
+      className={cn(variantClass, interactive && "lift", className)}
       {...rest}
     />
   );

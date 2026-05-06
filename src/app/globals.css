@@ -4,29 +4,42 @@
 
 @layer base {
   :root {
-    --shadow-soft: 0 1px 2px rgba(30, 30, 36, 0.04),
-      0 4px 12px rgba(30, 30, 36, 0.04);
-    --shadow-lift: 0 12px 32px -16px rgba(30, 30, 36, 0.18),
-      0 4px 12px -4px rgba(30, 30, 36, 0.08);
-    --shadow-brand: 0 14px 32px -14px rgba(59, 139, 186, 0.5),
-      0 4px 12px -4px rgba(59, 139, 186, 0.22);
-    --shadow-accent: 0 14px 32px -14px rgba(255, 158, 31, 0.5),
-      0 4px 12px -4px rgba(255, 158, 31, 0.22);
-    --gradient-mesh:
+    --shadow-soft: 0 1px 2px rgba(15, 30, 50, 0.04),
+      0 4px 14px rgba(15, 30, 50, 0.05);
+    --shadow-lift: 0 20px 40px -22px rgba(15, 30, 50, 0.22),
+      0 8px 16px -8px rgba(15, 30, 50, 0.10);
+    --shadow-brand: 0 22px 48px -22px rgba(59, 139, 186, 0.55),
+      0 8px 18px -8px rgba(59, 139, 186, 0.32);
+    --shadow-accent: 0 22px 48px -22px rgba(255, 158, 31, 0.55),
+      0 8px 18px -8px rgba(255, 158, 31, 0.32);
+
+    --bg-page: linear-gradient(
+      180deg,
+      #e8f2f9 0%,
+      #cfe1ee 45%,
+      #b6d2e3 100%
+    );
+
+    --bg-mesh:
       radial-gradient(
-        ellipse 80% 70% at 12% -10%,
-        rgba(59, 139, 186, 0.18),
+        ellipse 900px 500px at 12% -10%,
+        rgba(59, 139, 186, 0.45),
         transparent 60%
       ),
       radial-gradient(
-        ellipse 70% 60% at 100% 0%,
-        rgba(255, 158, 31, 0.14),
+        ellipse 750px 550px at 95% 5%,
+        rgba(255, 158, 31, 0.28),
         transparent 65%
       ),
       radial-gradient(
-        ellipse 60% 60% at 50% 110%,
-        rgba(30, 30, 36, 0.06),
+        ellipse 800px 600px at 50% 110%,
+        rgba(30, 30, 36, 0.22),
         transparent 60%
+      ),
+      radial-gradient(
+        ellipse 600px 400px at 85% 70%,
+        rgba(59, 139, 186, 0.25),
+        transparent 70%
       );
   }
 
@@ -41,7 +54,9 @@
   }
 
   body {
-    @apply bg-cream text-ink antialiased;
+    @apply text-ink antialiased;
+    background: var(--bg-page);
+    background-attachment: fixed;
     font-family: var(--font-franklin), ui-sans-serif, system-ui, -apple-system,
       "Segoe UI", Helvetica, Arial, sans-serif;
     font-feature-settings:
@@ -50,16 +65,14 @@
   }
 
   ::selection {
-    background: rgba(59, 139, 186, 0.25);
+    background: rgba(59, 139, 186, 0.3);
     color: #1e1e24;
   }
 
-  /* Custom scrollbar — thin, brand-tinted */
   * {
     scrollbar-width: thin;
-    scrollbar-color: rgba(30, 30, 36, 0.18) transparent;
+    scrollbar-color: rgba(15, 30, 50, 0.18) transparent;
   }
-
   *::-webkit-scrollbar {
     width: 10px;
     height: 10px;
@@ -68,43 +81,64 @@
     background: transparent;
   }
   *::-webkit-scrollbar-thumb {
-    background: rgba(30, 30, 36, 0.16);
+    background: rgba(59, 139, 186, 0.35);
     border-radius: 999px;
     border: 2px solid transparent;
     background-clip: padding-box;
   }
   *::-webkit-scrollbar-thumb:hover {
-    background: rgba(59, 139, 186, 0.5);
+    background: rgba(59, 139, 186, 0.7);
     background-clip: padding-box;
     border: 2px solid transparent;
   }
 
-  /* Better focus ring — subtle but visible */
   :focus-visible {
     outline: none;
   }
 }
 
 @layer components {
-  /* Glass surfaces (used in topbar) */
-  .surface-glass {
-    background: rgba(255, 248, 240, 0.78);
-    backdrop-filter: saturate(160%) blur(14px);
-    -webkit-backdrop-filter: saturate(160%) blur(14px);
+  /* Frosted glass card */
+  .glass {
+    background: rgba(255, 255, 255, 0.78);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.6) inset,
+      var(--shadow-soft);
   }
 
-  /* Decorative noise overlay — adds tactility */
+  .glass-strong {
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: saturate(180%) blur(24px);
+    -webkit-backdrop-filter: saturate(180%) blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.6) inset,
+      var(--shadow-soft);
+  }
+
+  .glass-dark {
+    background: rgba(20, 30, 45, 0.55);
+    backdrop-filter: saturate(160%) blur(20px);
+    -webkit-backdrop-filter: saturate(160%) blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+  }
+
+  /* Decorative noise overlay */
   .surface-grain::before {
     content: "";
     position: absolute;
     inset: 0;
     pointer-events: none;
-    opacity: 0.5;
+    opacity: 0.4;
     mix-blend-mode: overlay;
     background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.04 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
   }
 
-  /* A divider with a subtle gradient */
+  /* Subtle gradient divider */
   .rule-brand {
     height: 1px;
     background: linear-gradient(
@@ -115,7 +149,7 @@
     );
   }
 
-  /* Hover-lift card animation */
+  /* Hover-lift */
   .lift {
     transition:
       transform 0.18s ease,
@@ -123,7 +157,7 @@
       border-color 0.22s ease;
   }
   .lift:hover {
-    transform: translateY(-1px);
+    transform: translateY(-2px);
     box-shadow: var(--shadow-lift);
   }
 
@@ -135,7 +169,14 @@
     color: transparent;
   }
 
-  /* Pulsing dot for "live" statuses */
+  .text-gradient-accent {
+    background: linear-gradient(135deg, #ff9e1f, #e08800);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+
+  /* Pulsing dot */
   .pulse-dot {
     position: relative;
     display: inline-block;
@@ -165,14 +206,14 @@
     }
   }
 
-  /* Reveal-on-mount for hero sections */
+  /* Reveal-on-mount */
   .reveal {
-    animation: reveal 0.5s cubic-bezier(0.2, 0.65, 0.25, 1) both;
+    animation: reveal 0.55s cubic-bezier(0.2, 0.65, 0.25, 1) both;
   }
   @keyframes reveal {
     from {
       opacity: 0;
-      transform: translateY(8px);
+      transform: translateY(10px);
     }
     to {
       opacity: 1;
@@ -180,7 +221,7 @@
     }
   }
 
-  /* Gradient ring around an element (used for the EOTM avatar and primary cards) */
+  /* Gradient ring border */
   .ring-gradient {
     background:
       linear-gradient(#fff, #fff) padding-box,
@@ -191,7 +232,7 @@
 
 @layer utilities {
   .bg-mesh {
-    background-image: var(--gradient-mesh);
+    background-image: var(--bg-mesh);
   }
 
   .shadow-soft {

@@ -469,9 +469,9 @@ function FeaturedCard({
 }) {
   return (
     <Card
-      bordered="accent"
+      variant="accent"
       interactive
-      className="overflow-hidden bg-gradient-to-br from-accent/12 via-cream to-cream"
+      className="overflow-hidden bg-gradient-to-br from-accent/15 via-white/85 to-white/85"
     >
       <CardContent className="flex flex-col items-center gap-4 p-6 text-center sm:flex-row sm:text-left">
         <div className="relative">
