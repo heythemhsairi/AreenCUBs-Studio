@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Table, THead, TBody, TR, TH, TD, EmptyState } from "@/components/ui/table";
 import { formatDevisNumber, formatDt, formatDate } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
 const statusTone = {
   draft: "slate",
@@ -29,6 +30,12 @@ const paymentLabel: Record<string, string> = {
   unpaid: "Impayé",
   partial: "Partiel",
   paid: "Payé",
+};
+
+const rowAccent: Record<string, string> = {
+  paid: "before:bg-emerald-400",
+  partial: "before:bg-brand",
+  unpaid: "before:bg-accent",
 };
 
 type Row = {
@@ -77,9 +84,16 @@ export function DevisListTable({
       <TBody>
         {rows.map((d) => {
           const client = Array.isArray(d.clients) ? d.clients[0] : d.clients;
+          const accent = rowAccent[d.payment_status] ?? "before:bg-ink/10";
           return (
-            <TR key={d.id}>
-              <TD className="font-mono text-xs text-ink/50">
+            <tr
+              key={d.id}
+              className={cn(
+                "relative transition-colors duration-150 before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:rounded-r-full hover:bg-cream/70",
+                accent,
+              )}
+            >
+              <TD className="pl-5 font-mono text-xs text-ink/55">
                 <Link href={`${baseUrl}/${d.id}`} className="hover:text-brand">
                   {formatDevisNumber(d.devis_number, kind)}
                 </Link>
@@ -103,10 +117,10 @@ export function DevisListTable({
                   {paymentLabel[d.payment_status] ?? d.payment_status}
                 </Badge>
               </TD>
-              <TD className="text-right font-medium text-ink">
+              <TD className="text-right font-semibold text-ink">
                 {formatDt(d.total_dt)}
               </TD>
-            </TR>
+            </tr>
           );
         })}
       </TBody>
