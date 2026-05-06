@@ -1,0 +1,231 @@
+"use client";
+
+import Link from "next/link";
+import { useState, useTransition } from "react";
+import { useI18n } from "@/lib/i18n/provider";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/dashboard/page-header";
+import { createTaskAction, updateTaskAction } from "./actions";
+
+type Project = { id: string; name: string; client_name: string | null };
+type Assignee = {
+  id: string;
+  username: string;
+  full_name: string | null;
+  role: string;
+};
+
+type TaskRow = {
+  id: string;
+  project_id: string;
+  title: string;
+  description: string | null;
+  status: "todo" | "in_progress" | "review" | "done" | "cancelled";
+  priority: "low" | "normal" | "high" | "urgent";
+  assignee_id: string | null;
+  deadline: string | null;
+  deliverable_url: string | null;
+};
+
+type Props =
+  | {
+      mode: "create";
+      defaultProjectId?: string;
+      projects: Project[];
+      assignees: Assignee[];
+      task?: undefined;
+    }
+  | {
+      mode: "edit";
+      task: TaskRow;
+      assignees: Assignee[];
+      projects?: undefined;
+      defaultProjectId?: undefined;
+    };
+
+export function TaskForm(props: Props) {
+  const { t } = useI18n();
+  const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
+  const [pending, startTransition] = useTransition();
+
+  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+    setSaved(false);
+    const fd = new FormData(e.currentTarget);
+    startTransition(async () => {
+      const res =
+        props.mode === "create"
+          ? await createTaskAction(fd)
+          : await updateTaskAction(fd);
+      if (res && !res.ok) setError(res.error);
+      else if (res?.ok) setSaved(true);
+    });
+  }
+
+  const tk = props.mode === "edit" ? props.task : undefined;
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title={
+          props.mode === "create"
+            ? t.tasks.addTitle
+            : (tk?.title ?? t.tasks.title)
+        }
+        subtitle={
+          <Link href="/dashboard/tasks" className="hover:underline">
+            ← {t.tasks.title}
+          </Link>
+        }
+      />
+
+      <Card className="max-w-2xl">
+        <CardHeader>
+          <CardTitle>
+            {props.mode === "create" ? t.common.create : t.common.edit}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form className="space-y-4" onSubmit={onSubmit}>
+            {props.mode === "edit" && (
+              <input type="hidden" name="id" value={tk?.id} />
+            )}
+
+            {props.mode === "create" ? (
+              <Field label={t.tasks.form.project}>
+                <Select
+                  name="project_id"
+                  required
+                  defaultValue={props.defaultProjectId ?? ""}
+                >
+                  <option value="">{t.tasks.form.noProject}</option>
+                  {props.projects.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.client_name ? `${p.client_name} — ${p.name}` : p.name}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+            ) : (
+              <input type="hidden" name="project_id" value={tk?.project_id} />
+            )}
+
+            <Field label={t.tasks.form.title}>
+              <Input name="title" required defaultValue={tk?.title ?? ""} />
+            </Field>
+
+            <Field label={t.tasks.form.description}>
+              <Textarea
+                name="description"
+                rows={3}
+                defaultValue={tk?.description ?? ""}
+              />
+            </Field>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Field label={t.tasks.form.assignee}>
+                <Select
+                  name="assignee_id"
+                  defaultValue={tk?.assignee_id ?? ""}
+                >
+                  <option value="">{t.tasks.form.unassigned}</option>
+                  {props.assignees.map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.full_name ?? `@${a.username}`} ({a.role})
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+
+              <Field label={t.tasks.form.deadline}>
+                <Input
+                  name="deadline"
+                  type="date"
+                  defaultValue={tk?.deadline ?? ""}
+                />
+              </Field>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Field label={t.tasks.form.status}>
+                <Select name="status" defaultValue={tk?.status ?? "todo"}>
+                  <option value="todo">{t.tasks.status.todo}</option>
+                  <option value="in_progress">
+                    {t.tasks.status.in_progress}
+                  </option>
+                  <option value="review">{t.tasks.status.review}</option>
+                  <option value="done">{t.tasks.status.done}</option>
+                  <option value="cancelled">{t.tasks.status.cancelled}</option>
+                </Select>
+              </Field>
+              <Field label={t.tasks.form.priority}>
+                <Select
+                  name="priority"
+                  defaultValue={tk?.priority ?? "normal"}
+                >
+                  <option value="low">{t.tasks.priority.low}</option>
+                  <option value="normal">{t.tasks.priority.normal}</option>
+                  <option value="high">{t.tasks.priority.high}</option>
+                  <option value="urgent">{t.tasks.priority.urgent}</option>
+                </Select>
+              </Field>
+            </div>
+
+            <Field label={t.tasks.form.deliverableUrl}>
+              <Input
+                name="deliverable_url"
+                type="url"
+                placeholder="https://…"
+                defaultValue={tk?.deliverable_url ?? ""}
+              />
+            </Field>
+
+            {error && <p className="text-sm text-red-600">{error}</p>}
+            {saved && <p className="text-sm text-green-600">{t.common.saved}</p>}
+
+            <div className="flex items-center gap-3 pt-2">
+              <Button type="submit" disabled={pending}>
+                {pending
+                  ? t.common.saving
+                  : props.mode === "create"
+                    ? t.common.create
+                    : t.common.save}
+              </Button>
+              <Link
+                href={
+                  props.mode === "create"
+                    ? "/dashboard/tasks"
+                    : `/dashboard/tasks/${tk?.id}`
+                }
+                className="text-sm text-slate-500 hover:text-slate-800"
+              >
+                {t.common.cancel}
+              </Link>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <label className="text-sm font-medium text-slate-700">{label}</label>
+      {children}
+    </div>
+  );
+}

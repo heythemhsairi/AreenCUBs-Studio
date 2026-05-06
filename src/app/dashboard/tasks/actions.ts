@@ -1,0 +1,139 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { requireSession, requireWorkerOrAdmin } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
+
+export type ActionResult = { ok: true } | { ok: false; error: string };
+
+const STATUSES = [
+  "todo",
+  "in_progress",
+  "review",
+  "done",
+  "cancelled",
+] as const;
+const PRIORITIES = ["low", "normal", "high", "urgent"] as const;
+type TaskStatus = (typeof STATUSES)[number];
+type TaskPriority = (typeof PRIORITIES)[number];
+
+function pickTaskFields(formData: FormData) {
+  const status = String(formData.get("status") ?? "todo") as TaskStatus;
+  const priority = String(formData.get("priority") ?? "normal") as TaskPriority;
+  return {
+    project_id: String(formData.get("project_id") ?? ""),
+    title: String(formData.get("title") ?? "").trim(),
+    description: stringOrNull(formData.get("description")),
+    status: STATUSES.includes(status) ? status : ("todo" as TaskStatus),
+    priority: PRIORITIES.includes(priority)
+      ? priority
+      : ("normal" as TaskPriority),
+    assignee_id: stringOrNull(formData.get("assignee_id")),
+    deadline: stringOrNull(formData.get("deadline")),
+    deliverable_url: stringOrNull(formData.get("deliverable_url")),
+  };
+}
+
+function stringOrNull(v: FormDataEntryValue | null): string | null {
+  if (v === null) return null;
+  const s = String(v).trim();
+  return s.length === 0 ? null : s;
+}
+
+export async function createTaskAction(
+  formData: FormData,
+): Promise<ActionResult> {
+  const session = await requireWorkerOrAdmin();
+  const fields = pickTaskFields(formData);
+  if (!fields.project_id)
+    return { ok: false, error: "Le projet est requis." };
+  if (!fields.title) return { ok: false, error: "Le titre est requis." };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("tasks")
+    .insert({ ...fields, created_by: session.id })
+    .select("id, project_id")
+    .single();
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/dashboard/tasks");
+  revalidatePath(`/dashboard/projects/${data.project_id}`);
+  redirect(`/dashboard/projects/${data.project_id}`);
+}
+
+export async function updateTaskAction(
+  formData: FormData,
+): Promise<ActionResult> {
+  await requireSession(); // RLS enforces who can update
+  const id = String(formData.get("id") ?? "");
+  if (!id) return { ok: false, error: "ID manquant." };
+
+  const fields = pickTaskFields(formData);
+  if (!fields.title) return { ok: false, error: "Le titre est requis." };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("tasks")
+    .update({
+      title: fields.title,
+      description: fields.description,
+      status: fields.status,
+      priority: fields.priority,
+      assignee_id: fields.assignee_id,
+      deadline: fields.deadline,
+      deliverable_url: fields.deliverable_url,
+    })
+    .eq("id", id)
+    .select("project_id")
+    .single();
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/dashboard/tasks");
+  if (data?.project_id)
+    revalidatePath(`/dashboard/projects/${data.project_id}`);
+  return { ok: true };
+}
+
+// Quick status change from the Kanban (drag/drop or dropdown).
+// Allowed for any user whose RLS lets them update the row.
+export async function changeTaskStatusAction(
+  taskId: string,
+  status: TaskStatus,
+): Promise<ActionResult> {
+  await requireSession();
+  if (!STATUSES.includes(status)) {
+    return { ok: false, error: "Statut invalide." };
+  }
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("tasks")
+    .update({ status })
+    .eq("id", taskId)
+    .select("project_id")
+    .single();
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/dashboard/tasks");
+  if (data?.project_id)
+    revalidatePath(`/dashboard/projects/${data.project_id}`);
+  return { ok: true };
+}
+
+export async function deleteTaskAction(
+  formData: FormData,
+): Promise<ActionResult> {
+  await requireWorkerOrAdmin();
+  const id = String(formData.get("id") ?? "");
+  const projectId = String(formData.get("project_id") ?? "");
+  if (!id) return { ok: false, error: "ID manquant." };
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("tasks").delete().eq("id", id);
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/dashboard/tasks");
+  if (projectId) revalidatePath(`/dashboard/projects/${projectId}`);
+  redirect(projectId ? `/dashboard/projects/${projectId}` : "/dashboard/tasks");
+}
