@@ -1,11 +1,48 @@
 import { type HTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
-export function Card({ className, ...rest }: HTMLAttributes<HTMLDivElement>) {
+type CardProps = HTMLAttributes<HTMLDivElement> & {
+  /** Adds a subtle hover-lift + shadow transition */
+  interactive?: boolean;
+  /** Use a gradient border (brand → accent). Best for hero cards. */
+  bordered?: "default" | "gradient" | "accent";
+};
+
+export function Card({
+  className,
+  interactive,
+  bordered = "default",
+  ...rest
+}: CardProps) {
+  if (bordered === "gradient") {
+    return (
+      <div
+        className={cn(
+          "ring-gradient rounded-2xl shadow-soft",
+          interactive && "lift",
+          className,
+        )}
+        {...rest}
+      />
+    );
+  }
+  if (bordered === "accent") {
+    return (
+      <div
+        className={cn(
+          "rounded-2xl border border-accent/30 bg-white shadow-soft",
+          interactive && "lift",
+          className,
+        )}
+        {...rest}
+      />
+    );
+  }
   return (
     <div
       className={cn(
-        "rounded-xl border border-ink/10 bg-white shadow-sm",
+        "rounded-2xl border border-ink/8 bg-white shadow-soft",
+        interactive && "lift",
         className,
       )}
       {...rest}
@@ -32,7 +69,7 @@ export function CardTitle({
   return (
     <h3
       className={cn(
-        "text-base font-semibold text-ink leading-none",
+        "text-base font-semibold tracking-tight text-ink leading-none",
         className,
       )}
       {...rest}

@@ -26,73 +26,99 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="relative grid min-h-screen place-items-center bg-cream bg-hero-mesh px-4 py-12">
+    <main className="relative grid min-h-screen place-items-center bg-cream bg-mesh px-4 py-12">
+      {/* Animated brand orbs */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -left-40 top-1/4 h-80 w-80 rounded-full bg-brand/15 blur-3xl" />
-        <div className="absolute -right-32 bottom-10 h-96 w-96 rounded-full bg-accent/10 blur-3xl" />
+        <div className="absolute -left-32 top-1/4 h-96 w-96 rounded-full bg-brand/15 blur-3xl animate-[float_8s_ease-in-out_infinite]" />
+        <div className="absolute -right-32 bottom-1/4 h-[28rem] w-[28rem] rounded-full bg-accent/12 blur-3xl animate-[float_10s_ease-in-out_infinite_1s]" />
+        <div className="absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-ink/5 blur-3xl" />
       </div>
 
-      <div className="relative w-full max-w-sm space-y-6">
+      <style jsx>{`
+        @keyframes float {
+          0%,
+          100% {
+            transform: translateY(0) translateX(0);
+          }
+          50% {
+            transform: translateY(-20px) translateX(10px);
+          }
+        }
+      `}</style>
+
+      <div className="reveal relative w-full max-w-sm space-y-6">
         <div className="flex items-center justify-between">
-          <BrandLogo width={140} className="text-brand" />
+          <BrandLogo width={150} className="text-brand" />
           <LanguageToggle />
         </div>
 
-        <Card className="border-ink/10 shadow-brand-glow">
-          <CardHeader>
-            <CardTitle className="text-lg">{t.login.title}</CardTitle>
-            <p className="text-xs text-ink/50">{t.tagline}</p>
-          </CardHeader>
-          <CardContent>
-            <form className="space-y-4" onSubmit={onSubmit}>
-              <div className="space-y-1.5">
-                <label
-                  htmlFor="username"
-                  className="text-sm font-medium text-ink/80"
-                >
-                  {t.login.username}
-                </label>
-                <Input
-                  id="username"
-                  name="username"
-                  type="text"
-                  autoComplete="username"
-                  autoCapitalize="none"
-                  placeholder="heythem"
-                  required
-                />
-                <p className="text-xs text-ink/50">{t.login.usernameHint}</p>
-              </div>
-              <div className="space-y-1.5">
-                <label
-                  htmlFor="password"
-                  className="text-sm font-medium text-ink/80"
-                >
-                  {t.login.password}
-                </label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                />
-              </div>
+        <Card bordered="gradient" className="overflow-hidden">
+          <div className="bg-white/95 backdrop-blur-sm">
+            <CardHeader className="pb-2">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-brand">
+                Espace privé
+              </p>
+              <CardTitle className="mt-1 text-xl">{t.login.title}</CardTitle>
+              <p className="text-xs text-ink/55">{t.tagline}</p>
+            </CardHeader>
+            <CardContent>
+              <form className="space-y-4" onSubmit={onSubmit}>
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="username"
+                    className="text-[11px] font-semibold uppercase tracking-wider text-ink/60"
+                  >
+                    {t.login.username}
+                  </label>
+                  <Input
+                    id="username"
+                    name="username"
+                    type="text"
+                    autoComplete="username"
+                    autoCapitalize="none"
+                    placeholder="heythem"
+                    required
+                  />
+                  <p className="text-xs text-ink/45">{t.login.usernameHint}</p>
+                </div>
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="password"
+                    className="text-[11px] font-semibold uppercase tracking-wider text-ink/60"
+                  >
+                    {t.login.password}
+                  </label>
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    autoComplete="current-password"
+                    required
+                  />
+                </div>
 
-              {error && (
-                <p className="text-sm text-red-600" role="alert">
-                  {error}
-                </p>
-              )}
+                {error && (
+                  <div
+                    className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+                    role="alert"
+                  >
+                    {error}
+                  </div>
+                )}
 
-              <Button type="submit" className="w-full" disabled={pending}>
-                {pending ? "..." : t.login.submit}
-              </Button>
+                <Button type="submit" className="w-full" disabled={pending}>
+                  {pending ? "..." : t.login.submit} →
+                </Button>
 
-              <p className="text-xs text-ink/50">{t.login.noAccount}</p>
-            </form>
-          </CardContent>
+                <p className="pt-1 text-xs text-ink/45">{t.login.noAccount}</p>
+              </form>
+            </CardContent>
+          </div>
         </Card>
+
+        <p className="text-center text-[11px] text-ink/40">
+          © {new Date().getFullYear()} Areen CUBs · Booster · IT Services
+        </p>
       </div>
     </main>
   );

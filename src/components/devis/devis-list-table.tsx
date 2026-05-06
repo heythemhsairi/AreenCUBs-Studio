@@ -88,13 +88,17 @@ export function DevisListTable({
               <TD className="text-ink/60">{formatDate(d.date)}</TD>
               <TD className="text-ink/60">{formatDate(d.due_date)}</TD>
               <TD>
-                <Badge tone={statusTone[d.status as keyof typeof statusTone]}>
+                <Badge
+                  tone={statusTone[d.status as keyof typeof statusTone]}
+                  dot={d.status === "sent" ? "pulse" : true}
+                >
                   {statusLabel[d.status] ?? d.status}
                 </Badge>
               </TD>
               <TD>
                 <Badge
                   tone={paymentTone[d.payment_status as keyof typeof paymentTone]}
+                  dot={d.payment_status === "partial" ? "pulse" : true}
                 >
                   {paymentLabel[d.payment_status] ?? d.payment_status}
                 </Badge>

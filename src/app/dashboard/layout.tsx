@@ -10,7 +10,7 @@ export default async function DashboardLayout({
   const session = await requireSession();
 
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="min-h-screen bg-cream bg-mesh">
       <Topbar
         role={session.role}
         username={session.username}
@@ -19,7 +19,9 @@ export default async function DashboardLayout({
       <MobileNav role={session.role} />
       <div className="mx-auto flex max-w-7xl">
         <Sidebar role={session.role} />
-        <main className="flex-1 px-4 py-6 md:px-8">{children}</main>
+        <main className="reveal flex-1 px-4 py-7 md:px-8 md:py-8">
+          {children}
+        </main>
       </div>
     </div>
   );
