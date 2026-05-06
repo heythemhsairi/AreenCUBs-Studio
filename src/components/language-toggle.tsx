@@ -9,7 +9,7 @@ export function LanguageToggle({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "inline-flex items-center rounded-md border border-slate-200 bg-white p-0.5 text-xs",
+        "inline-flex items-center rounded-full border border-ink/10 bg-white p-0.5 text-xs",
         className,
       )}
     >
@@ -19,10 +19,10 @@ export function LanguageToggle({ className }: { className?: string }) {
           type="button"
           onClick={() => setLocale(l)}
           className={cn(
-            "rounded px-2.5 py-1 font-medium uppercase transition-colors",
+            "rounded-full px-2.5 py-1 font-semibold uppercase transition-colors",
             locale === l
-              ? "bg-brand text-white"
-              : "text-slate-600 hover:bg-slate-100",
+              ? "bg-brand text-white shadow-sm"
+              : "text-ink/50 hover:bg-cream-dark",
           )}
         >
           {l}

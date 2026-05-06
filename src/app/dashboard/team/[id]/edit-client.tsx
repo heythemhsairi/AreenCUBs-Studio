@@ -1,17 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useI18n } from "@/lib/i18n/provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar } from "@/components/avatar";
 import { PageHeader } from "@/components/dashboard/page-header";
 import {
   updateTeamMemberAction,
   resetTeamMemberPasswordAction,
   deleteTeamMemberAction,
+  uploadAvatarAction,
+  removeAvatarAction,
 } from "../actions";
 import type { UserRole } from "@/lib/utils";
 
@@ -21,6 +24,7 @@ type Member = {
   full_name: string | null;
   role: UserRole;
   email: string;
+  avatar_url: string | null;
 };
 
 export function TeamEditClient({
@@ -43,10 +47,89 @@ export function TeamEditClient({
         }
       />
 
+      <AvatarCard member={member} />
       <ProfileForm member={member} isSelf={isSelf} />
       <PasswordResetCard memberId={member.id} />
       {!isSelf && <DeleteCard memberId={member.id} />}
     </div>
+  );
+}
+
+function AvatarCard({ member }: { member: Member }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+  const [removePending, startRemove] = useTransition();
+
+  function onFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setError(null);
+    const fd = new FormData();
+    fd.set("id", member.id);
+    fd.set("avatar", file);
+    startTransition(async () => {
+      const res = await uploadAvatarAction(fd);
+      if (!res.ok) setError(res.error);
+      if (inputRef.current) inputRef.current.value = "";
+    });
+  }
+
+  function onRemove() {
+    if (!confirm("Supprimer la photo de profil ?")) return;
+    const fd = new FormData();
+    fd.set("id", member.id);
+    startRemove(async () => {
+      await removeAvatarAction(fd);
+    });
+  }
+
+  return (
+    <Card className="max-w-xl">
+      <CardHeader>
+        <CardTitle>Photo</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-center gap-5">
+          <Avatar
+            src={member.avatar_url}
+            name={member.full_name ?? member.username}
+            size="xl"
+          />
+          <div className="space-y-2">
+            <label>
+              <input
+                ref={inputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={onFile}
+                disabled={pending}
+              />
+              <span
+                className="inline-flex h-9 cursor-pointer items-center justify-center rounded-md bg-brand px-4 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-dark"
+                role="button"
+              >
+                {pending ? "Téléversement…" : "Téléverser une image"}
+              </span>
+            </label>
+            {member.avatar_url && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={onRemove}
+                disabled={removePending}
+              >
+                {removePending ? "…" : "Retirer la photo"}
+              </Button>
+            )}
+            <p className="text-xs text-ink/50">JPG, PNG ou WebP — 4 Mo max.</p>
+            {error && <p className="text-sm text-red-600">{error}</p>}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -94,14 +177,13 @@ function ProfileForm({ member, isSelf }: { member: Member; isSelf: boolean }) {
               name="role"
               defaultValue={member.role}
               disabled={isSelf}
-              title={isSelf ? t.team.cannotChangeOwnRole : undefined}
             >
               <option value="admin">{t.roles.admin}</option>
               <option value="worker">{t.roles.worker}</option>
               <option value="freelancer">{t.roles.freelancer}</option>
             </Select>
             {isSelf && (
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-ink/50">
                 {t.team.cannotChangeOwnRole}
               </p>
             )}
@@ -196,7 +278,7 @@ function DeleteCard({ memberId }: { memberId: string }) {
         <CardTitle className="text-red-700">{t.common.delete}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        <p className="text-sm text-slate-600">{t.team.deleteConfirm}</p>
+        <p className="text-sm text-ink/70">{t.team.deleteConfirm}</p>
         {error && <p className="text-sm text-red-600">{error}</p>}
         <Button
           type="button"
@@ -221,7 +303,7 @@ function Field({
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="text-sm font-medium text-slate-700">{label}</label>
+      <label className="text-sm font-medium text-ink/80">{label}</label>
       {children}
     </div>
   );

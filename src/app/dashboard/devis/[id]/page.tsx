@@ -8,7 +8,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/table";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { formatDevisNumber, formatDt, formatDate } from "@/lib/format";
-import { DevisStatusActions, RecordPaymentForm, DeleteDevisButton } from "./actions-client";
+import {
+  DevisStatusActions,
+  PaymentSection,
+  DeleteDevisButton,
+} from "./actions-client";
 
 const statusTone = {
   draft: "slate",
@@ -23,6 +27,19 @@ const paymentTone = {
   paid: "green",
 } as const;
 
+const statusLabel: Record<string, string> = {
+  draft: "Brouillon",
+  sent: "Envoyé",
+  accepted: "Accepté",
+  rejected: "Refusé",
+};
+
+const paymentLabel: Record<string, string> = {
+  unpaid: "Impayé",
+  partial: "Partiel",
+  paid: "Payé",
+};
+
 export default async function DevisDetailPage({
   params,
 }: {
@@ -35,7 +52,7 @@ export default async function DevisDetailPage({
   const { data: devis } = await supabase
     .from("devis")
     .select(
-      "id, devis_number, date, due_date, object, notes, status, payment_status, subtotal_dt, tva_dt, tva_rate, total_dt, clients:client_id(id, name, address, matricule_fiscal), devis_items(id, description, quantity, unit_price_dt, line_total_dt, is_bonus, position)",
+      "id, kind, devis_number, date, due_date, object, notes, status, payment_status, subtotal_dt, tva_dt, tva_rate, total_dt, clients:client_id(id, name, address, matricule_fiscal), devis_items(id, description, quantity, unit_price_dt, line_total_dt, is_bonus, position)",
     )
     .eq("id", id)
     .single();
@@ -56,15 +73,18 @@ export default async function DevisDetailPage({
     (s, p) => s + Number(p.amount_dt ?? 0),
     0,
   );
-  const remaining = +(Number(devis.total_dt) - paidSum).toFixed(2);
+
+  const kind = (devis.kind as "devis" | "facture") ?? "devis";
+  const docLabel = kind === "facture" ? "Facture" : "Devis";
+  const baseListUrl = kind === "facture" ? "/dashboard/factures" : "/dashboard/devis";
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title={formatDevisNumber(devis.devis_number)}
+        title={`${docLabel} ${formatDevisNumber(devis.devis_number, kind)}`}
         subtitle={
-          <Link href="/dashboard/devis" className="hover:underline">
-            ← Devis
+          <Link href={baseListUrl} className="hover:underline">
+            ← {kind === "facture" ? "Factures" : "Devis"}
           </Link>
         }
         action={
@@ -74,16 +94,16 @@ export default async function DevisDetailPage({
               target="_blank"
               rel="noreferrer"
             >
-              <Button variant="outline" size="sm">
+              <Button variant="ink" size="sm">
                 Imprimer / PDF
               </Button>
             </Link>
-            <Link href={`/dashboard/devis/${devis.id}/edit`}>
+            <Link href={`${baseListUrl}/${devis.id}/edit`}>
               <Button variant="outline" size="sm">
                 Modifier
               </Button>
             </Link>
-            <DeleteDevisButton devisId={devis.id} />
+            <DeleteDevisButton devisId={devis.id} kind={kind} />
           </div>
         }
       />
@@ -91,32 +111,32 @@ export default async function DevisDetailPage({
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardContent className="p-4">
-            <p className="text-xs uppercase tracking-wide text-slate-500">
+            <p className="text-xs uppercase tracking-wide text-ink/50">
               Client
             </p>
-            <p className="mt-1 font-medium text-slate-900">
+            <p className="mt-1 font-medium text-ink">
               {client?.name ?? "—"}
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
-            <p className="text-xs uppercase tracking-wide text-slate-500">
+            <p className="text-xs uppercase tracking-wide text-ink/50">
               Date / Échéance
             </p>
-            <p className="mt-1 text-sm text-slate-800">
+            <p className="mt-1 text-sm text-ink">
               {formatDate(devis.date)} → {formatDate(devis.due_date)}
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
-            <p className="text-xs uppercase tracking-wide text-slate-500">
+            <p className="text-xs uppercase tracking-wide text-ink/50">
               Statut
             </p>
             <div className="mt-1 flex items-center gap-2">
               <Badge tone={statusTone[devis.status as keyof typeof statusTone]}>
-                {devis.status}
+                {statusLabel[devis.status] ?? devis.status}
               </Badge>
               <Badge
                 tone={
@@ -125,17 +145,17 @@ export default async function DevisDetailPage({
                   ]
                 }
               >
-                {devis.payment_status}
+                {paymentLabel[devis.payment_status] ?? devis.payment_status}
               </Badge>
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
-            <p className="text-xs uppercase tracking-wide text-slate-500">
+            <p className="text-xs uppercase tracking-wide text-ink/50">
               Total TTC
             </p>
-            <p className="mt-1 text-lg font-semibold text-slate-900">
+            <p className="mt-1 text-lg font-semibold text-ink">
               {formatDt(devis.total_dt)}
             </p>
           </CardContent>
@@ -165,11 +185,11 @@ export default async function DevisDetailPage({
               {items.map((it) => (
                 <TR key={it.id}>
                   <TD>{it.description}</TD>
-                  <TD className="text-right text-slate-600">
+                  <TD className="text-right text-ink/60">
                     {it.is_bonus ? "Bonus" : formatDt(it.unit_price_dt)}
                   </TD>
-                  <TD className="text-right text-slate-600">{it.quantity}</TD>
-                  <TD className="text-right font-medium text-slate-900">
+                  <TD className="text-right text-ink/60">{it.quantity}</TD>
+                  <TD className="text-right font-medium text-ink">
                     {it.is_bonus ? "Bonus" : formatDt(it.line_total_dt)}
                   </TD>
                 </TR>
@@ -187,22 +207,11 @@ export default async function DevisDetailPage({
                 label={`TVA (${Number(devis.tva_rate).toFixed(0)}%)`}
                 value={formatDt(devis.tva_dt)}
               />
-              <div className="border-t border-slate-200 pt-2">
+              <div className="border-t border-ink/10 pt-2">
                 <Row
                   label="Total TTC"
                   value={formatDt(devis.total_dt)}
                   bold
-                />
-              </div>
-              <div className="border-t border-slate-200 pt-2 text-slate-500">
-                <Row
-                  label="Encaissé"
-                  value={formatDt(paidSum)}
-                />
-                <Row
-                  label="Restant"
-                  value={formatDt(remaining)}
-                  bold={remaining > 0.01}
                 />
               </div>
             </div>
@@ -211,9 +220,10 @@ export default async function DevisDetailPage({
       </Card>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <RecordPaymentForm
+        <PaymentSection
           devisId={devis.id}
-          remaining={remaining}
+          totalDt={Number(devis.total_dt)}
+          paidDt={paidSum}
         />
 
         <Card>
@@ -226,22 +236,22 @@ export default async function DevisDetailPage({
                 {payments.map((p) => (
                   <li
                     key={p.id}
-                    className="flex items-center justify-between border-b border-slate-100 pb-2 last:border-0"
+                    className="flex items-center justify-between border-b border-ink/5 pb-2 last:border-0"
                   >
                     <span>
                       {formatDate(p.paid_at)}{" "}
                       {p.method && (
-                        <span className="text-slate-500">· {p.method}</span>
+                        <span className="text-ink/50">· {p.method}</span>
                       )}
                     </span>
-                    <span className="font-medium text-slate-900">
+                    <span className="font-medium text-ink">
                       {formatDt(p.amount_dt)}
                     </span>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-slate-500">Aucun paiement enregistré.</p>
+              <p className="text-sm text-ink/50">Aucun paiement enregistré.</p>
             )}
           </CardContent>
         </Card>
@@ -261,12 +271,12 @@ function Row({
 }) {
   return (
     <div className="flex items-center justify-between">
-      <span className={bold ? "font-semibold text-slate-900" : "text-slate-600"}>
+      <span className={bold ? "font-semibold text-ink" : "text-ink/60"}>
         {label}
       </span>
       <span
         className={
-          bold ? "text-base font-semibold text-slate-900" : "text-slate-800"
+          bold ? "text-base font-semibold text-ink" : "text-ink"
         }
       >
         {value}

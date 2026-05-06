@@ -8,6 +8,7 @@ export type SessionProfile = {
   username: string;
   full_name: string | null;
   role: UserRole;
+  avatar_url: string | null;
 };
 
 export async function requireSession(): Promise<SessionProfile> {
@@ -19,7 +20,7 @@ export async function requireSession(): Promise<SessionProfile> {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, username, full_name, role")
+    .select("id, username, full_name, role, avatar_url")
     .eq("id", user.id)
     .single();
 
@@ -30,6 +31,7 @@ export async function requireSession(): Promise<SessionProfile> {
       username: user.email?.split("@")[0] ?? "user",
       full_name: null,
       role: "freelancer",
+      avatar_url: null,
     };
   }
 
@@ -39,6 +41,7 @@ export async function requireSession(): Promise<SessionProfile> {
     username: profile.username,
     full_name: profile.full_name,
     role: profile.role as UserRole,
+    avatar_url: profile.avatar_url,
   };
 }
 

@@ -23,7 +23,7 @@ type Service = {
 type Client = { id: string; name: string };
 
 type LineItem = {
-  key: string; // local-only for React keys
+  key: string;
   service_id: string | null;
   description: string;
   quantity: number;
@@ -47,9 +47,12 @@ type Devis = {
   }>;
 };
 
+export type DevisKind = "devis" | "facture";
+
 type Props =
   | {
       mode: "create";
+      kind: DevisKind;
       defaultClientId?: string;
       clients: Client[];
       services: Service[];
@@ -57,6 +60,7 @@ type Props =
     }
   | {
       mode: "edit";
+      kind: DevisKind;
       devis: Devis;
       clients: Client[];
       services: Service[];
@@ -76,6 +80,8 @@ export function DevisBuilder(props: Props) {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
+  const docLabel = props.kind === "facture" ? "Facture" : "Devis";
+
   const [clientId, setClientId] = useState(
     props.mode === "edit"
       ? props.devis.client_id
@@ -90,7 +96,9 @@ export function DevisBuilder(props: Props) {
   const [object, setObject] = useState(
     props.mode === "edit"
       ? (props.devis.object ?? "")
-      : "Création d'identité visuelle et supports de communication",
+      : props.kind === "facture"
+        ? "Facture pour services rendus"
+        : "Création d'identité visuelle et supports de communication",
   );
   const [notes, setNotes] = useState(
     props.mode === "edit" ? (props.devis.notes ?? "") : "",
@@ -163,6 +171,7 @@ export function DevisBuilder(props: Props) {
     const fd = new FormData();
     if (props.mode === "edit") fd.set("id", props.devis.id);
     fd.set("client_id", clientId);
+    fd.set("kind", props.kind);
     fd.set("date", date);
     fd.set("due_date", dueDate);
     fd.set("object", object);
@@ -189,13 +198,20 @@ export function DevisBuilder(props: Props) {
     });
   }
 
+  const baseListUrl =
+    props.kind === "facture" ? "/dashboard/factures" : "/dashboard/devis";
+
   return (
     <div className="space-y-6">
       <PageHeader
-        title={props.mode === "create" ? "Nouveau devis" : "Modifier le devis"}
+        title={
+          props.mode === "create"
+            ? `Nouveau ${docLabel.toLowerCase()}`
+            : `Modifier ${docLabel.toLowerCase()}`
+        }
         subtitle={
-          <Link href="/dashboard/devis" className="hover:underline">
-            ← Devis
+          <Link href={baseListUrl} className="hover:underline">
+            ← {props.kind === "facture" ? "Factures" : "Devis"}
           </Link>
         }
       />
@@ -225,7 +241,6 @@ export function DevisBuilder(props: Props) {
                 <Input
                   value={object}
                   onChange={(e) => setObject(e.target.value)}
-                  placeholder="Création d'identité visuelle…"
                 />
               </Field>
               <Field label="Date">
@@ -253,7 +268,7 @@ export function DevisBuilder(props: Props) {
             <CardTitle>Lignes</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="hidden grid-cols-12 gap-2 text-xs font-medium uppercase tracking-wide text-slate-500 md:grid">
+            <div className="hidden grid-cols-12 gap-2 text-xs font-medium uppercase tracking-wide text-ink/50 md:grid">
               <div className="col-span-5">Description</div>
               <div className="col-span-2">P.U. (DT)</div>
               <div className="col-span-1">Qté</div>
@@ -265,7 +280,7 @@ export function DevisBuilder(props: Props) {
             {items.map((item) => (
               <div
                 key={item.key}
-                className="grid grid-cols-1 gap-2 rounded-md border border-slate-200 bg-white p-3 md:grid-cols-12 md:items-center md:border-0 md:bg-transparent md:p-0"
+                className="grid grid-cols-1 gap-2 rounded-md border border-ink/10 bg-cream/40 p-3 md:grid-cols-12 md:items-center md:border-0 md:bg-transparent md:p-0"
               >
                 <div className="md:col-span-5">
                   <Select
@@ -321,12 +336,12 @@ export function DevisBuilder(props: Props) {
                     }
                   />
                 </div>
-                <div className="font-medium text-slate-700 md:col-span-2 md:text-right">
+                <div className="font-medium text-ink md:col-span-2 md:text-right">
                   {item.is_bonus
                     ? "Bonus"
                     : formatDt(item.quantity * (item.unit_price_dt || 0))}
                 </div>
-                <label className="flex items-center justify-center gap-1.5 text-xs text-slate-600 md:col-span-1">
+                <label className="flex items-center justify-center gap-1.5 text-xs text-ink/60 md:col-span-1">
                   <input
                     type="checkbox"
                     checked={item.is_bonus}
@@ -373,7 +388,7 @@ export function DevisBuilder(props: Props) {
             <div className="space-y-1.5 text-sm">
               <Row label="Sous total" value={formatDt(totals.subtotal)} />
               <Row label="TVA (19%)" value={formatDt(totals.tva)} />
-              <div className="border-t border-slate-200 pt-2">
+              <div className="border-t border-ink/10 pt-2">
                 <Row
                   label="Total TTC"
                   value={formatDt(totals.total)}
@@ -404,16 +419,16 @@ export function DevisBuilder(props: Props) {
             {pending
               ? t.common.saving
               : props.mode === "create"
-                ? "Créer le devis"
+                ? `Créer ${props.kind === "facture" ? "la facture" : "le devis"}`
                 : t.common.save}
           </Button>
           <Link
             href={
               props.mode === "create"
-                ? "/dashboard/devis"
-                : `/dashboard/devis/${props.devis.id}`
+                ? baseListUrl
+                : `${baseListUrl}/${props.devis.id}`
             }
-            className="text-sm text-slate-500 hover:text-slate-800"
+            className="text-sm text-ink/50 hover:text-ink"
           >
             {t.common.cancel}
           </Link>
@@ -432,7 +447,7 @@ function Field({
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="text-sm font-medium text-slate-700">{label}</label>
+      <label className="text-sm font-medium text-ink/80">{label}</label>
       {children}
     </div>
   );
@@ -449,12 +464,12 @@ function Row({
 }) {
   return (
     <div className="flex items-center justify-between">
-      <span className={bold ? "font-semibold text-slate-900" : "text-slate-600"}>
+      <span className={bold ? "font-semibold text-ink" : "text-ink/60"}>
         {label}
       </span>
       <span
         className={
-          bold ? "text-base font-semibold text-slate-900" : "text-slate-800"
+          bold ? "text-base font-semibold text-ink" : "text-ink"
         }
       >
         {value}

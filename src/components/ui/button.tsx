@@ -1,7 +1,7 @@
 import { forwardRef, type ButtonHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
-type Variant = "primary" | "ghost" | "outline";
+type Variant = "primary" | "ghost" | "outline" | "accent" | "ink";
 type Size = "sm" | "md" | "lg";
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -11,11 +11,15 @@ type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const variantClass: Record<Variant, string> = {
   primary:
-    "bg-brand text-white hover:bg-brand-dark focus-visible:ring-brand disabled:opacity-50",
+    "bg-brand text-white hover:bg-brand-dark focus-visible:ring-brand shadow-sm hover:shadow-brand-glow disabled:opacity-50 disabled:hover:bg-brand disabled:hover:shadow-none",
+  accent:
+    "bg-accent text-ink hover:bg-accent-dark hover:text-white focus-visible:ring-accent shadow-sm hover:shadow-accent-glow disabled:opacity-50",
+  ink:
+    "bg-ink text-cream hover:bg-ink-soft focus-visible:ring-ink shadow-sm disabled:opacity-50",
   ghost:
-    "bg-transparent text-slate-700 hover:bg-slate-100 focus-visible:ring-slate-300",
+    "bg-transparent text-ink/80 hover:bg-ink/5 focus-visible:ring-ink/20",
   outline:
-    "border border-slate-300 bg-white text-slate-800 hover:bg-slate-50 focus-visible:ring-slate-300",
+    "border border-ink/15 bg-white text-ink hover:bg-cream-dark focus-visible:ring-ink/20",
 };
 
 const sizeClass: Record<Size, string> = {
@@ -32,7 +36,7 @@ export const Button = forwardRef<HTMLButtonElement, Props>(function Button(
     <button
       ref={ref}
       className={cn(
-        "inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed",
+        "inline-flex items-center justify-center rounded-md font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-cream disabled:cursor-not-allowed",
         variantClass[variant],
         sizeClass[size],
         className,

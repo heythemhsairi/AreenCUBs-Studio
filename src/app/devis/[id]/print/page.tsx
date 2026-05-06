@@ -19,7 +19,7 @@ export default async function DevisPrintPage({
   const { data: devis } = await supabase
     .from("devis")
     .select(
-      "id, devis_number, date, due_date, object, subtotal_dt, tva_dt, tva_rate, total_dt, clients:client_id(id, name, address, matricule_fiscal), devis_items(id, description, quantity, unit_price_dt, line_total_dt, is_bonus, position)",
+      "id, kind, devis_number, date, due_date, object, subtotal_dt, tva_dt, tva_rate, total_dt, clients:client_id(id, name, address, matricule_fiscal), devis_items(id, description, quantity, unit_price_dt, line_total_dt, is_bonus, position)",
     )
     .eq("id", id)
     .single();
@@ -33,6 +33,7 @@ export default async function DevisPrintPage({
   return (
     <DevisPrintView
       devis={{
+        kind: (devis.kind as "devis" | "facture") ?? "devis",
         devis_number: devis.devis_number,
         date: devis.date,
         due_date: devis.due_date,

@@ -8,5 +8,12 @@ body {
 }
 
 body {
-  @apply bg-slate-50 text-slate-900 antialiased;
+  @apply bg-cream text-ink antialiased;
+  font-family: var(--font-franklin), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Helvetica, Arial, sans-serif;
+}
+
+::selection {
+  background: rgba(59, 139, 186, 0.25);
+  color: #1e1e24;
 }

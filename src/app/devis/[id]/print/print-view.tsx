@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect } from "react";
+import { BrandLogo } from "@/components/brand-logo";
 import { formatDevisNumber, formatDt, formatDate } from "@/lib/format";
 
 type Devis = {
+  kind: "devis" | "facture";
   devis_number: number;
   date: string;
   due_date: string;
@@ -37,28 +39,42 @@ export function DevisPrintView({
   client: Client;
   items: Item[];
 }) {
-  // Auto-open the print dialog after layout settles, but only on first load.
   useEffect(() => {
     const t = setTimeout(() => window.print(), 400);
     return () => clearTimeout(t);
   }, []);
 
+  const isFacture = devis.kind === "facture";
+  const docTitle = isFacture ? "Facture." : "Devis.";
+  const numberLabel = isFacture ? "#FACT" : "#EST";
+  const numberFormatted = formatDevisNumber(devis.devis_number, devis.kind).replace(
+    /^(EST|FACT)-/,
+    "",
+  );
+
   return (
     <div className="devis-page">
       <header className="devis-header">
-        <h1 className="devis-title">Devis.</h1>
+        <h1 className="devis-title">{docTitle}</h1>
         <div className="brand">
-          <div className="brand-name">AREEN CUBs</div>
-          <div className="brand-tag">BOOSTER INCUBATOR / IT SERVICES</div>
+          <BrandLogo width={170} className="brand-logo" />
         </div>
       </header>
 
       <section className="meta">
-        <div className="meta-no">#EST : {formatDevisNumber(devis.devis_number).replace(/^EST-/, "")}</div>
-        <div className="meta-row"><strong>Date :</strong> {formatDate(devis.date)}</div>
-        <div className="meta-row"><strong>Échéance :</strong> {formatDate(devis.due_date)}</div>
+        <div className="meta-no">
+          {numberLabel} : {numberFormatted}
+        </div>
+        <div className="meta-row">
+          <strong>Date :</strong> {formatDate(devis.date)}
+        </div>
+        <div className="meta-row">
+          <strong>Échéance :</strong> {formatDate(devis.due_date)}
+        </div>
         {devis.object && (
-          <div className="meta-row"><strong>Objet :</strong> {devis.object}</div>
+          <div className="meta-row">
+            <strong>Objet :</strong> {devis.object}
+          </div>
         )}
       </section>
 
@@ -80,7 +96,9 @@ export function DevisPrintView({
             <div className="party-name">{client?.name ?? "—"}</div>
             {client?.address && <div>Adresse: {client.address}</div>}
             {client?.matricule_fiscal && (
-              <div className="mt">Matricule Fiscal: {client.matricule_fiscal}</div>
+              <div className="mt">
+                Matricule Fiscal: {client.matricule_fiscal}
+              </div>
             )}
           </div>
         </div>
@@ -147,19 +165,22 @@ export function DevisPrintView({
 
       <style jsx global>{`
         :root {
-          --brand: #1f4dd9;
-          --brand-light: #e8eefc;
-          --ink: #0f172a;
-          --muted: #64748b;
+          --brand: #3b8bba;
+          --brand-dark: #2c6e96;
+          --accent: #ff9e1f;
+          --ink: #1e1e24;
+          --muted: #6b6b75;
+          --cream: #fff8f0;
         }
 
-        html, body {
+        html,
+        body {
           margin: 0;
           padding: 0;
-          background: #f1f5f9;
+          background: #f4ece0;
           color: var(--ink);
-          font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI",
-            Helvetica, Arial, sans-serif;
+          font-family: var(--font-franklin), ui-sans-serif, system-ui,
+            -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
           font-size: 11pt;
           line-height: 1.45;
         }
@@ -169,42 +190,36 @@ export function DevisPrintView({
           min-height: 297mm;
           margin: 16px auto;
           padding: 18mm 16mm 14mm;
-          background: #fff;
+          background: var(--cream);
           box-sizing: border-box;
-          box-shadow: 0 4px 24px rgba(15, 23, 42, 0.08);
+          box-shadow: 0 4px 24px rgba(30, 30, 36, 0.12);
           position: relative;
         }
 
         .devis-header {
           display: flex;
-          align-items: flex-start;
+          align-items: center;
           justify-content: space-between;
           margin-bottom: 6mm;
+          padding-bottom: 4mm;
+          border-bottom: 2px solid var(--brand);
         }
 
         .devis-title {
           margin: 0;
-          font-size: 36pt;
+          font-size: 38pt;
           font-weight: 800;
           color: var(--brand);
           letter-spacing: -1px;
+          line-height: 1;
         }
 
         .brand {
-          text-align: right;
-          color: var(--brand);
+          display: flex;
+          align-items: center;
         }
-        .brand-name {
-          font-size: 14pt;
-          font-weight: 800;
-          letter-spacing: 1px;
-        }
-        .brand-tag {
-          font-size: 7pt;
-          letter-spacing: 1.5px;
-          color: var(--brand);
-          opacity: 0.85;
-          margin-top: 1px;
+        .brand-logo {
+          color: var(--brand) !important;
         }
 
         .meta {
@@ -215,6 +230,7 @@ export function DevisPrintView({
           color: var(--brand);
           font-size: 11pt;
           margin-bottom: 2mm;
+          letter-spacing: 0.5px;
         }
         .meta-row {
           font-size: 10pt;
@@ -234,14 +250,19 @@ export function DevisPrintView({
           margin-bottom: 1mm;
         }
         .party-box {
-          background: var(--brand-light);
-          border-radius: 3mm;
+          background: rgba(59, 139, 186, 0.08);
+          border-left: 3px solid var(--brand);
+          border-radius: 2mm;
           padding: 3mm 4mm;
           font-size: 9.5pt;
         }
+        .party-box--client {
+          background: rgba(255, 158, 31, 0.08);
+          border-left-color: var(--accent);
+        }
         .party-box .party-name {
           font-weight: 800;
-          color: var(--brand);
+          color: var(--ink);
           font-size: 13pt;
           margin-bottom: 1mm;
         }
@@ -267,8 +288,11 @@ export function DevisPrintView({
         }
         .items tbody td {
           padding: 2.5mm 3mm;
-          border-bottom: 1px solid #e2e8f0;
+          border-bottom: 1px solid rgba(30, 30, 36, 0.08);
           vertical-align: top;
+        }
+        .items tbody tr:nth-child(even) td {
+          background: rgba(30, 30, 36, 0.02);
         }
         .items tbody td.right {
           text-align: right;
@@ -289,10 +313,10 @@ export function DevisPrintView({
           padding: 1.5mm 0;
         }
         .totals-row--final {
-          border-top: 1px solid #cbd5e1;
+          border-top: 1px solid var(--brand);
           margin-top: 2mm;
           padding-top: 3mm;
-          font-size: 11.5pt;
+          font-size: 12pt;
           font-weight: 800;
           color: var(--brand);
         }
@@ -308,7 +332,7 @@ export function DevisPrintView({
         }
         .signature-box {
           height: 28mm;
-          border: 1px solid #cbd5e1;
+          border: 1px dashed rgba(30, 30, 36, 0.3);
           border-radius: 2mm;
         }
 
@@ -321,7 +345,7 @@ export function DevisPrintView({
           justify-content: space-between;
           color: var(--muted);
           font-size: 9pt;
-          border-top: 1px solid #e2e8f0;
+          border-top: 1px solid rgba(30, 30, 36, 0.1);
           padding-top: 3mm;
         }
 
@@ -336,11 +360,14 @@ export function DevisPrintView({
           color: #fff;
           border: none;
           padding: 10px 16px;
-          border-radius: 6px;
+          border-radius: 999px;
           font-weight: 600;
           font-size: 13px;
           cursor: pointer;
-          box-shadow: 0 6px 16px rgba(15, 23, 42, 0.15);
+          box-shadow: 0 6px 16px rgba(59, 139, 186, 0.4);
+        }
+        .print-controls button:hover {
+          background: var(--brand-dark);
         }
 
         @page {
@@ -349,7 +376,8 @@ export function DevisPrintView({
         }
 
         @media print {
-          html, body {
+          html,
+          body {
             background: #fff;
           }
           .devis-page {

@@ -39,7 +39,6 @@ export async function createTeamMemberAction(
   const admin = createAdminClient();
   const email = usernameToEmail(username);
 
-  // 1) Create auth user
   const { data: created, error: createErr } = await admin.auth.admin.createUser({
     email,
     password,
@@ -53,7 +52,6 @@ export async function createTeamMemberAction(
     };
   }
 
-  // 2) Insert profile row
   const { error: profileErr } = await admin.from("profiles").insert({
     id: created.user.id,
     username,
@@ -61,7 +59,6 @@ export async function createTeamMemberAction(
     role,
   });
   if (profileErr) {
-    // Roll back the auth user so we don't leave an orphan
     await admin.auth.admin.deleteUser(created.user.id);
     return { ok: false, error: profileErr.message };
   }
@@ -134,7 +131,6 @@ export async function deleteTeamMemberAction(
   }
 
   const admin = createAdminClient();
-  // Profile cascade-deletes via FK; deleting the auth user removes both.
   const { error } = await admin.auth.admin.deleteUser(id);
   if (error) return { ok: false, error: error.message };
 
@@ -142,17 +138,132 @@ export async function deleteTeamMemberAction(
   redirect("/dashboard/team");
 }
 
-// Internal helper: list users with their auth emails (admin only).
+export async function uploadAvatarAction(
+  formData: FormData,
+): Promise<ActionResult> {
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  const file = formData.get("avatar");
+
+  if (!id) return { ok: false, error: "ID manquant." };
+  if (!(file instanceof File) || file.size === 0) {
+    return { ok: false, error: "Fichier manquant." };
+  }
+  if (file.size > 4 * 1024 * 1024) {
+    return { ok: false, error: "Image trop grande (max 4 Mo)." };
+  }
+  if (!file.type.startsWith("image/")) {
+    return { ok: false, error: "Le fichier doit être une image." };
+  }
+
+  const ext = file.name.split(".").pop()?.toLowerCase() ?? "png";
+  const path = `${id}/${Date.now()}.${ext}`;
+
+  const admin = createAdminClient();
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const { error: uploadErr } = await admin.storage
+    .from("avatars")
+    .upload(path, buffer, {
+      contentType: file.type,
+      upsert: true,
+    });
+  if (uploadErr) return { ok: false, error: uploadErr.message };
+
+  const {
+    data: { publicUrl },
+  } = admin.storage.from("avatars").getPublicUrl(path);
+
+  const { error: profileErr } = await admin
+    .from("profiles")
+    .update({ avatar_url: publicUrl })
+    .eq("id", id);
+  if (profileErr) return { ok: false, error: profileErr.message };
+
+  revalidatePath("/dashboard/team");
+  revalidatePath(`/dashboard/team/${id}`);
+  revalidatePath("/dashboard");
+  return { ok: true };
+}
+
+export async function removeAvatarAction(
+  formData: FormData,
+): Promise<ActionResult> {
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  if (!id) return { ok: false, error: "ID manquant." };
+
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("profiles")
+    .update({ avatar_url: null })
+    .eq("id", id);
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/dashboard/team");
+  revalidatePath(`/dashboard/team/${id}`);
+  return { ok: true };
+}
+
+export async function setFeaturedEmployeeAction(
+  formData: FormData,
+): Promise<ActionResult> {
+  const session = await requireAdmin();
+  const userId = String(formData.get("user_id") ?? "");
+  const month = String(formData.get("month") ?? "");
+  const reason = String(formData.get("reason") ?? "").trim() || null;
+
+  if (!userId || !/^\d{4}-\d{2}$/.test(month)) {
+    return { ok: false, error: "Membre ou mois invalide." };
+  }
+
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("featured_employees")
+    .upsert(
+      {
+        user_id: userId,
+        month,
+        reason,
+        created_by: session.id,
+      },
+      { onConflict: "month" },
+    );
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/team");
+  revalidatePath("/dashboard/team/featured");
+  return { ok: true };
+}
+
+export async function clearFeaturedEmployeeAction(
+  formData: FormData,
+): Promise<ActionResult> {
+  await requireAdmin();
+  const month = String(formData.get("month") ?? "");
+  if (!month) return { ok: false, error: "Mois manquant." };
+
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("featured_employees")
+    .delete()
+    .eq("month", month);
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/team/featured");
+  return { ok: true };
+}
+
 export async function listTeamMembers() {
   await requireAdmin();
   const supabase = await createClient();
   const { data: profiles, error } = await supabase
     .from("profiles")
-    .select("id, username, full_name, role, created_at")
+    .select("id, username, full_name, role, avatar_url, created_at")
     .order("created_at", { ascending: true });
   if (error) throw error;
 
-  // Get emails from auth admin (only admins call this)
   const admin = createAdminClient();
   const { data: usersList } = await admin.auth.admin.listUsers({ perPage: 200 });
   const emailById = new Map(

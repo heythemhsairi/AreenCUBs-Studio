@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useI18n } from "@/lib/i18n/provider";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Avatar } from "@/components/avatar";
 import { Table, THead, TBody, TR, TH, TD, EmptyState } from "@/components/ui/table";
 import { PageHeader } from "@/components/dashboard/page-header";
 import type { UserRole } from "@/lib/utils";
@@ -13,6 +14,7 @@ type Member = {
   username: string;
   full_name: string | null;
   role: UserRole;
+  avatar_url: string | null;
   email: string;
   created_at: string;
 };
@@ -37,9 +39,14 @@ export function TeamListClient({
       <PageHeader
         title={t.team.title}
         action={
-          <Link href="/dashboard/team/new">
-            <Button>{t.team.add}</Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link href="/dashboard/team/featured">
+              <Button variant="accent">⭐ Employé du mois</Button>
+            </Link>
+            <Link href="/dashboard/team/new">
+              <Button>{t.team.add}</Button>
+            </Link>
+          </div>
         }
       />
 
@@ -59,23 +66,33 @@ export function TeamListClient({
           <TBody>
             {members.map((m) => (
               <TR key={m.id}>
-                <TD className="font-medium text-slate-900">
-                  {m.full_name ?? m.username}
-                  {m.id === currentUserId && (
-                    <span className="ml-2 text-xs text-slate-400">
-                      ({t.dashboard.welcome})
-                    </span>
-                  )}
+                <TD>
+                  <div className="flex items-center gap-3">
+                    <Avatar
+                      src={m.avatar_url}
+                      name={m.full_name ?? m.username}
+                    />
+                    <div>
+                      <p className="font-medium text-ink">
+                        {m.full_name ?? m.username}
+                      </p>
+                      {m.id === currentUserId && (
+                        <p className="text-xs text-ink/40">
+                          {t.dashboard.welcome}
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </TD>
-                <TD className="text-slate-600">@{m.username}</TD>
-                <TD className="text-slate-600">{m.email}</TD>
+                <TD className="text-ink/60">@{m.username}</TD>
+                <TD className="text-ink/60">{m.email}</TD>
                 <TD>
                   <Badge tone={roleTone[m.role]}>{t.roles[m.role]}</Badge>
                 </TD>
                 <TD className="text-right">
                   <Link
                     href={`/dashboard/team/${m.id}`}
-                    className="text-sm font-medium text-brand hover:underline"
+                    className="text-sm font-medium text-brand hover:text-brand-dark"
                   >
                     {t.common.edit}
                   </Link>

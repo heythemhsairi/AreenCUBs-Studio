@@ -71,7 +71,7 @@ export default async function FinancePage() {
       .select("amount_dt, devis_id"),
   ]);
 
-  // ---- Aggregate monthly revenue (paid vs invoiced) ----
+  // ---- Aggregate monthly revenue (paid vs invoiced; covers devis + factures) ----
   const paidByMonth = new Map<string, number>();
   for (const p of paymentRows ?? []) {
     const d = new Date(p.paid_at);
@@ -91,6 +91,7 @@ export default async function FinancePage() {
       (invoicedByMonth.get(k) ?? 0) + Number(d.total_dt ?? 0),
     );
   }
+  // Both devis and factures live in the same `devis` table — already counted.
   const monthlySeries = months.map((m) => ({
     label: m.label,
     paid: paidByMonth.get(m.key) ?? 0,

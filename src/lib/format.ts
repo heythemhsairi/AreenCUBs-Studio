@@ -1,5 +1,6 @@
-export function formatDevisNumber(n: number): string {
-  return `EST-${String(n).padStart(7, "0")}`;
+export function formatDevisNumber(n: number, kind: "devis" | "facture" = "devis"): string {
+  const prefix = kind === "facture" ? "FACT" : "EST";
+  return `${prefix}-${String(n).padStart(7, "0")}`;
 }
 
 export function formatDt(value: number): string {

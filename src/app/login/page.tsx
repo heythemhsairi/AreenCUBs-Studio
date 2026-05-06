@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LanguageToggle } from "@/components/language-toggle";
+import { BrandLogo } from "@/components/brand-logo";
 import { useI18n } from "@/lib/i18n/provider";
 import { signInAction } from "./actions";
 
@@ -25,28 +26,29 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="grid min-h-screen place-items-center bg-slate-50 px-4">
-      <div className="w-full max-w-sm space-y-6">
+    <main className="relative grid min-h-screen place-items-center bg-cream bg-hero-mesh px-4 py-12">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -left-40 top-1/4 h-80 w-80 rounded-full bg-brand/15 blur-3xl" />
+        <div className="absolute -right-32 bottom-10 h-96 w-96 rounded-full bg-accent/10 blur-3xl" />
+      </div>
+
+      <div className="relative w-full max-w-sm space-y-6">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-semibold text-slate-900">
-              {t.appName}
-            </h1>
-            <p className="text-sm text-slate-500">{t.tagline}</p>
-          </div>
+          <BrandLogo width={140} className="text-brand" />
           <LanguageToggle />
         </div>
 
-        <Card>
+        <Card className="border-ink/10 shadow-brand-glow">
           <CardHeader>
-            <CardTitle>{t.login.title}</CardTitle>
+            <CardTitle className="text-lg">{t.login.title}</CardTitle>
+            <p className="text-xs text-ink/50">{t.tagline}</p>
           </CardHeader>
           <CardContent>
             <form className="space-y-4" onSubmit={onSubmit}>
               <div className="space-y-1.5">
                 <label
                   htmlFor="username"
-                  className="text-sm font-medium text-slate-700"
+                  className="text-sm font-medium text-ink/80"
                 >
                   {t.login.username}
                 </label>
@@ -59,14 +61,12 @@ export default function LoginPage() {
                   placeholder="heythem"
                   required
                 />
-                <p className="text-xs text-slate-500">
-                  {t.login.usernameHint}
-                </p>
+                <p className="text-xs text-ink/50">{t.login.usernameHint}</p>
               </div>
               <div className="space-y-1.5">
                 <label
                   htmlFor="password"
-                  className="text-sm font-medium text-slate-700"
+                  className="text-sm font-medium text-ink/80"
                 >
                   {t.login.password}
                 </label>
@@ -89,7 +89,7 @@ export default function LoginPage() {
                 {pending ? "..." : t.login.submit}
               </Button>
 
-              <p className="text-xs text-slate-500">{t.login.noAccount}</p>
+              <p className="text-xs text-ink/50">{t.login.noAccount}</p>
             </form>
           </CardContent>
         </Card>

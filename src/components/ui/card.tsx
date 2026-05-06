@@ -5,7 +5,7 @@ export function Card({ className, ...rest }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       className={cn(
-        "rounded-lg border border-slate-200 bg-white shadow-sm",
+        "rounded-xl border border-ink/10 bg-white shadow-sm",
         className,
       )}
       {...rest}
@@ -32,7 +32,7 @@ export function CardTitle({
   return (
     <h3
       className={cn(
-        "text-base font-semibold text-slate-900 leading-none",
+        "text-base font-semibold text-ink leading-none",
         className,
       )}
       {...rest}

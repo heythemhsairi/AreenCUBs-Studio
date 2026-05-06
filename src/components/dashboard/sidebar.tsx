@@ -8,11 +8,8 @@ import type { UserRole } from "@/lib/utils";
 
 type NavItem = { href: string; label: string; rolesAllowed: UserRole[] };
 
-export function Sidebar({ role }: { role: UserRole }) {
-  const { t } = useI18n();
-  const pathname = usePathname();
-
-  const items: NavItem[] = [
+function buildNav(role: UserRole, t: ReturnType<typeof useI18n>["t"]): NavItem[] {
+  return [
     {
       href: "/dashboard",
       label: t.nav.overview,
@@ -39,6 +36,11 @@ export function Sidebar({ role }: { role: UserRole }) {
       rolesAllowed: ["admin"],
     },
     {
+      href: "/dashboard/factures",
+      label: t.nav.factures,
+      rolesAllowed: ["admin"],
+    },
+    {
       href: "/dashboard/finance",
       label: t.nav.finance,
       rolesAllowed: ["admin"],
@@ -49,27 +51,38 @@ export function Sidebar({ role }: { role: UserRole }) {
       rolesAllowed: ["admin"],
     },
   ];
+}
 
-  const visible = items.filter((i) => i.rolesAllowed.includes(role));
+function isActive(pathname: string, href: string) {
+  if (pathname === href) return true;
+  if (href === "/dashboard") return false;
+  return pathname.startsWith(href);
+}
+
+export function Sidebar({ role }: { role: UserRole }) {
+  const { t } = useI18n();
+  const pathname = usePathname();
+  const items = buildNav(role, t).filter((i) => i.rolesAllowed.includes(role));
 
   return (
-    <aside className="hidden w-56 shrink-0 border-r border-slate-200 bg-white md:block">
-      <nav className="sticky top-0 space-y-1 p-4">
-        {visible.map((item) => {
-          const active =
-            pathname === item.href ||
-            (item.href !== "/dashboard" && pathname.startsWith(item.href));
+    <aside className="hidden w-56 shrink-0 border-r border-ink/10 bg-white md:block">
+      <nav className="sticky top-[57px] space-y-1 p-4">
+        {items.map((item) => {
+          const active = isActive(pathname, item.href);
           return (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                "block rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                "group relative block rounded-md px-3 py-2 text-sm font-medium transition-all",
                 active
-                  ? "bg-brand-light text-brand"
-                  : "text-slate-700 hover:bg-slate-100",
+                  ? "bg-brand text-white shadow-sm"
+                  : "text-ink/70 hover:bg-cream-dark hover:text-ink",
               )}
             >
+              {active && (
+                <span className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 -translate-x-2 rounded-r bg-accent" />
+              )}
               {item.label}
             </Link>
           );
@@ -82,62 +95,19 @@ export function Sidebar({ role }: { role: UserRole }) {
 export function MobileNav({ role }: { role: UserRole }) {
   const { t } = useI18n();
   const pathname = usePathname();
-
-  const items: NavItem[] = [
-    {
-      href: "/dashboard",
-      label: t.nav.overview,
-      rolesAllowed: ["admin", "worker", "freelancer"],
-    },
-    {
-      href: "/dashboard/tasks",
-      label: role === "freelancer" ? t.nav.myTasks : t.nav.tasks,
-      rolesAllowed: ["admin", "worker", "freelancer"],
-    },
-    {
-      href: "/dashboard/clients",
-      label: t.nav.clients,
-      rolesAllowed: ["admin", "worker"],
-    },
-    {
-      href: "/dashboard/projects",
-      label: t.nav.projects,
-      rolesAllowed: ["admin", "worker"],
-    },
-    {
-      href: "/dashboard/devis",
-      label: t.nav.devis,
-      rolesAllowed: ["admin"],
-    },
-    {
-      href: "/dashboard/finance",
-      label: t.nav.finance,
-      rolesAllowed: ["admin"],
-    },
-    {
-      href: "/dashboard/team",
-      label: t.nav.team,
-      rolesAllowed: ["admin"],
-    },
-  ];
-
-  const visible = items.filter((i) => i.rolesAllowed.includes(role));
+  const items = buildNav(role, t).filter((i) => i.rolesAllowed.includes(role));
 
   return (
-    <nav className="flex gap-1 overflow-x-auto border-b border-slate-200 bg-white px-3 py-2 md:hidden">
-      {visible.map((item) => {
-        const active =
-          pathname === item.href ||
-          (item.href !== "/dashboard" && pathname.startsWith(item.href));
+    <nav className="flex gap-1 overflow-x-auto border-b border-ink/10 bg-white px-3 py-2 md:hidden">
+      {items.map((item) => {
+        const active = isActive(pathname, item.href);
         return (
           <Link
             key={item.href}
             href={item.href}
             className={cn(
-              "shrink-0 rounded-md px-3 py-1.5 text-xs font-medium",
-              active
-                ? "bg-brand-light text-brand"
-                : "text-slate-600 hover:bg-slate-100",
+              "shrink-0 rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
+              active ? "bg-brand text-white" : "text-ink/60 hover:bg-ink/5",
             )}
           >
             {item.label}

@@ -1,8 +1,8 @@
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { DevisBuilder } from "../devis-builder";
+import { DevisBuilder } from "../../devis/devis-builder";
 
-export default async function NewDevisPage({
+export default async function NewFacturePage({
   searchParams,
 }: {
   searchParams: Promise<{ clientId?: string }>;
@@ -23,7 +23,7 @@ export default async function NewDevisPage({
   return (
     <DevisBuilder
       mode="create"
-      kind="devis"
+      kind="facture"
       defaultClientId={clientId}
       clients={clients ?? []}
       services={services ?? []}

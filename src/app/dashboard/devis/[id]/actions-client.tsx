@@ -7,8 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   setDevisStatusAction,
   recordPaymentAction,
+  markFullyPaidAction,
   deleteDevisAction,
 } from "../actions";
+import { formatDt } from "@/lib/format";
 
 type DevisStatus = "draft" | "sent" | "accepted" | "rejected";
 
@@ -72,16 +74,23 @@ export function DevisStatusActions({
   );
 }
 
-export function RecordPaymentForm({
+export function PaymentSection({
   devisId,
-  remaining,
+  totalDt,
+  paidDt,
 }: {
   devisId: string;
-  remaining: number;
+  totalDt: number;
+  paidDt: number;
 }) {
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [pending, startTransition] = useTransition();
+  const [markPending, startMarkPaid] = useTransition();
+
+  const remaining = +(totalDt - paidDt).toFixed(2);
+  const pct = totalDt > 0 ? Math.min(100, (paidDt / totalDt) * 100) : 0;
+  const isFullyPaid = remaining <= 0.01;
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -98,14 +107,82 @@ export function RecordPaymentForm({
     });
   }
 
+  function onMarkFullyPaid() {
+    if (!confirm("Marquer comme entièrement payé ? Un paiement du solde sera enregistré.")) return;
+    const fd = new FormData();
+    fd.set("devis_id", devisId);
+    startMarkPaid(async () => {
+      await markFullyPaidAction(fd);
+    });
+  }
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Enregistrer un paiement</CardTitle>
+        <CardTitle>Paiement</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-ink/60">
+              Encaissé{" "}
+              <span className="font-semibold text-ink">{formatDt(paidDt)}</span>{" "}
+              / {formatDt(totalDt)}
+            </span>
+            <span
+              className={
+                isFullyPaid
+                  ? "text-xs font-semibold uppercase text-green-600"
+                  : remaining < totalDt
+                    ? "text-xs font-semibold uppercase text-brand"
+                    : "text-xs font-semibold uppercase text-accent-dark"
+              }
+            >
+              {isFullyPaid
+                ? "Payé"
+                : remaining < totalDt
+                  ? "Partiel"
+                  : "Impayé"}
+            </span>
+          </div>
+          <div className="h-2 w-full overflow-hidden rounded-full bg-ink/5">
+            <div
+              className="h-full bg-gradient-to-r from-brand to-brand-dark transition-all"
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+          {!isFullyPaid && (
+            <p className="text-xs text-ink/50">
+              Reste à encaisser :{" "}
+              <span className="font-semibold text-ink">
+                {formatDt(remaining)}
+              </span>
+            </p>
+          )}
+        </div>
+
+        {!isFullyPaid && (
+          <div className="rounded-md bg-cream-dark/40 p-3">
+            <Button
+              type="button"
+              variant="accent"
+              size="sm"
+              onClick={onMarkFullyPaid}
+              disabled={markPending}
+              className="w-full"
+            >
+              {markPending
+                ? "Enregistrement…"
+                : `Marquer entièrement payé (${formatDt(remaining)})`}
+            </Button>
+          </div>
+        )}
+
         <form className="space-y-3" onSubmit={onSubmit}>
           <input type="hidden" name="devis_id" value={devisId} />
+          <p className="text-xs font-medium uppercase tracking-wide text-ink/50">
+            ou enregistrer un paiement partiel
+          </p>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Field label="Montant (DT)">
               <Input
@@ -125,10 +202,10 @@ export function RecordPaymentForm({
                 required
               />
             </Field>
-            <Field label="Méthode (optionnel)">
-              <Input name="method" placeholder="Virement, espèces, …" />
+            <Field label="Méthode">
+              <Input name="method" placeholder="Virement, espèces…" />
             </Field>
-            <Field label="Note (optionnel)">
+            <Field label="Note">
               <Input name="notes" />
             </Field>
           </div>
@@ -136,8 +213,8 @@ export function RecordPaymentForm({
           {done && (
             <p className="text-sm text-green-600">Paiement enregistré.</p>
           )}
-          <Button type="submit" size="sm" disabled={pending}>
-            {pending ? "Enregistrement…" : "Enregistrer"}
+          <Button type="submit" size="sm" variant="outline" disabled={pending}>
+            {pending ? "Enregistrement…" : "Ajouter le paiement"}
           </Button>
         </form>
       </CardContent>
@@ -145,13 +222,25 @@ export function RecordPaymentForm({
   );
 }
 
-export function DeleteDevisButton({ devisId }: { devisId: string }) {
+export function DeleteDevisButton({
+  devisId,
+  kind,
+}: {
+  devisId: string;
+  kind: "devis" | "facture";
+}) {
   const [pending, startTransition] = useTransition();
 
   function onDelete() {
-    if (!confirm("Supprimer ce devis ? Action irréversible.")) return;
+    if (
+      !confirm(
+        `Supprimer ${kind === "facture" ? "cette facture" : "ce devis"} ? Action irréversible.`,
+      )
+    )
+      return;
     const fd = new FormData();
     fd.set("id", devisId);
+    fd.set("kind", kind);
     startTransition(async () => {
       await deleteDevisAction(fd);
     });
@@ -179,7 +268,7 @@ function Field({
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="text-xs font-medium uppercase tracking-wide text-slate-500">
+      <label className="text-xs font-medium uppercase tracking-wide text-ink/50">
         {label}
       </label>
       {children}
