@@ -23,20 +23,10 @@ type Props = {
   className?: string;
 };
 
-const PALETTE = [
-  "#3B8BBA", // brand
-  "#FF9E1F", // accent
-  "#1E1E24", // ink
-  "#7AB9D9", // brand light
-  "#FFC07A", // accent light
-  "#5A5A66", // ink soft
-  "#2C6E96", // brand dark
-  "#E08800", // accent dark
-];
-
-export function getDonutPalette(): string[] {
-  return [...PALETTE];
-}
+// Palette is re-exported for backwards compatibility, but the canonical
+// source lives in `./palette.ts` (no "use client" so server components
+// can import safely).
+export { getDonutPalette } from "./palette";
 
 export function Donut({
   data,

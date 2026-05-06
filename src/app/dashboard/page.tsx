@@ -1,7 +1,7 @@
 import { requireSession } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { OverviewClient } from "./overview-client";
-import { getDonutPalette } from "@/components/charts/donut";
+import { getDonutPalette } from "@/components/charts/palette";
 
 export default async function DashboardPage() {
   const session = await requireSession();
