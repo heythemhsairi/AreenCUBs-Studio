@@ -39,6 +39,11 @@ export function Sidebar({ role }: { role: UserRole }) {
       rolesAllowed: ["admin"],
     },
     {
+      href: "/dashboard/finance",
+      label: t.nav.finance,
+      rolesAllowed: ["admin"],
+    },
+    {
       href: "/dashboard/team",
       label: t.nav.team,
       rolesAllowed: ["admin"],
@@ -102,6 +107,11 @@ export function MobileNav({ role }: { role: UserRole }) {
     {
       href: "/dashboard/devis",
       label: t.nav.devis,
+      rolesAllowed: ["admin"],
+    },
+    {
+      href: "/dashboard/finance",
+      label: t.nav.finance,
       rolesAllowed: ["admin"],
     },
     {

@@ -44,6 +44,7 @@ export const dict = {
       tasks: "Tâches",
       myTasks: "Mes tâches",
       devis: "Devis",
+      finance: "Finances",
       logout: "Déconnexion",
     },
     roles: {
@@ -241,6 +242,7 @@ export const dict = {
       tasks: "Tasks",
       myTasks: "My tasks",
       devis: "Quotes",
+      finance: "Finance",
       logout: "Sign out",
     },
     roles: {
