@@ -9,6 +9,7 @@ import { CountUp } from "@/components/charts/count-up";
 import { TrendPill } from "@/components/charts/trend-pill";
 import { Donut, DonutLegend, type DonutSlice } from "@/components/charts/donut";
 import { MonthlyBars, type BarPoint } from "@/components/charts/bars";
+import { WorkCalendar } from "@/components/work-calendar";
 import { formatDevisNumber, formatDt, formatDate } from "@/lib/format";
 import type { UserRole } from "@/lib/utils";
 
@@ -17,6 +18,8 @@ type Counts = {
   activeTasks: number;
   teamSize: number | null;
   clients: number | null;
+  myActiveTasks: number;
+  myOverdueTasks: number;
 };
 
 type Revenue = {
@@ -52,6 +55,7 @@ type UpcomingTask = {
   title: string;
   deadline: string;
   priority: string;
+  status: string;
   project: string;
   client: string;
   assignee: { name: string; avatar: string | null } | null;
@@ -67,6 +71,7 @@ type Props = {
   recentDevis: RecentDevis[];
   upcomingTasks: UpcomingTask[];
   featuredEmployee: Featured;
+  workSchedule: Record<string, "office" | "home">;
 };
 
 function formatMonth(monthIso: string): string {
@@ -111,6 +116,7 @@ export function OverviewClient({
   recentDevis,
   upcomingTasks,
   featuredEmployee,
+  workSchedule,
 }: Props) {
   const { t } = useI18n();
   const isAdmin = role === "admin";
@@ -170,46 +176,78 @@ export function OverviewClient({
       )}
 
       {!isAdmin && (
-        <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          <KpiCard
-            label="Projets actifs"
-            value={counts.activeProjects}
-            tone="brand"
-            icon={
-              <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" />
-            }
-          />
-          <KpiCard
-            label="Tâches actives"
-            value={counts.activeTasks}
-            tone="ink"
-            icon={<path d="M3 6h2l1 2h13M3 12h18M3 18h18" />}
-          />
-          {counts.clients !== null && (
+        <>
+          <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             <KpiCard
-              label="Clients"
-              value={counts.clients}
+              label="Mes tâches actives"
+              value={counts.myActiveTasks}
+              tone="brand"
+              icon={<path d="M3 6h2l1 2h13M3 12h18M3 18h18" />}
+            />
+            <KpiCard
+              label="En retard"
+              value={counts.myOverdueTasks}
+              tone={counts.myOverdueTasks > 0 ? "amber" : "ink"}
               icon={
                 <>
-                  <circle cx="9" cy="8" r="3.5" />
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 7v5l3 2" />
                 </>
               }
             />
-          )}
-          {counts.teamSize !== null && (
             <KpiCard
-              label="Équipe"
-              value={counts.teamSize}
+              label="Projets actifs"
+              value={counts.activeProjects}
+              tone="ink"
               icon={
-                <>
-                  <circle cx="12" cy="8" r="3.5" />
-                  <path d="M5 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2" />
-                </>
+                <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" />
               }
             />
-          )}
-        </section>
+            {counts.clients !== null && (
+              <KpiCard
+                label="Clients"
+                value={counts.clients}
+                icon={
+                  <>
+                    <circle cx="9" cy="8" r="3.5" />
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                  </>
+                }
+              />
+            )}
+          </section>
+
+          <section className="grid grid-cols-1 gap-5 lg:grid-cols-5">
+            <Card className="lg:col-span-3">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle>Mes tâches</CardTitle>
+                  <Link
+                    href="/dashboard/tasks"
+                    className="text-xs font-semibold text-brand hover:text-brand-dark"
+                  >
+                    Tout voir →
+                  </Link>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <MyTasksList rows={upcomingTasks} />
+              </CardContent>
+            </Card>
+
+            <Card className="lg:col-span-2">
+              <CardHeader>
+                <CardTitle>Mon planning</CardTitle>
+                <p className="text-xs text-ink/55">
+                  Bureau 🏢 ou Maison 🏠 — pour la coordination équipe
+                </p>
+              </CardHeader>
+              <CardContent>
+                <WorkCalendar initial={workSchedule} />
+              </CardContent>
+            </Card>
+          </section>
+        </>
       )}
 
       {isAdmin && (
@@ -260,8 +298,8 @@ export function OverviewClient({
 
       {isAdmin && !featuredEmployee && <FeaturedEmptyCta />}
 
-      <section className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-        {isAdmin && (
+      {isAdmin && (
+        <section className="grid grid-cols-1 gap-5 lg:grid-cols-2">
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -278,25 +316,25 @@ export function OverviewClient({
               <RecentDevisFeed rows={recentDevis} />
             </CardContent>
           </Card>
-        )}
 
-        <Card className={isAdmin ? "" : "lg:col-span-2"}>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Échéances à venir</CardTitle>
-              <Link
-                href="/dashboard/tasks"
-                className="text-xs font-semibold text-brand hover:text-brand-dark"
-              >
-                Tout voir →
-              </Link>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <UpcomingTasksList rows={upcomingTasks} />
-          </CardContent>
-        </Card>
-      </section>
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Échéances à venir</CardTitle>
+                <Link
+                  href="/dashboard/tasks"
+                  className="text-xs font-semibold text-brand hover:text-brand-dark"
+                >
+                  Tout voir →
+                </Link>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <UpcomingTasksList rows={upcomingTasks} />
+            </CardContent>
+          </Card>
+        </section>
+      )}
     </div>
   );
 }
@@ -648,6 +686,96 @@ function UpcomingTasksList({ rows }: { rows: UpcomingTask[] }) {
                     : days === 0
                       ? "auj."
                       : `J+${days}`}
+                </span>
+              </div>
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+const myStatusTone: Record<string, "slate" | "blue" | "amber" | "green"> = {
+  todo: "slate",
+  in_progress: "blue",
+  review: "amber",
+  done: "green",
+};
+
+const myStatusLabel: Record<string, string> = {
+  todo: "À faire",
+  in_progress: "En cours",
+  review: "À valider",
+  done: "Terminé",
+  cancelled: "Annulé",
+};
+
+function MyTasksList({ rows }: { rows: UpcomingTask[] }) {
+  if (rows.length === 0) {
+    return (
+      <div className="py-10 text-center">
+        <p className="text-sm text-ink/45">
+          🎉 Aucune tâche en attente. Profitez-en !
+        </p>
+      </div>
+    );
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  return (
+    <ul className="space-y-1.5">
+      {rows.map((t) => {
+        const due = new Date(t.deadline);
+        const days = Math.floor(
+          (due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
+        );
+        const isOverdue = days < 0;
+        const isToday = days === 0;
+        const isSoon = days > 0 && days <= 3;
+
+        return (
+          <li key={t.id}>
+            <Link
+              href={`/dashboard/tasks/${t.id}`}
+              className="group block rounded-xl border border-white/40 bg-white/60 p-3 transition-all hover:bg-white hover:shadow-soft"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-ink group-hover:text-brand">
+                    {t.title}
+                  </p>
+                  <p className="mt-0.5 truncate text-xs text-ink/50">
+                    {t.client} · {t.project}
+                  </p>
+                </div>
+                <Badge
+                  tone={myStatusTone[t.status] ?? "slate"}
+                  dot={t.status === "in_progress" ? "pulse" : true}
+                >
+                  {myStatusLabel[t.status] ?? t.status}
+                </Badge>
+              </div>
+              <div className="mt-2 flex items-center gap-2 text-[11px]">
+                <Badge tone={priorityTone[t.priority]}>{t.priority}</Badge>
+                <span
+                  className={`rounded-md px-2 py-0.5 font-semibold ${
+                    isOverdue
+                      ? "bg-red-50 text-red-700"
+                      : isToday
+                        ? "bg-accent/20 text-accent-dark"
+                        : isSoon
+                          ? "bg-accent/10 text-accent-dark"
+                          : "bg-ink/5 text-ink/55"
+                  }`}
+                >
+                  {isOverdue
+                    ? `${Math.abs(days)}j de retard`
+                    : isToday
+                      ? "Aujourd'hui"
+                      : `Échéance dans ${days}j`}
                 </span>
               </div>
             </Link>
