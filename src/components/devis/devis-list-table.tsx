@@ -1,38 +1,55 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Table, THead, TBody, TR, TH, TD, EmptyState } from "@/components/ui/table";
+import {
+  Table,
+  THead,
+  TBody,
+  TR,
+  TH,
+  TD,
+  EmptyState,
+} from "@/components/ui/table";
 import { formatDevisNumber, formatDt, formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import {
+  setDevisStatusAction,
+  markFullyPaidAction,
+  resetPaymentsAction,
+} from "@/app/dashboard/devis/actions";
 
-const statusTone = {
+type DevisStatus = "draft" | "sent" | "accepted" | "rejected";
+type PaymentStatus = "unpaid" | "partial" | "paid";
+
+const statusTone: Record<DevisStatus, "slate" | "blue" | "green" | "red"> = {
   draft: "slate",
   sent: "blue",
   accepted: "green",
   rejected: "red",
-} as const;
+};
 
-const paymentTone = {
+const paymentTone: Record<PaymentStatus, "amber" | "blue" | "green"> = {
   unpaid: "amber",
   partial: "blue",
   paid: "green",
-} as const;
+};
 
-const statusLabel: Record<string, string> = {
+const statusLabel: Record<DevisStatus, string> = {
   draft: "Brouillon",
   sent: "Envoyé",
   accepted: "Accepté",
   rejected: "Refusé",
 };
 
-const paymentLabel: Record<string, string> = {
+const paymentLabel: Record<PaymentStatus, string> = {
   unpaid: "Impayé",
   partial: "Partiel",
   paid: "Payé",
 };
 
-const rowAccent: Record<string, string> = {
+const rowAccent: Record<PaymentStatus, string> = {
   paid: "before:bg-emerald-400",
   partial: "before:bg-brand",
   unpaid: "before:bg-accent",
@@ -66,7 +83,8 @@ export function DevisListTable({
     );
   }
 
-  const baseUrl = kind === "facture" ? "/dashboard/factures" : "/dashboard/devis";
+  const baseUrl =
+    kind === "facture" ? "/dashboard/factures" : "/dashboard/devis";
 
   return (
     <Table>
@@ -84,38 +102,40 @@ export function DevisListTable({
       <TBody>
         {rows.map((d) => {
           const client = Array.isArray(d.clients) ? d.clients[0] : d.clients;
-          const accent = rowAccent[d.payment_status] ?? "before:bg-ink/10";
+          const accent =
+            rowAccent[d.payment_status as PaymentStatus] ?? "before:bg-ink/10";
           return (
             <tr
               key={d.id}
               className={cn(
-                "relative transition-colors duration-150 before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:rounded-r-full hover:bg-cream/70",
+                "relative transition-colors duration-150 before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:rounded-r-full hover:bg-cream/40",
                 accent,
               )}
             >
               <TD className="pl-5 font-mono text-xs text-ink/55">
-                <Link href={`${baseUrl}/${d.id}`} className="hover:text-brand">
+                <Link
+                  href={`${baseUrl}/${d.id}`}
+                  className="hover:text-brand"
+                >
                   {formatDevisNumber(d.devis_number, kind)}
                 </Link>
               </TD>
-              <TD className="font-medium text-ink">{client?.name ?? "—"}</TD>
+              <TD className="font-medium text-ink">
+                {client?.name ?? "—"}
+              </TD>
               <TD className="text-ink/60">{formatDate(d.date)}</TD>
               <TD className="text-ink/60">{formatDate(d.due_date)}</TD>
               <TD>
-                <Badge
-                  tone={statusTone[d.status as keyof typeof statusTone]}
-                  dot={d.status === "sent" ? "pulse" : true}
-                >
-                  {statusLabel[d.status] ?? d.status}
-                </Badge>
+                <StatusMenu
+                  devisId={d.id}
+                  current={d.status as DevisStatus}
+                />
               </TD>
               <TD>
-                <Badge
-                  tone={paymentTone[d.payment_status as keyof typeof paymentTone]}
-                  dot={d.payment_status === "partial" ? "pulse" : true}
-                >
-                  {paymentLabel[d.payment_status] ?? d.payment_status}
-                </Badge>
+                <PaymentMenu
+                  devisId={d.id}
+                  current={d.payment_status as PaymentStatus}
+                />
               </TD>
               <TD className="text-right font-semibold text-ink">
                 {formatDt(d.total_dt)}
@@ -126,4 +146,282 @@ export function DevisListTable({
       </TBody>
     </Table>
   );
+}
+
+/* =========================================================================
+ * Dropdown menus
+ * ========================================================================= */
+
+function StatusMenu({
+  devisId,
+  current,
+}: {
+  devisId: string;
+  current: DevisStatus;
+}) {
+  const [pending, startTransition] = useTransition();
+
+  function select(next: DevisStatus) {
+    if (next === current) return;
+    startTransition(async () => {
+      await setDevisStatusAction(devisId, next);
+    });
+  }
+
+  return (
+    <Dropdown
+      trigger={
+        <ChipButton tone={statusTone[current]} dot disabled={pending}>
+          {statusLabel[current]}
+        </ChipButton>
+      }
+    >
+      {(close) => (
+        <>
+          <MenuHeader>Changer le statut</MenuHeader>
+          {(["draft", "sent", "accepted", "rejected"] as DevisStatus[]).map(
+            (s) => (
+              <MenuItem
+                key={s}
+                active={s === current}
+                onClick={() => {
+                  close();
+                  select(s);
+                }}
+              >
+                <DotSwatch tone={statusTone[s]} />
+                {statusLabel[s]}
+              </MenuItem>
+            ),
+          )}
+        </>
+      )}
+    </Dropdown>
+  );
+}
+
+function PaymentMenu({
+  devisId,
+  current,
+}: {
+  devisId: string;
+  current: PaymentStatus;
+}) {
+  const [pending, startTransition] = useTransition();
+
+  function markPaid() {
+    if (current === "paid") return;
+    const fd = new FormData();
+    fd.set("devis_id", devisId);
+    startTransition(async () => {
+      await markFullyPaidAction(fd);
+    });
+  }
+
+  function resetPayments() {
+    if (current === "unpaid") return;
+    if (!confirm("Annuler tous les paiements enregistrés ?")) return;
+    startTransition(async () => {
+      await resetPaymentsAction(devisId);
+    });
+  }
+
+  return (
+    <Dropdown
+      trigger={
+        <ChipButton tone={paymentTone[current]} dot disabled={pending}>
+          {paymentLabel[current]}
+        </ChipButton>
+      }
+    >
+      {(close) => (
+        <>
+          <MenuHeader>Paiement</MenuHeader>
+          <MenuItem
+            disabled={current === "paid"}
+            onClick={() => {
+              close();
+              markPaid();
+            }}
+          >
+            <DotSwatch tone="green" />
+            Marquer payé
+          </MenuItem>
+          <MenuItem
+            disabled={current === "unpaid"}
+            onClick={() => {
+              close();
+              resetPayments();
+            }}
+          >
+            <DotSwatch tone="amber" />
+            Annuler les paiements
+          </MenuItem>
+          <div className="my-1 h-px bg-ink/5" />
+          <MenuItem asLink href={`/dashboard/devis/${devisId}`}>
+            <span className="text-ink/50">Détails &amp; partiel →</span>
+          </MenuItem>
+        </>
+      )}
+    </Dropdown>
+  );
+}
+
+/* =========================================================================
+ * Reusable dropdown primitives (local to this file)
+ * ========================================================================= */
+
+function Dropdown({
+  trigger,
+  children,
+}: {
+  trigger: React.ReactNode;
+  children: (close: () => void) => React.ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function onClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node))
+        setOpen(false);
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("mousedown", onClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onClick);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative inline-block">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="inline-flex cursor-pointer items-center"
+      >
+        {trigger}
+      </button>
+      {open && (
+        <div
+          className="absolute left-0 top-full z-20 mt-1.5 min-w-[180px] rounded-xl border border-ink/10 bg-white p-1 shadow-lift"
+          role="menu"
+        >
+          {children(() => setOpen(false))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MenuHeader({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="px-2.5 pt-1.5 pb-1 text-[10px] font-semibold uppercase tracking-wider text-ink/40">
+      {children}
+    </p>
+  );
+}
+
+function MenuItem({
+  children,
+  onClick,
+  active,
+  disabled,
+  asLink,
+  href,
+}: {
+  children: React.ReactNode;
+  onClick?: () => void;
+  active?: boolean;
+  disabled?: boolean;
+  asLink?: boolean;
+  href?: string;
+}) {
+  const cls = cn(
+    "flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-sm transition-colors",
+    disabled
+      ? "cursor-not-allowed text-ink/30"
+      : "text-ink/80 hover:bg-cream-dark hover:text-ink",
+    active && "bg-brand/10 text-brand-dark",
+  );
+
+  if (asLink && href) {
+    return (
+      <Link href={href} className={cls} role="menuitem">
+        {children}
+      </Link>
+    );
+  }
+  return (
+    <button
+      type="button"
+      role="menuitem"
+      onClick={onClick}
+      disabled={disabled}
+      className={cls}
+    >
+      {children}
+    </button>
+  );
+}
+
+function ChipButton({
+  tone,
+  dot,
+  disabled,
+  children,
+}: {
+  tone: "slate" | "blue" | "green" | "amber" | "red";
+  dot?: boolean;
+  disabled?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <Badge
+      tone={tone}
+      dot={dot}
+      className={cn(
+        "select-none cursor-pointer transition-all hover:shadow-soft hover:scale-[1.02]",
+        disabled && "opacity-60",
+      )}
+    >
+      {children}
+      <svg
+        width="10"
+        height="10"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="ml-0.5 opacity-70"
+      >
+        <polyline points="6 9 12 15 18 9" />
+      </svg>
+    </Badge>
+  );
+}
+
+function DotSwatch({
+  tone,
+}: {
+  tone: "slate" | "blue" | "green" | "amber" | "red";
+}) {
+  const color =
+    tone === "green"
+      ? "bg-emerald-500"
+      : tone === "blue"
+        ? "bg-brand"
+        : tone === "amber"
+          ? "bg-accent"
+          : tone === "red"
+            ? "bg-red-500"
+            : "bg-ink/40";
+  return <span className={cn("h-2 w-2 shrink-0 rounded-full", color)} />;
 }

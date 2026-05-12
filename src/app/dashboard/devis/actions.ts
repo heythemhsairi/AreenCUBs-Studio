@@ -359,6 +359,36 @@ async function recomputePaymentStatus(
     .eq("id", devisId);
 }
 
+// Reset all payments → mark as unpaid. Used from the quick payment menu in
+// the list view to "annuler les paiements" without going to the detail page.
+export async function resetPaymentsAction(
+  devisId: string,
+): Promise<ActionResult> {
+  await requireAdmin();
+  if (!devisId) return { ok: false, error: "Document manquant." };
+
+  const supabase = await createClient();
+  const { error: delErr } = await supabase
+    .from("payments")
+    .delete()
+    .eq("devis_id", devisId);
+  if (delErr) return { ok: false, error: delErr.message };
+
+  const { error: updErr } = await supabase
+    .from("devis")
+    .update({ payment_status: "unpaid" })
+    .eq("id", devisId);
+  if (updErr) return { ok: false, error: updErr.message };
+
+  revalidatePath(`/dashboard/devis/${devisId}`);
+  revalidatePath(`/dashboard/factures/${devisId}`);
+  revalidatePath("/dashboard/devis");
+  revalidatePath("/dashboard/factures");
+  revalidatePath("/dashboard/finance");
+  revalidatePath("/dashboard");
+  return { ok: true };
+}
+
 export async function deleteDevisAction(
   formData: FormData,
 ): Promise<ActionResult> {
