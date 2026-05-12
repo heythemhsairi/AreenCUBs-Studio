@@ -38,6 +38,7 @@ type Devis = {
   due_date: string;
   object: string | null;
   notes: string | null;
+  discount_dt?: number;
   items: Array<{
     service_id: string | null;
     description: string;
@@ -103,6 +104,9 @@ export function DevisBuilder(props: Props) {
   const [notes, setNotes] = useState(
     props.mode === "edit" ? (props.devis.notes ?? "") : "",
   );
+  const [discountDt, setDiscountDt] = useState<number>(
+    props.mode === "edit" ? Number(props.devis.discount_dt ?? 0) : 0,
+  );
 
   const [items, setItems] = useState<LineItem[]>(() =>
     props.mode === "edit"
@@ -125,10 +129,20 @@ export function DevisBuilder(props: Props) {
         sum + (it.is_bonus ? 0 : it.quantity * (it.unit_price_dt || 0)),
       0,
     );
-    const tva = +((subtotal * TVA_RATE) / 100).toFixed(2);
-    const total = +(subtotal + tva).toFixed(2);
-    return { subtotal: +subtotal.toFixed(2), tva, total };
-  }, [items]);
+    const discount = Math.max(0, Math.min(subtotal, discountDt || 0));
+    const net = subtotal - discount;
+    const tva = +((net * TVA_RATE) / 100).toFixed(2);
+    const total = +(net + tva).toFixed(2);
+    return {
+      subtotal: +subtotal.toFixed(2),
+      discount: +discount.toFixed(2),
+      tva,
+      total,
+    };
+  }, [items, discountDt]);
+
+  const discountPct =
+    totals.subtotal > 0 ? (totals.discount / totals.subtotal) * 100 : 0;
 
   function addRow() {
     setItems((prev) => [
@@ -176,6 +190,7 @@ export function DevisBuilder(props: Props) {
     fd.set("due_date", dueDate);
     fd.set("object", object);
     fd.set("notes", notes);
+    fd.set("discount_dt", String(discountDt || 0));
     fd.set(
       "items_json",
       JSON.stringify(
@@ -385,8 +400,34 @@ export function DevisBuilder(props: Props) {
             <CardTitle>Totaux</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-1.5 text-sm">
+            <div className="space-y-3 text-sm">
               <Row label="Sous total" value={formatDt(totals.subtotal)} />
+
+              <div className="grid grid-cols-1 gap-2 rounded-lg bg-cream-dark/40 p-3 sm:grid-cols-[1fr_120px_100px] sm:items-center">
+                <label className="text-xs font-semibold uppercase tracking-wider text-ink/60">
+                  Remise
+                </label>
+                <Input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={discountDt}
+                  onChange={(e) => setDiscountDt(Number(e.target.value) || 0)}
+                  placeholder="0.00"
+                />
+                <span className="text-right text-xs text-ink/55">
+                  {totals.discount > 0
+                    ? `−${discountPct.toFixed(1)}%`
+                    : "DT (montant)"}
+                </span>
+              </div>
+
+              {totals.discount > 0 && (
+                <Row
+                  label="Après remise"
+                  value={formatDt(totals.subtotal - totals.discount)}
+                />
+              )}
               <Row label="TVA (19%)" value={formatDt(totals.tva)} />
               <div className="border-t border-ink/10 pt-2">
                 <Row

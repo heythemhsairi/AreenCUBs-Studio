@@ -10,6 +10,10 @@ export type AppSettings = {
   tva_rate: number;
   default_devis_object: string;
   default_facture_object: string;
+  bank_name: string | null;
+  bank_iban: string | null;
+  bank_rib: string | null;
+  payment_terms: string | null;
 };
 
 const FALLBACK: AppSettings = {
@@ -24,6 +28,10 @@ const FALLBACK: AppSettings = {
   default_devis_object:
     "Création d'identité visuelle et supports de communication",
   default_facture_object: "Facturation services rendus",
+  bank_name: null,
+  bank_iban: null,
+  bank_rib: null,
+  payment_terms: null,
 };
 
 /** Server-only. Reads the singleton settings row, with a safe fallback. */
@@ -33,7 +41,7 @@ export async function getSettings(): Promise<AppSettings> {
     const { data } = await supabase
       .from("settings")
       .select(
-        "company_name, company_address, matricule_fiscal, email, phone, website, tva_rate, default_devis_object, default_facture_object",
+        "company_name, company_address, matricule_fiscal, email, phone, website, tva_rate, default_devis_object, default_facture_object, bank_name, bank_iban, bank_rib, payment_terms",
       )
       .eq("id", 1)
       .maybeSingle();

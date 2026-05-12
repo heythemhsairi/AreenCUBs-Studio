@@ -6,6 +6,12 @@ import { createClient } from "@/lib/supabase/server";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
+function nullable(v: FormDataEntryValue | null): string | null {
+  if (v === null) return null;
+  const s = String(v).trim();
+  return s.length === 0 ? null : s;
+}
+
 export async function updateSettingsAction(
   formData: FormData,
 ): Promise<ActionResult> {
@@ -24,6 +30,10 @@ export async function updateSettingsAction(
   const defaultFactureObject = String(
     formData.get("default_facture_object") ?? "",
   ).trim();
+  const bankName = nullable(formData.get("bank_name"));
+  const bankIban = nullable(formData.get("bank_iban"));
+  const bankRib = nullable(formData.get("bank_rib"));
+  const paymentTerms = nullable(formData.get("payment_terms"));
 
   if (!companyName) return { ok: false, error: "Nom d'entreprise requis." };
   if (!Number.isFinite(tvaRate) || tvaRate < 0 || tvaRate > 100) {
@@ -43,6 +53,10 @@ export async function updateSettingsAction(
       tva_rate: tvaRate,
       default_devis_object: defaultDevisObject,
       default_facture_object: defaultFactureObject,
+      bank_name: bankName,
+      bank_iban: bankIban,
+      bank_rib: bankRib,
+      payment_terms: paymentTerms,
     })
     .eq("id", 1);
 

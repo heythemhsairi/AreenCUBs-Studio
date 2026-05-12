@@ -6,23 +6,20 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/dashboard/page-header";
+import { toast } from "@/components/toast";
 import { updateSettingsAction } from "./actions";
 import type { AppSettings } from "@/lib/settings";
 
 export function SettingsForm({ initial }: { initial: AppSettings }) {
-  const [error, setError] = useState<string | null>(null);
-  const [saved, setSaved] = useState(false);
   const [pending, startTransition] = useTransition();
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setError(null);
-    setSaved(false);
     const fd = new FormData(e.currentTarget);
     startTransition(async () => {
       const res = await updateSettingsAction(fd);
-      if (!res.ok) setError(res.error);
-      else setSaved(true);
+      if (res.ok) toast.success("Paramètres enregistrés");
+      else toast.error(res.error);
     });
   }
 
@@ -82,6 +79,47 @@ export function SettingsForm({ initial }: { initial: AppSettings }) {
 
         <Card>
           <CardHeader>
+            <CardTitle>Coordonnées bancaires</CardTitle>
+            <p className="text-xs text-ink/55">
+              Imprimées en bas du devis pour faciliter le paiement.
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <Field label="Banque">
+                <Input
+                  name="bank_name"
+                  defaultValue={initial.bank_name ?? ""}
+                  placeholder="Ex. Banque de Tunisie"
+                />
+              </Field>
+              <Field label="RIB">
+                <Input
+                  name="bank_rib"
+                  defaultValue={initial.bank_rib ?? ""}
+                  placeholder="20 chiffres"
+                />
+              </Field>
+              <Field label="IBAN" full>
+                <Input
+                  name="bank_iban"
+                  defaultValue={initial.bank_iban ?? ""}
+                  placeholder="TN59 ..."
+                />
+              </Field>
+              <Field label="Conditions de paiement" full>
+                <Input
+                  name="payment_terms"
+                  defaultValue={initial.payment_terms ?? ""}
+                  placeholder="Ex. Paiement à 30 jours"
+                />
+              </Field>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
             <CardTitle>Défauts devis &amp; factures</CardTitle>
           </CardHeader>
           <CardContent>
@@ -112,13 +150,6 @@ export function SettingsForm({ initial }: { initial: AppSettings }) {
             </div>
           </CardContent>
         </Card>
-
-        {error && (
-          <p className="text-sm text-red-600">{error}</p>
-        )}
-        {saved && (
-          <p className="text-sm text-green-700">Paramètres enregistrés ✓</p>
-        )}
 
         <div className="flex items-center gap-3">
           <Button type="submit" disabled={pending}>

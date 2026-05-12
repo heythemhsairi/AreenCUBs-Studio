@@ -35,6 +35,7 @@ type DevisInput = {
   notes: string | null;
   items: DevisItemInput[];
   kind: DevisKind;
+  discount_dt: number;
 };
 
 function parseItems(formData: FormData): DevisItemInput[] {
@@ -74,6 +75,7 @@ function pickDevisInput(formData: FormData): DevisInput {
     notes: stringOrNull(formData.get("notes")),
     items: parseItems(formData),
     kind,
+    discount_dt: Math.max(0, Number(formData.get("discount_dt") ?? 0) || 0),
   };
 }
 
@@ -83,14 +85,21 @@ function stringOrNull(v: FormDataEntryValue | null): string | null {
   return s.length === 0 ? null : s;
 }
 
-function computeTotals(items: DevisItemInput[]) {
+function computeTotals(items: DevisItemInput[], discountDt = 0) {
   const subtotal = items.reduce(
     (sum, it) => sum + it.quantity * it.unit_price_dt,
     0,
   );
-  const tva = +((subtotal * TVA_RATE) / 100).toFixed(2);
-  const total = +(subtotal + tva).toFixed(2);
-  return { subtotal: +subtotal.toFixed(2), tva, total };
+  const discount = Math.max(0, Math.min(subtotal, discountDt));
+  const net = subtotal - discount;
+  const tva = +((net * TVA_RATE) / 100).toFixed(2);
+  const total = +(net + tva).toFixed(2);
+  return {
+    subtotal: +subtotal.toFixed(2),
+    discount: +discount.toFixed(2),
+    tva,
+    total,
+  };
 }
 
 async function nextNumber(kind: DevisKind): Promise<number> {
@@ -125,7 +134,7 @@ export async function createDevisAction(
   if (input.items.length === 0)
     return { ok: false, error: "Ajoutez au moins une ligne." };
 
-  const totals = computeTotals(input.items);
+  const totals = computeTotals(input.items, input.discount_dt);
   const supabase = await createClient();
 
   // Get the right sequence number based on kind.
@@ -142,6 +151,7 @@ export async function createDevisAction(
       object: input.object,
       notes: input.notes,
       subtotal_dt: totals.subtotal,
+      discount_dt: totals.discount,
       tva_rate: TVA_RATE,
       tva_dt: totals.tva,
       total_dt: totals.total,
@@ -186,7 +196,7 @@ export async function updateDevisAction(
   if (input.items.length === 0)
     return { ok: false, error: "Ajoutez au moins une ligne." };
 
-  const totals = computeTotals(input.items);
+  const totals = computeTotals(input.items, input.discount_dt);
   const supabase = await createClient();
 
   const { error } = await supabase
@@ -198,6 +208,7 @@ export async function updateDevisAction(
       object: input.object,
       notes: input.notes,
       subtotal_dt: totals.subtotal,
+      discount_dt: totals.discount,
       tva_rate: TVA_RATE,
       tva_dt: totals.tva,
       total_dt: totals.total,
@@ -387,6 +398,94 @@ export async function resetPaymentsAction(
   revalidatePath("/dashboard/finance");
   revalidatePath("/dashboard");
   return { ok: true };
+}
+
+// Convert a devis to a facture: copy header + items into a new row with
+// kind='facture' and parent_devis_id pointing back to the source.
+export async function convertDevisToFactureAction(
+  devisId: string,
+): Promise<{ ok: true; factureId: string } | { ok: false; error: string }> {
+  const session = await requireAdmin();
+  if (!devisId) return { ok: false, error: "Devis manquant." };
+
+  const supabase = await createClient();
+
+  const { data: source } = await supabase
+    .from("devis")
+    .select(
+      "id, kind, client_id, object, notes, subtotal_dt, discount_dt, tva_rate, tva_dt, total_dt, devis_items(service_id, description, quantity, unit_price_dt, line_total_dt, position, is_bonus)",
+    )
+    .eq("id", devisId)
+    .single();
+  if (!source) return { ok: false, error: "Devis introuvable." };
+  if (source.kind !== "devis")
+    return { ok: false, error: "Seul un devis peut être converti." };
+
+  // Avoid creating two factures for the same devis
+  const { data: already } = await supabase
+    .from("devis")
+    .select("id")
+    .eq("parent_devis_id", devisId)
+    .eq("kind", "facture")
+    .maybeSingle();
+  if (already) {
+    revalidatePath(`/dashboard/factures/${already.id}`);
+    redirect(`/dashboard/factures/${already.id}`);
+  }
+
+  const number = await nextNumber("facture");
+  const today = new Date().toISOString().slice(0, 10);
+  const due = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
+
+  const { data: facture, error: insErr } = await supabase
+    .from("devis")
+    .insert({
+      kind: "facture",
+      devis_number: number,
+      parent_devis_id: source.id,
+      client_id: source.client_id,
+      date: today,
+      due_date: due,
+      object: source.object,
+      notes: source.notes,
+      subtotal_dt: source.subtotal_dt,
+      discount_dt: source.discount_dt ?? 0,
+      tva_rate: source.tva_rate,
+      tva_dt: source.tva_dt,
+      total_dt: source.total_dt,
+      created_by: session.id,
+    })
+    .select("id")
+    .single();
+  if (insErr || !facture)
+    return { ok: false, error: insErr?.message ?? "Échec de la conversion." };
+
+  const itemRows = (source.devis_items ?? []).map((it) => ({
+    devis_id: facture.id,
+    service_id: it.service_id,
+    description: it.description,
+    quantity: it.quantity,
+    unit_price_dt: it.unit_price_dt,
+    line_total_dt: it.line_total_dt,
+    position: it.position ?? 0,
+    is_bonus: it.is_bonus,
+  }));
+  if (itemRows.length > 0) {
+    const { error: itemsErr } = await supabase
+      .from("devis_items")
+      .insert(itemRows);
+    if (itemsErr) {
+      await supabase.from("devis").delete().eq("id", facture.id);
+      return { ok: false, error: itemsErr.message };
+    }
+  }
+
+  revalidatePath("/dashboard/devis");
+  revalidatePath("/dashboard/factures");
+  revalidatePath(`/dashboard/devis/${devisId}`);
+  redirect(`/dashboard/factures/${facture.id}`);
 }
 
 export async function deleteDevisAction(

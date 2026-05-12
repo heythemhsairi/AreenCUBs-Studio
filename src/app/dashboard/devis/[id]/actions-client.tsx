@@ -9,7 +9,9 @@ import {
   recordPaymentAction,
   markFullyPaidAction,
   deleteDevisAction,
+  convertDevisToFactureAction,
 } from "../actions";
+import { toast } from "@/components/toast";
 import { formatDt } from "@/lib/format";
 
 type DevisStatus = "draft" | "sent" | "accepted" | "rejected";
@@ -219,6 +221,36 @@ export function PaymentSection({
         </form>
       </CardContent>
     </Card>
+  );
+}
+
+export function ConvertToFactureButton({ devisId }: { devisId: string }) {
+  const [pending, startTransition] = useTransition();
+  function onClick() {
+    if (
+      !confirm(
+        "Générer une facture à partir de ce devis ? Vous serez redirigé vers la nouvelle facture.",
+      )
+    )
+      return;
+    startTransition(async () => {
+      const res = await convertDevisToFactureAction(devisId);
+      // redirect() throws — only reaches here on explicit error return
+      if (res && "ok" in res && !res.ok) {
+        toast.error(res.error);
+      }
+    });
+  }
+  return (
+    <Button
+      type="button"
+      variant="accent"
+      size="sm"
+      onClick={onClick}
+      disabled={pending}
+    >
+      {pending ? "Conversion…" : "→ Convertir en facture"}
+    </Button>
   );
 }
 

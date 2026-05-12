@@ -12,6 +12,7 @@ import {
   DevisStatusActions,
   PaymentSection,
   DeleteDevisButton,
+  ConvertToFactureButton,
 } from "./actions-client";
 
 const statusTone = {
@@ -52,11 +53,35 @@ export default async function DevisDetailPage({
   const { data: devis } = await supabase
     .from("devis")
     .select(
-      "id, kind, devis_number, date, due_date, object, notes, status, payment_status, subtotal_dt, tva_dt, tva_rate, total_dt, clients:client_id(id, name, address, matricule_fiscal), devis_items(id, description, quantity, unit_price_dt, line_total_dt, is_bonus, position)",
+      "id, kind, devis_number, date, due_date, object, notes, status, payment_status, subtotal_dt, discount_dt, tva_dt, tva_rate, total_dt, parent_devis_id, clients:client_id(id, name, address, matricule_fiscal), devis_items(id, description, quantity, unit_price_dt, line_total_dt, is_bonus, position)",
     )
     .eq("id", id)
     .single();
   if (!devis) notFound();
+
+  // If this is a facture, fetch its parent devis info for the breadcrumb badge.
+  let parent: { id: string; devis_number: number; kind: string } | null = null;
+  if (devis.parent_devis_id) {
+    const { data: p } = await supabase
+      .from("devis")
+      .select("id, devis_number, kind")
+      .eq("id", devis.parent_devis_id)
+      .maybeSingle();
+    parent = p;
+  }
+  // If this is a devis, look up any facture that derives from it.
+  let derivedFacture:
+    | { id: string; devis_number: number }
+    | null = null;
+  if (devis.kind === "devis") {
+    const { data: f } = await supabase
+      .from("devis")
+      .select("id, devis_number")
+      .eq("parent_devis_id", id)
+      .eq("kind", "facture")
+      .maybeSingle();
+    derivedFacture = f;
+  }
 
   const { data: payments } = await supabase
     .from("payments")
@@ -89,6 +114,9 @@ export default async function DevisDetailPage({
         }
         action={
           <div className="flex flex-wrap items-center gap-2">
+            {kind === "devis" && !derivedFacture && (
+              <ConvertToFactureButton devisId={devis.id} />
+            )}
             <Link
               href={`/devis/${devis.id}/print`}
               target="_blank"
@@ -107,6 +135,27 @@ export default async function DevisDetailPage({
           </div>
         }
       />
+
+      {(parent || derivedFacture) && (
+        <div className="flex flex-wrap items-center gap-2 text-xs">
+          {parent && (
+            <Link
+              href={`/dashboard/${parent.kind === "facture" ? "factures" : "devis"}/${parent.id}`}
+              className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-3 py-1 font-semibold text-brand-dark hover:bg-brand/15"
+            >
+              ← Issue de {formatDevisNumber(parent.devis_number, parent.kind as "devis" | "facture")}
+            </Link>
+          )}
+          {derivedFacture && (
+            <Link
+              href={`/dashboard/factures/${derivedFacture.id}`}
+              className="inline-flex items-center gap-1.5 rounded-full bg-accent/15 px-3 py-1 font-semibold text-accent-dark hover:bg-accent/25"
+            >
+              → Facturé sous {formatDevisNumber(derivedFacture.devis_number, "facture")}
+            </Link>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
@@ -203,6 +252,12 @@ export default async function DevisDetailPage({
                 label="Sous total"
                 value={formatDt(devis.subtotal_dt)}
               />
+              {Number(devis.discount_dt ?? 0) > 0 && (
+                <Row
+                  label="Remise"
+                  value={`− ${formatDt(devis.discount_dt)}`}
+                />
+              )}
               <Row
                 label={`TVA (${Number(devis.tva_rate).toFixed(0)}%)`}
                 value={formatDt(devis.tva_dt)}

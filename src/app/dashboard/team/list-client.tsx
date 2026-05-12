@@ -41,6 +41,9 @@ export function TeamListClient({
         title={t.team.title}
         action={
           <div className="flex items-center gap-2">
+            <Link href="/dashboard/team/planning">
+              <Button variant="outline">📅 Planning équipe</Button>
+            </Link>
             <Link href="/dashboard/team/featured">
               <Button variant="accent">⭐ Employé du mois</Button>
             </Link>

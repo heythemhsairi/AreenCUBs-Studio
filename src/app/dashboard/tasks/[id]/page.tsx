@@ -6,6 +6,7 @@ import { TaskForm } from "../task-form";
 import { TaskDeleteButton } from "./delete-button";
 import { SubtasksCard, type Subtask } from "./subtasks-client";
 import { CommentsCard, type CommentRow } from "./comments-card";
+import { FilesCard, type TaskFile } from "./files-card";
 
 export default async function TaskEditPage({
   params,
@@ -21,6 +22,7 @@ export default async function TaskEditPage({
     { data: assignees },
     { data: subtasks },
     { data: commentsRaw },
+    { data: filesRaw },
   ] = await Promise.all([
     supabase
       .from("tasks")
@@ -42,6 +44,13 @@ export default async function TaskEditPage({
       .from("task_comments")
       .select(
         "id, body, created_at, author_id, profiles:author_id(username, full_name, avatar_url)",
+      )
+      .eq("task_id", id)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("task_files")
+      .select(
+        "id, name, mime, size_bytes, created_at, uploaded_by, profiles:uploaded_by(username, full_name)",
       )
       .eq("task_id", id)
       .order("created_at", { ascending: false }),
@@ -75,6 +84,21 @@ export default async function TaskEditPage({
     };
   });
 
+  const files: TaskFile[] = (filesRaw ?? []).map((f) => {
+    const u = Array.isArray(f.profiles) ? f.profiles[0] : f.profiles;
+    return {
+      id: f.id,
+      name: f.name,
+      mime: f.mime ?? null,
+      size_bytes: f.size_bytes ?? null,
+      created_at: f.created_at,
+      uploaded_by: f.uploaded_by,
+      uploader: u
+        ? { username: u.username, full_name: u.full_name ?? null }
+        : null,
+    };
+  });
+
   return (
     <div className="space-y-6">
       {project && (
@@ -101,6 +125,13 @@ export default async function TaskEditPage({
           initial={(subtasks ?? []) as Subtask[]}
         />
       )}
+
+      <FilesCard
+        taskId={task.id}
+        initial={files}
+        currentUserId={session.id}
+        isAdmin={session.role === "admin"}
+      />
 
       <CommentsCard
         taskId={task.id}
