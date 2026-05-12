@@ -16,7 +16,7 @@ export default async function TeamEditPage({
   const [{ data: profile }, { data: authUser }] = await Promise.all([
     admin
       .from("profiles")
-      .select("id, username, full_name, role, avatar_url")
+      .select("id, username, full_name, role, avatar_url, job_title")
       .eq("id", id)
       .single(),
     admin.auth.admin.getUserById(id),
@@ -32,6 +32,7 @@ export default async function TeamEditPage({
         full_name: profile.full_name,
         role: profile.role as UserRole,
         avatar_url: profile.avatar_url,
+        job_title: profile.job_title ?? null,
         email: authUser.user?.email ?? "",
       }}
       isSelf={profile.id === session.id}

@@ -69,6 +69,12 @@ export function TeamNewClient() {
                 <option value="freelancer">{t.roles.freelancer}</option>
               </Select>
             </Field>
+            <Field label="Titre / poste (optionnel)">
+              <Input
+                name="job_title"
+                placeholder="Ex. Graphic Designer / Editor"
+              />
+            </Field>
 
             {error && <p className="text-sm text-red-600">{error}</p>}
 

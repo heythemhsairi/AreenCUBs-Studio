@@ -25,6 +25,8 @@ export async function createTeamMemberAction(
   const fullName = String(formData.get("full_name") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   const role = String(formData.get("role") ?? "") as UserRole;
+  const jobTitleRaw = String(formData.get("job_title") ?? "").trim();
+  const jobTitle = jobTitleRaw.length > 0 ? jobTitleRaw : null;
 
   if (!username || !fullName || !password) {
     return { ok: false, error: "Tous les champs obligatoires." };
@@ -57,6 +59,7 @@ export async function createTeamMemberAction(
     username,
     full_name: fullName,
     role,
+    job_title: jobTitle,
   });
   if (profileErr) {
     await admin.auth.admin.deleteUser(created.user.id);
@@ -74,6 +77,8 @@ export async function updateTeamMemberAction(
   const id = String(formData.get("id") ?? "");
   const role = String(formData.get("role") ?? "") as UserRole;
   const fullName = String(formData.get("full_name") ?? "").trim();
+  const jobTitleRaw = String(formData.get("job_title") ?? "").trim();
+  const jobTitle = jobTitleRaw.length > 0 ? jobTitleRaw : null;
 
   if (!id) return { ok: false, error: "ID manquant." };
   if (!VALID_ROLES.includes(role)) {
@@ -89,7 +94,7 @@ export async function updateTeamMemberAction(
   const admin = createAdminClient();
   const { error } = await admin
     .from("profiles")
-    .update({ role, full_name: fullName || null })
+    .update({ role, full_name: fullName || null, job_title: jobTitle })
     .eq("id", id);
   if (error) return { ok: false, error: error.message };
 
@@ -260,7 +265,7 @@ export async function listTeamMembers() {
   const supabase = await createClient();
   const { data: profiles, error } = await supabase
     .from("profiles")
-    .select("id, username, full_name, role, avatar_url, created_at")
+    .select("id, username, full_name, role, avatar_url, job_title, created_at")
     .order("created_at", { ascending: true });
   if (error) throw error;
 

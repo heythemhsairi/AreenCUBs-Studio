@@ -25,6 +25,7 @@ type Member = {
   role: UserRole;
   email: string;
   avatar_url: string | null;
+  job_title: string | null;
 };
 
 export function TeamEditClient({
@@ -170,6 +171,13 @@ function ProfileForm({ member, isSelf }: { member: Member; isSelf: boolean }) {
               name="full_name"
               defaultValue={member.full_name ?? ""}
               required
+            />
+          </Field>
+          <Field label="Titre / poste (optionnel)">
+            <Input
+              name="job_title"
+              defaultValue={member.job_title ?? ""}
+              placeholder="Ex. Graphic Designer / Editor"
             />
           </Field>
           <Field label={t.team.form.role}>

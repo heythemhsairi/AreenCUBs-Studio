@@ -31,6 +31,7 @@ export default async function DashboardLayout({
         role={session.role}
         username={session.username}
         avatarUrl={session.avatar_url}
+        jobTitle={session.job_title}
       />
       <MobileNav role={session.role} />
 

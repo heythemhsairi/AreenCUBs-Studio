@@ -15,9 +15,10 @@ type Props = {
   role: UserRole;
   username: string;
   avatarUrl?: string | null;
+  jobTitle?: string | null;
 };
 
-export function Topbar({ role, username, avatarUrl }: Props) {
+export function Topbar({ role, username, avatarUrl, jobTitle }: Props) {
   const { t } = useI18n();
   const router = useRouter();
   const [signingOut, startSignOut] = useTransition();
@@ -49,7 +50,9 @@ export function Topbar({ role, username, avatarUrl }: Props) {
             <Avatar src={avatarUrl} name={username} size="sm" />
             <div className="hidden text-xs leading-tight sm:block">
               <p className="font-semibold text-ink">@{username}</p>
-              <p className="text-ink/55">{t.roles[role]}</p>
+              <p className="text-ink/55">
+                {jobTitle ?? t.roles[role]}
+              </p>
             </div>
           </Link>
           <Button

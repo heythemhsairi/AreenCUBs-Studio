@@ -15,6 +15,7 @@ type Member = {
   full_name: string | null;
   role: UserRole;
   avatar_url: string | null;
+  job_title: string | null;
   email: string;
   created_at: string;
 };
@@ -76,6 +77,9 @@ export function TeamListClient({
                       <p className="font-medium text-ink">
                         {m.full_name ?? m.username}
                       </p>
+                      {m.job_title && (
+                        <p className="text-xs text-ink/55">{m.job_title}</p>
+                      )}
                       {m.id === currentUserId && (
                         <p className="text-xs text-ink/40">
                           {t.dashboard.welcome}
