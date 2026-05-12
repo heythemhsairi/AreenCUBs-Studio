@@ -21,4 +21,4 @@ values
   ('Stratégie marketing complète (positionnement, contenu, plan d''action)', 'Complete marketing strategy', 'strategy', 350.00, 'package'),
   ('Gestion des réseaux sociaux', 'Social media management', 'social', 100.00, 'month'),
   ('Gestion réseaux sociaux + recherche stratégique + suivi opérationnel', 'Full social media management + strategy', 'social', 180.00, 'month')
-on conflict do nothing;
+on conflict (name_fr) do nothing;
