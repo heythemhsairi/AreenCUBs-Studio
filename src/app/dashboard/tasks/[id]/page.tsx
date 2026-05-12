@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { TaskForm } from "../task-form";
 import { TaskDeleteButton } from "./delete-button";
 import { SubtasksCard, type Subtask } from "./subtasks-client";
+import { CommentsCard, type CommentRow } from "./comments-card";
 
 export default async function TaskEditPage({
   params,
@@ -15,25 +16,36 @@ export default async function TaskEditPage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const [{ data: task }, { data: assignees }, { data: subtasks }] =
-    await Promise.all([
-      supabase
-        .from("tasks")
-        .select(
-          "id, project_id, title, description, status, priority, assignee_id, deadline, deliverable_url, parent_task_id, projects:project_id(name, clients:client_id(name))",
-        )
-        .eq("id", id)
-        .single(),
-      supabase
-        .from("profiles")
-        .select("id, username, full_name, role")
-        .order("full_name"),
-      supabase
-        .from("tasks")
-        .select("id, title, status")
-        .eq("parent_task_id", id)
-        .order("created_at", { ascending: true }),
-    ]);
+  const [
+    { data: task },
+    { data: assignees },
+    { data: subtasks },
+    { data: commentsRaw },
+  ] = await Promise.all([
+    supabase
+      .from("tasks")
+      .select(
+        "id, project_id, title, description, status, priority, assignee_id, deadline, deliverable_url, parent_task_id, projects:project_id(name, clients:client_id(name))",
+      )
+      .eq("id", id)
+      .single(),
+    supabase
+      .from("profiles")
+      .select("id, username, full_name, role")
+      .order("full_name"),
+    supabase
+      .from("tasks")
+      .select("id, title, status")
+      .eq("parent_task_id", id)
+      .order("created_at", { ascending: true }),
+    supabase
+      .from("task_comments")
+      .select(
+        "id, body, created_at, author_id, profiles:author_id(username, full_name, avatar_url)",
+      )
+      .eq("task_id", id)
+      .order("created_at", { ascending: false }),
+  ]);
 
   if (!task) notFound();
 
@@ -45,6 +57,23 @@ export default async function TaskEditPage({
       ? project.clients[0]
       : project.clients
     : null;
+
+  const comments: CommentRow[] = (commentsRaw ?? []).map((c) => {
+    const a = Array.isArray(c.profiles) ? c.profiles[0] : c.profiles;
+    return {
+      id: c.id,
+      body: c.body,
+      created_at: c.created_at,
+      author_id: c.author_id,
+      author: a
+        ? {
+            username: a.username,
+            full_name: a.full_name ?? null,
+            avatar_url: a.avatar_url ?? null,
+          }
+        : null,
+    };
+  });
 
   return (
     <div className="space-y-6">
@@ -72,6 +101,13 @@ export default async function TaskEditPage({
           initial={(subtasks ?? []) as Subtask[]}
         />
       )}
+
+      <CommentsCard
+        taskId={task.id}
+        initial={comments}
+        currentUserId={session.id}
+        isAdmin={session.role === "admin"}
+      />
 
       {session.role !== "freelancer" && (
         <TaskDeleteButton taskId={task.id} projectId={task.project_id} />
