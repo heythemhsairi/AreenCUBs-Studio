@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { getSettings } from "@/lib/settings";
 import { DevisPrintView } from "./print-view";
 
 export const metadata = {
@@ -16,13 +17,17 @@ export default async function DevisPrintPage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: devis } = await supabase
-    .from("devis")
-    .select(
-      "id, kind, devis_number, date, due_date, object, subtotal_dt, tva_dt, tva_rate, total_dt, clients:client_id(id, name, address, matricule_fiscal), devis_items(id, description, quantity, unit_price_dt, line_total_dt, is_bonus, position)",
-    )
-    .eq("id", id)
-    .single();
+  const [{ data: devis }, settings] = await Promise.all([
+    supabase
+      .from("devis")
+      .select(
+        "id, kind, devis_number, date, due_date, object, subtotal_dt, tva_dt, tva_rate, total_dt, clients:client_id(id, name, address, matricule_fiscal), devis_items(id, description, quantity, unit_price_dt, line_total_dt, is_bonus, position)",
+      )
+      .eq("id", id)
+      .single(),
+    getSettings(),
+  ]);
+
   if (!devis) notFound();
 
   const client = Array.isArray(devis.clients) ? devis.clients[0] : devis.clients;
@@ -32,6 +37,7 @@ export default async function DevisPrintPage({
 
   return (
     <DevisPrintView
+      settings={settings}
       devis={{
         kind: (devis.kind as "devis" | "facture") ?? "devis",
         devis_number: devis.devis_number,

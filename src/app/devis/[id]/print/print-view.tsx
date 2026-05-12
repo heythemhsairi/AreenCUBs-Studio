@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { BrandLogo } from "@/components/brand-logo";
 import { formatDevisNumber, formatDt, formatDate } from "@/lib/format";
+import type { AppSettings } from "@/lib/settings";
 
 type Devis = {
   kind: "devis" | "facture";
@@ -34,10 +35,12 @@ export function DevisPrintView({
   devis,
   client,
   items,
+  settings,
 }: {
   devis: Devis;
   client: Client;
   items: Item[];
+  settings: AppSettings;
 }) {
   useEffect(() => {
     const t = setTimeout(() => window.print(), 400);
@@ -82,12 +85,9 @@ export function DevisPrintView({
         <div className="party">
           <div className="party-tag">Expéditeur :</div>
           <div className="party-box">
-            <div className="party-name">Areen CUBs</div>
-            <div>
-              Adresse: Résidence Nadine, Avenue Habib Bourguiba Ksibet El Médiouni
-              Monastir 5031 Tunisie
-            </div>
-            <div className="mt">Matricule Fiscal: 1823660/R/M/A/000</div>
+            <div className="party-name">{settings.company_name}</div>
+            <div>Adresse: {settings.company_address}</div>
+            <div className="mt">Matricule Fiscal: {settings.matricule_fiscal}</div>
           </div>
         </div>
         <div className="party">
@@ -154,9 +154,9 @@ export function DevisPrintView({
       </section>
 
       <footer className="footer">
-        <span>📧 areencubs@gmail.com</span>
-        <span>📞 +216 52 148 184</span>
-        <span>🌐 areencubs.com</span>
+        <span>📧 {settings.email}</span>
+        <span>📞 {settings.phone}</span>
+        <span>🌐 {settings.website}</span>
       </footer>
 
       <div className="print-controls">

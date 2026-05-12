@@ -46,6 +46,9 @@ export const dict = {
       devis: "Devis",
       factures: "Factures",
       finance: "Finances",
+      services: "Services",
+      settings: "Paramètres",
+      profile: "Mon profil",
       logout: "Déconnexion",
     },
     roles: {
@@ -245,6 +248,9 @@ export const dict = {
       devis: "Quotes",
       factures: "Invoices",
       finance: "Finance",
+      services: "Services",
+      settings: "Settings",
+      profile: "My profile",
       logout: "Sign out",
     },
     roles: {

@@ -43,7 +43,7 @@ export function Topbar({ role, username, avatarUrl }: Props) {
         <div className="flex items-center gap-3">
           <LanguageToggle />
           <Link
-            href="/dashboard/team"
+            href="/dashboard/profile"
             className="group flex items-center gap-2.5 rounded-full border border-white/60 bg-white/70 px-1 py-1 pr-3 backdrop-blur transition-all duration-150 hover:border-brand/30 hover:bg-white/90 hover:shadow-soft"
           >
             <Avatar src={avatarUrl} name={username} size="sm" />
