@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireSession } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { notify } from "@/lib/notify";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -28,6 +29,21 @@ export async function addCommentAction(
     body,
   });
   if (error) return { ok: false, error: error.message };
+
+  // Notify the task assignee (unless it's the author themselves)
+  const { data: task } = await supabase
+    .from("tasks")
+    .select("assignee_id, title")
+    .eq("id", taskId)
+    .single();
+  if (task?.assignee_id && task.assignee_id !== session.id) {
+    await notify(
+      task.assignee_id,
+      "task_comment",
+      `Nouveau commentaire sur « ${task.title} »`,
+      `/dashboard/tasks/${taskId}`,
+    );
+  }
 
   revalidatePath(`/dashboard/tasks/${taskId}`);
   return { ok: true };

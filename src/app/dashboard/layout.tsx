@@ -1,6 +1,9 @@
 import { requireSession } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
 import { Sidebar, MobileNav } from "@/components/dashboard/sidebar";
 import { Topbar } from "@/components/dashboard/topbar";
+import { CommandPalette } from "@/components/command-palette";
+import type { NotificationRow } from "@/components/dashboard/notification-bell";
 
 export default async function DashboardLayout({
   children,
@@ -8,6 +11,22 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const session = await requireSession();
+
+  // Fetch the latest 20 notifications for the bell. The bell badge reads
+  // unread count from this list; older notifications stay accessible but
+  // not loaded at first paint.
+  let notifications: NotificationRow[] = [];
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("notifications")
+      .select("id, kind, body, link, read_at, created_at")
+      .order("created_at", { ascending: false })
+      .limit(20);
+    notifications = (data ?? []) as NotificationRow[];
+  } catch (err) {
+    console.error("[layout:notifications]", err);
+  }
 
   return (
     <div className="min-h-screen">
@@ -32,6 +51,7 @@ export default async function DashboardLayout({
         username={session.username}
         avatarUrl={session.avatar_url}
         jobTitle={session.job_title}
+        notifications={notifications}
       />
       <MobileNav role={session.role} />
 
@@ -41,6 +61,8 @@ export default async function DashboardLayout({
           {children}
         </main>
       </div>
+
+      <CommandPalette />
     </div>
   );
 }
