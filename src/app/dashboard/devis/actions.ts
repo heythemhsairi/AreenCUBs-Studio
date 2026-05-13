@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { notifyMany } from "@/lib/notify";
 
 export type ActionResult<T = unknown> =
   | { ok: true; data?: T }
@@ -242,22 +243,73 @@ export async function setDevisStatusAction(
   id: string,
   status: DevisStatus,
 ): Promise<ActionResult> {
-  await requireAdmin();
+  const session = await requireAdmin();
   if (!DEVIS_STATUSES.includes(status))
     return { ok: false, error: "Statut invalide." };
 
   const supabase = await createClient();
+  const { data: before } = await supabase
+    .from("devis")
+    .select(
+      "status, kind, devis_number, clients:client_id(name)",
+    )
+    .eq("id", id)
+    .single();
+
   const { error } = await supabase
     .from("devis")
     .update({ status })
     .eq("id", id);
   if (error) return { ok: false, error: error.message };
 
+  // Notify other admins when a devis flips to accepted or rejected — they
+  // probably want to know without watching the table.
+  if (
+    before &&
+    before.status !== status &&
+    (status === "accepted" || status === "rejected")
+  ) {
+    const client = Array.isArray(before.clients)
+      ? before.clients[0]
+      : before.clients;
+    const kindLabel = before.kind === "facture" ? "Facture" : "Devis";
+    const statusLabel = status === "accepted" ? "accepté" : "refusé";
+    const baseUrl =
+      before.kind === "facture" ? "/dashboard/factures" : "/dashboard/devis";
+    await notifyOtherAdmins(
+      session.id,
+      `devis_${status}`,
+      `${kindLabel} #${before.devis_number} ${statusLabel} — ${client?.name ?? "—"}`,
+      `${baseUrl}/${id}`,
+    );
+  }
+
   revalidatePath("/dashboard/devis");
   revalidatePath("/dashboard/factures");
   revalidatePath(`/dashboard/devis/${id}`);
   revalidatePath(`/dashboard/factures/${id}`);
   return { ok: true };
+}
+
+async function notifyOtherAdmins(
+  actorId: string,
+  kind: string,
+  body: string,
+  link: string,
+): Promise<void> {
+  try {
+    const admin = createAdminClient();
+    const { data } = await admin
+      .from("profiles")
+      .select("id")
+      .eq("role", "admin");
+    const others = (data ?? [])
+      .map((r) => r.id as string)
+      .filter((id) => id !== actorId);
+    await notifyMany(others, kind, body, link);
+  } catch (err) {
+    console.error("[notifyOtherAdmins]", err);
+  }
 }
 
 export async function recordPaymentAction(
@@ -310,7 +362,9 @@ export async function markFullyPaidAction(
   const supabase = await createClient();
   const { data: devis } = await supabase
     .from("devis")
-    .select("total_dt")
+    .select(
+      "total_dt, kind, devis_number, payment_status, clients:client_id(name)",
+    )
     .eq("id", devisId)
     .single();
   const { data: prevPayments } = await supabase
@@ -334,6 +388,23 @@ export async function markFullyPaidAction(
     if (error) return { ok: false, error: error.message };
   }
   await recomputePaymentStatus(supabase, devisId);
+
+  // Notify other admins on transition unpaid/partial → paid.
+  if (devis && devis.payment_status !== "paid") {
+    const client = Array.isArray(devis.clients)
+      ? devis.clients[0]
+      : devis.clients;
+    const kindLabel = devis.kind === "facture" ? "Facture" : "Devis";
+    const baseUrl =
+      devis.kind === "facture" ? "/dashboard/factures" : "/dashboard/devis";
+    await notifyOtherAdmins(
+      session.id,
+      "devis_paid",
+      `${kindLabel} #${devis.devis_number} payée — ${client?.name ?? "—"} (${total.toFixed(2)} DT)`,
+      `${baseUrl}/${devisId}`,
+    );
+  }
+
   revalidatePath(`/dashboard/devis/${devisId}`);
   revalidatePath(`/dashboard/factures/${devisId}`);
   revalidatePath("/dashboard/devis");

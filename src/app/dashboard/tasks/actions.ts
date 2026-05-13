@@ -6,6 +6,7 @@ import { requireSession, requireWorkerOrAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logActivity } from "@/lib/activity";
+import { notify } from "@/lib/notify";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -95,6 +96,15 @@ export async function createTaskAction(
       assignee_id: fields.assignee_id,
       assignee_name: assigneeName,
     });
+    // Notify the assignee — unless they assigned the task to themselves.
+    if (fields.assignee_id !== session.id) {
+      await notify(
+        fields.assignee_id,
+        "task_assigned",
+        `Nouvelle tâche : ${fields.title}`,
+        `/dashboard/tasks/${data.id}`,
+      );
+    }
   }
 
   revalidatePath("/dashboard/tasks");
@@ -130,7 +140,7 @@ export async function updateTaskAction(
   const { data: before } = await supabase
     .from("tasks")
     .select(
-      "status, priority, assignee_id, deadline, project_id, parent_task_id, title, description, deliverable_url, tags, recurrence",
+      "status, priority, assignee_id, deadline, project_id, parent_task_id, title, description, deliverable_url, tags, recurrence, created_by",
     )
     .eq("id", id)
     .single();
@@ -159,6 +169,20 @@ export async function updateTaskAction(
         from: before.status,
         to: fields.status,
       });
+      // Notify the creator when someone else moves the task to review or done.
+      if (
+        (fields.status === "review" || fields.status === "done") &&
+        before.created_by &&
+        before.created_by !== session.id
+      ) {
+        const label = fields.status === "review" ? "à valider" : "terminée";
+        await notify(
+          before.created_by,
+          `task_${fields.status}`,
+          `Tâche ${label} : ${fields.title}`,
+          `/dashboard/tasks/${id}`,
+        );
+      }
     }
     if (before.priority !== fields.priority) {
       await logActivity(id, session.id, "priority_changed", {
@@ -179,6 +203,14 @@ export async function updateTaskAction(
           assignee_id: fields.assignee_id,
           assignee_name: assigneeName,
         });
+        if (fields.assignee_id !== session.id) {
+          await notify(
+            fields.assignee_id,
+            "task_assigned",
+            `Tâche assignée : ${fields.title}`,
+            `/dashboard/tasks/${id}`,
+          );
+        }
       } else {
         await logActivity(id, session.id, "task_unassigned");
       }
@@ -240,7 +272,7 @@ export async function changeTaskStatusAction(
   const { data: before } = await supabase
     .from("tasks")
     .select(
-      "status, project_id, parent_task_id, title, description, priority, assignee_id, deadline, deliverable_url, tags, recurrence",
+      "status, project_id, parent_task_id, title, description, priority, assignee_id, deadline, deliverable_url, tags, recurrence, created_by",
     )
     .eq("id", taskId)
     .single();
@@ -257,6 +289,25 @@ export async function changeTaskStatusAction(
       from: before.status,
       to: status,
     });
+    // Mirror the edit-form notification path for Kanban drag / quick-change.
+    type BeforeRow = typeof before & {
+      created_by?: string | null;
+      title?: string | null;
+    };
+    const bRow = before as BeforeRow;
+    if (
+      (status === "review" || status === "done") &&
+      bRow.created_by &&
+      bRow.created_by !== session.id
+    ) {
+      const label = status === "review" ? "à valider" : "terminée";
+      await notify(
+        bRow.created_by,
+        `task_${status}`,
+        `Tâche ${label} : ${bRow.title ?? "—"}`,
+        `/dashboard/tasks/${taskId}`,
+      );
+    }
   }
 
   // Recurrence: when moving to done, spawn the next instance.
