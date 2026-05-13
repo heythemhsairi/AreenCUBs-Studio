@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useI18n } from "@/lib/i18n/provider";
 import { Button } from "@/components/ui/button";
@@ -31,12 +32,23 @@ type TaskRow = {
   deliverable_url: string | null;
 };
 
+export type TaskTemplateOption = {
+  id: string;
+  name: string;
+  title: string;
+  description: string | null;
+  priority: "low" | "normal" | "high" | "urgent";
+  default_deadline_offset_days: number | null;
+};
+
 type Props =
   | {
       mode: "create";
       defaultProjectId?: string;
       projects: Project[];
       assignees: Assignee[];
+      templates?: TaskTemplateOption[];
+      preselectedTemplate?: TaskTemplateOption | null;
       task?: undefined;
     }
   | {
@@ -45,13 +57,38 @@ type Props =
       assignees: Assignee[];
       projects?: undefined;
       defaultProjectId?: undefined;
+      templates?: undefined;
+      preselectedTemplate?: undefined;
     };
 
 export function TaskForm(props: Props) {
   const { t } = useI18n();
+  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [pending, startTransition] = useTransition();
+
+  const tpl = props.mode === "create" ? props.preselectedTemplate : null;
+  const templates = props.mode === "create" ? props.templates ?? [] : [];
+
+  // Template-derived defaults (only in create mode)
+  const tplDefaults =
+    tpl
+      ? {
+          title: tpl.title,
+          description: tpl.description ?? "",
+          priority: tpl.priority,
+          deadline:
+            tpl.default_deadline_offset_days !== null
+              ? new Date(
+                  Date.now() +
+                    tpl.default_deadline_offset_days * 24 * 60 * 60 * 1000,
+                )
+                  .toISOString()
+                  .slice(0, 10)
+              : "",
+        }
+      : null;
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -116,15 +153,54 @@ export function TaskForm(props: Props) {
               <input type="hidden" name="project_id" value={tk?.project_id} />
             )}
 
+            {props.mode === "create" && templates.length > 0 && (
+              <Field label="Modèle (optionnel)">
+                <div className="flex items-center gap-2">
+                  <Select
+                    value={tpl?.id ?? ""}
+                    onChange={(e) => {
+                      const params = new URLSearchParams();
+                      if (props.defaultProjectId)
+                        params.set("projectId", props.defaultProjectId);
+                      if (e.target.value)
+                        params.set("templateId", e.target.value);
+                      router.replace(
+                        `/dashboard/tasks/new${params.toString() ? "?" + params.toString() : ""}`,
+                      );
+                    }}
+                  >
+                    <option value="">— Aucun —</option>
+                    {templates.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.name}
+                      </option>
+                    ))}
+                  </Select>
+                  <Link
+                    href="/dashboard/tasks/templates"
+                    className="shrink-0 text-xs font-semibold text-brand hover:text-brand-dark"
+                  >
+                    Gérer →
+                  </Link>
+                </div>
+              </Field>
+            )}
+
             <Field label={t.tasks.form.title}>
-              <Input name="title" required defaultValue={tk?.title ?? ""} />
+              <Input
+                key={tpl?.id ?? "no-tpl-title"}
+                name="title"
+                required
+                defaultValue={tk?.title ?? tplDefaults?.title ?? ""}
+              />
             </Field>
 
             <Field label={t.tasks.form.description}>
               <Textarea
+                key={tpl?.id ?? "no-tpl-desc"}
                 name="description"
                 rows={3}
-                defaultValue={tk?.description ?? ""}
+                defaultValue={tk?.description ?? tplDefaults?.description ?? ""}
               />
             </Field>
 
@@ -145,9 +221,12 @@ export function TaskForm(props: Props) {
 
               <Field label={t.tasks.form.deadline}>
                 <Input
+                  key={tpl?.id ?? "no-tpl-deadline"}
                   name="deadline"
                   type="date"
-                  defaultValue={tk?.deadline ?? ""}
+                  defaultValue={
+                    tk?.deadline ?? tplDefaults?.deadline ?? ""
+                  }
                 />
               </Field>
             </div>
@@ -166,8 +245,11 @@ export function TaskForm(props: Props) {
               </Field>
               <Field label={t.tasks.form.priority}>
                 <Select
+                  key={tpl?.id ?? "no-tpl-pri"}
                   name="priority"
-                  defaultValue={tk?.priority ?? "normal"}
+                  defaultValue={
+                    tk?.priority ?? tplDefaults?.priority ?? "normal"
+                  }
                 >
                   <option value="low">{t.tasks.priority.low}</option>
                   <option value="normal">{t.tasks.priority.normal}</option>

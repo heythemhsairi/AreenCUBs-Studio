@@ -1,11 +1,15 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar } from "@/components/avatar";
-import { addCommentAction, deleteCommentAction } from "./comments-actions";
+import {
+  addCommentAction,
+  deleteCommentAction,
+  searchMentionsAction,
+} from "./comments-actions";
 
 export type CommentRow = {
   id: string;
@@ -35,6 +39,56 @@ export function CommentsCard({
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Mention autocomplete state
+  const [mentionQuery, setMentionQuery] = useState<string | null>(null);
+  const [mentionHits, setMentionHits] = useState<
+    Array<{ username: string; full_name: string | null; avatar_url: string | null }>
+  >([]);
+  const [mentionIdx, setMentionIdx] = useState(0);
+
+  // Detect @query at the caret position
+  function updateMentionState() {
+    const ta = textareaRef.current;
+    if (!ta) return setMentionQuery(null);
+    const before = ta.value.slice(0, ta.selectionStart);
+    const m = before.match(/(?:^|\s)@([a-zA-Z0-9._-]{0,32})$/);
+    setMentionQuery(m ? m[1] : null);
+  }
+
+  useEffect(() => {
+    if (mentionQuery === null) {
+      setMentionHits([]);
+      return;
+    }
+    let cancelled = false;
+    searchMentionsAction(mentionQuery).then((hits) => {
+      if (!cancelled) {
+        setMentionHits(hits);
+        setMentionIdx(0);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [mentionQuery]);
+
+  function insertMention(username: string) {
+    const ta = textareaRef.current;
+    if (!ta) return;
+    const start = ta.selectionStart;
+    const before = ta.value.slice(0, start);
+    const after = ta.value.slice(start);
+    const replaced = before.replace(/@([a-zA-Z0-9._-]{0,32})$/, `@${username} `);
+    const newBody = replaced + after;
+    setBody(newBody);
+    setMentionQuery(null);
+    setTimeout(() => {
+      ta.focus();
+      const pos = replaced.length;
+      ta.setSelectionRange(pos, pos);
+    }, 0);
+  }
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -88,6 +142,29 @@ export function CommentsCard({
   }
 
   function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    // Mention autocomplete navigation
+    if (mentionQuery !== null && mentionHits.length > 0) {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setMentionIdx((i) => Math.min(mentionHits.length - 1, i + 1));
+        return;
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setMentionIdx((i) => Math.max(0, i - 1));
+        return;
+      }
+      if (e.key === "Enter" || e.key === "Tab") {
+        e.preventDefault();
+        insertMention(mentionHits[mentionIdx].username);
+        return;
+      }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setMentionQuery(null);
+        return;
+      }
+    }
     // Cmd/Ctrl+Enter submits
     if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
       e.preventDefault();
@@ -107,16 +184,62 @@ export function CommentsCard({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={onSubmit} className="space-y-2">
+        <form onSubmit={onSubmit} className="relative space-y-2">
           <Textarea
             ref={textareaRef}
             value={body}
-            onChange={(e) => setBody(e.target.value)}
+            onChange={(e) => {
+              setBody(e.target.value);
+              setTimeout(updateMentionState, 0);
+            }}
+            onClick={updateMentionState}
+            onKeyUp={updateMentionState}
             onKeyDown={onKeyDown}
-            placeholder="Écrire un commentaire…"
+            placeholder="Écrire un commentaire — utilisez @ pour mentionner…"
             rows={2}
             disabled={pending}
           />
+
+          {/* Mention autocomplete popover */}
+          {mentionQuery !== null && mentionHits.length > 0 && (
+            <div className="absolute left-2 right-2 top-full z-30 mt-1 max-w-xs overflow-hidden rounded-xl border border-ink/10 bg-white shadow-lift dark:border-white/10 dark:bg-[#1e2029]">
+              <p className="border-b border-ink/5 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-ink/45">
+                Mentionner
+              </p>
+              <ul>
+                {mentionHits.map((h, i) => (
+                  <li key={h.username}>
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => insertMention(h.username)}
+                      onMouseEnter={() => setMentionIdx(i)}
+                      className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors ${
+                        i === mentionIdx
+                          ? "bg-brand/10 text-brand-dark dark:bg-brand/20 dark:text-brand"
+                          : "hover:bg-cream-dark/40 dark:hover:bg-white/5"
+                      }`}
+                    >
+                      <Avatar
+                        src={h.avatar_url}
+                        name={h.full_name ?? h.username}
+                        size="xs"
+                      />
+                      <div className="min-w-0">
+                        <p className="truncate font-medium text-ink">
+                          {h.full_name ?? h.username}
+                        </p>
+                        <p className="truncate text-[11px] text-ink/45">
+                          @{h.username}
+                        </p>
+                      </div>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           <div className="flex items-center justify-between">
             <p className="text-[11px] text-ink/40">
               <kbd className="rounded border border-ink/15 bg-cream-dark/50 px-1 py-px text-[10px] font-semibold">
@@ -126,7 +249,7 @@ export function CommentsCard({
               <kbd className="rounded border border-ink/15 bg-cream-dark/50 px-1 py-px text-[10px] font-semibold">
                 Entrée
               </kbd>{" "}
-              pour envoyer
+              pour envoyer · <span className="font-mono">@</span> pour mentionner
             </p>
             <Button
               type="submit"
@@ -199,11 +322,37 @@ function Item({
           )}
         </div>
         <p className="mt-1 whitespace-pre-wrap text-sm text-ink/85">
-          {comment.body}
+          {renderWithMentions(comment.body)}
         </p>
       </div>
     </li>
   );
+}
+
+/**
+ * Splits a comment body so `@username` tokens render as styled pills.
+ * Keeps everything else verbatim (newlines preserved by whitespace-pre-wrap).
+ */
+function renderWithMentions(body: string): React.ReactNode[] {
+  const re = /(@[a-zA-Z0-9._-]{2,32})/g;
+  const out: React.ReactNode[] = [];
+  let last = 0;
+  let m;
+  let i = 0;
+  while ((m = re.exec(body)) !== null) {
+    if (m.index > last) out.push(body.slice(last, m.index));
+    out.push(
+      <span
+        key={`m-${i++}`}
+        className="rounded-md bg-brand/10 px-1 py-px font-semibold text-brand-dark dark:bg-brand/20 dark:text-brand"
+      >
+        {m[1]}
+      </span>,
+    );
+    last = re.lastIndex;
+  }
+  if (last < body.length) out.push(body.slice(last));
+  return out;
 }
 
 function formatRelative(iso: string): string {

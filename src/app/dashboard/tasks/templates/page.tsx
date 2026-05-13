@@ -1,0 +1,35 @@
+import { requireWorkerOrAdmin } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
+import { PageHeader } from "@/components/dashboard/page-header";
+import { TemplatesClient, type TaskTemplateRow } from "./templates-client";
+
+export default async function TaskTemplatesPage() {
+  await requireWorkerOrAdmin();
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("task_templates")
+    .select(
+      "id, name, title, description, priority, default_deadline_offset_days, created_at",
+    )
+    .order("created_at", { ascending: false });
+
+  const rows: TaskTemplateRow[] = (data ?? []).map((r) => ({
+    id: r.id,
+    name: r.name,
+    title: r.title,
+    description: r.description,
+    priority: r.priority,
+    default_deadline_offset_days: r.default_deadline_offset_days,
+    created_at: r.created_at,
+  }));
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title="Modèles de tâche"
+        subtitle="Définissez une fois, utilisez à chaque tâche similaire"
+      />
+      <TemplatesClient initial={rows} />
+    </div>
+  );
+}

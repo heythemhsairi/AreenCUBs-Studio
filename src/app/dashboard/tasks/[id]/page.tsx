@@ -7,6 +7,9 @@ import { TaskDeleteButton } from "./delete-button";
 import { SubtasksCard, type Subtask } from "./subtasks-client";
 import { CommentsCard, type CommentRow } from "./comments-card";
 import { FilesCard, type TaskFile } from "./files-card";
+import { TimeTracker, type TimeEntry } from "./time-tracker";
+import { ActivityFeed, type ActivityRow } from "./activity-feed";
+import { PriorityPinButton } from "@/components/priority-pin-button";
 
 export default async function TaskEditPage({
   params,
@@ -23,6 +26,9 @@ export default async function TaskEditPage({
     { data: subtasks },
     { data: commentsRaw },
     { data: filesRaw },
+    { data: timeRaw },
+    { data: activityRaw },
+    { data: pinRow },
   ] = await Promise.all([
     supabase
       .from("tasks")
@@ -54,6 +60,28 @@ export default async function TaskEditPage({
       )
       .eq("task_id", id)
       .order("created_at", { ascending: false }),
+    supabase
+      .from("time_entries")
+      .select(
+        "id, started_at, ended_at, duration_seconds, user_id, profiles:user_id(username, full_name, avatar_url)",
+      )
+      .eq("task_id", id)
+      .order("started_at", { ascending: false })
+      .limit(20),
+    supabase
+      .from("task_activity")
+      .select(
+        "id, action, meta, created_at, actor_id, profiles:actor_id(username, full_name, avatar_url)",
+      )
+      .eq("task_id", id)
+      .order("created_at", { ascending: false })
+      .limit(20),
+    supabase
+      .from("priority_pins")
+      .select("id")
+      .eq("task_id", id)
+      .eq("user_id", session.id)
+      .maybeSingle(),
   ]);
 
   if (!task) notFound();
@@ -99,6 +127,52 @@ export default async function TaskEditPage({
     };
   });
 
+  const timeEntries: TimeEntry[] = (timeRaw ?? []).map((e) => {
+    const u = Array.isArray(e.profiles) ? e.profiles[0] : e.profiles;
+    return {
+      id: e.id,
+      started_at: e.started_at,
+      ended_at: e.ended_at,
+      duration_seconds: e.duration_seconds,
+      user: u
+        ? {
+            username: u.username,
+            full_name: u.full_name ?? null,
+            avatar_url: u.avatar_url ?? null,
+          }
+        : null,
+    };
+  });
+
+  const myRunningEntryId =
+    (timeRaw ?? []).find(
+      (e) => e.ended_at === null && e.user_id === session.id,
+    )?.id ?? null;
+
+  const totalSeconds = timeEntries.reduce(
+    (acc, e) => acc + (e.duration_seconds ?? 0),
+    0,
+  );
+
+  const activity: ActivityRow[] = (activityRaw ?? []).map((a) => {
+    const p = Array.isArray(a.profiles) ? a.profiles[0] : a.profiles;
+    return {
+      id: a.id,
+      action: a.action,
+      meta: (a.meta as Record<string, unknown> | null) ?? null,
+      created_at: a.created_at,
+      actor: p
+        ? {
+            username: p.username,
+            full_name: p.full_name ?? null,
+            avatar_url: p.avatar_url ?? null,
+          }
+        : null,
+    };
+  });
+
+  const isPinned = !!pinRow;
+
   return (
     <div className="space-y-6">
       {project && (
@@ -113,11 +187,29 @@ export default async function TaskEditPage({
         </p>
       )}
 
+      <div className="flex items-center gap-3">
+        <PriorityPinButton taskId={task.id} initiallyPinned={isPinned} />
+        <span className="text-xs text-ink/55">
+          {isPinned
+            ? "Cette tâche fait partie de vos priorités du jour"
+            : "Épingler dans mes priorités du jour"}
+        </span>
+      </div>
+
       <TaskForm
         mode="edit"
         task={task}
         assignees={assignees ?? []}
       />
+
+      {!task.parent_task_id && (
+        <TimeTracker
+          taskId={task.id}
+          entries={timeEntries}
+          myRunningEntryId={myRunningEntryId}
+          totalSeconds={totalSeconds}
+        />
+      )}
 
       {!task.parent_task_id && (
         <SubtasksCard
@@ -139,6 +231,8 @@ export default async function TaskEditPage({
         currentUserId={session.id}
         isAdmin={session.role === "admin"}
       />
+
+      <ActivityFeed entries={activity} />
 
       {session.role !== "freelancer" && (
         <TaskDeleteButton taskId={task.id} projectId={task.project_id} />

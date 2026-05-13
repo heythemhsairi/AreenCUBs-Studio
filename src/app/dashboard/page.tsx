@@ -2,6 +2,11 @@ import { requireSession } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { OverviewClient } from "./overview-client";
 import { getDonutPalette } from "@/components/charts/palette";
+import {
+  StaleDevisBanner,
+  type StaleDevisRow,
+} from "@/components/stale-devis-banner";
+import { PriorityPinsSection } from "./priorities-section";
 
 // Defensive helper so one failing query can't take down the whole page.
 async function safe<T>(
@@ -391,6 +396,97 @@ export default async function DashboardPage() {
     "workSchedule",
   );
 
+  // ---- Stale "sent" devis (admin) — for follow-up banner ----
+  const staleDevis: StaleDevisRow[] = isAdmin
+    ? await safe(
+        async () => {
+          const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+            .toISOString()
+            .slice(0, 10);
+          const { data } = await supabase
+            .from("devis")
+            .select(
+              "id, kind, devis_number, total_dt, date, clients:client_id(name)",
+            )
+            .eq("status", "sent")
+            .eq("payment_status", "unpaid")
+            .lte("date", cutoff)
+            .order("date", { ascending: true })
+            .limit(8);
+          return (data ?? []).map((d) => {
+            const c = Array.isArray(d.clients) ? d.clients[0] : d.clients;
+            const days = Math.floor(
+              (Date.now() - new Date(d.date).getTime()) / 86400000,
+            );
+            return {
+              id: d.id,
+              kind: (d.kind as "devis" | "facture") ?? "devis",
+              devis_number: d.devis_number,
+              client_name: c?.name ?? "—",
+              total_dt: Number(d.total_dt),
+              date: d.date,
+              days_since_sent: days,
+            };
+          });
+        },
+        [] as StaleDevisRow[],
+        "staleDevis",
+      )
+    : [];
+
+  // ---- Priority pins (current user's "today's priorities") ----
+  type PriorityPin = {
+    id: string;
+    task: {
+      id: string;
+      title: string;
+      status: string;
+      priority: string;
+      deadline: string | null;
+      project_name: string | null;
+      client_name: string | null;
+    };
+  };
+  const priorityPins: PriorityPin[] = await safe(
+    async () => {
+      const { data } = await supabase
+        .from("priority_pins")
+        .select(
+          "id, task_id, tasks:task_id(id, title, status, priority, deadline, projects:project_id(name, clients:client_id(name)))",
+        )
+        .eq("user_id", session.id)
+        .order("pinned_at", { ascending: true });
+      return (data ?? [])
+        .map((row) => {
+          const tk = Array.isArray(row.tasks) ? row.tasks[0] : row.tasks;
+          if (!tk) return null;
+          const proj = Array.isArray(tk.projects)
+            ? tk.projects[0]
+            : tk.projects;
+          const cli = proj
+            ? Array.isArray(proj.clients)
+              ? proj.clients[0]
+              : proj.clients
+            : null;
+          return {
+            id: row.id,
+            task: {
+              id: tk.id,
+              title: tk.title,
+              status: tk.status,
+              priority: tk.priority,
+              deadline: tk.deadline,
+              project_name: proj?.name ?? null,
+              client_name: cli?.name ?? null,
+            },
+          };
+        })
+        .filter((x): x is PriorityPin => x !== null);
+    },
+    [] as PriorityPin[],
+    "priorityPins",
+  );
+
   // ---- Featured employee ----
   type FeaturedEmployee = {
     username: string;
@@ -424,31 +520,50 @@ export default async function DashboardPage() {
   );
 
   return (
-    <OverviewClient
-      role={session.role}
-      fullName={session.full_name ?? session.username}
-      counts={{
-        activeProjects,
-        activeTasks: isAdmin ? totalActiveTasks : myActiveTasks,
-        teamSize,
-        clients: clientsCount,
-        myActiveTasks,
-        myOverdueTasks,
-      }}
-      revenue={{
-        mtdInvoiced,
-        mtdPaid,
-        outstanding: totalOutstanding,
-        invoicedTrend: pctTrend(mtdInvoiced, prevInvoiced),
-        paidTrend: pctTrend(mtdPaid, prevPaid),
-        outstandingTrend: pctTrend(totalOutstanding, outstandingPrev),
-      }}
-      monthlySeries={monthlySeries}
-      donutData={donutData}
-      recentDevis={recentDevis}
-      upcomingTasks={upcomingTasks}
-      featuredEmployee={featuredEmployee}
-      workSchedule={myWorkSchedule}
-    />
+    <div className="space-y-7">
+      {isAdmin && staleDevis.length > 0 && (
+        <StaleDevisBanner rows={staleDevis} />
+      )}
+      {priorityPins.length > 0 && (
+        <PriorityPinsSection
+          pins={priorityPins.map((p) => ({
+            pinId: p.id,
+            taskId: p.task.id,
+            title: p.task.title,
+            status: p.task.status,
+            priority: p.task.priority,
+            deadline: p.task.deadline,
+            project: p.task.project_name,
+            client: p.task.client_name,
+          }))}
+        />
+      )}
+      <OverviewClient
+        role={session.role}
+        fullName={session.full_name ?? session.username}
+        counts={{
+          activeProjects,
+          activeTasks: isAdmin ? totalActiveTasks : myActiveTasks,
+          teamSize,
+          clients: clientsCount,
+          myActiveTasks,
+          myOverdueTasks,
+        }}
+        revenue={{
+          mtdInvoiced,
+          mtdPaid,
+          outstanding: totalOutstanding,
+          invoicedTrend: pctTrend(mtdInvoiced, prevInvoiced),
+          paidTrend: pctTrend(mtdPaid, prevPaid),
+          outstandingTrend: pctTrend(totalOutstanding, outstandingPrev),
+        }}
+        monthlySeries={monthlySeries}
+        donutData={donutData}
+        recentDevis={recentDevis}
+        upcomingTasks={upcomingTasks}
+        featuredEmployee={featuredEmployee}
+        workSchedule={myWorkSchedule}
+      />
+    </div>
   );
 }

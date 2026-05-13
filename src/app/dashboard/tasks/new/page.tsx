@@ -1,17 +1,21 @@
 import { requireWorkerOrAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { TaskForm } from "../task-form";
+import { TaskForm, type TaskTemplateOption } from "../task-form";
 
 export default async function NewTaskPage({
   searchParams,
 }: {
-  searchParams: Promise<{ projectId?: string }>;
+  searchParams: Promise<{ projectId?: string; templateId?: string }>;
 }) {
   await requireWorkerOrAdmin();
-  const { projectId } = await searchParams;
+  const { projectId, templateId } = await searchParams;
   const supabase = await createClient();
 
-  const [{ data: projects }, { data: members }] = await Promise.all([
+  const [
+    { data: projects },
+    { data: members },
+    { data: templates },
+  ] = await Promise.all([
     supabase
       .from("projects")
       .select("id, name, clients:client_id(name)")
@@ -20,7 +24,26 @@ export default async function NewTaskPage({
       .from("profiles")
       .select("id, username, full_name, role")
       .order("full_name"),
+    supabase
+      .from("task_templates")
+      .select(
+        "id, name, title, description, priority, default_deadline_offset_days",
+      )
+      .order("name"),
   ]);
+
+  const tplList: TaskTemplateOption[] = (templates ?? []).map((t) => ({
+    id: t.id,
+    name: t.name,
+    title: t.title,
+    description: t.description,
+    priority: t.priority,
+    default_deadline_offset_days: t.default_deadline_offset_days,
+  }));
+
+  const chosen = templateId
+    ? tplList.find((t) => t.id === templateId) ?? null
+    : null;
 
   return (
     <TaskForm
@@ -35,6 +58,8 @@ export default async function NewTaskPage({
         };
       })}
       assignees={members ?? []}
+      templates={tplList}
+      preselectedTemplate={chosen}
     />
   );
 }

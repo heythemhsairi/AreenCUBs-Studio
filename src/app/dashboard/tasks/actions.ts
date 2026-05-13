@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireSession, requireWorkerOrAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { logActivity } from "@/lib/activity";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -59,15 +61,40 @@ export async function createTaskAction(
     .single();
   if (error) return { ok: false, error: error.message };
 
+  await logActivity(data.id, session.id, "task_created", {
+    title: fields.title,
+  });
+  if (fields.assignee_id) {
+    const assigneeName = await resolveProfileName(fields.assignee_id);
+    await logActivity(data.id, session.id, "task_assigned", {
+      assignee_id: fields.assignee_id,
+      assignee_name: assigneeName,
+    });
+  }
+
   revalidatePath("/dashboard/tasks");
   revalidatePath(`/dashboard/projects/${data.project_id}`);
   redirect(`/dashboard/projects/${data.project_id}`);
 }
 
+async function resolveProfileName(userId: string): Promise<string> {
+  try {
+    const admin = createAdminClient();
+    const { data } = await admin
+      .from("profiles")
+      .select("full_name, username")
+      .eq("id", userId)
+      .maybeSingle();
+    return data?.full_name ?? (data?.username ? `@${data.username}` : "quelqu'un");
+  } catch {
+    return "quelqu'un";
+  }
+}
+
 export async function updateTaskAction(
   formData: FormData,
 ): Promise<ActionResult> {
-  await requireSession();
+  const session = await requireSession();
   const id = String(formData.get("id") ?? "");
   if (!id) return { ok: false, error: "ID manquant." };
 
@@ -75,6 +102,12 @@ export async function updateTaskAction(
   if (!fields.title) return { ok: false, error: "Le titre est requis." };
 
   const supabase = await createClient();
+  const { data: before } = await supabase
+    .from("tasks")
+    .select("status, priority, assignee_id, deadline")
+    .eq("id", id)
+    .single();
+
   const { data, error } = await supabase
     .from("tasks")
     .update({
@@ -91,7 +124,40 @@ export async function updateTaskAction(
     .single();
   if (error) return { ok: false, error: error.message };
 
+  if (before) {
+    if (before.status !== fields.status) {
+      await logActivity(id, session.id, "status_changed", {
+        from: before.status,
+        to: fields.status,
+      });
+    }
+    if (before.priority !== fields.priority) {
+      await logActivity(id, session.id, "priority_changed", {
+        from: before.priority,
+        to: fields.priority,
+      });
+    }
+    if ((before.deadline ?? null) !== (fields.deadline ?? null)) {
+      await logActivity(id, session.id, "deadline_changed", {
+        from: before.deadline,
+        to: fields.deadline,
+      });
+    }
+    if ((before.assignee_id ?? null) !== (fields.assignee_id ?? null)) {
+      if (fields.assignee_id) {
+        const assigneeName = await resolveProfileName(fields.assignee_id);
+        await logActivity(id, session.id, "task_assigned", {
+          assignee_id: fields.assignee_id,
+          assignee_name: assigneeName,
+        });
+      } else {
+        await logActivity(id, session.id, "task_unassigned");
+      }
+    }
+  }
+
   revalidatePath("/dashboard/tasks");
+  revalidatePath(`/dashboard/tasks/${id}`);
   if (data?.project_id)
     revalidatePath(`/dashboard/projects/${data.project_id}`);
   return { ok: true };
@@ -101,11 +167,16 @@ export async function changeTaskStatusAction(
   taskId: string,
   status: TaskStatus,
 ): Promise<ActionResult> {
-  await requireSession();
+  const session = await requireSession();
   if (!STATUSES.includes(status)) {
     return { ok: false, error: "Statut invalide." };
   }
   const supabase = await createClient();
+  const { data: before } = await supabase
+    .from("tasks")
+    .select("status")
+    .eq("id", taskId)
+    .single();
   const { data, error } = await supabase
     .from("tasks")
     .update({ status })
@@ -113,6 +184,13 @@ export async function changeTaskStatusAction(
     .select("project_id")
     .single();
   if (error) return { ok: false, error: error.message };
+
+  if (before && before.status !== status) {
+    await logActivity(taskId, session.id, "status_changed", {
+      from: before.status,
+      to: status,
+    });
+  }
 
   revalidatePath("/dashboard/tasks");
   if (data?.project_id)
@@ -170,6 +248,7 @@ export async function createSubtaskAction(
   });
   if (error) return { ok: false, error: error.message };
 
+  await logActivity(parentId, session.id, "subtask_added", { title });
   revalidatePath(`/dashboard/tasks/${parentId}`);
   revalidatePath(`/dashboard/projects/${parent.project_id}`);
   return { ok: true };
@@ -179,15 +258,21 @@ export async function toggleSubtaskAction(
   subtaskId: string,
   done: boolean,
 ): Promise<ActionResult> {
-  await requireSession();
+  const session = await requireSession();
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("tasks")
     .update({ status: done ? "done" : "todo" })
     .eq("id", subtaskId)
-    .select("parent_task_id, project_id")
+    .select("parent_task_id, project_id, title")
     .single();
   if (error) return { ok: false, error: error.message };
+
+  if (done && data?.parent_task_id) {
+    await logActivity(data.parent_task_id, session.id, "subtask_completed", {
+      title: data.title,
+    });
+  }
 
   if (data?.parent_task_id)
     revalidatePath(`/dashboard/tasks/${data.parent_task_id}`);
