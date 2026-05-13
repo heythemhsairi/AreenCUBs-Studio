@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { cn } from "@/lib/utils";
 import {
   markNotificationReadAction,
@@ -33,8 +33,60 @@ function relativeTime(iso: string): string {
 function iconFor(kind: string): string {
   if (kind === "task_assigned") return "📌";
   if (kind === "task_comment") return "💬";
+  if (kind === "task_mentioned") return "@";
+  if (kind === "task_review") return "👀";
+  if (kind === "task_done") return "✅";
+  if (kind === "file_uploaded") return "📎";
+  if (kind === "devis_accepted") return "🎉";
+  if (kind === "devis_rejected") return "❌";
   if (kind === "devis_paid") return "💰";
   return "🔔";
+}
+
+function pluralFor(kind: string, count: number): string {
+  switch (kind) {
+    case "task_assigned":
+      return `${count} nouvelles tâches assignées`;
+    case "task_comment":
+      return `${count} nouveaux commentaires`;
+    case "task_mentioned":
+      return `${count} mentions`;
+    case "task_review":
+      return `${count} tâches à valider`;
+    case "task_done":
+      return `${count} tâches terminées`;
+    case "file_uploaded":
+      return `${count} fichiers ajoutés`;
+    case "devis_accepted":
+      return `${count} devis acceptés`;
+    case "devis_rejected":
+      return `${count} devis refusés`;
+    case "devis_paid":
+      return `${count} paiements reçus`;
+    default:
+      return `${count} notifications`;
+  }
+}
+
+type Segment =
+  | { type: "single"; item: NotificationRow }
+  | { type: "group"; kind: string; items: NotificationRow[] };
+
+function segment(items: NotificationRow[]): Segment[] {
+  const out: Segment[] = [];
+  let i = 0;
+  while (i < items.length) {
+    let j = i + 1;
+    while (j < items.length && items[j].kind === items[i].kind) j++;
+    const slice = items.slice(i, j);
+    if (slice.length >= 3) {
+      out.push({ type: "group", kind: items[i].kind, items: slice });
+    } else {
+      for (const it of slice) out.push({ type: "single", item: it });
+    }
+    i = j;
+  }
+  return out;
 }
 
 export function NotificationBell({
@@ -44,10 +96,12 @@ export function NotificationBell({
 }) {
   const [items, setItems] = useState(initial);
   const [open, setOpen] = useState(false);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [pending, startTransition] = useTransition();
   const ref = useRef<HTMLDivElement>(null);
 
   const unread = items.filter((n) => !n.read_at).length;
+  const segments = useMemo(() => segment(items), [items]);
 
   useEffect(() => {
     if (!open) return;
@@ -151,21 +205,105 @@ export function NotificationBell({
               </p>
             ) : (
               <ul className="divide-y divide-ink/5">
-                {items.map((n) => (
-                  <li
-                    key={n.id}
-                    className={cn(
-                      "group relative",
-                      !n.read_at && "bg-brand/5",
-                    )}
-                  >
-                    <NotificationItem
-                      n={n}
-                      onClick={() => onItemClick(n)}
-                      onDelete={() => onDelete(n.id)}
-                    />
-                  </li>
-                ))}
+                {segments.map((seg, idx) => {
+                  if (seg.type === "single") {
+                    const n = seg.item;
+                    return (
+                      <li
+                        key={n.id}
+                        className={cn(
+                          "group relative",
+                          !n.read_at && "bg-brand/5",
+                        )}
+                      >
+                        <NotificationItem
+                          n={n}
+                          onClick={() => onItemClick(n)}
+                          onDelete={() => onDelete(n.id)}
+                        />
+                      </li>
+                    );
+                  }
+                  const key = `${seg.kind}-${idx}`;
+                  const isExpanded = !!expanded[key];
+                  const unreadInGroup = seg.items.filter(
+                    (x) => !x.read_at,
+                  ).length;
+                  return (
+                    <li
+                      key={key}
+                      className={cn(
+                        "relative",
+                        unreadInGroup > 0 && "bg-brand/5",
+                      )}
+                    >
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setExpanded((m) => ({ ...m, [key]: !m[key] }))
+                        }
+                        className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-cream/60"
+                      >
+                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand/10 text-base text-brand">
+                          {iconFor(seg.kind)}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-ink">
+                            {pluralFor(seg.kind, seg.items.length)}
+                          </p>
+                          <p className="mt-0.5 text-[11px] text-ink/45">
+                            {relativeTime(seg.items[0].created_at)}
+                            {unreadInGroup > 0 && (
+                              <>
+                                {" · "}
+                                <span className="font-semibold text-brand">
+                                  {unreadInGroup} non lue
+                                  {unreadInGroup > 1 ? "s" : ""}
+                                </span>
+                              </>
+                            )}
+                          </p>
+                        </div>
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className={cn(
+                            "shrink-0 text-ink/40 transition-transform",
+                            isExpanded && "rotate-180",
+                          )}
+                        >
+                          <path d="m6 9 6 6 6-6" />
+                        </svg>
+                      </button>
+                      {isExpanded && (
+                        <ul className="divide-y divide-ink/5 border-t border-ink/8 bg-cream/30">
+                          {seg.items.map((n) => (
+                            <li
+                              key={n.id}
+                              className={cn(
+                                "group relative pl-6",
+                                !n.read_at && "bg-brand/5",
+                              )}
+                            >
+                              <NotificationItem
+                                n={n}
+                                onClick={() => onItemClick(n)}
+                                onDelete={() => onDelete(n.id)}
+                                compact
+                              />
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>
@@ -179,18 +317,23 @@ function NotificationItem({
   n,
   onClick,
   onDelete,
+  compact,
 }: {
   n: NotificationRow;
   onClick: () => void;
   onDelete: () => void;
+  compact?: boolean;
 }) {
   const inner = (
     <>
-      <span className="shrink-0 text-base">{iconFor(n.kind)}</span>
+      {!compact && (
+        <span className="shrink-0 text-base">{iconFor(n.kind)}</span>
+      )}
       <div className="min-w-0 flex-1">
         <p
           className={cn(
-            "text-sm leading-snug",
+            compact ? "text-[13px]" : "text-sm",
+            "leading-snug",
             n.read_at ? "text-ink/70" : "font-medium text-ink",
           )}
         >
@@ -207,7 +350,7 @@ function NotificationItem({
   );
 
   return (
-    <div className="flex items-start gap-3 px-4 py-3">
+    <div className={cn("flex items-start gap-3 px-4 py-3", compact && "py-2")}>
       {n.link ? (
         <Link
           href={n.link}

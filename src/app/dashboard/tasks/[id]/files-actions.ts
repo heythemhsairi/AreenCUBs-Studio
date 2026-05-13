@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { requireSession } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { notifyMany } from "@/lib/notify";
+import { logActivity } from "@/lib/activity";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -53,6 +55,28 @@ export async function uploadTaskFileAction(
     return { ok: false, error: dbErr.message };
   }
 
+  // Log + notify assignee + creator (minus the uploader).
+  await logActivity(taskId, session.id, "file_uploaded", { name: file.name });
+  try {
+    const { data: tk } = await admin
+      .from("tasks")
+      .select("title, assignee_id, created_by")
+      .eq("id", taskId)
+      .single();
+    if (tk) {
+      await notifyMany(
+        [tk.assignee_id, tk.created_by].filter(
+          (uid): uid is string => Boolean(uid) && uid !== session.id,
+        ),
+        "file_uploaded",
+        `Fichier ajouté à « ${tk.title} » : ${file.name}`,
+        `/dashboard/tasks/${taskId}`,
+      );
+    }
+  } catch (err) {
+    console.error("[uploadTaskFile:notify]", err);
+  }
+
   revalidatePath(`/dashboard/tasks/${taskId}`);
   return { ok: true };
 }
@@ -60,7 +84,7 @@ export async function uploadTaskFileAction(
 export async function deleteTaskFileAction(
   formData: FormData,
 ): Promise<ActionResult> {
-  await requireSession();
+  const session = await requireSession();
   const id = String(formData.get("id") ?? "");
   const taskId = String(formData.get("task_id") ?? "");
   if (!id) return { ok: false, error: "ID manquant." };
@@ -68,7 +92,7 @@ export async function deleteTaskFileAction(
   const admin = createAdminClient();
   const { data: row } = await admin
     .from("task_files")
-    .select("storage_path")
+    .select("storage_path, name")
     .eq("id", id)
     .single();
   if (!row) return { ok: false, error: "Fichier introuvable." };
@@ -77,7 +101,10 @@ export async function deleteTaskFileAction(
   const { error } = await admin.from("task_files").delete().eq("id", id);
   if (error) return { ok: false, error: error.message };
 
-  if (taskId) revalidatePath(`/dashboard/tasks/${taskId}`);
+  if (taskId) {
+    await logActivity(taskId, session.id, "file_deleted", { name: row.name });
+    revalidatePath(`/dashboard/tasks/${taskId}`);
+  }
   return { ok: true };
 }
 
