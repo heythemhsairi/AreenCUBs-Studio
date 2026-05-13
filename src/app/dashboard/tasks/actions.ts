@@ -17,12 +17,26 @@ const STATUSES = [
   "cancelled",
 ] as const;
 const PRIORITIES = ["low", "normal", "high", "urgent"] as const;
+const RECURRENCES = ["daily", "weekly", "biweekly", "monthly"] as const;
 type TaskStatus = (typeof STATUSES)[number];
 type TaskPriority = (typeof PRIORITIES)[number];
+type Recurrence = (typeof RECURRENCES)[number];
 
 function pickTaskFields(formData: FormData) {
   const status = String(formData.get("status") ?? "todo") as TaskStatus;
   const priority = String(formData.get("priority") ?? "normal") as TaskPriority;
+  const rawRecurrence = String(formData.get("recurrence") ?? "");
+  const recurrence: Recurrence | null = (RECURRENCES as readonly string[]).includes(
+    rawRecurrence,
+  )
+    ? (rawRecurrence as Recurrence)
+    : null;
+  const rawTags = String(formData.get("tags") ?? "");
+  const tags = rawTags
+    .split(",")
+    .map((s) => s.trim().toLowerCase().replace(/^#/, ""))
+    .filter((s) => s.length > 0 && s.length <= 32)
+    .slice(0, 12);
   return {
     project_id: String(formData.get("project_id") ?? ""),
     title: String(formData.get("title") ?? "").trim(),
@@ -35,7 +49,18 @@ function pickTaskFields(formData: FormData) {
     deadline: stringOrNull(formData.get("deadline")),
     deliverable_url: stringOrNull(formData.get("deliverable_url")),
     parent_task_id: stringOrNull(formData.get("parent_task_id")),
+    tags,
+    recurrence,
   };
+}
+
+function shiftDeadline(iso: string, recurrence: Recurrence): string {
+  const d = new Date(iso);
+  if (recurrence === "daily") d.setDate(d.getDate() + 1);
+  else if (recurrence === "weekly") d.setDate(d.getDate() + 7);
+  else if (recurrence === "biweekly") d.setDate(d.getDate() + 14);
+  else if (recurrence === "monthly") d.setMonth(d.getMonth() + 1);
+  return d.toISOString().slice(0, 10);
 }
 
 function stringOrNull(v: FormDataEntryValue | null): string | null {
@@ -104,7 +129,9 @@ export async function updateTaskAction(
   const supabase = await createClient();
   const { data: before } = await supabase
     .from("tasks")
-    .select("status, priority, assignee_id, deadline")
+    .select(
+      "status, priority, assignee_id, deadline, project_id, parent_task_id, title, description, deliverable_url, tags, recurrence",
+    )
     .eq("id", id)
     .single();
 
@@ -118,6 +145,8 @@ export async function updateTaskAction(
       assignee_id: fields.assignee_id,
       deadline: fields.deadline,
       deliverable_url: fields.deliverable_url,
+      tags: fields.tags,
+      recurrence: fields.recurrence,
     })
     .eq("id", id)
     .select("project_id")
@@ -156,6 +185,42 @@ export async function updateTaskAction(
     }
   }
 
+  // Recurrence: edit-form path to done also spawns the next instance.
+  if (
+    before &&
+    fields.status === "done" &&
+    before.status !== "done" &&
+    fields.recurrence &&
+    !before.parent_task_id
+  ) {
+    const nextDeadline = fields.deadline
+      ? shiftDeadline(fields.deadline, fields.recurrence)
+      : null;
+    const { data: nextRow } = await supabase
+      .from("tasks")
+      .insert({
+        project_id: fields.project_id || before.project_id,
+        title: fields.title,
+        description: fields.description,
+        status: "todo",
+        priority: fields.priority,
+        assignee_id: fields.assignee_id,
+        deadline: nextDeadline,
+        deliverable_url: fields.deliverable_url,
+        tags: fields.tags,
+        recurrence: fields.recurrence,
+        created_by: session.id,
+      })
+      .select("id")
+      .single();
+    if (nextRow) {
+      await logActivity(nextRow.id, session.id, "task_created", {
+        title: fields.title,
+        recurrence_of: id,
+      });
+    }
+  }
+
   revalidatePath("/dashboard/tasks");
   revalidatePath(`/dashboard/tasks/${id}`);
   if (data?.project_id)
@@ -174,7 +239,9 @@ export async function changeTaskStatusAction(
   const supabase = await createClient();
   const { data: before } = await supabase
     .from("tasks")
-    .select("status")
+    .select(
+      "status, project_id, parent_task_id, title, description, priority, assignee_id, deadline, deliverable_url, tags, recurrence",
+    )
     .eq("id", taskId)
     .single();
   const { data, error } = await supabase
@@ -190,6 +257,42 @@ export async function changeTaskStatusAction(
       from: before.status,
       to: status,
     });
+  }
+
+  // Recurrence: when moving to done, spawn the next instance.
+  if (
+    before &&
+    status === "done" &&
+    before.status !== "done" &&
+    before.recurrence &&
+    !before.parent_task_id
+  ) {
+    const nextDeadline = before.deadline
+      ? shiftDeadline(before.deadline, before.recurrence as Recurrence)
+      : null;
+    const { data: nextRow } = await supabase
+      .from("tasks")
+      .insert({
+        project_id: before.project_id,
+        title: before.title,
+        description: before.description,
+        status: "todo",
+        priority: before.priority,
+        assignee_id: before.assignee_id,
+        deadline: nextDeadline,
+        deliverable_url: before.deliverable_url,
+        tags: before.tags ?? [],
+        recurrence: before.recurrence,
+        created_by: session.id,
+      })
+      .select("id")
+      .single();
+    if (nextRow) {
+      await logActivity(nextRow.id, session.id, "task_created", {
+        title: before.title,
+        recurrence_of: taskId,
+      });
+    }
   }
 
   revalidatePath("/dashboard/tasks");

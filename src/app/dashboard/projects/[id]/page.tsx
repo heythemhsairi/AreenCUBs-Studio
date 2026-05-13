@@ -30,9 +30,10 @@ export default async function ProjectDetailPage({
   const { data: tasks } = await supabase
     .from("tasks")
     .select(
-      "id, title, status, priority, deadline, assignee_id, profiles:assignee_id(username, full_name)",
+      "id, title, status, priority, deadline, assignee_id, tags, profiles:assignee_id(username, full_name)",
     )
     .eq("project_id", id)
+    .is("parent_task_id", null)
     .order("created_at", { ascending: true });
 
   const taskCards: TaskCard[] = (tasks ?? []).map((tk) => {
@@ -44,7 +45,9 @@ export default async function ProjectDetailPage({
       priority: tk.priority,
       deadline: tk.deadline,
       assignee: a ? a.full_name ?? `@${a.username}` : null,
+      assigneeId: tk.assignee_id,
       project: { id: project.id, name: project.name },
+      tags: (tk.tags as string[] | null) ?? [],
     };
   });
 

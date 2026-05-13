@@ -33,7 +33,7 @@ export default async function TaskEditPage({
     supabase
       .from("tasks")
       .select(
-        "id, project_id, title, description, status, priority, assignee_id, deadline, deliverable_url, parent_task_id, projects:project_id(name, clients:client_id(name))",
+        "id, project_id, title, description, status, priority, assignee_id, deadline, deliverable_url, parent_task_id, tags, recurrence, projects:project_id(name, clients:client_id(name))",
       )
       .eq("id", id)
       .single(),

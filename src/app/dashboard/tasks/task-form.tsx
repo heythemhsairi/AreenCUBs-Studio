@@ -30,6 +30,8 @@ type TaskRow = {
   assignee_id: string | null;
   deadline: string | null;
   deliverable_url: string | null;
+  tags?: string[] | null;
+  recurrence?: "daily" | "weekly" | "biweekly" | "monthly" | null;
 };
 
 export type TaskTemplateOption = {
@@ -256,6 +258,34 @@ export function TaskForm(props: Props) {
                   <option value="high">{t.tasks.priority.high}</option>
                   <option value="urgent">{t.tasks.priority.urgent}</option>
                 </Select>
+              </Field>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Field label="Tags">
+                <Input
+                  name="tags"
+                  placeholder="design, urgent, social…"
+                  defaultValue={(tk?.tags ?? []).join(", ")}
+                />
+                <p className="text-[11px] text-ink/45">
+                  Séparez les tags par des virgules.
+                </p>
+              </Field>
+              <Field label="Récurrence">
+                <Select
+                  name="recurrence"
+                  defaultValue={tk?.recurrence ?? ""}
+                >
+                  <option value="">— Aucune —</option>
+                  <option value="daily">Quotidienne</option>
+                  <option value="weekly">Hebdomadaire</option>
+                  <option value="biweekly">Bimensuelle</option>
+                  <option value="monthly">Mensuelle</option>
+                </Select>
+                <p className="text-[11px] text-ink/45">
+                  Une nouvelle instance est créée automatiquement à la fin.
+                </p>
               </Field>
             </div>
 
