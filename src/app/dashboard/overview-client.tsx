@@ -492,16 +492,26 @@ function KpiCard({
   return (
     <Card
       interactive
-      className="relative h-full overflow-hidden border border-white/10 bg-white/8 backdrop-blur-sm dark:bg-white/4"
+      className="relative h-full overflow-hidden border-0 p-0"
     >
+      {/*
+        Solid layered card surface — fixes the "label floats outside the
+        card" perception from Heythem's screenshot. The previous
+        bg-white/8 was so transparent that labels read as sitting on the
+        page background instead of inside a card.
+      */}
       <div
         aria-hidden
-        className={`pointer-events-none absolute -bottom-12 -right-12 h-36 w-36 rounded-full blur-2xl ${glowClass}`}
+        className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#161f3a] via-[#121a2e] to-[#0d1424] ring-1 ring-inset ring-white/10"
       />
-      <CardContent className="relative flex h-full flex-col p-5">
+      <div
+        aria-hidden
+        className={`pointer-events-none absolute -bottom-14 -right-14 h-40 w-40 rounded-full blur-3xl ${glowClass}`}
+      />
+      <CardContent className="relative flex h-full flex-col px-5 py-5 md:px-6 md:py-6">
         {/* Top row: label + icon chip */}
         <div className="flex items-center justify-between gap-3">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink/55">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-cream/60">
             {label}
           </p>
           {icon && (
@@ -514,7 +524,7 @@ function KpiCard({
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="1.7"
+                strokeWidth="1.8"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               >
@@ -526,8 +536,8 @@ function KpiCard({
 
         {/* Value + scale bar — centered in the remaining space so all four
             cards share the same value baseline. */}
-        <div className="flex flex-1 flex-col justify-center pt-4">
-          <p className="font-mono text-[30px] font-semibold leading-none tracking-tight text-ink">
+        <div className="flex flex-1 flex-col justify-center pt-5">
+          <p className="font-mono text-[32px] font-semibold leading-none tracking-tight text-cream">
             <CountUp
               to={value}
               decimals={0}
@@ -535,24 +545,24 @@ function KpiCard({
             />
           </p>
           {/* Slim relative-scale bar so the card never reads "empty". */}
-          <div className="mt-3 h-1 overflow-hidden rounded-full bg-white/8">
+          <div className="mt-4 h-1 overflow-hidden rounded-full bg-white/8">
             <div
               className={`h-full bg-gradient-to-r ${barClass} transition-all duration-700`}
               style={{ width: `${pct}%` }}
             />
           </div>
-          <div className="mt-2 flex min-h-[18px] items-center gap-2">
+          <div className="mt-2.5 flex min-h-[18px] items-center gap-2">
             {trend !== undefined ? (
               <>
                 <TrendPill pct={trend} invert={invertTrend} />
                 {trendSuffix && (
-                  <span className="text-[11px] text-ink/45">
+                  <span className="text-[11px] text-cream/50">
                     {trendSuffix}
                   </span>
                 )}
               </>
             ) : (
-              <span className="text-[11px] text-ink/30">
+              <span className="text-[11px] text-cream/30">
                 &nbsp;
               </span>
             )}
@@ -577,12 +587,10 @@ function FeaturedCard({
       interactive
       className="relative overflow-hidden border-0 p-0"
     >
-      {/* Premium electric-blue spotlight background — replaces the
-          gold/orange "featured-card" gradient with a deep navy + cyan
-          + violet wash and floating ambient blobs. */}
+      {/* Deep navy spotlight backdrop with floating brand/violet/cyan blobs */}
       <div
         aria-hidden
-        className="absolute inset-0 bg-gradient-to-br from-[#1a2a4a] via-[#0f1830] to-[#0a1326]"
+        className="absolute inset-0 bg-gradient-to-br from-[#1a2a4a] via-[#0f1830] to-[#0a1326] ring-1 ring-inset ring-white/10"
       />
       <div
         aria-hidden
@@ -597,7 +605,7 @@ function FeaturedCard({
         className="pointer-events-none absolute -right-10 top-1/3 h-40 w-40 rounded-full bg-cyan-400/20 blur-3xl"
       />
 
-      <CardContent className="relative flex flex-col items-center gap-5 p-6 text-center sm:flex-row sm:items-center sm:text-left">
+      <CardContent className="relative flex flex-col items-center gap-5 px-6 py-7 text-center sm:flex-row sm:items-center sm:gap-7 sm:text-left">
         {/* Avatar with electric halo */}
         <div className="relative shrink-0">
           <div
@@ -621,22 +629,26 @@ function FeaturedCard({
           </span>
         </div>
 
-        <div className="flex-1 sm:py-1">
+        <div className="min-w-0 flex-1 sm:py-1">
           <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/8 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-cyan-200 ring-1 ring-cyan-300/30 backdrop-blur">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-300/12 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-cyan-200 ring-1 ring-cyan-300/30 backdrop-blur">
               ✦ {t.featured.title}
             </span>
             <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-cream/55">
               {formatMonth(featured.month, t.overview.months)}
             </span>
           </div>
-          <h3 className="mt-2 text-2xl font-semibold tracking-tight md:text-[26px]">
-            <span className="bg-gradient-to-r from-cyan-200 via-white to-[#bfa6ff] bg-clip-text text-transparent">
-              {name}
-            </span>
+          {/*
+            Solid white-cyan name color. The previous bg-clip-text gradient
+            was visually clipping the descender on letters like "y" and the
+            tail of "a"/"h" in Heythem's screenshot — bg-clip-text plus
+            line-height tight is fragile across fonts.
+          */}
+          <h3 className="mt-2 pb-1 text-2xl font-semibold leading-[1.15] tracking-tight text-cyan-50 md:text-[26px]">
+            {name}
           </h3>
           {featured.reason && (
-            <p className="mt-1.5 text-sm italic leading-relaxed text-cream/85">
+            <p className="mt-1 text-sm italic leading-relaxed text-cream/80">
               « {featured.reason} »
             </p>
           )}
@@ -646,7 +658,7 @@ function FeaturedCard({
           <div className="flex shrink-0 items-center">
             <Link
               href="/dashboard/team/featured"
-              className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold text-cream/95 backdrop-blur transition-all hover:border-brand/60 hover:bg-brand/30 hover:text-white"
+              className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/10 px-3.5 py-1.5 text-xs font-semibold text-cream/95 backdrop-blur transition-all hover:border-brand/60 hover:bg-brand/30 hover:text-white"
             >
               {t.featured.edit}
             </Link>
