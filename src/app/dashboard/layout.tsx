@@ -55,10 +55,12 @@ export default async function DashboardLayout({
       />
       <MobileNav role={session.role} />
 
-      <div className="mx-auto flex max-w-7xl gap-0">
+      <div className="mx-auto flex w-full max-w-[1440px] gap-0">
         <Sidebar role={session.role} />
-        <main className="reveal min-w-0 flex-1 px-4 py-6 md:px-6 md:py-8">
-          {children}
+        <main className="reveal min-w-0 flex-1 px-4 py-6 md:px-8 md:py-10 lg:px-10">
+          <div className="mx-auto w-full max-w-[1180px] space-y-8">
+            {children}
+          </div>
         </main>
       </div>
 

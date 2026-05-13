@@ -41,7 +41,10 @@ export function CardHeader({
 }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn("flex flex-col gap-1.5 p-5 pb-3", className)}
+      className={cn(
+        "flex flex-col gap-1.5 p-5 pb-3 md:p-6 md:pb-3",
+        className,
+      )}
       {...rest}
     />
   );
@@ -54,9 +57,21 @@ export function CardTitle({
   return (
     <h3
       className={cn(
-        "text-base font-semibold tracking-tight text-ink leading-none",
+        "text-[15px] font-semibold tracking-tight text-ink leading-tight",
         className,
       )}
+      {...rest}
+    />
+  );
+}
+
+export function CardDescription({
+  className,
+  ...rest
+}: HTMLAttributes<HTMLParagraphElement>) {
+  return (
+    <p
+      className={cn("text-xs leading-relaxed text-ink/55", className)}
       {...rest}
     />
   );
@@ -66,5 +81,22 @@ export function CardContent({
   className,
   ...rest
 }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("p-5 pt-0", className)} {...rest} />;
+  return (
+    <div className={cn("p-5 pt-0 md:p-6 md:pt-0", className)} {...rest} />
+  );
+}
+
+export function CardFooter({
+  className,
+  ...rest
+}: HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      className={cn(
+        "flex items-center gap-2 border-t border-ink/8 px-5 py-3 md:px-6",
+        className,
+      )}
+      {...rest}
+    />
+  );
 }
