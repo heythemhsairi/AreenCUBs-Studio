@@ -56,6 +56,13 @@ function buildNav(
       group: "workspace",
     },
     {
+      href: "/dashboard/calendar",
+      label: "Calendrier",
+      icon: ICONS.calendar,
+      rolesAllowed: ["admin", "worker", "freelancer"],
+      group: "workspace",
+    },
+    {
       href: "/dashboard/clients",
       label: t.nav.clients,
       icon: ICONS.clients,
