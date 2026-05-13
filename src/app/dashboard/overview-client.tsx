@@ -587,39 +587,39 @@ function FeaturedCard({
       interactive
       className="relative overflow-hidden border-0 p-0"
     >
-      {/* Deep navy spotlight backdrop with floating brand/violet/cyan blobs */}
+      {/* Deep navy backdrop with floating brand/violet/cyan blobs */}
       <div
         aria-hidden
-        className="absolute inset-0 bg-gradient-to-br from-[#1a2a4a] via-[#0f1830] to-[#0a1326] ring-1 ring-inset ring-white/10"
+        className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#1a2a4a] via-[#0f1830] to-[#0a1326] ring-1 ring-inset ring-white/12"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute -left-16 -top-16 h-64 w-64 rounded-full bg-brand/35 blur-3xl"
+        className="pointer-events-none absolute -left-20 -top-20 h-72 w-72 rounded-full bg-brand/40 blur-3xl"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute -bottom-20 right-1/4 h-56 w-56 rounded-full bg-[#7c4dff]/25 blur-3xl"
+        className="pointer-events-none absolute -bottom-24 right-1/4 h-64 w-64 rounded-full bg-[#7c4dff]/30 blur-3xl"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute -right-10 top-1/3 h-40 w-40 rounded-full bg-cyan-400/20 blur-3xl"
+        className="pointer-events-none absolute -right-12 top-1/3 h-48 w-48 rounded-full bg-cyan-400/22 blur-3xl"
       />
 
-      <CardContent className="relative flex flex-col items-center gap-5 px-6 py-7 text-center sm:flex-row sm:items-center sm:gap-7 sm:text-left">
+      <CardContent className="relative flex min-h-[140px] flex-col items-center gap-6 px-8 py-8 text-center sm:flex-row sm:items-center sm:gap-8 sm:text-left">
         {/* Avatar with electric halo */}
         <div className="relative shrink-0">
           <div
             aria-hidden
-            className="absolute inset-0 -m-2 animate-pulse rounded-full bg-gradient-to-br from-brand via-[#7c4dff] to-cyan-400 opacity-60 blur-lg"
+            className="absolute inset-0 -m-2.5 animate-pulse rounded-full bg-gradient-to-br from-brand via-[#7c4dff] to-cyan-400 opacity-70 blur-xl"
           />
-          <div className="absolute inset-0 -m-0.5 rounded-full bg-gradient-to-br from-brand via-[#7c4dff] to-cyan-400 p-[2px]">
+          <div className="absolute inset-0 -m-1 rounded-full bg-gradient-to-br from-brand via-[#7c4dff] to-cyan-400 p-[2px]">
             <div className="h-full w-full rounded-full bg-[#0a1326]" />
           </div>
           <Avatar
             src={featured.avatar_url}
             name={name}
             size="xl"
-            className="relative ring-2 ring-brand/60 ring-offset-2 ring-offset-[#0a1326]"
+            className="relative ring-2 ring-brand/70 ring-offset-2 ring-offset-[#0a1326]"
           />
           <span
             className="absolute -top-3 left-1/2 -translate-x-1/2 -rotate-12 text-2xl drop-shadow-md"
@@ -629,26 +629,28 @@ function FeaturedCard({
           </span>
         </div>
 
-        <div className="min-w-0 flex-1 sm:py-1">
+        {/*
+          Robust text column:
+          - min-w-0 lets the flex child shrink properly
+          - leading-snug + py-1 reserves room for descenders on every glyph
+          - solid white name (text-white) — no bg-clip-text trickery so
+            nothing gets cropped by the gradient mask
+          - tracking-[-0.01em] for a confident SaaS-grade title
+        */}
+        <div className="min-w-0 flex-1 space-y-2.5">
           <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-300/12 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-cyan-200 ring-1 ring-cyan-300/30 backdrop-blur">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-300/15 px-3 py-1 text-[10.5px] font-bold uppercase leading-none tracking-[0.20em] text-cyan-100 ring-1 ring-cyan-300/40">
               ✦ {t.featured.title}
             </span>
-            <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-cream/55">
+            <span className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-cream/55">
               {formatMonth(featured.month, t.overview.months)}
             </span>
           </div>
-          {/*
-            Solid white-cyan name color. The previous bg-clip-text gradient
-            was visually clipping the descender on letters like "y" and the
-            tail of "a"/"h" in Heythem's screenshot — bg-clip-text plus
-            line-height tight is fragile across fonts.
-          */}
-          <h3 className="mt-2 pb-1 text-2xl font-semibold leading-[1.15] tracking-tight text-cyan-50 md:text-[26px]">
+          <h3 className="text-[28px] font-semibold leading-snug tracking-[-0.01em] text-white md:text-[32px]">
             {name}
           </h3>
           {featured.reason && (
-            <p className="mt-1 text-sm italic leading-relaxed text-cream/80">
+            <p className="text-sm italic leading-relaxed text-cream/75">
               « {featured.reason} »
             </p>
           )}
@@ -658,7 +660,7 @@ function FeaturedCard({
           <div className="flex shrink-0 items-center">
             <Link
               href="/dashboard/team/featured"
-              className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/10 px-3.5 py-1.5 text-xs font-semibold text-cream/95 backdrop-blur transition-all hover:border-brand/60 hover:bg-brand/30 hover:text-white"
+              className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/10 px-4 py-1.5 text-xs font-semibold text-cream/95 backdrop-blur transition-all hover:border-brand/60 hover:bg-brand/30 hover:text-white"
             >
               {t.featured.edit}
             </Link>
