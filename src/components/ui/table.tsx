@@ -35,7 +35,7 @@ export function TH({ className, ...rest }: ThHTMLAttributes<HTMLTableCellElement
   return (
     <th
       className={cn(
-        "px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.08em]",
+        "whitespace-nowrap px-3 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.08em] first:pl-4 last:pr-4",
         className,
       )}
       {...rest}
@@ -44,7 +44,15 @@ export function TH({ className, ...rest }: ThHTMLAttributes<HTMLTableCellElement
 }
 
 export function TD({ className, ...rest }: TdHTMLAttributes<HTMLTableCellElement>) {
-  return <td className={cn("px-4 py-3.5 text-ink", className)} {...rest} />;
+  return (
+    <td
+      className={cn(
+        "px-3 py-3.5 text-ink first:pl-4 last:pr-4",
+        className,
+      )}
+      {...rest}
+    />
+  );
 }
 
 export function EmptyState({ children }: { children: React.ReactNode }) {

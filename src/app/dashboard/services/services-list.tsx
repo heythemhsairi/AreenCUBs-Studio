@@ -172,15 +172,21 @@ export function ServicesList({ services }: { services: Service[] }) {
           <p className="text-xs text-ink/55">{t.servicesUi.noResultsHint}</p>
         </div>
       ) : (
-        <Table>
+        <Table className="table-fixed">
+          <colgroup>
+            <col className="w-[44%]" />
+            <col className="w-[16%]" />
+            <col className="w-[16%]" />
+            <col className="w-[12%]" />
+            <col className="w-[12%]" />
+          </colgroup>
           <THead>
             <TR>
               <TH>{t.servicesUi.columns.name}</TH>
               <TH>{t.servicesUi.columns.category}</TH>
               <TH className="text-right">{t.servicesUi.columns.price}</TH>
               <TH>{t.servicesUi.columns.unit}</TH>
-              <TH>{t.servicesUi.columns.active}</TH>
-              <TH />
+              <TH className="text-right">{t.team.columns.actions}</TH>
             </TR>
           </THead>
           <TBody>
@@ -195,6 +201,7 @@ export function ServicesList({ services }: { services: Service[] }) {
 }
 
 function Row({ svc }: { svc: Service }) {
+  const { t } = useI18n();
   const [pending, startTransition] = useTransition();
 
   function onToggle(next: boolean) {
@@ -208,7 +215,7 @@ function Row({ svc }: { svc: Service }) {
       <TD className="font-medium text-ink">
         <Link
           href={`/dashboard/services/${svc.id}`}
-          className="hover:text-brand"
+          className="block truncate hover:text-brand"
         >
           {svc.name_fr}
         </Link>
@@ -218,36 +225,38 @@ function Row({ svc }: { svc: Service }) {
           </p>
         )}
       </TD>
-      <TD className="text-ink/65">{svc.category ?? "—"}</TD>
-      <TD className="text-right font-semibold text-ink">
+      <TD className="truncate text-ink/65">{svc.category ?? "—"}</TD>
+      <TD className="whitespace-nowrap text-right font-semibold text-ink">
         {formatDt(svc.default_price_dt)}
       </TD>
-      <TD className="text-ink/65">{svc.default_unit}</TD>
-      <TD>
-        <button
-          type="button"
-          onClick={() => onToggle(!svc.active)}
-          disabled={pending}
-          className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-            svc.active ? "bg-brand" : "bg-ink/15"
-          } ${pending ? "opacity-60" : ""}`}
-          aria-pressed={svc.active}
-          aria-label={svc.active ? "Désactiver" : "Activer"}
-        >
-          <span
-            className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform ${
-              svc.active ? "translate-x-4" : "translate-x-0.5"
-            }`}
-          />
-        </button>
-      </TD>
+      <TD className="truncate text-ink/65">{svc.default_unit}</TD>
       <TD className="text-right">
-        <Link
-          href={`/dashboard/services/${svc.id}`}
-          className="text-sm font-medium text-brand hover:text-brand-dark"
-        >
-          Modifier
-        </Link>
+        <div className="inline-flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => onToggle(!svc.active)}
+            disabled={pending}
+            className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors ${
+              svc.active ? "bg-brand" : "bg-ink/15"
+            } ${pending ? "opacity-60" : ""}`}
+            aria-pressed={svc.active}
+            aria-label={
+              svc.active ? t.servicesUi.disable : t.servicesUi.enable
+            }
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform ${
+                svc.active ? "translate-x-4" : "translate-x-0.5"
+              }`}
+            />
+          </button>
+          <Link
+            href={`/dashboard/services/${svc.id}`}
+            className="text-sm font-medium text-brand hover:text-brand-dark"
+          >
+            {t.common.edit}
+          </Link>
+        </div>
       </TD>
     </TR>
   );

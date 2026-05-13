@@ -217,6 +217,8 @@ export const dict = {
         unit: "Unité",
         active: "Actif",
       },
+      enable: "Activer",
+      disable: "Désactiver",
     },
     teamUi: {
       description: "L'équipe Areen CUBs — admins, salariés et freelances.",
@@ -882,6 +884,8 @@ export const dict = {
         unit: "Unit",
         active: "Active",
       },
+      enable: "Enable",
+      disable: "Disable",
     },
     teamUi: {
       description: "The Areen CUBs team — admins, employees, and freelancers.",
