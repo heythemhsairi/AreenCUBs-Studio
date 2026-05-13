@@ -440,43 +440,53 @@ function KpiCard({
   icon?: React.ReactNode;
   trendSuffix?: string;
 }) {
-  const accent =
+  // Tone drives the icon chip color + a subtle bottom-right glow on the
+  // card body — replaces the old top ribbon (which crashed visually into
+  // the label text on the screenshot Heythem flagged).
+  const iconClass =
     tone === "brand"
-      ? "bg-brand/10 text-brand"
+      ? "bg-brand/12 text-brand"
       : tone === "amber"
-        ? "bg-accent/15 text-accent-dark"
+        ? "bg-accent/18 text-accent-dark"
         : tone === "ink"
           ? "bg-ink/10 text-ink"
           : "bg-ink/5 text-ink/60";
 
-  const ribbon =
+  const glowClass =
     tone === "brand"
-      ? "bg-brand"
+      ? "bg-brand/12"
       : tone === "amber"
-        ? "bg-accent"
+        ? "bg-accent/15"
         : tone === "ink"
-          ? "bg-ink"
-          : "bg-ink/30";
+          ? "bg-ink/8"
+          : "bg-ink/4";
 
   return (
-    <Card interactive className="relative h-full overflow-hidden">
-      <div className={`absolute inset-x-0 top-0 h-0.5 ${ribbon}`} />
-      <CardContent className="flex h-full flex-col justify-between gap-3 p-5">
-        <div className="flex items-start justify-between gap-3">
-          <p className="pt-1 text-[11px] font-semibold uppercase tracking-wider text-ink/55">
+    <Card
+      interactive
+      className="relative h-full overflow-hidden border border-ink/8 dark:border-white/8"
+    >
+      <div
+        aria-hidden
+        className={`pointer-events-none absolute -bottom-12 -right-12 h-32 w-32 rounded-full blur-2xl ${glowClass}`}
+      />
+      <CardContent className="relative flex h-full flex-col p-5">
+        {/* Top row: label + icon chip */}
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ink/55">
             {label}
           </p>
           {icon && (
             <span
-              className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${accent}`}
+              className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${iconClass}`}
             >
               <svg
-                width="16"
-                height="16"
+                width="15"
+                height="15"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="1.6"
+                strokeWidth="1.7"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               >
@@ -485,24 +495,32 @@ function KpiCard({
             </span>
           )}
         </div>
-        <div>
-          <p className="text-[28px] font-semibold leading-none tracking-tight text-ink">
+
+        {/* Value block — vertically centered in the remaining space so the
+            big number sits on the same baseline across all four cards. */}
+        <div className="flex flex-1 flex-col justify-center pt-4">
+          <p className="font-mono text-[30px] font-semibold leading-none tracking-tight text-ink">
             <CountUp
               to={value}
               decimals={0}
               suffix={currency ? " DT" : ""}
             />
           </p>
-          <div className="mt-2 flex min-h-[20px] items-center gap-2">
+          <div className="mt-2.5 flex min-h-[18px] items-center gap-2">
             {trend !== undefined ? (
               <>
                 <TrendPill pct={trend} invert={invertTrend} />
-                <span className="text-[11px] text-ink/45">
-                  {trendSuffix ?? ""}
-                </span>
+                {trendSuffix && (
+                  <span className="text-[11px] text-ink/45">
+                    {trendSuffix}
+                  </span>
+                )}
               </>
             ) : (
-              <span className="text-[11px] text-ink/35">—</span>
+              <span className="text-[11px] text-ink/30">
+                {/* invisible placeholder keeps the baseline consistent */}
+                &nbsp;
+              </span>
             )}
           </div>
         </div>
