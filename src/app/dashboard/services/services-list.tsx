@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useTransition } from "react";
-import { Badge } from "@/components/ui/badge";
+import { useMemo, useState, useTransition } from "react";
 import {
   Table,
   THead,
@@ -13,6 +12,7 @@ import {
   EmptyState,
 } from "@/components/ui/table";
 import { formatDt } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import { toggleServiceActiveAction } from "./actions";
 
 type Service = {
@@ -26,28 +26,156 @@ type Service = {
   active: boolean;
 };
 
+type ActiveFilter = "all" | "active" | "inactive";
+type Sort = "name" | "price_desc" | "price_asc";
+
 export function ServicesList({ services }: { services: Service[] }) {
+  const [search, setSearch] = useState("");
+  const [category, setCategory] = useState<string>("all");
+  const [activeFilter, setActiveFilter] = useState<ActiveFilter>("all");
+  const [sort, setSort] = useState<Sort>("name");
+
+  const categories = useMemo(() => {
+    const set = new Set<string>();
+    for (const s of services) if (s.category) set.add(s.category);
+    return Array.from(set).sort();
+  }, [services]);
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    let rows = services;
+    if (q.length > 0) {
+      rows = rows.filter((s) =>
+        `${s.name_fr} ${s.name_en ?? ""} ${s.description_fr ?? ""} ${s.category ?? ""}`
+          .toLowerCase()
+          .includes(q),
+      );
+    }
+    if (category !== "all") {
+      rows = rows.filter((s) => s.category === category);
+    }
+    if (activeFilter !== "all") {
+      const want = activeFilter === "active";
+      rows = rows.filter((s) => s.active === want);
+    }
+    rows = [...rows].sort((a, b) => {
+      if (sort === "price_desc") return b.default_price_dt - a.default_price_dt;
+      if (sort === "price_asc") return a.default_price_dt - b.default_price_dt;
+      return a.name_fr.localeCompare(b.name_fr);
+    });
+    return rows;
+  }, [services, search, category, activeFilter, sort]);
+
   if (services.length === 0) {
     return <EmptyState>Aucun service. Ajoutez le premier.</EmptyState>;
   }
+
   return (
-    <Table>
-      <THead>
-        <TR>
-          <TH>Nom</TH>
-          <TH>Catégorie</TH>
-          <TH className="text-right">Prix (DT)</TH>
-          <TH>Unité</TH>
-          <TH>Actif</TH>
-          <TH />
-        </TR>
-      </THead>
-      <TBody>
-        {services.map((s) => (
-          <Row key={s.id} svc={s} />
-        ))}
-      </TBody>
-    </Table>
+    <div className="space-y-4">
+      <div className="glass flex flex-wrap items-center gap-2 rounded-2xl px-4 py-3 md:px-5">
+        <div className="relative min-w-[220px] flex-1">
+          <svg
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink/40"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="11" cy="11" r="7" />
+            <path d="m21 21-4.3-4.3" />
+          </svg>
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Rechercher un service…"
+            className="w-full rounded-lg border border-ink/10 bg-white/70 py-2 pl-9 pr-3 text-sm text-ink placeholder:text-ink/40 transition-colors focus:border-brand focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20"
+          />
+        </div>
+
+        {categories.length > 0 && (
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="h-9 rounded-lg border border-ink/10 bg-white/70 px-3 text-xs font-medium text-ink/70 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+          >
+            <option value="all">Toutes catégories</option>
+            {categories.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+        )}
+
+        <div className="inline-flex items-center rounded-lg border border-ink/10 bg-white/60 p-0.5">
+          {(["all", "active", "inactive"] as ActiveFilter[]).map((a) => (
+            <button
+              key={a}
+              type="button"
+              onClick={() => setActiveFilter(a)}
+              aria-pressed={activeFilter === a}
+              className={cn(
+                "h-7 rounded-md px-3 text-xs font-medium transition-all",
+                activeFilter === a
+                  ? "bg-brand text-white shadow-sm"
+                  : "text-ink/60 hover:bg-white/80 hover:text-ink",
+              )}
+            >
+              {a === "all" ? "Tous" : a === "active" ? "Actifs" : "Inactifs"}
+            </button>
+          ))}
+        </div>
+
+        <select
+          value={sort}
+          onChange={(e) => setSort(e.target.value as Sort)}
+          className="h-9 rounded-lg border border-ink/10 bg-white/70 px-3 text-xs font-medium text-ink/70 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+        >
+          <option value="name">Nom (A→Z)</option>
+          <option value="price_desc">Prix décroissant</option>
+          <option value="price_asc">Prix croissant</option>
+        </select>
+
+        <span className="ml-auto rounded-md bg-ink/5 px-2 py-1 text-xs font-medium text-ink/65">
+          {filtered.length} {filtered.length > 1 ? "services" : "service"}
+        </span>
+      </div>
+
+      {filtered.length === 0 ? (
+        <div className="glass flex flex-col items-center justify-center gap-2 rounded-2xl px-6 py-16 text-center">
+          <span className="text-3xl">🔍</span>
+          <p className="text-sm font-medium text-ink">
+            Aucun service ne correspond
+          </p>
+          <p className="text-xs text-ink/55">
+            Essayez d&apos;élargir vos filtres.
+          </p>
+        </div>
+      ) : (
+        <Table>
+          <THead>
+            <TR>
+              <TH>Nom</TH>
+              <TH>Catégorie</TH>
+              <TH className="text-right">Prix (DT)</TH>
+              <TH>Unité</TH>
+              <TH>Actif</TH>
+              <TH />
+            </TR>
+          </THead>
+          <TBody>
+            {filtered.map((s) => (
+              <Row key={s.id} svc={s} />
+            ))}
+          </TBody>
+        </Table>
+      )}
+    </div>
   );
 }
 
