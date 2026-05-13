@@ -1,6 +1,5 @@
 import { requireAdmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { PageHeader } from "@/components/dashboard/page-header";
 import { TeamPlanningClient, type TeamMember } from "./planning-client";
 
 export default async function TeamPlanningPage() {
@@ -45,13 +44,5 @@ export default async function TeamPlanningPage() {
     schedule: scheduleByUser[p.id] ?? {},
   }));
 
-  return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Planning de l'équipe"
-        subtitle="Qui est au bureau, qui travaille à distance"
-      />
-      <TeamPlanningClient members={members} />
-    </div>
-  );
+  return <TeamPlanningClient members={members} />;
 }

@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar } from "@/components/avatar";
+import { PageHeader } from "@/components/dashboard/page-header";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/utils";
 import { setWorkLocationAction } from "@/app/dashboard/work-schedule-actions";
 
@@ -15,22 +17,6 @@ export type TeamMember = {
   job_title: string | null;
   schedule: Record<string, "office" | "home">;
 };
-
-const WEEKDAYS_SHORT = ["L", "M", "M", "J", "V", "S", "D"];
-const MONTHS = [
-  "Janvier",
-  "Février",
-  "Mars",
-  "Avril",
-  "Mai",
-  "Juin",
-  "Juillet",
-  "Août",
-  "Septembre",
-  "Octobre",
-  "Novembre",
-  "Décembre",
-];
 
 function ymd(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -60,13 +46,14 @@ function key(userId: string, date: string): CellKey {
 }
 
 export function TeamPlanningClient({ members }: { members: TeamMember[] }) {
+  const { t } = useI18n();
   const [viewedMonth, setViewedMonth] = useState(() => {
     const d = new Date();
     return new Date(d.getFullYear(), d.getMonth(), 1);
   });
   const days = useMemo(() => buildMonthDays(viewedMonth), [viewedMonth]);
 
-  // Local optimistic state: merge server state with edits made in this session.
+  // Optimistic edits layered over server state.
   const [edits, setEdits] = useState<
     Record<CellKey, "office" | "home" | null>
   >({});
@@ -117,137 +104,201 @@ export function TeamPlanningClient({ members }: { members: TeamMember[] }) {
     return { id: m.id, office, home };
   });
 
-  return (
-    <Card>
-      <CardContent className="space-y-4 p-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-lg font-semibold tracking-tight text-ink">
-              {MONTHS[viewedMonth.getMonth()]} {viewedMonth.getFullYear()}
-            </p>
-            <p className="text-xs text-ink/55">
-              Cliquez une cellule pour basculer{" "}
-              <Swatch color="bg-brand" /> Bureau →{" "}
-              <Swatch color="bg-accent" /> Maison → vide
-            </p>
-          </div>
-          <div className="flex items-center gap-1">
-            <NavButton onClick={prevMonth} label="‹" />
-            <button
-              type="button"
-              onClick={thisMonth}
-              className="rounded-md px-2 py-1 text-xs font-semibold text-ink/65 hover:bg-ink/5"
-            >
-              Aujourd&apos;hui
-            </button>
-            <NavButton onClick={nextMonth} label="›" />
-          </div>
-        </div>
+  // Today summary across the team
+  const todayBreakdown = useMemo(() => {
+    let office = 0,
+      home = 0;
+    for (const m of members) {
+      const loc = locFor(m.id, todayStr);
+      if (loc === "office") office++;
+      else if (loc === "home") home++;
+    }
+    return { office, home };
+    // members + edits drive recomputation
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [members, edits, todayStr]);
 
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[900px] border-separate border-spacing-y-1.5">
-            <thead>
-              <tr className="text-[10px] font-semibold uppercase tracking-[0.08em] text-ink/45">
-                <th className="sticky left-0 z-10 bg-white pl-1 pr-3 text-left dark:bg-[#15171f]">
-                  Membre
-                </th>
-                {days.map((d) => (
-                  <th
-                    key={d.date}
-                    className={cn(
-                      "px-0.5 text-center",
-                      d.isWeekend && "text-ink/25",
-                      d.date === todayStr && "text-brand",
-                    )}
-                  >
-                    <div>
-                      {
-                        WEEKDAYS_SHORT[
-                          (new Date(d.date).getDay() + 6) % 7
-                        ]
-                      }
-                    </div>
-                    <div className="font-bold">{d.dayNum}</div>
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title={t.planning.title}
+        description={t.planning.subtitle}
+      />
+
+      {/* Today summary chips */}
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="section-label">{t.planning.today}</span>
+        <span className="inline-flex items-center gap-2 rounded-full border border-brand/30 bg-brand/12 px-3 py-1.5 text-xs font-semibold text-brand">
+          <span className="text-base leading-none">🏢</span>
+          <span className="text-cream/95">{todayBreakdown.office}</span>
+          <span className="text-cream/55 font-normal">
+            {t.planning.todayHere}
+          </span>
+        </span>
+        <span className="inline-flex items-center gap-2 rounded-full border border-[#7c4dff]/30 bg-[#7c4dff]/15 px-3 py-1.5 text-xs font-semibold text-[#bfa6ff]">
+          <span className="text-base leading-none">🏠</span>
+          <span className="text-cream/95">{todayBreakdown.home}</span>
+          <span className="text-cream/55 font-normal">
+            {t.planning.todayHome}
+          </span>
+        </span>
+      </div>
+
+      <Card>
+        <CardContent className="space-y-4 p-5">
+          {/* Month toolbar */}
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-lg font-semibold tracking-tight text-ink">
+                {t.overview.months[viewedMonth.getMonth()]}{" "}
+                {viewedMonth.getFullYear()}
+              </p>
+              <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-ink/55">
+                <span>{t.planning.hint}</span>
+                <Swatch color="bg-brand" />
+                <span>{t.planning.office}</span>
+                <span className="text-ink/35">→</span>
+                <Swatch color="bg-[#7c4dff]" />
+                <span>{t.planning.home}</span>
+                <span className="text-ink/35">→</span>
+                <span>{t.planning.empty}</span>
+              </p>
+            </div>
+            <div className="flex items-center gap-1">
+              <NavButton onClick={prevMonth} label="‹" />
+              <button
+                type="button"
+                onClick={thisMonth}
+                className="rounded-md px-2.5 py-1 text-xs font-semibold text-ink/70 transition-colors hover:bg-white/10 hover:text-ink"
+              >
+                {t.planning.today}
+              </button>
+              <NavButton onClick={nextMonth} label="›" />
+            </div>
+          </div>
+
+          {/* Grid */}
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[900px] border-separate border-spacing-y-1.5">
+              <thead>
+                <tr className="text-[10px] font-semibold uppercase tracking-[0.08em] text-ink/45">
+                  <th className="sticky left-0 z-10 bg-[#121a2e] pl-1 pr-3 text-left">
+                    {t.planning.member}
                   </th>
-                ))}
-                <th className="px-3 text-right">Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {members.map((m) => {
-                const t = totals.find((x) => x.id === m.id)!;
-                return (
-                  <tr key={m.id} className="group">
-                    <td className="sticky left-0 z-10 bg-white py-1.5 pl-1 pr-3 dark:bg-[#15171f]">
-                      <Link
-                        href={`/dashboard/team/planning/${m.id}`}
-                        className="flex items-center gap-2.5 rounded-md px-1.5 py-1 transition-colors hover:bg-cream-dark/40 dark:hover:bg-white/5"
+                  {days.map((d) => {
+                    const isToday = d.date === todayStr;
+                    return (
+                      <th
+                        key={d.date}
+                        className={cn(
+                          "px-0.5 text-center transition-colors",
+                          d.isWeekend && "text-ink/25",
+                          isToday &&
+                            "rounded-md bg-brand/15 text-brand ring-1 ring-brand/30",
+                        )}
                       >
-                        <Avatar
-                          src={m.avatar_url}
-                          name={m.full_name ?? m.username}
-                          size="sm"
-                        />
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-medium text-ink">
-                            {m.full_name ?? m.username}
-                          </p>
-                          {m.job_title && (
-                            <p className="truncate text-[11px] text-ink/45">
-                              {m.job_title}
-                            </p>
-                          )}
+                        <div>
+                          {
+                            t.planning.weekdaysShort[
+                              (new Date(d.date).getDay() + 6) % 7
+                            ]
+                          }
                         </div>
-                      </Link>
-                    </td>
-                    {days.map((d) => {
-                      const loc = locFor(m.id, d.date);
-                      const k = key(m.id, d.date);
-                      const isPending = pendingKey === k;
-                      return (
-                        <td
-                          key={d.date}
-                          className={cn(
-                            "h-7 px-0.5 text-center align-middle",
-                            d.isWeekend && "opacity-60",
-                          )}
+                        <div className="font-bold">{d.dayNum}</div>
+                      </th>
+                    );
+                  })}
+                  <th className="px-3 text-right">{t.planning.total}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {members.map((m) => {
+                  const totalsRow = totals.find((x) => x.id === m.id)!;
+                  return (
+                    <tr key={m.id} className="group">
+                      <td className="sticky left-0 z-10 bg-[#121a2e] py-1.5 pl-1 pr-3">
+                        <Link
+                          href={`/dashboard/team/planning/${m.id}`}
+                          className="flex items-center gap-2.5 rounded-lg px-1.5 py-1 transition-colors hover:bg-white/8"
                         >
-                          <button
-                            type="button"
-                            onClick={() => onCellClick(m.id, d.date)}
-                            title={`${d.date} — ${loc ?? "non renseigné"} (cliquez pour modifier)`}
+                          <Avatar
+                            src={m.avatar_url}
+                            name={m.full_name ?? m.username}
+                            size="sm"
+                          />
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium text-ink">
+                              {m.full_name ?? m.username}
+                            </p>
+                            {m.job_title && (
+                              <p className="truncate text-[11px] text-ink/45">
+                                {m.job_title}
+                              </p>
+                            )}
+                          </div>
+                        </Link>
+                      </td>
+                      {days.map((d) => {
+                        const loc = locFor(m.id, d.date);
+                        const k = key(m.id, d.date);
+                        const isPending = pendingKey === k;
+                        const isToday = d.date === todayStr;
+                        return (
+                          <td
+                            key={d.date}
                             className={cn(
-                              "mx-auto flex h-6 w-full max-w-[28px] items-center justify-center rounded-md text-[10px] transition-all hover:scale-105 hover:shadow-soft",
-                              loc === "office"
-                                ? "bg-brand text-white"
-                                : loc === "home"
-                                  ? "bg-accent text-ink"
-                                  : "bg-ink/5 text-ink/25 hover:bg-ink/10",
-                              isPending && "opacity-60",
+                              "h-7 px-0.5 text-center align-middle",
+                              d.isWeekend && "opacity-60",
                             )}
                           >
-                            {loc === "office"
-                              ? "🏢"
-                              : loc === "home"
-                                ? "🏠"
-                                : "·"}
-                          </button>
-                        </td>
-                      );
-                    })}
-                    <td className="px-3 text-right text-xs font-medium text-ink/70">
-                      <span className="text-brand">{t.office}</span>
-                      {" / "}
-                      <span className="text-accent-dark">{t.home}</span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </CardContent>
-    </Card>
+                            <button
+                              type="button"
+                              onClick={() => onCellClick(m.id, d.date)}
+                              title={`${d.date} — ${
+                                loc === "office"
+                                  ? t.planning.office
+                                  : loc === "home"
+                                    ? t.planning.home
+                                    : t.planning.unset
+                              } · ${t.planning.clickToEdit}`}
+                              className={cn(
+                                "mx-auto flex h-6 w-full max-w-[28px] items-center justify-center rounded-md text-[10px] transition-all hover:scale-110 hover:shadow-soft",
+                                loc === "office"
+                                  ? "bg-gradient-to-br from-brand to-brand-dark text-white shadow-brand-glow"
+                                  : loc === "home"
+                                    ? "bg-gradient-to-br from-[#7c4dff] to-[#5b3df0] text-white shadow-[0_4px_12px_-4px_rgba(124,77,255,0.55)]"
+                                    : "bg-white/8 text-ink/30 hover:bg-white/15 hover:text-ink/65",
+                                isToday &&
+                                  loc === null &&
+                                  "ring-1 ring-inset ring-brand/40",
+                                isPending && "opacity-60",
+                              )}
+                            >
+                              {loc === "office"
+                                ? "🏢"
+                                : loc === "home"
+                                  ? "🏠"
+                                  : "·"}
+                            </button>
+                          </td>
+                        );
+                      })}
+                      <td className="px-3 text-right text-xs font-semibold text-ink/70">
+                        <span className="text-brand">{totalsRow.office}</span>
+                        <span className="mx-1 text-ink/30">/</span>
+                        <span className="text-[#bfa6ff]">
+                          {totalsRow.home}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
@@ -262,7 +313,7 @@ function NavButton({
     <button
       type="button"
       onClick={onClick}
-      className="flex h-7 w-7 items-center justify-center rounded-md text-base font-semibold text-ink/60 transition-colors hover:bg-ink/5 hover:text-ink"
+      className="flex h-8 w-8 items-center justify-center rounded-md text-base font-semibold text-ink/60 transition-colors hover:bg-white/10 hover:text-ink"
     >
       {label}
     </button>
@@ -273,7 +324,7 @@ function Swatch({ color }: { color: string }) {
   return (
     <span
       className={cn(
-        "ml-1 inline-block h-2.5 w-2.5 rounded-sm align-middle",
+        "inline-block h-2.5 w-2.5 rounded-sm align-middle",
         color,
       )}
     />
