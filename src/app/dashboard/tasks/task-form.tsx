@@ -156,7 +156,7 @@ export function TaskForm(props: Props) {
             )}
 
             {props.mode === "create" && templates.length > 0 && (
-              <Field label="Modèle (optionnel)">
+              <Field label={t.tasksUi.template}>
                 <div className="flex items-center gap-2">
                   <Select
                     value={tpl?.id ?? ""}
@@ -171,10 +171,10 @@ export function TaskForm(props: Props) {
                       );
                     }}
                   >
-                    <option value="">— Aucun —</option>
-                    {templates.map((t) => (
-                      <option key={t.id} value={t.id}>
-                        {t.name}
+                    <option value="">{t.tasksUi.templateNone}</option>
+                    {templates.map((tpl) => (
+                      <option key={tpl.id} value={tpl.id}>
+                        {tpl.name}
                       </option>
                     ))}
                   </Select>
@@ -182,7 +182,7 @@ export function TaskForm(props: Props) {
                     href="/dashboard/tasks/templates"
                     className="shrink-0 text-xs font-semibold text-brand hover:text-brand-dark"
                   >
-                    Gérer →
+                    {t.tasksUi.templateManage}
                   </Link>
                 </div>
               </Field>
@@ -262,35 +262,37 @@ export function TaskForm(props: Props) {
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Field label="Tags">
+              <Field label={t.tasksUi.tagsLabel}>
                 <Input
                   name="tags"
-                  placeholder="design, urgent, social…"
+                  placeholder={t.tags.placeholder}
                   defaultValue={(tk?.tags ?? []).join(", ")}
                 />
                 <p className="text-[11px] text-ink/45">
-                  Séparez par des virgules.{" "}
+                  {t.tasksUi.tagsHint}{" "}
                   <Link
                     href="/dashboard/tasks/tags"
                     className="font-semibold text-brand hover:text-brand-dark"
                   >
-                    Gérer les tags →
+                    {t.tags.manageHint}
                   </Link>
                 </p>
               </Field>
-              <Field label="Récurrence">
+              <Field label={t.tasksUi.recurrence}>
                 <Select
                   name="recurrence"
                   defaultValue={tk?.recurrence ?? ""}
                 >
-                  <option value="">— Aucune —</option>
-                  <option value="daily">Quotidienne</option>
-                  <option value="weekly">Hebdomadaire</option>
-                  <option value="biweekly">Bimensuelle</option>
-                  <option value="monthly">Mensuelle</option>
+                  <option value="">{t.tasksUi.recurrenceNone}</option>
+                  <option value="daily">{t.tasksUi.recurrenceDaily}</option>
+                  <option value="weekly">{t.tasksUi.recurrenceWeekly}</option>
+                  <option value="biweekly">
+                    {t.tasksUi.recurrenceBiweekly}
+                  </option>
+                  <option value="monthly">{t.tasksUi.recurrenceMonthly}</option>
                 </Select>
                 <p className="text-[11px] text-ink/45">
-                  Une nouvelle instance est créée automatiquement à la fin.
+                  {t.tasksUi.recurrenceHint}
                 </p>
               </Field>
             </div>

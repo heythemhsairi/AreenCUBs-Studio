@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/dashboard/page-header";
+import { useI18n } from "@/lib/i18n/provider";
 import { rescheduleTaskAction } from "./actions";
 import { toast } from "@/components/toast";
 import { startTouchDrag } from "@/lib/touch-drag";
@@ -56,6 +58,7 @@ const STATUS_OPACITY: Record<Status, string> = {
 };
 
 const WEEKDAYS_FR = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
+const WEEKDAYS_EN = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const MONTHS_FR = [
   "Janvier",
   "Février",
@@ -69,6 +72,20 @@ const MONTHS_FR = [
   "Octobre",
   "Novembre",
   "Décembre",
+];
+const MONTHS_EN = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 function isoFromDate(d: Date): string {
@@ -117,10 +134,16 @@ export function CalendarView({
   completed: CompletedEntry[];
   currentUserId: string;
 }) {
+  const { t, locale } = useI18n();
+  const isEn = locale === "en";
+  const weekdays = isEn ? WEEKDAYS_EN : WEEKDAYS_FR;
+  const months = isEn ? MONTHS_EN : MONTHS_FR;
+  const dateLocale = isEn ? "en-US" : "fr-FR";
+
   const today = useMemo(() => {
-    const t = new Date();
-    t.setHours(0, 0, 0, 0);
-    return t;
+    const tNow = new Date();
+    tNow.setHours(0, 0, 0, 0);
+    return tNow;
   }, []);
   const [view, setView] = useState<View>("month");
   const [viewDate, setViewDate] = useState<Date>(today);
@@ -131,21 +154,23 @@ export function CalendarView({
   const filteredTasks = useMemo(
     () =>
       tasks
-        .map((t) => ({
-          ...t,
-          deadline: overrides[t.id] ?? t.deadline,
+        .map((x) => ({
+          ...x,
+          deadline: overrides[x.id] ?? x.deadline,
         }))
-        .filter((t) => priorityFilter === "all" || t.priority === priorityFilter),
+        .filter(
+          (x) => priorityFilter === "all" || x.priority === priorityFilter,
+        ),
     [tasks, priorityFilter, overrides],
   );
 
   // Group tasks by deadline (YYYY-MM-DD)
   const tasksByDate = useMemo(() => {
     const map: Record<string, CalendarTask[]> = {};
-    for (const t of filteredTasks) {
-      const key = t.deadline.slice(0, 10);
+    for (const x of filteredTasks) {
+      const key = x.deadline.slice(0, 10);
       if (!map[key]) map[key] = [];
-      map[key].push(t);
+      map[key].push(x);
     }
     return map;
   }, [filteredTasks]);
@@ -170,7 +195,7 @@ export function CalendarView({
   }
 
   function onDropTask(taskId: string, targetIso: string) {
-    const task = filteredTasks.find((t) => t.id === taskId);
+    const task = filteredTasks.find((x) => x.id === taskId);
     if (!task) return;
     if (task.deadline.slice(0, 10) === targetIso) return;
     setOverrides((m) => ({ ...m, [taskId]: targetIso }));
@@ -184,7 +209,7 @@ export function CalendarView({
         });
         toast.error(res.error);
       } else {
-        toast.success("Tâche replanifiée");
+        toast.success(t.calendar.rescheduled);
       }
     });
   }
@@ -208,177 +233,206 @@ export function CalendarView({
   }, [filteredTasks, viewDate, today]);
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
-      {/* Main calendar */}
-      <div className="space-y-4">
-        {/* Toolbar */}
-        <div className="glass flex flex-wrap items-center gap-2 rounded-2xl px-4 py-3">
-          <div className="flex items-center gap-1">
-            <NavBtn onClick={goPrev} label="Précédent" icon="m15 18-6-6 6-6" />
-            <button
-              type="button"
-              onClick={goToday}
-              className="rounded-md border border-ink/10 bg-white/70 px-3 py-1.5 text-xs font-medium text-ink/75 transition-colors hover:border-brand/30 hover:bg-white"
-            >
-              Aujourd&apos;hui
-            </button>
-            <NavBtn onClick={goNext} label="Suivant" icon="m9 18 6-6-6-6" />
-          </div>
-          <h2 className="ml-2 text-lg font-semibold tracking-tight text-ink">
-            {MONTHS_FR[viewDate.getMonth()]} {viewDate.getFullYear()}
-          </h2>
-          <div className="ml-auto flex items-center gap-2">
-            <select
-              value={priorityFilter}
-              onChange={(e) =>
-                setPriorityFilter(e.target.value as "all" | Priority)
-              }
-              className="h-9 rounded-lg border border-ink/10 bg-white/70 px-2 text-xs font-medium text-ink/70 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
-            >
-              <option value="all">Toutes priorités</option>
-              <option value="urgent">Urgente</option>
-              <option value="high">Haute</option>
-              <option value="normal">Normale</option>
-              <option value="low">Basse</option>
-            </select>
-            <div className="inline-flex items-center rounded-lg border border-ink/10 bg-white/60 p-0.5">
-              <ViewBtn
-                active={view === "month"}
-                onClick={() => setView("month")}
-                label="Mois"
+    <div className="space-y-6">
+      <PageHeader
+        title={t.calendar.title}
+        description={t.calendar.description}
+      />
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
+        {/* Main calendar */}
+        <div className="space-y-4">
+          {/* Toolbar */}
+          <div className="glass flex flex-wrap items-center gap-2 rounded-2xl px-4 py-3">
+            <div className="flex items-center gap-1">
+              <NavBtn
+                onClick={goPrev}
+                label={t.calendar.previous}
+                icon="m15 18-6-6 6-6"
               />
-              <ViewBtn
-                active={view === "week"}
-                onClick={() => setView("week")}
-                label="Semaine"
-              />
-              <ViewBtn
-                active={view === "agenda"}
-                onClick={() => setView("agenda")}
-                label="Agenda"
+              <button
+                type="button"
+                onClick={goToday}
+                className="rounded-md border border-ink/10 bg-white/70 px-3 py-1.5 text-xs font-medium text-ink/75 transition-colors hover:border-brand/30 hover:bg-white"
+              >
+                {t.calendar.today}
+              </button>
+              <NavBtn
+                onClick={goNext}
+                label={t.calendar.next}
+                icon="m9 18 6-6-6-6"
               />
             </div>
+            <h2 className="ml-2 text-lg font-semibold tracking-tight text-ink">
+              {months[viewDate.getMonth()]} {viewDate.getFullYear()}
+            </h2>
+            <div className="ml-auto flex items-center gap-2">
+              <select
+                value={priorityFilter}
+                onChange={(e) =>
+                  setPriorityFilter(e.target.value as "all" | Priority)
+                }
+                className="h-9 rounded-lg border border-ink/10 bg-white/70 px-2 text-xs font-medium text-ink/70 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+              >
+                <option value="all">{t.filters.allPriorities}</option>
+                <option value="urgent">{t.tasks.priority.urgent}</option>
+                <option value="high">{t.tasks.priority.high}</option>
+                <option value="normal">{t.tasks.priority.normal}</option>
+                <option value="low">{t.tasks.priority.low}</option>
+              </select>
+              <div className="inline-flex items-center rounded-lg border border-ink/10 bg-white/60 p-0.5">
+                <ViewBtn
+                  active={view === "month"}
+                  onClick={() => setView("month")}
+                  label={t.calendar.month}
+                />
+                <ViewBtn
+                  active={view === "week"}
+                  onClick={() => setView("week")}
+                  label={t.calendar.week}
+                />
+                <ViewBtn
+                  active={view === "agenda"}
+                  onClick={() => setView("agenda")}
+                  label={t.calendar.agenda}
+                />
+              </div>
+            </div>
           </div>
+
+          {/* Quick stats */}
+          <div className="grid grid-cols-3 gap-2">
+            <Stat
+              label={t.calendar.tasksThisMonth}
+              value={monthStats.total}
+              tone="brand"
+            />
+            <Stat
+              label={t.calendar.completed}
+              value={monthStats.done}
+              tone="green"
+            />
+            <Stat
+              label={t.calendar.overdue}
+              value={monthStats.overdue}
+              tone="red"
+            />
+          </div>
+
+          {/* Grid */}
+          {view === "agenda" ? (
+            <AgendaView
+              tasks={filteredTasks}
+              today={today}
+              onDropTask={onDropTask}
+              dateLocale={dateLocale}
+            />
+          ) : (
+            <div className="glass overflow-hidden rounded-2xl">
+              {/* Weekday header */}
+              <div className="grid grid-cols-7 border-b border-ink/8 bg-white/40">
+                {weekdays.map((wd) => (
+                  <div
+                    key={wd}
+                    className="px-2 py-2 text-center text-[11px] font-semibold uppercase tracking-[0.08em] text-ink/55"
+                  >
+                    {wd}
+                  </div>
+                ))}
+              </div>
+              {/* Cells */}
+              <div
+                className={cn(
+                  "grid grid-cols-7",
+                  view === "month" ? "grid-rows-6" : "grid-rows-1",
+                )}
+              >
+                {cells.map((d) => {
+                  const iso = isoFromDate(d);
+                  const dayTasks = tasksByDate[iso] ?? [];
+                  const isToday = d.getTime() === today.getTime();
+                  const isOutsideMonth =
+                    view === "month" && d.getMonth() !== currentMonth;
+                  return (
+                    <DayCell
+                      key={iso}
+                      date={d}
+                      iso={iso}
+                      tasks={dayTasks}
+                      isToday={isToday}
+                      isOutsideMonth={isOutsideMonth}
+                      isWeek={view === "week"}
+                      pending={pending}
+                      onDropTask={onDropTask}
+                      dateLocale={dateLocale}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Quick stats */}
-        <div className="grid grid-cols-3 gap-2">
-          <Stat label="Tâches du mois" value={monthStats.total} tone="brand" />
-          <Stat label="Terminées" value={monthStats.done} tone="green" />
-          <Stat label="En retard" value={monthStats.overdue} tone="red" />
-        </div>
-
-        {/* Grid */}
-        {view === "agenda" ? (
-          <AgendaView
-            tasks={filteredTasks}
-            today={today}
-            onDropTask={onDropTask}
-          />
-        ) : (
-          <div className="glass overflow-hidden rounded-2xl">
-            {/* Weekday header */}
-            <div className="grid grid-cols-7 border-b border-ink/8 bg-white/40">
-              {WEEKDAYS_FR.map((wd) => (
-                <div
-                  key={wd}
-                  className="px-2 py-2 text-center text-[11px] font-semibold uppercase tracking-[0.08em] text-ink/55"
-                >
-                  {wd}
+        {/* Side rail */}
+        <div className="space-y-4">
+          {/* Legend */}
+          <Card>
+            <CardHeader>
+              <CardTitle>{t.calendar.colorByPriority}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {(["urgent", "high", "normal", "low"] as Priority[]).map((p) => (
+                <div key={p} className="flex items-center gap-2 text-xs">
+                  <span
+                    className={cn(
+                      "h-3 w-3 shrink-0 rounded",
+                      PRIORITY_COLOR[p].split(" ")[0],
+                    )}
+                  />
+                  <span className="text-ink/75">{t.tasks.priority[p]}</span>
                 </div>
               ))}
-            </div>
-            {/* Cells */}
-            <div
-              className={cn(
-                "grid grid-cols-7",
-                view === "month" ? "grid-rows-6" : "grid-rows-1",
+            </CardContent>
+          </Card>
+
+          {/* Recently completed */}
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                <span className="mr-1.5 text-emerald-500">✓</span>
+                {t.calendar.recentlyCompleted}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {completed.length === 0 ? (
+                <p className="text-xs text-ink/45">
+                  {t.calendar.noCompleted}
+                </p>
+              ) : (
+                <ul className="space-y-2">
+                  {completed.map((c) => (
+                    <li key={c.id}>
+                      <Link
+                        href={`/dashboard/tasks/${c.taskId}`}
+                        className="block rounded-lg border border-ink/5 bg-white/60 p-2.5 transition-all hover:border-brand/25 hover:bg-white/90 hover:shadow-soft"
+                      >
+                        <p className="truncate text-sm font-medium text-ink line-through opacity-75">
+                          {c.title}
+                        </p>
+                        <p className="mt-0.5 truncate text-[11px] text-ink/55">
+                          {c.project ?? "—"}
+                          {c.actor && <> · {c.actor}</>}
+                          {" · "}
+                          {relativeTime(c.completedAt, dateLocale, t)}
+                        </p>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
               )}
-            >
-              {cells.map((d) => {
-                const iso = isoFromDate(d);
-                const dayTasks = tasksByDate[iso] ?? [];
-                const isToday = d.getTime() === today.getTime();
-                const isOutsideMonth =
-                  view === "month" && d.getMonth() !== currentMonth;
-                return (
-                  <DayCell
-                    key={iso}
-                    date={d}
-                    iso={iso}
-                    tasks={dayTasks}
-                    isToday={isToday}
-                    isOutsideMonth={isOutsideMonth}
-                    isWeek={view === "week"}
-                    pending={pending}
-                    onDropTask={onDropTask}
-                  />
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Side rail */}
-      <div className="space-y-4">
-        {/* Legend */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Couleurs par priorité</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {(["urgent", "high", "normal", "low"] as Priority[]).map((p) => (
-              <div key={p} className="flex items-center gap-2 text-xs">
-                <span
-                  className={cn(
-                    "h-3 w-3 shrink-0 rounded",
-                    PRIORITY_COLOR[p].split(" ")[0],
-                  )}
-                />
-                <span className="text-ink/75">{PRIORITY_LABEL[p]}</span>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        {/* Recently completed */}
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              <span className="mr-1.5 text-emerald-500">✓</span>
-              Récemment terminées
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {completed.length === 0 ? (
-              <p className="text-xs text-ink/45">
-                Aucune tâche terminée récemment.
-              </p>
-            ) : (
-              <ul className="space-y-2">
-                {completed.map((c) => (
-                  <li key={c.id}>
-                    <Link
-                      href={`/dashboard/tasks/${c.taskId}`}
-                      className="block rounded-lg border border-ink/5 bg-white/60 p-2.5 transition-all hover:border-brand/25 hover:bg-white/90 hover:shadow-soft"
-                    >
-                      <p className="truncate text-sm font-medium text-ink line-through opacity-75">
-                        {c.title}
-                      </p>
-                      <p className="mt-0.5 truncate text-[11px] text-ink/55">
-                        {c.project ?? "—"}
-                        {c.actor && <> · {c.actor}</>}
-                        {" · "}
-                        {relativeTime(c.completedAt)}
-                      </p>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
@@ -388,19 +442,20 @@ function AgendaView({
   tasks,
   today,
   onDropTask,
+  dateLocale,
 }: {
   tasks: CalendarTask[];
   today: Date;
   onDropTask: (taskId: string, targetIso: string) => void;
+  dateLocale: string;
 }) {
-  // Group by deadline date, sorted ascending. Past-due and today get
-  // pinned to the top with a tonal accent.
+  const { t } = useI18n();
   const groups = useMemo(() => {
     const map: Record<string, CalendarTask[]> = {};
-    for (const t of tasks) {
-      const k = t.deadline.slice(0, 10);
+    for (const x of tasks) {
+      const k = x.deadline.slice(0, 10);
       if (!map[k]) map[k] = [];
-      map[k].push(t);
+      map[k].push(x);
     }
     return Object.entries(map)
       .sort(([a], [b]) => a.localeCompare(b))
@@ -411,10 +466,10 @@ function AgendaView({
     return (
       <div className="glass flex flex-col items-center justify-center gap-2 rounded-2xl px-6 py-16 text-center">
         <span className="text-3xl">📅</span>
-        <p className="text-sm font-medium text-ink">Aucune tâche planifiée</p>
-        <p className="text-xs text-ink/55">
-          Définissez une échéance sur une tâche pour la voir apparaître ici.
+        <p className="text-sm font-medium text-ink">
+          {t.calendar.noScheduled}
         </p>
+        <p className="text-xs text-ink/55">{t.calendar.noScheduledHint}</p>
       </div>
     );
   }
@@ -427,7 +482,7 @@ function AgendaView({
           d.setHours(0, 0, 0, 0);
           const isPast = d.getTime() < today.getTime();
           const isToday = d.getTime() === today.getTime();
-          const dayLabel = d.toLocaleDateString("fr-FR", {
+          const dayLabel = d.toLocaleDateString(dateLocale, {
             weekday: "long",
             day: "numeric",
             month: "long",
@@ -457,19 +512,23 @@ function AgendaView({
                         : "bg-ink/5 text-ink/65",
                   )}
                 >
-                  {isToday ? "Aujourd'hui" : isPast ? "En retard" : dayLabel}
+                  {isToday
+                    ? t.calendar.today
+                    : isPast
+                      ? t.calendar.overdue
+                      : dayLabel}
                 </span>
                 {!isToday && !isPast && (
                   <span className="text-[11px] text-ink/45">{dayLabel}</span>
                 )}
                 <span className="ml-auto text-[11px] font-semibold text-ink/45">
-                  {items.length} tâche{items.length > 1 ? "s" : ""}
+                  {t.calendar.tasksOfDay(items.length)}
                 </span>
               </div>
               <ul className="space-y-1.5">
-                {items.map((t) => (
-                  <li key={t.id}>
-                    <AgendaRow task={t} onDropTask={onDropTask} />
+                {items.map((task) => (
+                  <li key={task.id}>
+                    <AgendaRow task={task} onDropTask={onDropTask} />
                   </li>
                 ))}
               </ul>
@@ -488,6 +547,7 @@ function AgendaRow({
   task: CalendarTask;
   onDropTask: (taskId: string, targetIso: string) => void;
 }) {
+  const { t } = useI18n();
   const [dragging, setDragging] = useState(false);
   return (
     <Link
@@ -533,7 +593,7 @@ function AgendaRow({
           PRIORITY_COLOR[task.priority].split(" ")[0],
         )}
       >
-        {PRIORITY_LABEL[task.priority]}
+        {t.tasks.priority[task.priority]}
       </span>
     </Link>
   );
@@ -548,6 +608,7 @@ function DayCell({
   isWeek,
   pending,
   onDropTask,
+  dateLocale,
 }: {
   date: Date;
   iso: string;
@@ -557,8 +618,12 @@ function DayCell({
   isWeek: boolean;
   pending: boolean;
   onDropTask: (taskId: string, targetIso: string) => void;
+  dateLocale: string;
 }) {
+  const { t } = useI18n();
   const [isOver, setIsOver] = useState(false);
+  void date;
+  void dateLocale;
 
   return (
     <div
@@ -604,14 +669,14 @@ function DayCell({
         )}
       </div>
       <ul className="space-y-1">
-        {tasks.slice(0, isWeek ? 30 : 4).map((t) => (
-          <li key={t.id}>
-            <TaskChip task={t} onDropTask={onDropTask} />
+        {tasks.slice(0, isWeek ? 30 : 4).map((task) => (
+          <li key={task.id}>
+            <TaskChip task={task} onDropTask={onDropTask} />
           </li>
         ))}
         {!isWeek && tasks.length > 4 && (
           <li className="px-1 text-[10px] font-medium text-ink/50">
-            +{tasks.length - 4} de plus
+            {t.calendar.moreOf(tasks.length - 4)}
           </li>
         )}
       </ul>
@@ -748,13 +813,17 @@ function Stat({
   );
 }
 
-function relativeTime(iso: string): string {
+function relativeTime(
+  iso: string,
+  dateLocale: string,
+  t: { calendar: { now: string; minsAgo: (n: number) => string; hoursAgo: (n: number) => string } },
+): string {
   const d = new Date(iso);
   const diff = Date.now() - d.getTime();
   const m = Math.floor(diff / 60000);
-  if (m < 1) return "à l'instant";
-  if (m < 60) return `il y a ${m}min`;
+  if (m < 1) return t.calendar.now;
+  if (m < 60) return t.calendar.minsAgo(m);
   const h = Math.floor(m / 60);
-  if (h < 24) return `il y a ${h}h`;
-  return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "short" });
+  if (h < 24) return t.calendar.hoursAgo(h);
+  return d.toLocaleDateString(dateLocale, { day: "2-digit", month: "short" });
 }

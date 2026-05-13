@@ -1,6 +1,5 @@
 import { requireSession } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { PageHeader } from "@/components/dashboard/page-header";
 import { CalendarView, type CalendarTask, type CompletedEntry } from "./calendar-view";
 
 export default async function CalendarPage() {
@@ -68,16 +67,10 @@ export default async function CalendarPage() {
     .slice(0, 12);
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Calendrier"
-        description="Visualisez les échéances de l'équipe. Glissez une tâche sur une autre date pour la replanifier."
-      />
-      <CalendarView
-        tasks={tasks}
-        completed={completed}
-        currentUserId={session.id}
-      />
-    </div>
+    <CalendarView
+      tasks={tasks}
+      completed={completed}
+      currentUserId={session.id}
+    />
   );
 }

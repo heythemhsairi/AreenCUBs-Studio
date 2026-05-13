@@ -1,6 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
+import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/dashboard/page-header";
 import { DevisListTable } from "./devis-list-table";
 import { DevisToolbar, type DevisFilters, DEFAULT_DEVIS_FILTERS } from "./devis-toolbar";
 
@@ -28,6 +32,7 @@ export function DevisListView({
   kind: "devis" | "facture";
   clients: ClientOpt[];
 }) {
+  const { t } = useI18n();
   const [filters, setFilters] = useState<DevisFilters>(DEFAULT_DEVIS_FILTERS);
 
   const filtered = useMemo(() => {
@@ -74,8 +79,24 @@ export function DevisListView({
     });
   }, [rows, filters]);
 
+  const title = kind === "facture" ? t.factures.title : t.devis.title;
+  const description =
+    kind === "facture" ? t.devisUi.descriptionFactures : t.devisUi.description;
+  const newHref = kind === "facture" ? "/dashboard/factures/new" : "/dashboard/devis/new";
+  const newLabel =
+    kind === "facture" ? t.factures.newFacture : t.devis.newDevis;
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      <PageHeader
+        title={title}
+        description={description}
+        action={
+          <Link href={newHref}>
+            <Button>+ {newLabel}</Button>
+          </Link>
+        }
+      />
       <DevisToolbar
         filters={filters}
         onChange={setFilters}

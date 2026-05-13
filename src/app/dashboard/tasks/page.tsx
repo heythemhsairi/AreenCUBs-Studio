@@ -1,8 +1,5 @@
-import Link from "next/link";
 import { requireSession } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { Button } from "@/components/ui/button";
-import { PageHeader } from "@/components/dashboard/page-header";
 import { type TaskCard } from "./tasks-kanban";
 import { TasksView } from "./tasks-view";
 
@@ -74,33 +71,15 @@ export default async function TasksPage() {
     label: a.full_name ?? `@${a.username}`,
   }));
 
-  const isFreelancer = session.role === "freelancer";
-
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title={isFreelancer ? "Mes tâches" : "Tâches"}
-        description={
-          isFreelancer
-            ? "Toutes les tâches qui vous sont assignées."
-            : "Vue d'ensemble de toutes les tâches du studio."
-        }
-        action={
-          !isFreelancer ? (
-            <Link href="/dashboard/tasks/new">
-              <Button>+ Nouvelle tâche</Button>
-            </Link>
-          ) : null
-        }
-      />
-      <TasksView
-        tasks={tasks}
-        projects={projects}
-        assignees={assignees}
-        currentUserId={session.id}
-        currentUserAssigneeId={session.id}
-        tagColors={tagColors}
-      />
-    </div>
+    <TasksView
+      tasks={tasks}
+      projects={projects}
+      assignees={assignees}
+      currentUserId={session.id}
+      currentUserAssigneeId={session.id}
+      tagColors={tagColors}
+      isFreelancer={session.role === "freelancer"}
+    />
   );
 }

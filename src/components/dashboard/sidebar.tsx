@@ -57,7 +57,7 @@ function buildNav(
     },
     {
       href: "/dashboard/calendar",
-      label: "Calendrier",
+      label: t.nav.calendar,
       icon: ICONS.calendar,
       rolesAllowed: ["admin", "worker", "freelancer"],
       group: "workspace",
@@ -152,13 +152,6 @@ function NavIcon({ d }: { d: string }) {
   );
 }
 
-const GROUP_LABEL: Record<NavItem["group"], string> = {
-  workspace: "Workspace",
-  business: "Business",
-  team: "Équipe",
-  system: "Système",
-};
-
 const GROUP_ORDER: NavItem["group"][] = [
   "workspace",
   "business",
@@ -182,7 +175,7 @@ export function Sidebar({ role }: { role: UserRole }) {
           return (
             <div key={group} className="mb-3 last:mb-0">
               <p className="px-3 pb-1.5 pt-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-ink/35">
-                {GROUP_LABEL[group]}
+                {t.nav.groups[group]}
               </p>
               <nav className="space-y-0.5">
                 {groupItems.map((item) => {

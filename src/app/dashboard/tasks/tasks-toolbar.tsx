@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n/provider";
 
 export type TasksFilters = {
   search: string;
@@ -44,6 +45,8 @@ export function TasksToolbar({
   currentUserId: string;
   resultCount: number;
 }) {
+  const { t } = useI18n();
+
   function patch<K extends keyof TasksFilters>(key: K, value: TasksFilters[K]) {
     onChange({ ...filters, [key]: value });
   }
@@ -83,63 +86,63 @@ export function TasksToolbar({
             type="search"
             value={filters.search}
             onChange={(e) => patch("search", e.target.value)}
-            placeholder="Rechercher une tâche…"
+            placeholder={t.filters.searchTask}
             className="w-full rounded-lg border border-ink/10 bg-white/70 py-2 pl-9 pr-3 text-sm text-ink placeholder:text-ink/40 transition-colors focus:border-brand focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20"
           />
         </div>
 
         {/* Status menu */}
         <FilterMenu
-          label="Statut"
+          label={t.filters.status}
           value={filters.status}
           options={[
-            { value: "all", label: "Tous" },
-            { value: "todo", label: "À faire" },
-            { value: "in_progress", label: "En cours" },
-            { value: "review", label: "À valider" },
-            { value: "done", label: "Terminé" },
-            { value: "cancelled", label: "Annulé" },
+            { value: "all", label: t.common.all },
+            { value: "todo", label: t.tasks.status.todo },
+            { value: "in_progress", label: t.tasks.status.in_progress },
+            { value: "review", label: t.tasks.status.review },
+            { value: "done", label: t.tasks.status.done },
+            { value: "cancelled", label: t.tasks.status.cancelled },
           ]}
           onChange={(v) => patch("status", v as TasksFilters["status"])}
         />
 
         {/* Priority menu */}
         <FilterMenu
-          label="Priorité"
+          label={t.filters.priority}
           value={filters.priority}
           options={[
-            { value: "all", label: "Toutes" },
-            { value: "urgent", label: "Urgente" },
-            { value: "high", label: "Haute" },
-            { value: "normal", label: "Normale" },
-            { value: "low", label: "Basse" },
+            { value: "all", label: t.filters.allPriorities },
+            { value: "urgent", label: t.tasks.priority.urgent },
+            { value: "high", label: t.tasks.priority.high },
+            { value: "normal", label: t.tasks.priority.normal },
+            { value: "low", label: t.tasks.priority.low },
           ]}
           onChange={(v) => patch("priority", v as TasksFilters["priority"])}
         />
 
         {/* Deadline preset */}
         <FilterMenu
-          label="Échéance"
+          label={t.filters.deadline}
           value={filters.deadline}
           options={[
-            { value: "all", label: "Toutes" },
-            { value: "overdue", label: "En retard" },
-            { value: "today", label: "Aujourd'hui" },
-            { value: "week", label: "Cette semaine" },
-            { value: "month", label: "Ce mois" },
-            { value: "none", label: "Sans échéance" },
+            { value: "all", label: t.filters.allPriorities },
+            { value: "overdue", label: t.filters.overdue },
+            { value: "today", label: t.common.today },
+            { value: "week", label: t.filters.thisWeek },
+            { value: "month", label: t.common.thisMonth },
+            { value: "none", label: t.filters.noDeadline },
           ]}
           onChange={(v) => patch("deadline", v as TasksFilters["deadline"])}
         />
 
         {/* Assignee */}
         <FilterMenu
-          label="Assigné"
+          label={t.filters.assignee}
           value={filters.assigneeId}
           options={[
-            { value: "all", label: "Tout le monde" },
-            { value: "me", label: "Moi" },
-            { value: "unassigned", label: "Non assigné" },
+            { value: "all", label: t.filters.everyone },
+            { value: "me", label: t.filters.me },
+            { value: "unassigned", label: t.filters.unassigned },
             ...assignees.filter((a) => a.value !== currentUserId),
           ]}
           onChange={(v) => patch("assigneeId", v)}
@@ -147,13 +150,15 @@ export function TasksToolbar({
 
         {/* Project */}
         <FilterMenu
-          label="Projet"
+          label={t.filters.project}
           value={filters.projectId}
-          options={[{ value: "all", label: "Tous les projets" }, ...projects]}
+          options={[
+            { value: "all", label: t.filters.allProjects },
+            ...projects,
+          ]}
           onChange={(v) => patch("projectId", v)}
         />
 
-        {/* Spacer */}
         <div className="ml-auto flex items-center gap-2">
           {activeCount > 0 && (
             <button
@@ -161,11 +166,14 @@ export function TasksToolbar({
               onClick={clearAll}
               className="rounded-md px-2 py-1 text-xs font-medium text-ink/60 transition-colors hover:bg-white/60 hover:text-ink"
             >
-              Effacer ({activeCount})
+              {t.common.clear} ({activeCount})
             </button>
           )}
           <span className="rounded-md bg-ink/5 px-2 py-1 text-xs font-medium text-ink/65">
-            {resultCount} {resultCount > 1 ? "tâches" : "tâche"}
+            {resultCount}{" "}
+            {resultCount > 1
+              ? t.tasks.title.toLowerCase()
+              : t.tasks.title.toLowerCase().replace(/s$/, "")}
           </span>
 
           {/* View toggle */}
@@ -173,13 +181,13 @@ export function TasksToolbar({
             <ViewButton
               active={view === "kanban"}
               onClick={() => onViewChange("kanban")}
-              label="Kanban"
+              label={t.tasksUi.kanban}
               icon="M4 6h4v14H4z M10 6h4v8h-4z M16 6h4v11h-4z"
             />
             <ViewButton
               active={view === "list"}
               onClick={() => onViewChange("list")}
-              label="Liste"
+              label={t.tasksUi.list}
               icon="M4 6h16 M4 12h16 M4 18h16"
             />
           </div>

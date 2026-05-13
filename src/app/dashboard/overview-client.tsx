@@ -123,17 +123,17 @@ export function OverviewClient({
 
   const subtitle =
     role === "admin"
-      ? "Tableau de bord administrateur"
+      ? t.dashboard.admin.title
       : role === "worker"
-        ? "Tableau de bord équipe"
-        : "Mes tâches assignées";
+        ? t.dashboard.worker.title
+        : t.dashboard.freelancer.title;
 
   return (
     <div className="space-y-7">
       <Greeting fullName={fullName} subtitle={subtitle} role={role} />
 
       {isAdmin && (
-        <section className="grid grid-cols-1 gap-4 lg:grid-cols-4">
+        <section className="grid grid-cols-1 items-stretch gap-4 lg:grid-cols-4">
           <HeroRevenueCard
             mtdPaid={revenue.mtdPaid}
             mtdInvoiced={revenue.mtdInvoiced}
@@ -141,22 +141,24 @@ export function OverviewClient({
           />
 
           <KpiCard
-            label="Facturé (mois)"
+            label={t.kpis.invoicedMonth}
             value={revenue.mtdInvoiced}
             currency
             trend={revenue.invoicedTrend}
             tone="brand"
+            trendSuffix={t.kpis.vsLastMonth}
             icon={
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z M14 2v6h6 M9 13h6 M9 17h6" />
             }
           />
           <KpiCard
-            label="Impayés"
+            label={t.kpis.outstanding}
             value={revenue.outstanding}
             currency
             trend={revenue.outstandingTrend}
             invertTrend
             tone="amber"
+            trendSuffix={t.kpis.vsLastMonth}
             icon={
               <>
                 <circle cx="12" cy="12" r="9" />
@@ -165,7 +167,7 @@ export function OverviewClient({
             }
           />
           <KpiCard
-            label="Projets actifs"
+            label={t.kpis.activeProjects}
             value={counts.activeProjects}
             tone="ink"
             icon={
@@ -177,15 +179,15 @@ export function OverviewClient({
 
       {!isAdmin && (
         <>
-          <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <section className="grid grid-cols-2 items-stretch gap-4 lg:grid-cols-4">
             <KpiCard
-              label="Mes tâches actives"
+              label={t.kpis.myActiveTasks}
               value={counts.myActiveTasks}
               tone="brand"
               icon={<path d="M3 6h2l1 2h13M3 12h18M3 18h18" />}
             />
             <KpiCard
-              label="En retard"
+              label={t.kpis.overdue}
               value={counts.myOverdueTasks}
               tone={counts.myOverdueTasks > 0 ? "amber" : "ink"}
               icon={
@@ -196,7 +198,7 @@ export function OverviewClient({
               }
             />
             <KpiCard
-              label="Projets actifs"
+              label={t.kpis.activeProjects}
               value={counts.activeProjects}
               tone="ink"
               icon={
@@ -205,7 +207,7 @@ export function OverviewClient({
             />
             {counts.clients !== null && (
               <KpiCard
-                label="Clients"
+                label={t.kpis.clients}
                 value={counts.clients}
                 icon={
                   <>
@@ -378,18 +380,19 @@ function HeroRevenueCard({
   mtdInvoiced: number;
   paidTrend: number | null;
 }) {
+  const { t } = useI18n();
   const collectionRate =
     mtdInvoiced > 0 ? Math.min(100, (mtdPaid / mtdInvoiced) * 100) : 0;
 
   return (
-    <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-brand via-brand-dark to-ink p-0 shadow-brand-glow lg:col-span-1 surface-grain">
+    <Card className="relative h-full overflow-hidden border-0 bg-gradient-to-br from-brand via-brand-dark to-ink p-0 shadow-brand-glow lg:col-span-1 surface-grain">
       <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-accent/30 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-10 -left-10 h-32 w-32 rounded-full bg-brand/40 blur-3xl" />
 
-      <div className="relative p-5">
+      <div className="relative flex h-full flex-col justify-between p-5">
         <div className="flex items-start justify-between">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-cream/70">
-            Encaissé (mois)
+            {t.kpis.revenueMtd}
           </p>
           <TrendPill pct={paidTrend} className="!bg-white/15 !text-white !ring-0" />
         </div>
@@ -398,12 +401,12 @@ function HeroRevenueCard({
           <CountUp to={mtdPaid} decimals={0} suffix=" DT" />
         </p>
         <p className="mt-1 text-xs text-cream/60">
-          sur {formatDt(mtdInvoiced)} facturés
+          {t.kpis.sumInvoiced(formatDt(mtdInvoiced))}
         </p>
 
         <div className="mt-5">
           <div className="flex items-center justify-between text-[11px] font-semibold text-cream/80">
-            <span>Taux d&apos;encaissement</span>
+            <span>{t.kpis.collectionRate}</span>
             <span>{collectionRate.toFixed(0)}%</span>
           </div>
           <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/15">
@@ -426,6 +429,7 @@ function KpiCard({
   currency,
   tone = "neutral",
   icon,
+  trendSuffix,
 }: {
   label: string;
   value: number;
@@ -434,6 +438,7 @@ function KpiCard({
   currency?: boolean;
   tone?: "brand" | "amber" | "ink" | "neutral";
   icon?: React.ReactNode;
+  trendSuffix?: string;
 }) {
   const accent =
     tone === "brand"
@@ -454,16 +459,16 @@ function KpiCard({
           : "bg-ink/30";
 
   return (
-    <Card interactive className="relative overflow-hidden">
+    <Card interactive className="relative h-full overflow-hidden">
       <div className={`absolute inset-x-0 top-0 h-0.5 ${ribbon}`} />
-      <CardContent className="p-5">
+      <CardContent className="flex h-full flex-col justify-between gap-3 p-5">
         <div className="flex items-start justify-between gap-3">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-ink/50">
+          <p className="pt-1 text-[11px] font-semibold uppercase tracking-wider text-ink/55">
             {label}
           </p>
           {icon && (
             <span
-              className={`flex h-8 w-8 items-center justify-center rounded-lg ${accent}`}
+              className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${accent}`}
             >
               <svg
                 width="16"
@@ -480,19 +485,27 @@ function KpiCard({
             </span>
           )}
         </div>
-        <p className="mt-3 text-3xl font-semibold tracking-tight text-ink">
-          <CountUp
-            to={value}
-            decimals={0}
-            suffix={currency ? " DT" : ""}
-          />
-        </p>
-        {trend !== undefined && (
-          <div className="mt-1.5 flex items-center gap-2">
-            <TrendPill pct={trend} invert={invertTrend} />
-            <span className="text-[11px] text-ink/45">vs mois dernier</span>
+        <div>
+          <p className="text-[28px] font-semibold leading-none tracking-tight text-ink">
+            <CountUp
+              to={value}
+              decimals={0}
+              suffix={currency ? " DT" : ""}
+            />
+          </p>
+          <div className="mt-2 flex min-h-[20px] items-center gap-2">
+            {trend !== undefined ? (
+              <>
+                <TrendPill pct={trend} invert={invertTrend} />
+                <span className="text-[11px] text-ink/45">
+                  {trendSuffix ?? ""}
+                </span>
+              </>
+            ) : (
+              <span className="text-[11px] text-ink/35">—</span>
+            )}
           </div>
-        )}
+        </div>
       </CardContent>
     </Card>
   );

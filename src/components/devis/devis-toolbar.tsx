@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n/provider";
 
 export type DevisFilters = {
   search: string;
@@ -34,6 +35,8 @@ export function DevisToolbar({
   resultCount: number;
   kind: "devis" | "facture";
 }) {
+  const { t } = useI18n();
+
   function patch<K extends keyof DevisFilters>(
     key: K,
     value: DevisFilters[K],
@@ -47,8 +50,6 @@ export function DevisToolbar({
     (filters.clientId !== "all" ? 1 : 0) +
     (filters.date !== "all" ? 1 : 0) +
     (filters.search.trim().length > 0 ? 1 : 0);
-
-  const noun = kind === "facture" ? "facture" : "devis";
 
   return (
     <div className="glass rounded-2xl px-4 py-3 md:px-5">
@@ -72,52 +73,55 @@ export function DevisToolbar({
             type="search"
             value={filters.search}
             onChange={(e) => patch("search", e.target.value)}
-            placeholder={`Rechercher un numéro, client, objet…`}
+            placeholder={t.filters.searchDevis}
             className="w-full rounded-lg border border-ink/10 bg-white/70 py-2 pl-9 pr-3 text-sm text-ink placeholder:text-ink/40 transition-colors focus:border-brand focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20"
           />
         </div>
 
         <FilterMenu
-          label="Statut"
+          label={t.filters.status}
           value={filters.status}
           options={[
-            { value: "all", label: "Tous" },
-            { value: "draft", label: "Brouillon" },
-            { value: "sent", label: "Envoyé" },
-            { value: "accepted", label: "Accepté" },
-            { value: "rejected", label: "Refusé" },
+            { value: "all", label: t.common.all },
+            { value: "draft", label: t.devis.status.draft },
+            { value: "sent", label: t.devis.status.sent },
+            { value: "accepted", label: t.devis.status.accepted },
+            { value: "rejected", label: t.devis.status.rejected },
           ]}
           onChange={(v) => patch("status", v as DevisFilters["status"])}
         />
 
         <FilterMenu
-          label="Paiement"
+          label={t.filters.payment}
           value={filters.payment}
           options={[
-            { value: "all", label: "Tous" },
-            { value: "unpaid", label: "Impayé" },
-            { value: "partial", label: "Partiel" },
-            { value: "paid", label: "Payé" },
+            { value: "all", label: t.common.all },
+            { value: "unpaid", label: t.devis.payment.unpaid },
+            { value: "partial", label: t.devis.payment.partial },
+            { value: "paid", label: t.devis.payment.paid },
           ]}
           onChange={(v) => patch("payment", v as DevisFilters["payment"])}
         />
 
         <FilterMenu
-          label="Client"
+          label={t.filters.client}
           value={filters.clientId}
-          options={[{ value: "all", label: "Tous les clients" }, ...clients]}
+          options={[
+            { value: "all", label: t.filters.allClients },
+            ...clients,
+          ]}
           onChange={(v) => patch("clientId", v)}
         />
 
         <FilterMenu
-          label="Période"
+          label={t.filters.period}
           value={filters.date}
           options={[
-            { value: "all", label: "Toutes" },
-            { value: "month", label: "Ce mois" },
-            { value: "quarter", label: "Ce trimestre" },
-            { value: "year", label: "Cette année" },
-            { value: "overdue", label: "En retard" },
+            { value: "all", label: t.common.all },
+            { value: "month", label: t.common.thisMonth },
+            { value: "quarter", label: t.common.thisQuarter },
+            { value: "year", label: t.filters.thisYear },
+            { value: "overdue", label: t.filters.overdue },
           ]}
           onChange={(v) => patch("date", v as DevisFilters["date"])}
         />
@@ -129,11 +133,11 @@ export function DevisToolbar({
               onClick={() => onChange({ ...DEFAULT_DEVIS_FILTERS })}
               className="rounded-md px-2 py-1 text-xs font-medium text-ink/60 transition-colors hover:bg-white/60 hover:text-ink"
             >
-              Effacer ({activeCount})
+              {t.common.clear} ({activeCount})
             </button>
           )}
           <span className="rounded-md bg-ink/5 px-2 py-1 text-xs font-medium text-ink/65">
-            {resultCount} {resultCount > 1 ? `${noun}s` : noun}
+            {t.devisUi.itemsLabel(resultCount, kind)}
           </span>
         </div>
       </div>

@@ -47,7 +47,7 @@ export function ClientsListClient({ clients }: { clients: ClientRow[] }) {
     <div className="space-y-6">
       <PageHeader
         title={t.clients.title}
-        description="Carnet d'adresses des clients et de leurs projets."
+        description={t.clientsUi.description}
         action={
           <Link href="/dashboard/clients/new">
             <Button>{t.clients.add}</Button>
@@ -79,7 +79,7 @@ export function ClientsListClient({ clients }: { clients: ClientRow[] }) {
                 type="search"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Rechercher un client, email, téléphone…"
+                placeholder={t.filters.searchClient}
                 className="w-full rounded-lg border border-ink/10 bg-white/70 py-2 pl-9 pr-3 text-sm text-ink placeholder:text-ink/40 transition-colors focus:border-brand focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20"
               />
             </div>
@@ -88,13 +88,12 @@ export function ClientsListClient({ clients }: { clients: ClientRow[] }) {
               onChange={(e) => setSort(e.target.value as Sort)}
               className="h-9 rounded-lg border border-ink/10 bg-white/70 px-3 text-xs font-medium text-ink/70 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
             >
-              <option value="newest">Les plus récents</option>
-              <option value="name">Nom (A→Z)</option>
-              <option value="projects">Le plus de projets</option>
+              <option value="newest">{t.common.newest}</option>
+              <option value="name">{t.common.nameAZ}</option>
+              <option value="projects">{t.common.mostProjects}</option>
             </select>
             <span className="ml-auto rounded-md bg-ink/5 px-2 py-1 text-xs font-medium text-ink/65">
-              {filtered.length}{" "}
-              {filtered.length > 1 ? "clients" : "client"}
+              {t.clientsUi.clients(filtered.length)}
             </span>
           </div>
           <Table>

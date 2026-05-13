@@ -1,8 +1,5 @@
-import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { Button } from "@/components/ui/button";
-import { PageHeader } from "@/components/dashboard/page-header";
 import { ServicesList } from "./services-list";
 
 export default async function ServicesPage() {
@@ -15,18 +12,5 @@ export default async function ServicesPage() {
     )
     .order("name_fr");
 
-  return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Catalogue des services"
-        subtitle="Modifiez les services proposés et leurs tarifs"
-        action={
-          <Link href="/dashboard/services/new">
-            <Button>+ Nouveau service</Button>
-          </Link>
-        }
-      />
-      <ServicesList services={data ?? []} />
-    </div>
-  );
+  return <ServicesList services={data ?? []} />;
 }

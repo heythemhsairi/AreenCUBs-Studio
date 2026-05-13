@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n/provider";
 import {
   markNotificationReadAction,
   markAllNotificationsReadAction,
@@ -43,29 +44,48 @@ function iconFor(kind: string): string {
   return "🔔";
 }
 
-function pluralFor(kind: string, count: number): string {
-  switch (kind) {
-    case "task_assigned":
-      return `${count} nouvelles tâches assignées`;
-    case "task_comment":
-      return `${count} nouveaux commentaires`;
-    case "task_mentioned":
-      return `${count} mentions`;
-    case "task_review":
-      return `${count} tâches à valider`;
-    case "task_done":
-      return `${count} tâches terminées`;
-    case "file_uploaded":
-      return `${count} fichiers ajoutés`;
-    case "devis_accepted":
-      return `${count} devis acceptés`;
-    case "devis_rejected":
-      return `${count} devis refusés`;
-    case "devis_paid":
-      return `${count} paiements reçus`;
-    default:
-      return `${count} notifications`;
+type NotifGroupKind =
+  | "task_assigned"
+  | "task_comment"
+  | "task_mentioned"
+  | "task_review"
+  | "task_done"
+  | "file_uploaded"
+  | "devis_accepted"
+  | "devis_rejected"
+  | "devis_paid";
+
+function pluralFor(
+  groupPlural: {
+    task_assigned: (n: number) => string;
+    task_comment: (n: number) => string;
+    task_mentioned: (n: number) => string;
+    task_review: (n: number) => string;
+    task_done: (n: number) => string;
+    file_uploaded: (n: number) => string;
+    devis_accepted: (n: number) => string;
+    devis_rejected: (n: number) => string;
+    devis_paid: (n: number) => string;
+    default: (n: number) => string;
+  },
+  kind: string,
+  count: number,
+): string {
+  const known = [
+    "task_assigned",
+    "task_comment",
+    "task_mentioned",
+    "task_review",
+    "task_done",
+    "file_uploaded",
+    "devis_accepted",
+    "devis_rejected",
+    "devis_paid",
+  ] as const;
+  if ((known as readonly string[]).includes(kind)) {
+    return groupPlural[kind as NotifGroupKind](count);
   }
+  return groupPlural.default(count);
 }
 
 type Segment =
@@ -94,6 +114,7 @@ export function NotificationBell({
 }: {
   initial: NotificationRow[];
 }) {
+  const { t } = useI18n();
   const [items, setItems] = useState(initial);
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
@@ -185,7 +206,9 @@ export function NotificationBell({
       {open && (
         <div className="absolute right-0 top-full z-30 mt-2 w-[340px] overflow-hidden rounded-2xl border border-ink/10 bg-white shadow-lift">
           <div className="flex items-center justify-between border-b border-ink/8 bg-cream-dark/40 px-4 py-2.5">
-            <p className="text-sm font-semibold text-ink">Notifications</p>
+            <p className="text-sm font-semibold text-ink">
+              {t.notifications.title}
+            </p>
             {unread > 0 && (
               <button
                 type="button"
@@ -193,7 +216,7 @@ export function NotificationBell({
                 disabled={pending}
                 className="text-xs font-semibold text-brand hover:text-brand-dark"
               >
-                Tout marquer lu
+                {t.common.markAllRead}
               </button>
             )}
           </div>
@@ -201,7 +224,7 @@ export function NotificationBell({
           <div className="max-h-[420px] overflow-y-auto">
             {items.length === 0 ? (
               <p className="px-4 py-10 text-center text-sm text-ink/45">
-                Aucune notification.
+                {t.notifications.empty}
               </p>
             ) : (
               <ul className="divide-y divide-ink/5">
@@ -249,7 +272,11 @@ export function NotificationBell({
                         </span>
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-medium text-ink">
-                            {pluralFor(seg.kind, seg.items.length)}
+                            {pluralFor(
+                              t.notifications.groupPlural,
+                              seg.kind,
+                              seg.items.length,
+                            )}
                           </p>
                           <p className="mt-0.5 text-[11px] text-ink/45">
                             {relativeTime(seg.items[0].created_at)}
@@ -257,8 +284,7 @@ export function NotificationBell({
                               <>
                                 {" · "}
                                 <span className="font-semibold text-brand">
-                                  {unreadInGroup} non lue
-                                  {unreadInGroup > 1 ? "s" : ""}
+                                  {t.notifications.unread(unreadInGroup)}
                                 </span>
                               </>
                             )}

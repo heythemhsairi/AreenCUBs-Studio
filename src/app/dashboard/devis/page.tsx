@@ -1,8 +1,5 @@
-import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { Button } from "@/components/ui/button";
-import { PageHeader } from "@/components/dashboard/page-header";
 import { DevisListView } from "@/components/devis/devis-list-view";
 
 export default async function DevisListPage() {
@@ -24,21 +21,10 @@ export default async function DevisListPage() {
   ]);
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Devis"
-        description="Tous les devis émis. Filtrez par statut, paiement, client ou période."
-        action={
-          <Link href="/dashboard/devis/new">
-            <Button>+ Nouveau devis</Button>
-          </Link>
-        }
-      />
-      <DevisListView
-        rows={rows ?? []}
-        kind="devis"
-        clients={(clients ?? []).map((c) => ({ value: c.id, label: c.name }))}
-      />
-    </div>
+    <DevisListView
+      rows={rows ?? []}
+      kind="devis"
+      clients={(clients ?? []).map((c) => ({ value: c.id, label: c.name }))}
+    />
   );
 }

@@ -67,14 +67,14 @@ export function TeamListClient({
     <div className="space-y-6">
       <PageHeader
         title={t.team.title}
-        description="L'équipe Areen CUBs — admins, salariés et freelances."
+        description={t.teamUi.description}
         action={
           <div className="flex flex-wrap items-center gap-2">
             <Link href="/dashboard/team/planning">
-              <Button variant="outline">📅 Planning équipe</Button>
+              <Button variant="outline">{t.teamUi.planning}</Button>
             </Link>
             <Link href="/dashboard/team/featured">
-              <Button variant="accent">⭐ Employé du mois</Button>
+              <Button variant="accent">{t.teamUi.featured}</Button>
             </Link>
             <Link href="/dashboard/team/new">
               <Button>{t.team.add}</Button>
@@ -107,7 +107,7 @@ export function TeamListClient({
                 type="search"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Rechercher un membre, email, poste…"
+                placeholder={t.filters.searchMember}
                 className="w-full rounded-lg border border-ink/10 bg-white/70 py-2 pl-9 pr-3 text-sm text-ink placeholder:text-ink/40 transition-colors focus:border-brand focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20"
               />
             </div>
@@ -126,7 +126,7 @@ export function TeamListClient({
                         : "text-ink/60 hover:bg-white/80 hover:text-ink",
                     )}
                   >
-                    {r === "all" ? "Tous" : t.roles[r as UserRole]}
+                    {r === "all" ? t.common.all : t.roles[r as UserRole]}
                     <span className="ml-1.5 text-[10px] opacity-75">
                       {counts[r]}
                     </span>
@@ -135,8 +135,7 @@ export function TeamListClient({
               )}
             </div>
             <span className="ml-auto rounded-md bg-ink/5 px-2 py-1 text-xs font-medium text-ink/65">
-              {filtered.length}{" "}
-              {filtered.length > 1 ? "membres" : "membre"}
+              {t.teamUi.members(filtered.length)}
             </span>
           </div>
 

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useTransition } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useI18n } from "@/lib/i18n/provider";
 import { togglePriorityPinAction } from "./priority-actions";
 
 type Pin = {
@@ -24,13 +25,6 @@ const statusTone: Record<string, "slate" | "blue" | "amber" | "green"> = {
   done: "green",
 };
 
-const statusLabel: Record<string, string> = {
-  todo: "À faire",
-  in_progress: "En cours",
-  review: "À valider",
-  done: "Terminé",
-};
-
 const priorityTone: Record<string, "slate" | "neutral" | "amber" | "red"> = {
   low: "slate",
   normal: "neutral",
@@ -38,20 +32,21 @@ const priorityTone: Record<string, "slate" | "neutral" | "amber" | "red"> = {
   urgent: "red",
 };
 
-function relativeDeadline(iso: string | null): string {
-  if (!iso) return "";
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const d = new Date(iso);
-  const days = Math.floor((d.getTime() - today.getTime()) / 86400000);
-  if (days < 0) return `${Math.abs(days)}j retard`;
-  if (days === 0) return "aujourd'hui";
-  return `dans ${days}j`;
-}
-
 export function PriorityPinsSection({ pins }: { pins: Pin[] }) {
+  const { t } = useI18n();
   const [items, setItems] = useState(pins);
   const [, startTransition] = useTransition();
+
+  function relativeDeadline(iso: string | null): string {
+    if (!iso) return "";
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const d = new Date(iso);
+    const days = Math.floor((d.getTime() - today.getTime()) / 86400000);
+    if (days < 0) return t.pins.relativeLate(days);
+    if (days === 0) return t.pins.relativeToday;
+    return t.pins.relativeIn(days);
+  }
 
   function unpin(p: Pin) {
     setItems((prev) => prev.filter((x) => x.pinId !== p.pinId));
@@ -69,16 +64,17 @@ export function PriorityPinsSection({ pins }: { pins: Pin[] }) {
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <span className="text-accent">⭐</span>
-              Mes priorités du jour
+              {t.pins.title}
               <span className="text-xs font-medium text-ink/40">
-                {items.length}/3
+                {items.length}
+                {t.pins.counterMax}
               </span>
             </CardTitle>
             <Link
               href="/dashboard/tasks"
               className="text-xs font-semibold text-brand hover:text-brand-dark"
             >
-              Voir mes tâches →
+              {t.pins.seeMyTasks}
             </Link>
           </div>
         </CardHeader>
@@ -90,8 +86,8 @@ export function PriorityPinsSection({ pins }: { pins: Pin[] }) {
                   <button
                     type="button"
                     onClick={() => unpin(p)}
-                    title="Désépingler"
-                    aria-label="Désépingler"
+                    title={t.pins.unpin}
+                    aria-label={t.pins.unpin}
                     className="text-accent transition-transform hover:scale-110"
                   >
                     <svg
@@ -121,22 +117,37 @@ export function PriorityPinsSection({ pins }: { pins: Pin[] }) {
                   </Link>
                   <div className="flex shrink-0 items-center gap-2 text-xs">
                     <Badge tone={priorityTone[p.priority] ?? "neutral"}>
-                      {p.priority}
+                      {t.tasks.priority[
+                        p.priority as keyof typeof t.tasks.priority
+                      ] ?? p.priority}
                     </Badge>
                     <Badge tone={statusTone[p.status] ?? "slate"}>
-                      {statusLabel[p.status] ?? p.status}
+                      {t.tasks.status[
+                        p.status as keyof typeof t.tasks.status
+                      ] ?? p.status}
                     </Badge>
-                    {p.deadline && (
-                      <span
-                        className={`rounded-md px-2 py-0.5 font-semibold ${
-                          relativeDeadline(p.deadline).includes("retard")
-                            ? "bg-red-50 text-red-700"
-                            : "bg-accent/15 text-accent-dark"
-                        }`}
-                      >
-                        {relativeDeadline(p.deadline)}
-                      </span>
-                    )}
+                    {p.deadline &&
+                      (() => {
+                        const dToday = new Date();
+                        dToday.setHours(0, 0, 0, 0);
+                        const days = Math.floor(
+                          (new Date(p.deadline).getTime() -
+                            dToday.getTime()) /
+                            86400000,
+                        );
+                        const late = days < 0;
+                        return (
+                          <span
+                            className={`rounded-md px-2 py-0.5 font-semibold ${
+                              late
+                                ? "bg-red-50 text-red-700"
+                                : "bg-accent/15 text-accent-dark"
+                            }`}
+                          >
+                            {relativeDeadline(p.deadline)}
+                          </span>
+                        );
+                      })()}
                   </div>
                 </div>
               </li>

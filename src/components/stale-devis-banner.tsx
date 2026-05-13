@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 
 export type StaleDevisRow = {
   id: string;
@@ -25,6 +26,7 @@ function num(n: number): string {
 }
 
 export function StaleDevisBanner({ rows }: { rows: StaleDevisRow[] }) {
+  const { t } = useI18n();
   const [dismissed, setDismissed] = useState(false);
   if (rows.length === 0 || dismissed) return null;
 
@@ -38,13 +40,13 @@ export function StaleDevisBanner({ rows }: { rows: StaleDevisRow[] }) {
           <div className="flex items-center justify-between gap-3">
             <p className="text-sm font-semibold text-ink dark:text-cream">
               {rows.length === 1
-                ? "1 devis attend une réponse depuis plus de 7 jours"
-                : `${rows.length} devis attendent une réponse depuis plus de 7 jours`}
+                ? t.devisUi.staleBannerOne
+                : t.devisUi.staleBannerMany(rows.length)}
             </p>
             <button
               type="button"
               onClick={() => setDismissed(true)}
-              aria-label="Masquer"
+              aria-label={t.devisUi.hide}
               className="text-xs text-ink/40 hover:text-ink/70"
             >
               ×
@@ -65,7 +67,7 @@ export function StaleDevisBanner({ rows }: { rows: StaleDevisRow[] }) {
                 <span className="shrink-0 text-ink/55 dark:text-cream/55">
                   {formatDt(d.total_dt)}
                   <span className="ml-2 rounded-md bg-accent/20 px-1.5 py-0.5 font-semibold text-accent-dark dark:text-accent">
-                    +{d.days_since_sent}j
+                    {t.devisUi.daysSuffix(d.days_since_sent)}
                   </span>
                 </span>
               </li>
@@ -76,7 +78,7 @@ export function StaleDevisBanner({ rows }: { rows: StaleDevisRow[] }) {
                   href="/dashboard/devis"
                   className="hover:underline"
                 >
-                  +{rows.length - 4} de plus →
+                  {t.devisUi.moreLink(rows.length - 4)}
                 </Link>
               </li>
             )}

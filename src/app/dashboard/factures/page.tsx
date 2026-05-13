@@ -1,8 +1,5 @@
-import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { Button } from "@/components/ui/button";
-import { PageHeader } from "@/components/dashboard/page-header";
 import { DevisListView } from "@/components/devis/devis-list-view";
 
 export default async function FacturesListPage() {
@@ -24,21 +21,10 @@ export default async function FacturesListPage() {
   ]);
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Factures"
-        description="Toutes les factures émises. Filtrez par statut, paiement, client ou période."
-        action={
-          <Link href="/dashboard/factures/new">
-            <Button>+ Nouvelle facture</Button>
-          </Link>
-        }
-      />
-      <DevisListView
-        rows={rows ?? []}
-        kind="facture"
-        clients={(clients ?? []).map((c) => ({ value: c.id, label: c.name }))}
-      />
-    </div>
+    <DevisListView
+      rows={rows ?? []}
+      kind="facture"
+      clients={(clients ?? []).map((c) => ({ value: c.id, label: c.name }))}
+    />
   );
 }

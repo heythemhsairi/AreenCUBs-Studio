@@ -1,6 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
+import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/dashboard/page-header";
 import { TasksKanban, type TaskCard } from "./tasks-kanban";
 import { TasksList } from "./tasks-list";
 import {
@@ -19,6 +23,7 @@ export function TasksView({
   currentUserId,
   currentUserAssigneeId,
   tagColors,
+  isFreelancer,
 }: {
   tasks: TaskCard[];
   projects: Option[];
@@ -26,7 +31,9 @@ export function TasksView({
   currentUserId: string;
   currentUserAssigneeId: string;
   tagColors?: Record<string, string>;
+  isFreelancer: boolean;
 }) {
+  const { t } = useI18n();
   const [filters, setFilters] = useState<TasksFilters>(DEFAULT_FILTERS);
   const [view, setView] = useState<View>("kanban");
 
@@ -36,7 +43,20 @@ export function TasksView({
   );
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      <PageHeader
+        title={isFreelancer ? t.tasks.myTitle : t.tasks.title}
+        description={
+          isFreelancer ? t.tasksUi.descriptionMine : t.tasksUi.description
+        }
+        action={
+          !isFreelancer ? (
+            <Link href="/dashboard/tasks/new">
+              <Button>{t.tasksUi.newTaskCta}</Button>
+            </Link>
+          ) : null
+        }
+      />
       <TasksToolbar
         filters={filters}
         onChange={setFilters}
@@ -59,13 +79,12 @@ export function TasksView({
 }
 
 function EmptyState() {
+  const { t } = useI18n();
   return (
     <div className="glass flex flex-col items-center justify-center gap-2 rounded-2xl px-6 py-16 text-center">
       <span className="text-3xl">🔍</span>
-      <p className="text-sm font-medium text-ink">Aucune tâche ne correspond</p>
-      <p className="max-w-sm text-xs text-ink/55">
-        Essayez d&apos;élargir vos filtres ou videz la recherche.
-      </p>
+      <p className="text-sm font-medium text-ink">{t.tasksUi.noResults}</p>
+      <p className="max-w-sm text-xs text-ink/55">{t.tasksUi.noResultsHint}</p>
     </div>
   );
 }

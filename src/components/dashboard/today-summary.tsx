@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useI18n } from "@/lib/i18n/provider";
 
 type Props = {
   overdueCount: number;
@@ -8,7 +11,7 @@ type Props = {
 };
 
 export function TodaySummary({ overdueCount, dueTodayCount, scope }: Props) {
-  // Nothing to surface — render nothing rather than a low-signal empty state.
+  const { t } = useI18n();
   if (overdueCount === 0 && dueTodayCount === 0) return null;
 
   const meCopy = scope === "me";
@@ -27,7 +30,7 @@ export function TodaySummary({ overdueCount, dueTodayCount, scope }: Props) {
             </span>
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-wider text-red-700/80 dark:text-red-300/80">
-                {meCopy ? "Mes tâches en retard" : "En retard (équipe)"}
+                {meCopy ? t.todaySummary.myOverdue : t.todaySummary.teamOverdue}
               </p>
               <p className="mt-0.5 text-2xl font-semibold tracking-tight text-red-800 dark:text-red-200">
                 {overdueCount}
@@ -35,7 +38,7 @@ export function TodaySummary({ overdueCount, dueTodayCount, scope }: Props) {
             </div>
           </div>
           <span className="relative text-xs font-semibold text-red-700 opacity-60 transition-opacity group-hover:opacity-100 dark:text-red-300">
-            Régler →
+            {t.todaySummary.fix}
           </span>
         </Link>
       )}
@@ -52,7 +55,9 @@ export function TodaySummary({ overdueCount, dueTodayCount, scope }: Props) {
             </span>
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-wider text-accent-dark/85 dark:text-accent">
-                {meCopy ? "Mes échéances du jour" : "Échéances aujourd'hui"}
+                {meCopy
+                  ? t.todaySummary.myDueToday
+                  : t.todaySummary.teamDueToday}
               </p>
               <p className="mt-0.5 text-2xl font-semibold tracking-tight text-ink dark:text-cream">
                 {dueTodayCount}
@@ -60,7 +65,7 @@ export function TodaySummary({ overdueCount, dueTodayCount, scope }: Props) {
             </div>
           </div>
           <span className="relative text-xs font-semibold text-accent-dark opacity-60 transition-opacity group-hover:opacity-100 dark:text-accent">
-            Voir →
+            {t.todaySummary.view}
           </span>
         </Link>
       )}
