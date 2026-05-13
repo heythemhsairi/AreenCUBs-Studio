@@ -505,42 +505,75 @@ function FeaturedCard({
   featured: NonNullable<Featured>;
   canEdit: boolean;
 }) {
+  const name = featured.full_name ?? featured.username;
   return (
     <Card
       variant="accent"
       interactive
-      className="overflow-hidden bg-gradient-to-br from-accent/15 via-white/85 to-white/85"
+      className="relative overflow-hidden border-accent/40 bg-gradient-to-br from-accent/15 via-white/80 to-brand/10 dark:from-accent/25 dark:via-[#1c1f29]/85 dark:to-brand/20 dark:border-accent/40 surface-grain"
     >
-      <CardContent className="flex flex-col items-center gap-4 p-6 text-center sm:flex-row sm:text-left">
-        <div className="relative">
-          <div className="absolute inset-0 -m-1 animate-pulse rounded-full bg-accent/30 blur-md" />
+      {/* Decorative sparkle ribbon */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-10 -right-10 h-44 w-44 rounded-full bg-accent/40 blur-3xl dark:bg-accent/30"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -bottom-10 -left-6 h-32 w-32 rounded-full bg-brand/25 blur-3xl dark:bg-brand/30"
+      />
+
+      <CardContent className="relative flex flex-col items-center gap-5 p-6 text-center sm:flex-row sm:items-stretch sm:text-left">
+        {/* Avatar with double-glow halo */}
+        <div className="relative shrink-0">
+          <div className="absolute inset-0 -m-2 animate-pulse rounded-full bg-gradient-to-br from-accent via-accent-dark to-brand opacity-50 blur-lg" />
+          <div className="absolute inset-0 -m-0.5 rounded-full bg-gradient-to-br from-accent to-brand p-[2px]">
+            <div className="h-full w-full rounded-full bg-cream dark:bg-[#1c1f29]" />
+          </div>
           <Avatar
             src={featured.avatar_url}
-            name={featured.full_name ?? featured.username}
-            size="lg"
-            className="relative ring-2 ring-accent ring-offset-2 ring-offset-cream"
+            name={name}
+            size="xl"
+            className="relative ring-2 ring-accent ring-offset-2 ring-offset-cream dark:ring-offset-[#1c1f29]"
           />
+          {/* Crown emoji */}
+          <span
+            className="absolute -top-3 left-1/2 -translate-x-1/2 -rotate-12 text-2xl drop-shadow-md"
+            aria-hidden
+          >
+            👑
+          </span>
         </div>
-        <div className="flex-1">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-accent-dark">
-            ⭐ Employé du mois · {formatMonth(featured.month)}
-          </p>
-          <p className="mt-1 text-xl font-semibold tracking-tight text-ink">
-            {featured.full_name ?? featured.username}
-          </p>
+
+        <div className="flex-1 sm:py-1">
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
+            <span className="inline-flex items-center gap-1 rounded-full bg-accent/20 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.18em] text-accent-dark ring-1 ring-accent/40 dark:bg-accent/25 dark:text-accent">
+              ⭐ Employé du mois
+            </span>
+            <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ink/45 dark:text-cream/55">
+              {formatMonth(featured.month)}
+            </span>
+          </div>
+          <h3 className="mt-2 text-2xl font-semibold tracking-tight md:text-[26px]">
+            <span className="bg-gradient-to-r from-accent-dark via-accent to-brand bg-clip-text text-transparent dark:from-accent dark:via-[#ffc07a] dark:to-[#7ab9d9]">
+              {name}
+            </span>
+          </h3>
           {featured.reason && (
-            <p className="mt-1 text-sm leading-relaxed text-ink/70">
+            <p className="mt-1.5 text-sm leading-relaxed text-ink/75 dark:text-cream/75">
               « {featured.reason} »
             </p>
           )}
         </div>
+
         {canEdit && (
-          <Link
-            href="/dashboard/team/featured"
-            className="text-xs font-semibold text-accent-dark hover:text-ink"
-          >
-            Modifier →
-          </Link>
+          <div className="flex shrink-0 items-start">
+            <Link
+              href="/dashboard/team/featured"
+              className="inline-flex items-center gap-1 rounded-full border border-accent/40 bg-white/70 px-3 py-1 text-xs font-semibold text-accent-dark backdrop-blur transition-all hover:bg-accent hover:text-white hover:shadow-accent-glow dark:bg-white/5 dark:text-accent dark:hover:bg-accent dark:hover:text-ink"
+            >
+              Modifier →
+            </Link>
+          </div>
         )}
       </CardContent>
     </Card>
