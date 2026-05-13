@@ -60,12 +60,20 @@ function buildMonthGrid(
 export function WorkCalendar({
   initial,
   className,
+  targetUserId,
+  initialMonth,
 }: {
   /** Map of ISO date string → location for the entire range we care about. */
   initial: Record<string, "office" | "home">;
   className?: string;
+  /** If set, writes for this user (admin override). Defaults to current user. */
+  targetUserId?: string;
+  /** Optional initial month (defaults to today's month). */
+  initialMonth?: Date;
 }) {
   const [viewedMonth, setViewedMonth] = useState(() => {
+    if (initialMonth)
+      return new Date(initialMonth.getFullYear(), initialMonth.getMonth(), 1);
     const d = new Date();
     return new Date(d.getFullYear(), d.getMonth(), 1);
   });
@@ -99,7 +107,7 @@ export function WorkCalendar({
     });
 
     startTransition(async () => {
-      await setWorkLocationAction(d.date, next);
+      await setWorkLocationAction(d.date, next, targetUserId);
     });
   }
 

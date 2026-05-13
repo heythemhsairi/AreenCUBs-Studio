@@ -21,6 +21,7 @@ const ICONS: Record<string, string> = {
   finance: "M3 3v18h18 M7 14l4-4 4 4 5-5",
   services: "M20 7l-9 9-5-5",
   team: "M17 21v-2a4 4 0 0 0-3-3.87 M9 21v-2a4 4 0 0 1 3-3.87 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M23 21v-2a4 4 0 0 0-3-3.87",
+  planning: "M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z M16 3v4 M8 3v4 M3 11h18 M8 15h2 M14 15h2 M8 19h2",
   settings: "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M12 2v3 M12 19v3 M4.22 4.22l2.12 2.12 M17.66 17.66l2.12 2.12 M2 12h3 M19 12h3 M4.22 19.78l2.12-2.12 M17.66 6.34l2.12-2.12",
 };
 
@@ -78,6 +79,12 @@ function buildNav(role: UserRole, t: ReturnType<typeof useI18n>["t"]): NavItem[]
       href: "/dashboard/team",
       label: t.nav.team,
       icon: ICONS.team,
+      rolesAllowed: ["admin"],
+    },
+    {
+      href: "/dashboard/team/planning",
+      label: t.nav.planning,
+      icon: ICONS.planning,
       rolesAllowed: ["admin"],
     },
     {
