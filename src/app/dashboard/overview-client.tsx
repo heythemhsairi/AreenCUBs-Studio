@@ -74,12 +74,13 @@ type Props = {
   workSchedule: Record<string, "office" | "home">;
 };
 
-function formatMonth(monthIso: string): string {
+function formatMonth(
+  monthIso: string,
+  months: readonly string[],
+): string {
   const [y, m] = monthIso.split("-").map(Number);
-  return new Date(y, (m ?? 1) - 1, 1).toLocaleDateString("fr-FR", {
-    month: "long",
-    year: "numeric",
-  });
+  const monthName = months[(m ?? 1) - 1] ?? "";
+  return `${monthName} ${y}`;
 }
 
 const statusTone: Record<string, "slate" | "blue" | "green" | "red"> = {
@@ -223,12 +224,12 @@ export function OverviewClient({
             <Card className="lg:col-span-3">
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle>Mes tâches</CardTitle>
+                  <CardTitle>{t.overview.myTasks}</CardTitle>
                   <Link
                     href="/dashboard/tasks"
                     className="text-xs font-semibold text-brand hover:text-brand-dark"
                   >
-                    Tout voir →
+                    {t.overview.seeAll}
                   </Link>
                 </div>
               </CardHeader>
@@ -239,9 +240,9 @@ export function OverviewClient({
 
             <Card className="lg:col-span-2">
               <CardHeader>
-                <CardTitle>Mon planning</CardTitle>
+                <CardTitle>{t.overview.myPlanning}</CardTitle>
                 <p className="text-xs text-ink/55">
-                  Bureau 🏢 ou Maison 🏠 — pour la coordination équipe
+                  {t.overview.myPlanningHint}
                 </p>
               </CardHeader>
               <CardContent>
@@ -257,12 +258,12 @@ export function OverviewClient({
           <Card className="lg:col-span-2">
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>Chiffre d&apos;affaires — 12 mois</CardTitle>
+                <CardTitle>{t.overview.revenue12}</CardTitle>
                 <Link
                   href="/dashboard/finance"
                   className="text-xs font-semibold text-brand hover:text-brand-dark"
                 >
-                  Détails →
+                  {t.overview.financeDetails}
                 </Link>
               </div>
             </CardHeader>
@@ -273,9 +274,9 @@ export function OverviewClient({
 
           <Card>
             <CardHeader>
-              <CardTitle>Répartition services</CardTitle>
+              <CardTitle>{t.overview.serviceMix}</CardTitle>
               <p className="text-xs text-ink/50">
-                Devis envoyés &amp; acceptés
+                {t.overview.serviceMixHint}
               </p>
             </CardHeader>
             <CardContent>
@@ -286,7 +287,7 @@ export function OverviewClient({
                 </div>
               ) : (
                 <p className="py-6 text-center text-sm text-ink/50">
-                  Pas encore de devis envoyés.
+                  {t.overview.noServiceMix}
                 </p>
               )}
             </CardContent>
@@ -305,12 +306,12 @@ export function OverviewClient({
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>Activité récente</CardTitle>
+                <CardTitle>{t.overview.recentActivity}</CardTitle>
                 <Link
                   href="/dashboard/devis"
                   className="text-xs font-semibold text-brand hover:text-brand-dark"
                 >
-                  Tout voir →
+                  {t.overview.seeAll}
                 </Link>
               </div>
             </CardHeader>
@@ -322,12 +323,12 @@ export function OverviewClient({
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>Échéances à venir</CardTitle>
+                <CardTitle>{t.overview.upcoming}</CardTitle>
                 <Link
                   href="/dashboard/tasks"
                   className="text-xs font-semibold text-brand hover:text-brand-dark"
                 >
-                  Tout voir →
+                  {t.overview.seeAll}
                 </Link>
               </div>
             </CardHeader>
@@ -350,18 +351,25 @@ function Greeting({
   subtitle: string;
   role: UserRole;
 }) {
+  const { t } = useI18n();
   const hour = new Date().getHours();
   const time =
-    hour < 5 ? "Bonne nuit" : hour < 12 ? "Bonjour" : hour < 18 ? "Bon après-midi" : "Bonsoir";
+    hour < 5
+      ? t.greeting.goodNight
+      : hour < 12
+        ? t.greeting.goodMorning
+        : hour < 18
+          ? t.greeting.goodAfternoon
+          : t.greeting.goodEvening;
 
   return (
     <section className="reveal flex flex-col gap-2">
       <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand">
         {role === "admin"
-          ? "Espace admin"
+          ? t.greeting.spaceAdmin
           : role === "worker"
-            ? "Espace équipe"
-            : "Espace freelance"}
+            ? t.greeting.spaceTeam
+            : t.greeting.spaceFreelance}
       </p>
       <h1 className="text-3xl font-semibold tracking-tight text-ink md:text-4xl">
         {time}, {fullName.split(" ")[0]} 👋
@@ -385,9 +393,9 @@ function HeroRevenueCard({
     mtdInvoiced > 0 ? Math.min(100, (mtdPaid / mtdInvoiced) * 100) : 0;
 
   return (
-    <Card className="relative h-full overflow-hidden border-0 bg-gradient-to-br from-brand via-brand-dark to-ink p-0 shadow-brand-glow lg:col-span-1 surface-grain">
-      <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-accent/30 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-10 -left-10 h-32 w-32 rounded-full bg-brand/40 blur-3xl" />
+    <Card className="relative h-full overflow-hidden border-0 bg-gradient-to-br from-brand via-brand-dark to-[#0a1326] p-0 shadow-brand-glow lg:col-span-1 surface-grain">
+      <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-cyan-400/25 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-10 -left-10 h-32 w-32 rounded-full bg-[#7c4dff]/30 blur-3xl" />
 
       <div className="relative flex h-full flex-col justify-between p-5">
         <div className="flex items-start justify-between">
@@ -411,7 +419,7 @@ function HeroRevenueCard({
           </div>
           <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/15">
             <div
-              className="h-full bg-gradient-to-r from-accent to-cream transition-all duration-700"
+              className="h-full bg-gradient-to-r from-cyan-300 via-[#a0d2eb] to-white transition-all duration-700"
               style={{ width: `${collectionRate}%` }}
             />
           </div>
@@ -537,61 +545,84 @@ function FeaturedCard({
   canEdit: boolean;
 }) {
   const name = featured.full_name ?? featured.username;
+  const { t } = useI18n();
   return (
     <Card
-      variant="accent"
       interactive
-      className="featured-card relative overflow-hidden border-accent/40 dark:border-accent/30"
+      className="relative overflow-hidden border-0 p-0"
     >
-      <CardContent className="relative flex flex-col items-center gap-5 p-6 text-center sm:flex-row sm:items-stretch sm:text-left">
-        {/* Avatar with triple-layer halo */}
+      {/* Premium electric-blue spotlight background — replaces the
+          gold/orange "featured-card" gradient with a deep navy + cyan
+          + violet wash and floating ambient blobs. */}
+      <div
+        aria-hidden
+        className="absolute inset-0 bg-gradient-to-br from-[#1a2a4a] via-[#0f1830] to-[#0a1326]"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -left-16 -top-16 h-64 w-64 rounded-full bg-brand/35 blur-3xl"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -bottom-20 right-1/4 h-56 w-56 rounded-full bg-[#7c4dff]/25 blur-3xl"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -right-10 top-1/3 h-40 w-40 rounded-full bg-cyan-400/20 blur-3xl"
+      />
+
+      <CardContent className="relative flex flex-col items-center gap-5 p-6 text-center sm:flex-row sm:items-center sm:text-left">
+        {/* Avatar with electric halo */}
         <div className="relative shrink-0">
-          <div className="absolute inset-0 -m-2 animate-pulse rounded-full bg-gradient-to-br from-accent via-accent-dark to-brand opacity-50 blur-lg dark:opacity-70" />
-          <div className="absolute inset-0 -m-0.5 rounded-full bg-gradient-to-br from-accent to-brand p-[2px]">
-            <div className="h-full w-full rounded-full bg-cream dark:bg-[#13151c]" />
+          <div
+            aria-hidden
+            className="absolute inset-0 -m-2 animate-pulse rounded-full bg-gradient-to-br from-brand via-[#7c4dff] to-cyan-400 opacity-60 blur-lg"
+          />
+          <div className="absolute inset-0 -m-0.5 rounded-full bg-gradient-to-br from-brand via-[#7c4dff] to-cyan-400 p-[2px]">
+            <div className="h-full w-full rounded-full bg-[#0a1326]" />
           </div>
           <Avatar
             src={featured.avatar_url}
             name={name}
             size="xl"
-            className="relative ring-2 ring-accent ring-offset-2 ring-offset-cream dark:ring-offset-[#13151c]"
+            className="relative ring-2 ring-brand/60 ring-offset-2 ring-offset-[#0a1326]"
           />
           <span
             className="absolute -top-3 left-1/2 -translate-x-1/2 -rotate-12 text-2xl drop-shadow-md"
             aria-hidden
           >
-            👑
+            ⭐
           </span>
         </div>
 
         <div className="flex-1 sm:py-1">
           <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-            <span className="inline-flex items-center gap-1 rounded-full bg-accent/20 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.18em] text-accent-dark ring-1 ring-accent/40 dark:bg-accent/30 dark:text-[#ffd9a3] dark:ring-accent/60">
-              ⭐ Employé du mois
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/8 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-cyan-200 ring-1 ring-cyan-300/30 backdrop-blur">
+              ✦ {t.featured.title}
             </span>
-            <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ink/45 dark:text-cream/65">
-              {formatMonth(featured.month)}
+            <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-cream/55">
+              {formatMonth(featured.month, t.overview.months)}
             </span>
           </div>
           <h3 className="mt-2 text-2xl font-semibold tracking-tight md:text-[26px]">
-            <span className="bg-gradient-to-r from-accent-dark via-accent to-brand bg-clip-text text-transparent dark:from-[#ffb84d] dark:via-[#ffd9a3] dark:to-[#a0d2eb]">
+            <span className="bg-gradient-to-r from-cyan-200 via-white to-[#bfa6ff] bg-clip-text text-transparent">
               {name}
             </span>
           </h3>
           {featured.reason && (
-            <p className="mt-1.5 text-sm italic leading-relaxed text-ink/75 dark:text-cream/90">
+            <p className="mt-1.5 text-sm italic leading-relaxed text-cream/85">
               « {featured.reason} »
             </p>
           )}
         </div>
 
         {canEdit && (
-          <div className="flex shrink-0 items-start">
+          <div className="flex shrink-0 items-center">
             <Link
               href="/dashboard/team/featured"
-              className="inline-flex items-center gap-1 rounded-full border border-accent/40 bg-white/70 px-3 py-1 text-xs font-semibold text-accent-dark backdrop-blur transition-all hover:bg-accent hover:text-white hover:shadow-accent-glow dark:border-accent/50 dark:bg-accent/15 dark:text-[#ffd9a3] dark:hover:bg-accent dark:hover:text-ink"
+              className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold text-cream/95 backdrop-blur transition-all hover:border-brand/60 hover:bg-brand/30 hover:text-white"
             >
-              Modifier →
+              {t.featured.edit}
             </Link>
           </div>
         )}
@@ -601,27 +632,26 @@ function FeaturedCard({
 }
 
 function FeaturedEmptyCta() {
+  const { t } = useI18n();
   return (
-    <Card className="border-dashed bg-cream/40">
+    <Card className="border-dashed border-brand/30 bg-brand/5 dark:border-white/10 dark:bg-white/3">
       <CardContent className="flex items-center justify-between p-5">
         <div className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-accent/15 text-lg">
-            ⭐
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand/12 text-lg text-brand">
+            ✦
           </span>
           <div>
             <p className="text-sm font-semibold text-ink">
-              Pas encore d&apos;employé du mois
+              {t.featured.empty}
             </p>
-            <p className="text-xs text-ink/55">
-              Reconnaissez le travail d&apos;un membre.
-            </p>
+            <p className="text-xs text-ink/55">{t.featured.emptyHint}</p>
           </div>
         </div>
         <Link
           href="/dashboard/team/featured"
           className="text-sm font-semibold text-brand hover:text-brand-dark"
         >
-          Désigner →
+          {t.featured.designate}
         </Link>
       </CardContent>
     </Card>
@@ -629,23 +659,31 @@ function FeaturedEmptyCta() {
 }
 
 function RecentDevisFeed({ rows }: { rows: RecentDevis[] }) {
+  const { t } = useI18n();
   if (rows.length === 0) {
-    return <p className="py-6 text-center text-sm text-ink/45">Rien pour l&apos;instant.</p>;
+    return (
+      <p className="py-6 text-center text-sm text-ink/45">
+        {t.overview.noRecent}
+      </p>
+    );
   }
   return (
     <ul className="space-y-1">
       {rows.map((d) => {
-        const baseUrl = d.kind === "facture" ? "/dashboard/factures" : "/dashboard/devis";
+        const baseUrl =
+          d.kind === "facture" ? "/dashboard/factures" : "/dashboard/devis";
+        const statusKey = d.status as keyof typeof t.devis.status;
+        const statusText = t.devis.status[statusKey] ?? d.status;
         return (
           <li key={d.id}>
             <Link
               href={`${baseUrl}/${d.id}`}
-              className="flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-cream/70"
+              className="flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-white/8"
             >
               <span
                 className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${
                   d.kind === "facture"
-                    ? "bg-accent/15 text-accent-dark"
+                    ? "bg-[#7c4dff]/20 text-[#bfa6ff]"
                     : "bg-brand/10 text-brand"
                 }`}
               >
@@ -661,9 +699,7 @@ function RecentDevisFeed({ rows }: { rows: RecentDevis[] }) {
                 </p>
               </div>
               <div className="flex shrink-0 items-center gap-2">
-                <Badge tone={statusTone[d.status]}>
-                  {statusLabel[d.status] ?? d.status}
-                </Badge>
+                <Badge tone={statusTone[d.status]}>{statusText}</Badge>
                 <span className="text-sm font-semibold text-ink">
                   {formatDt(d.total_dt)}
                 </span>
@@ -677,10 +713,11 @@ function RecentDevisFeed({ rows }: { rows: RecentDevis[] }) {
 }
 
 function UpcomingTasksList({ rows }: { rows: UpcomingTask[] }) {
+  const { t } = useI18n();
   if (rows.length === 0) {
     return (
       <p className="py-6 text-center text-sm text-ink/45">
-        Aucune échéance à venir.
+        {t.overview.noUpcoming}
       </p>
     );
   }
@@ -690,24 +727,26 @@ function UpcomingTasksList({ rows }: { rows: UpcomingTask[] }) {
 
   return (
     <ul className="space-y-1">
-      {rows.map((t) => {
-        const due = new Date(t.deadline);
+      {rows.map((task) => {
+        const due = new Date(task.deadline);
         const days = Math.floor(
           (due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
         );
         const isOverdue = days < 0;
         const isSoon = days >= 0 && days <= 3;
+        const priKey = task.priority as keyof typeof t.tasks.priority;
+        const priorityText = t.tasks.priority[priKey] ?? task.priority;
 
         return (
-          <li key={t.id}>
+          <li key={task.id}>
             <Link
-              href={`/dashboard/tasks/${t.id}`}
-              className="flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-cream/70"
+              href={`/dashboard/tasks/${task.id}`}
+              className="flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-white/8"
             >
-              {t.assignee ? (
+              {task.assignee ? (
                 <Avatar
-                  src={t.assignee.avatar}
-                  name={t.assignee.name}
+                  src={task.assignee.avatar}
+                  name={task.assignee.name}
                   size="sm"
                 />
               ) : (
@@ -717,28 +756,30 @@ function UpcomingTasksList({ rows }: { rows: UpcomingTask[] }) {
               )}
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-ink">
-                  {t.title}
+                  {task.title}
                 </p>
                 <p className="truncate text-xs text-ink/50">
-                  {t.client} · {t.project}
+                  {task.client} · {task.project}
                 </p>
               </div>
               <div className="flex shrink-0 items-center gap-2">
-                <Badge tone={priorityTone[t.priority]}>{t.priority}</Badge>
+                <Badge tone={priorityTone[task.priority]}>
+                  {priorityText}
+                </Badge>
                 <span
                   className={`shrink-0 rounded-md px-2 py-0.5 text-[11px] font-semibold ${
                     isOverdue
-                      ? "bg-red-50 text-red-700"
+                      ? "bg-red-500/15 text-red-300"
                       : isSoon
-                        ? "bg-accent/15 text-accent-dark"
-                        : "bg-ink/5 text-ink/55"
+                        ? "bg-brand/15 text-brand"
+                        : "bg-white/8 text-ink/55"
                   }`}
                 >
                   {isOverdue
-                    ? `${Math.abs(days)}j retard`
+                    ? t.overview.relativeOverdue(days)
                     : days === 0
-                      ? "auj."
-                      : `J+${days}`}
+                      ? t.overview.relativeTodayShort
+                      : t.overview.relativeIn(days)}
                 </span>
               </div>
             </Link>
@@ -756,21 +797,12 @@ const myStatusTone: Record<string, "slate" | "blue" | "amber" | "green"> = {
   done: "green",
 };
 
-const myStatusLabel: Record<string, string> = {
-  todo: "À faire",
-  in_progress: "En cours",
-  review: "À valider",
-  done: "Terminé",
-  cancelled: "Annulé",
-};
-
 function MyTasksList({ rows }: { rows: UpcomingTask[] }) {
+  const { t } = useI18n();
   if (rows.length === 0) {
     return (
       <div className="py-10 text-center">
-        <p className="text-sm text-ink/45">
-          🎉 Aucune tâche en attente. Profitez-en !
-        </p>
+        <p className="text-sm text-ink/45">{t.overview.noMine}</p>
       </div>
     );
   }
@@ -780,55 +812,61 @@ function MyTasksList({ rows }: { rows: UpcomingTask[] }) {
 
   return (
     <ul className="space-y-1.5">
-      {rows.map((t) => {
-        const due = new Date(t.deadline);
+      {rows.map((task) => {
+        const due = new Date(task.deadline);
         const days = Math.floor(
           (due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
         );
         const isOverdue = days < 0;
         const isToday = days === 0;
         const isSoon = days > 0 && days <= 3;
+        const statusKey = task.status as keyof typeof t.tasks.status;
+        const statusText = t.tasks.status[statusKey] ?? task.status;
+        const priKey = task.priority as keyof typeof t.tasks.priority;
+        const priorityText = t.tasks.priority[priKey] ?? task.priority;
 
         return (
-          <li key={t.id}>
+          <li key={task.id}>
             <Link
-              href={`/dashboard/tasks/${t.id}`}
-              className="group block rounded-xl border border-white/40 bg-white/60 p-3 transition-all hover:bg-white hover:shadow-soft"
+              href={`/dashboard/tasks/${task.id}`}
+              className="group block rounded-xl border border-white/15 bg-white/8 p-3 transition-all hover:border-brand/30 hover:bg-white/12 hover:shadow-soft"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-ink group-hover:text-brand">
-                    {t.title}
+                    {task.title}
                   </p>
                   <p className="mt-0.5 truncate text-xs text-ink/50">
-                    {t.client} · {t.project}
+                    {task.client} · {task.project}
                   </p>
                 </div>
                 <Badge
-                  tone={myStatusTone[t.status] ?? "slate"}
-                  dot={t.status === "in_progress" ? "pulse" : true}
+                  tone={myStatusTone[task.status] ?? "slate"}
+                  dot={task.status === "in_progress" ? "pulse" : true}
                 >
-                  {myStatusLabel[t.status] ?? t.status}
+                  {statusText}
                 </Badge>
               </div>
               <div className="mt-2 flex items-center gap-2 text-[11px]">
-                <Badge tone={priorityTone[t.priority]}>{t.priority}</Badge>
+                <Badge tone={priorityTone[task.priority]}>
+                  {priorityText}
+                </Badge>
                 <span
                   className={`rounded-md px-2 py-0.5 font-semibold ${
                     isOverdue
-                      ? "bg-red-50 text-red-700"
+                      ? "bg-red-500/15 text-red-300"
                       : isToday
-                        ? "bg-accent/20 text-accent-dark"
+                        ? "bg-brand/20 text-brand"
                         : isSoon
-                          ? "bg-accent/10 text-accent-dark"
-                          : "bg-ink/5 text-ink/55"
+                          ? "bg-brand/12 text-brand"
+                          : "bg-white/8 text-ink/55"
                   }`}
                 >
                   {isOverdue
-                    ? `${Math.abs(days)}j de retard`
+                    ? t.overview.relativeOverdueLong(days)
                     : isToday
-                      ? "Aujourd'hui"
-                      : `Échéance dans ${days}j`}
+                      ? t.overview.relativeTodayLong
+                      : t.overview.relativeInLong(days)}
                 </span>
               </div>
             </Link>

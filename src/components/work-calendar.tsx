@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import { setWorkLocationAction } from "@/app/dashboard/work-schedule-actions";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n/provider";
 
 type Loc = "office" | "home" | null;
 
@@ -14,12 +15,6 @@ type DayCell = {
   isToday: boolean;
   location: Loc;
 };
-
-const WEEKDAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
-const MONTHS = [
-  "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
-  "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre",
-];
 
 function ymd(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -71,6 +66,7 @@ export function WorkCalendar({
   /** Optional initial month (defaults to today's month). */
   initialMonth?: Date;
 }) {
+  const { t } = useI18n();
   const [viewedMonth, setViewedMonth] = useState(() => {
     if (initialMonth)
       return new Date(initialMonth.getFullYear(), initialMonth.getMonth(), 1);
@@ -132,11 +128,10 @@ export function WorkCalendar({
       <div className="flex items-center justify-between">
         <div>
           <p className="text-base font-semibold tracking-tight text-ink">
-            {MONTHS[viewedMonth.getMonth()]} {viewedMonth.getFullYear()}
+            {t.overview.months[viewedMonth.getMonth()]}{" "}
+            {viewedMonth.getFullYear()}
           </p>
-          <p className="text-xs text-ink/55">
-            Cliquez un jour pour basculer Bureau → Maison → vide
-          </p>
+          <p className="text-xs text-ink/55">{t.workCalendar.hint}</p>
         </div>
         <div className="flex items-center gap-1">
           <NavButton onClick={prevMonth} label="‹" />
@@ -145,7 +140,7 @@ export function WorkCalendar({
             onClick={thisMonth}
             className="rounded-md px-2 py-1 text-xs font-semibold text-ink/65 hover:bg-ink/5"
           >
-            Aujourd&apos;hui
+            {t.workCalendar.today}
           </button>
           <NavButton onClick={nextMonth} label="›" />
         </div>
@@ -153,7 +148,7 @@ export function WorkCalendar({
 
       {/* Weekday header */}
       <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-semibold uppercase tracking-wider text-ink/40">
-        {WEEKDAYS.map((d) => (
+        {t.workCalendar.weekdays.map((d) => (
           <div key={d}>{d}</div>
         ))}
       </div>
@@ -161,14 +156,30 @@ export function WorkCalendar({
       {/* Grid */}
       <div className={cn("grid grid-cols-7 gap-1", pending && "opacity-90")}>
         {days.map((d) => (
-          <DayButton key={d.date} day={d} onClick={() => onDayClick(d)} />
+          <DayButton
+            key={d.date}
+            day={d}
+            onClick={() => onDayClick(d)}
+            officeLabel={t.workCalendar.office}
+            homeLabel={t.workCalendar.home}
+          />
         ))}
       </div>
 
       {/* Legend */}
       <div className="flex items-center justify-center gap-4 text-xs">
-        <LegendItem color="bg-brand" label="Bureau" count={officeCount} />
-        <LegendItem color="bg-accent" label="Maison" count={homeCount} />
+        <LegendItem
+          color="bg-brand"
+          label={t.workCalendar.office}
+          count={officeCount}
+          suffix={t.workCalendar.daysSuffix}
+        />
+        <LegendItem
+          color="bg-[#7c4dff]"
+          label={t.workCalendar.home}
+          count={homeCount}
+          suffix={t.workCalendar.daysSuffix}
+        />
       </div>
     </div>
   );
@@ -195,18 +206,22 @@ function NavButton({
 function DayButton({
   day,
   onClick,
+  officeLabel,
+  homeLabel,
 }: {
   day: DayCell;
   onClick: () => void;
+  officeLabel: string;
+  homeLabel: string;
 }) {
   const tone =
     day.location === "office"
       ? "bg-brand text-white shadow-sm"
       : day.location === "home"
-        ? "bg-accent text-ink shadow-sm"
+        ? "bg-[#7c4dff] text-white shadow-sm"
         : day.isWeekend
-          ? "bg-ink/5 text-ink/35"
-          : "bg-white/55 text-ink/70 hover:bg-white";
+          ? "bg-white/4 text-ink/35"
+          : "bg-white/8 text-ink/70 hover:bg-white/14";
 
   return (
     <button
@@ -215,18 +230,15 @@ function DayButton({
       disabled={day.isOtherMonth}
       title={
         day.location === "office"
-          ? "🏢 Bureau — cliquer pour passer à Maison"
+          ? `🏢 ${officeLabel}`
           : day.location === "home"
-            ? "🏠 Maison — cliquer pour vider"
-            : "Cliquer pour marquer Bureau"
+            ? `🏠 ${homeLabel}`
+            : `${officeLabel} / ${homeLabel}`
       }
       className={cn(
         "relative flex aspect-square items-center justify-center rounded-lg text-sm font-medium transition-all",
-        day.isOtherMonth
-          ? "invisible"
-          : tone,
-        day.isToday &&
-          "ring-2 ring-brand ring-offset-1 ring-offset-cream",
+        day.isOtherMonth ? "invisible" : tone,
+        day.isToday && "ring-2 ring-brand ring-offset-1 ring-offset-cream",
       )}
     >
       <span>{day.dayOfMonth}</span>
@@ -244,16 +256,18 @@ function LegendItem({
   color,
   label,
   count,
+  suffix,
 }: {
   color: string;
   label: string;
   count: number;
+  suffix: string;
 }) {
   return (
     <span className="inline-flex items-center gap-1.5 text-ink/70">
       <span className={cn("h-2.5 w-2.5 rounded-full", color)} />
       {label}
-      <strong className="text-ink">{count}</strong> j
+      <strong className="text-ink">{count}</strong> {suffix}
     </span>
   );
 }

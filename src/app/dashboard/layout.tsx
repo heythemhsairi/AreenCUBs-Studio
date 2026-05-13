@@ -42,8 +42,8 @@ export default async function DashboardLayout({
       >
         <div className="absolute inset-0 bg-mesh" />
         <div className="absolute -left-40 -top-40 h-[40rem] w-[40rem] rounded-full bg-brand/30 blur-[120px]" />
-        <div className="absolute right-[-10rem] top-1/3 h-[28rem] w-[28rem] rounded-full bg-accent/18 blur-[100px]" />
-        <div className="absolute -bottom-40 left-1/4 h-[32rem] w-[32rem] rounded-full bg-ink/10 blur-[120px]" />
+        <div className="absolute right-[-10rem] top-1/3 h-[28rem] w-[28rem] rounded-full bg-[#7c4dff]/20 blur-[110px]" />
+        <div className="absolute -bottom-40 left-1/4 h-[32rem] w-[32rem] rounded-full bg-cyan-400/12 blur-[120px]" />
       </div>
 
       <Topbar

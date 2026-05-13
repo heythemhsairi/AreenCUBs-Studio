@@ -331,7 +331,18 @@ html.dark {
 }
 
 html.dark body {
-  background: linear-gradient(180deg, #0e1018 0%, #15171f 40%, #1c1f29 100%);
+  /*
+    Premium continuous navy gradient — no horizontal banding while scrolling
+    because we use `background-attachment: fixed` (already set on body) plus a
+    single, low-stop gradient. No mid-stop "section break" colors that would
+    show as visible lines.
+  */
+  background:
+    radial-gradient(ellipse 1100px 700px at 12% 0%, rgba(59, 139, 186, 0.18), transparent 60%),
+    radial-gradient(ellipse 900px 600px at 90% 35%, rgba(124, 77, 255, 0.14), transparent 65%),
+    radial-gradient(ellipse 1000px 700px at 50% 100%, rgba(34, 211, 238, 0.08), transparent 60%),
+    linear-gradient(180deg, #0a1326 0%, #0f1830 60%, #0a1326 100%);
+  background-attachment: fixed;
   color: #f7efe3;
 }
 html.dark ::selection {
