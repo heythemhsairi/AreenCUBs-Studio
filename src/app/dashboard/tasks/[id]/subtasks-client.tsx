@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProgressRing } from "@/components/charts/progress-ring";
+import { useI18n } from "@/lib/i18n/provider";
 import {
   createSubtaskAction,
   toggleSubtaskAction,
@@ -24,6 +25,7 @@ export function SubtasksCard({
   parentId: string;
   initial: Subtask[];
 }) {
+  const { t } = useI18n();
   const [items, setItems] = useState(initial);
   const [title, setTitle] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -80,7 +82,7 @@ export function SubtasksCard({
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>
-            Sous-tâches{" "}
+            {t.taskDetail.subtasks}{" "}
             <span className="ml-1 text-xs font-medium text-ink/45">
               {done}/{total}
             </span>
@@ -102,7 +104,7 @@ export function SubtasksCard({
       <CardContent>
         {items.length === 0 && (
           <p className="mb-3 text-xs text-ink/45">
-            Aucune sous-tâche pour l&apos;instant.
+            {t.taskDetail.noSubtasks}
           </p>
         )}
 
@@ -130,7 +132,7 @@ export function SubtasksCard({
                 type="button"
                 onClick={() => onDelete(s.id)}
                 className="text-xs text-ink/30 opacity-0 transition-opacity hover:text-red-600 group-hover:opacity-100"
-                title="Supprimer"
+                title={t.common.delete}
               >
                 ×
               </button>
@@ -142,7 +144,7 @@ export function SubtasksCard({
           <Input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Ajouter une sous-tâche…"
+            placeholder={t.taskDetail.addSubtaskPlaceholder}
           />
           <Button type="submit" size="sm" disabled={pending || !title.trim()}>
             +

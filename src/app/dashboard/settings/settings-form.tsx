@@ -1,16 +1,18 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { toast } from "@/components/toast";
+import { useI18n } from "@/lib/i18n/provider";
 import { updateSettingsAction } from "./actions";
 import type { AppSettings } from "@/lib/settings";
 
 export function SettingsForm({ initial }: { initial: AppSettings }) {
+  const { t } = useI18n();
   const [pending, startTransition] = useTransition();
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -18,7 +20,7 @@ export function SettingsForm({ initial }: { initial: AppSettings }) {
     const fd = new FormData(e.currentTarget);
     startTransition(async () => {
       const res = await updateSettingsAction(fd);
-      if (res.ok) toast.success("Paramètres enregistrés");
+      if (res.ok) toast.success(t.settings.saved);
       else toast.error(res.error);
     });
   }
@@ -26,47 +28,45 @@ export function SettingsForm({ initial }: { initial: AppSettings }) {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Paramètres"
-        subtitle="Informations entreprise et défauts"
+        title={t.settings.title}
+        description={t.settings.subtitle}
       />
 
       <form onSubmit={onSubmit} className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Identité de l&apos;entreprise</CardTitle>
-            <p className="text-xs text-ink/55">
-              Ces informations sont imprimées sur chaque devis et facture.
-            </p>
+            <CardTitle>{t.settings.identity}</CardTitle>
+            <p className="text-xs text-ink/55">{t.settings.identityHint}</p>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <Field label="Nom de l'entreprise">
+              <Field label={t.settings.companyName}>
                 <Input
                   name="company_name"
                   defaultValue={initial.company_name}
                   required
                 />
               </Field>
-              <Field label="Matricule fiscal">
+              <Field label={t.settings.fiscalId}>
                 <Input
                   name="matricule_fiscal"
                   defaultValue={initial.matricule_fiscal}
                 />
               </Field>
-              <Field label="Email" full>
+              <Field label={t.settings.email} full>
                 <Input
                   name="email"
                   type="email"
                   defaultValue={initial.email}
                 />
               </Field>
-              <Field label="Téléphone">
+              <Field label={t.settings.phone}>
                 <Input name="phone" defaultValue={initial.phone} />
               </Field>
-              <Field label="Site web">
+              <Field label={t.settings.website}>
                 <Input name="website" defaultValue={initial.website} />
               </Field>
-              <Field label="Adresse" full>
+              <Field label={t.settings.address} full>
                 <Textarea
                   name="company_address"
                   rows={3}
@@ -79,39 +79,37 @@ export function SettingsForm({ initial }: { initial: AppSettings }) {
 
         <Card>
           <CardHeader>
-            <CardTitle>Coordonnées bancaires</CardTitle>
-            <p className="text-xs text-ink/55">
-              Imprimées en bas du devis pour faciliter le paiement.
-            </p>
+            <CardTitle>{t.settings.bank}</CardTitle>
+            <p className="text-xs text-ink/55">{t.settings.bankHint}</p>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <Field label="Banque">
+              <Field label={t.settings.bankName}>
                 <Input
                   name="bank_name"
                   defaultValue={initial.bank_name ?? ""}
-                  placeholder="Ex. Banque de Tunisie"
+                  placeholder={t.settings.bankPlaceholder}
                 />
               </Field>
-              <Field label="RIB">
+              <Field label={t.settings.rib}>
                 <Input
                   name="bank_rib"
                   defaultValue={initial.bank_rib ?? ""}
-                  placeholder="20 chiffres"
+                  placeholder={t.settings.ribPlaceholder}
                 />
               </Field>
-              <Field label="IBAN" full>
+              <Field label={t.settings.iban} full>
                 <Input
                   name="bank_iban"
                   defaultValue={initial.bank_iban ?? ""}
-                  placeholder="TN59 ..."
+                  placeholder={t.settings.ibanPlaceholder}
                 />
               </Field>
-              <Field label="Conditions de paiement" full>
+              <Field label={t.settings.paymentTerms} full>
                 <Input
                   name="payment_terms"
                   defaultValue={initial.payment_terms ?? ""}
-                  placeholder="Ex. Paiement à 30 jours"
+                  placeholder={t.settings.paymentTermsPlaceholder}
                 />
               </Field>
             </div>
@@ -120,11 +118,11 @@ export function SettingsForm({ initial }: { initial: AppSettings }) {
 
         <Card>
           <CardHeader>
-            <CardTitle>Défauts devis &amp; factures</CardTitle>
+            <CardTitle>{t.settings.defaults}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <Field label="TVA (%)">
+              <Field label={t.settings.vat}>
                 <Input
                   name="tva_rate"
                   type="number"
@@ -135,13 +133,13 @@ export function SettingsForm({ initial }: { initial: AppSettings }) {
                   required
                 />
               </Field>
-              <Field label="Objet par défaut — devis" full>
+              <Field label={t.settings.devisObject} full>
                 <Input
                   name="default_devis_object"
                   defaultValue={initial.default_devis_object}
                 />
               </Field>
-              <Field label="Objet par défaut — facture" full>
+              <Field label={t.settings.factureObject} full>
                 <Input
                   name="default_facture_object"
                   defaultValue={initial.default_facture_object}
@@ -153,7 +151,7 @@ export function SettingsForm({ initial }: { initial: AppSettings }) {
 
         <div className="flex items-center gap-3">
           <Button type="submit" disabled={pending}>
-            {pending ? "Enregistrement…" : "Enregistrer"}
+            {pending ? t.common.saving : t.common.save}
           </Button>
         </div>
       </form>

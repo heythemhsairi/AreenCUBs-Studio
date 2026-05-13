@@ -185,19 +185,34 @@ export function Sidebar({ role }: { role: UserRole }) {
                       key={item.href}
                       href={item.href}
                       className={cn(
-                        "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13.5px] font-medium transition-all duration-150",
+                        "group relative flex items-center gap-3 overflow-hidden rounded-xl px-3 py-2.5 text-[13.5px] font-medium transition-all duration-200",
                         active
-                          ? "bg-gradient-to-r from-brand to-brand-dark text-white shadow-brand-glow"
-                          : "text-ink/70 hover:bg-white/65 hover:text-ink dark:hover:bg-white/8",
+                          ? "bg-gradient-to-r from-brand/95 to-brand-dark/95 text-white shadow-brand-glow ring-1 ring-cyan-300/20"
+                          : "text-ink/65 hover:bg-white/8 hover:text-ink",
                       )}
                     >
+                      {/* Hover sheen — only on idle items */}
+                      {!active && (
+                        <span
+                          aria-hidden
+                          className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/4 to-transparent transition-transform duration-500 group-hover:translate-x-full"
+                        />
+                      )}
                       {active && (
-                        <span className="absolute left-0 top-1/2 h-6 w-0.5 -translate-y-1/2 -translate-x-3.5 rounded-r bg-accent" />
+                        <>
+                          <span className="absolute left-0 top-1/2 h-6 w-0.5 -translate-y-1/2 -translate-x-3.5 rounded-r bg-cyan-300" />
+                          <span
+                            aria-hidden
+                            className="pointer-events-none absolute -right-6 -top-6 h-16 w-16 rounded-full bg-cyan-400/25 blur-xl"
+                          />
+                        </>
                       )}
                       <NavIcon d={item.icon} />
-                      <span className="flex-1 truncate">{item.label}</span>
+                      <span className="relative flex-1 truncate">
+                        {item.label}
+                      </span>
                       {active && (
-                        <span className="h-1.5 w-1.5 rounded-full bg-white/80" />
+                        <span className="relative h-1.5 w-1.5 rounded-full bg-cyan-300 shadow-[0_0_8px_rgba(34,211,238,0.7)]" />
                       )}
                     </Link>
                   );

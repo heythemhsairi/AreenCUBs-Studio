@@ -438,6 +438,7 @@ function KpiCard({
   tone = "neutral",
   icon,
   trendSuffix,
+  scaleMax,
 }: {
   label: string;
   value: number;
@@ -447,50 +448,69 @@ function KpiCard({
   tone?: "brand" | "amber" | "ink" | "neutral";
   icon?: React.ReactNode;
   trendSuffix?: string;
+  /** Optional value reference for the progress bar (0..scaleMax). */
+  scaleMax?: number;
 }) {
-  // Tone drives the icon chip color + a subtle bottom-right glow on the
-  // card body — replaces the old top ribbon (which crashed visually into
-  // the label text on the screenshot Heythem flagged).
+  // Tone-driven palette. Orange/amber stays available for legacy callers but
+  // we route admin "outstanding" → amber, everything else → brand/ink/violet.
   const iconClass =
     tone === "brand"
-      ? "bg-brand/12 text-brand"
+      ? "bg-brand/15 text-brand"
       : tone === "amber"
-        ? "bg-accent/18 text-accent-dark"
+        ? "bg-[#7c4dff]/18 text-[#bfa6ff]"
         : tone === "ink"
           ? "bg-ink/10 text-ink"
           : "bg-ink/5 text-ink/60";
 
   const glowClass =
     tone === "brand"
-      ? "bg-brand/12"
+      ? "bg-brand/15"
       : tone === "amber"
-        ? "bg-accent/15"
+        ? "bg-[#7c4dff]/18"
         : tone === "ink"
-          ? "bg-ink/8"
+          ? "bg-cyan-400/10"
           : "bg-ink/4";
+
+  const barClass =
+    tone === "brand"
+      ? "from-brand to-cyan-400"
+      : tone === "amber"
+        ? "from-[#7c4dff] to-[#a78bfa]"
+        : tone === "ink"
+          ? "from-ink to-ink-soft"
+          : "from-ink/30 to-ink/15";
+
+  // Progress bar width (0..100%). If no scaleMax given, fall back to a fixed
+  // reference so the bar still visualizes activity without being misleading.
+  const pct =
+    scaleMax && scaleMax > 0
+      ? Math.max(0, Math.min(100, (value / scaleMax) * 100))
+      : value === 0
+        ? 0
+        : Math.min(100, 18 + Math.log10(Math.max(value, 1)) * 28);
 
   return (
     <Card
       interactive
-      className="relative h-full overflow-hidden border border-ink/8 dark:border-white/8"
+      className="relative h-full overflow-hidden border border-white/10 bg-white/8 backdrop-blur-sm dark:bg-white/4"
     >
       <div
         aria-hidden
-        className={`pointer-events-none absolute -bottom-12 -right-12 h-32 w-32 rounded-full blur-2xl ${glowClass}`}
+        className={`pointer-events-none absolute -bottom-12 -right-12 h-36 w-36 rounded-full blur-2xl ${glowClass}`}
       />
       <CardContent className="relative flex h-full flex-col p-5">
         {/* Top row: label + icon chip */}
         <div className="flex items-center justify-between gap-3">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ink/55">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink/55">
             {label}
           </p>
           {icon && (
             <span
-              className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${iconClass}`}
+              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 ring-white/10 ${iconClass}`}
             >
               <svg
-                width="15"
-                height="15"
+                width="16"
+                height="16"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -504,8 +524,8 @@ function KpiCard({
           )}
         </div>
 
-        {/* Value block — vertically centered in the remaining space so the
-            big number sits on the same baseline across all four cards. */}
+        {/* Value + scale bar — centered in the remaining space so all four
+            cards share the same value baseline. */}
         <div className="flex flex-1 flex-col justify-center pt-4">
           <p className="font-mono text-[30px] font-semibold leading-none tracking-tight text-ink">
             <CountUp
@@ -514,7 +534,14 @@ function KpiCard({
               suffix={currency ? " DT" : ""}
             />
           </p>
-          <div className="mt-2.5 flex min-h-[18px] items-center gap-2">
+          {/* Slim relative-scale bar so the card never reads "empty". */}
+          <div className="mt-3 h-1 overflow-hidden rounded-full bg-white/8">
+            <div
+              className={`h-full bg-gradient-to-r ${barClass} transition-all duration-700`}
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+          <div className="mt-2 flex min-h-[18px] items-center gap-2">
             {trend !== undefined ? (
               <>
                 <TrendPill pct={trend} invert={invertTrend} />
@@ -526,7 +553,6 @@ function KpiCard({
               </>
             ) : (
               <span className="text-[11px] text-ink/30">
-                {/* invisible placeholder keeps the baseline consistent */}
                 &nbsp;
               </span>
             )}

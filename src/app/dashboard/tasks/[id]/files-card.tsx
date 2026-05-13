@@ -4,6 +4,7 @@ import { useRef, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/components/toast";
+import { useI18n } from "@/lib/i18n/provider";
 import {
   uploadTaskFileAction,
   deleteTaskFileAction,
@@ -50,6 +51,7 @@ export function FilesCard({
   currentUserId: string;
   isAdmin: boolean;
 }) {
+  const { t } = useI18n();
   const [files, setFiles] = useState<TaskFile[]>(initial);
   const [pending, startTransition] = useTransition();
   const [dragOver, setDragOver] = useState(false);
@@ -99,7 +101,7 @@ export function FilesCard({
 
   async function onDownload(f: TaskFile) {
     if (f.id.startsWith("tmp-")) {
-      toast.info("Veuillez rafraîchir pour télécharger ce fichier.");
+      toast.info(t.taskDetail.fileRefresh);
       return;
     }
     const res = await getTaskFileDownloadUrlAction(f.id);
@@ -108,7 +110,7 @@ export function FilesCard({
   }
 
   function onDelete(f: TaskFile) {
-    if (!confirm(`Supprimer ${f.name} ?`)) return;
+    if (!confirm(t.taskDetail.fileDeleteConfirm(f.name))) return;
     const before = files;
     setFiles((prev) => prev.filter((x) => x.id !== f.id));
     const fd = new FormData();
@@ -120,7 +122,7 @@ export function FilesCard({
         toast.error(res.error);
         setFiles(before);
       } else {
-        toast.success("Fichier supprimé");
+        toast.success(t.taskDetail.fileDeleted);
       }
     });
   }
@@ -129,7 +131,7 @@ export function FilesCard({
     <Card className="max-w-3xl">
       <CardHeader>
         <CardTitle>
-          Fichiers
+          {t.taskDetail.files}
           <span className="ml-1.5 text-xs font-medium text-ink/40">
             {files.length}
           </span>

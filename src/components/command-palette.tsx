@@ -177,28 +177,21 @@ export function CommandPalette() {
         <div className="max-h-[60vh] overflow-y-auto">
           {pending && hits.length === 0 && query.length >= 2 && (
             <p className="px-4 py-8 text-center text-sm text-ink/45">
-              {locale === "en" ? "Searching…" : "Recherche…"}
+              {t.commandPalette.searching}
             </p>
           )}
           {!pending && query.length >= 2 && hits.length === 0 && (
             <p className="px-4 py-8 text-center text-sm text-ink/45">
-              {locale === "en"
-                ? `No results for « ${query} »`
-                : `Aucun résultat pour « ${query} »`}
+              {t.commandPalette.noResults(query)}
             </p>
           )}
           {query.length < 2 && (
             <div className="px-4 py-8 text-center text-xs text-ink/45">
-              {locale === "en"
-                ? "Type at least 2 letters."
-                : "Tapez au moins 2 lettres."}
+              {t.commandPalette.minChars}
               <div className="mt-3 flex justify-center gap-1.5">
-                <Tip
-                  k="↑↓"
-                  v={locale === "en" ? "navigate" : "naviguer"}
-                />
-                <Tip k="↵" v={locale === "en" ? "open" : "ouvrir"} />
-                <Tip k="Esc" v={locale === "en" ? "close" : "fermer"} />
+                <Tip k="↑↓" v={t.commandPalette.navigate} />
+                <Tip k="↵" v={t.commandPalette.open} />
+                <Tip k="Esc" v={t.commandPalette.close} />
               </div>
             </div>
           )}

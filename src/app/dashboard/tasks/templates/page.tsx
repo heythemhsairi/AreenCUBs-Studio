@@ -1,6 +1,5 @@
 import { requireWorkerOrAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { PageHeader } from "@/components/dashboard/page-header";
 import { TemplatesClient, type TaskTemplateRow } from "./templates-client";
 
 export default async function TaskTemplatesPage() {
@@ -23,13 +22,5 @@ export default async function TaskTemplatesPage() {
     created_at: r.created_at,
   }));
 
-  return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Modèles de tâche"
-        subtitle="Définissez une fois, utilisez à chaque tâche similaire"
-      />
-      <TemplatesClient initial={rows} />
-    </div>
-  );
+  return <TemplatesClient initial={rows} />;
 }

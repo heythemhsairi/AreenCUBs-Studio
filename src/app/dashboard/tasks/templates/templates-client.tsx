@@ -8,7 +8,9 @@ import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/table";
+import { PageHeader } from "@/components/dashboard/page-header";
 import { toast } from "@/components/toast";
+import { useI18n } from "@/lib/i18n/provider";
 import {
   createTaskTemplateAction,
   deleteTaskTemplateAction,
@@ -39,6 +41,7 @@ export function TemplatesClient({
 }: {
   initial: TaskTemplateRow[];
 }) {
+  const { t } = useI18n();
   const [rows, setRows] = useState<TaskTemplateRow[]>(initial);
   const [pending, startTransition] = useTransition();
 
@@ -50,16 +53,15 @@ export function TemplatesClient({
       if (!res.ok) {
         toast.error(res.error);
       } else {
-        toast.success("Modèle créé");
+        toast.success(t.templates.created);
         (e.target as HTMLFormElement).reset();
-        // soft refresh — the page will revalidate on next nav
         window.location.reload();
       }
     });
   }
 
   function onDelete(id: string) {
-    if (!confirm("Supprimer ce modèle ?")) return;
+    if (!confirm(t.templates.deleteConfirm)) return;
     const before = rows;
     setRows((r) => r.filter((x) => x.id !== id));
     const fd = new FormData();
@@ -74,12 +76,15 @@ export function TemplatesClient({
   }
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[2fr_1fr]">
+    <div className="space-y-6">
+      <PageHeader
+        title={t.templates.title}
+        description={t.templates.subtitle}
+      />
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[2fr_1fr]">
       <div>
         {rows.length === 0 ? (
-          <EmptyState>
-            Aucun modèle. Créez le premier à droite.
-          </EmptyState>
+          <EmptyState>{t.templates.empty}</EmptyState>
         ) : (
           <ul className="space-y-3">
             {rows.map((row) => (
@@ -88,20 +93,21 @@ export function TemplatesClient({
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-ink">
-                          {row.name}
-                        </h3>
+                        <h3 className="font-semibold text-ink">{row.name}</h3>
                         <Badge tone={priorityTone[row.priority]}>
-                          {row.priority}
+                          {t.tasks.priority[row.priority]}
                         </Badge>
                         {row.default_deadline_offset_days !== null && (
                           <Badge tone="blue">
-                            +{row.default_deadline_offset_days}j
+                            +{row.default_deadline_offset_days}
+                            {t.templates.daysShort}
                           </Badge>
                         )}
                       </div>
                       <p className="mt-1 text-sm text-ink/70">
-                        <span className="text-ink/45">Titre par défaut :</span>{" "}
+                        <span className="text-ink/45">
+                          {t.templates.defaultTitleLabel}
+                        </span>{" "}
                         {row.title}
                       </p>
                       {row.description && (
@@ -115,7 +121,7 @@ export function TemplatesClient({
                       onClick={() => onDelete(row.id)}
                       className="text-xs text-ink/30 hover:text-red-600"
                     >
-                      Supprimer
+                      {t.common.delete}
                     </button>
                   </div>
                 </CardContent>
@@ -127,55 +133,56 @@ export function TemplatesClient({
 
       <Card>
         <CardHeader>
-          <CardTitle>Nouveau modèle</CardTitle>
+          <CardTitle>{t.templates.newTemplate}</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={onSubmit} className="space-y-3">
-            <Field label="Nom du modèle">
+            <Field label={t.templates.name}>
               <Input
                 name="name"
                 required
-                placeholder="Ex: Pack publication LinkedIn"
+                placeholder={t.templates.namePlaceholder}
               />
             </Field>
-            <Field label="Titre de la tâche">
+            <Field label={t.templates.taskTitle}>
               <Input
                 name="title"
                 required
-                placeholder="Ex: Publication LinkedIn — semaine X"
+                placeholder={t.templates.taskTitlePlaceholder}
               />
             </Field>
-            <Field label="Description">
+            <Field label={t.templates.description}>
               <Textarea
                 name="description"
                 rows={3}
-                placeholder="Brief, livrables attendus, etc."
+                placeholder={t.templates.descriptionPlaceholder}
               />
             </Field>
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Priorité">
+              <Field label={t.templates.priority}>
                 <Select name="priority" defaultValue="normal">
-                  <option value="low">Basse</option>
-                  <option value="normal">Normale</option>
-                  <option value="high">Haute</option>
-                  <option value="urgent">Urgente</option>
+                  <option value="low">{t.tasks.priority.low}</option>
+                  <option value="normal">{t.tasks.priority.normal}</option>
+                  <option value="high">{t.tasks.priority.high}</option>
+                  <option value="urgent">{t.tasks.priority.urgent}</option>
                 </Select>
               </Field>
-              <Field label="Échéance par défaut">
+              <Field label={t.templates.defaultDeadline}>
                 <Input
                   name="default_deadline_offset_days"
                   type="number"
                   min="0"
-                  placeholder="Jours (ex. 7)"
+                  placeholder={t.templates.defaultDeadlinePlaceholder}
                 />
               </Field>
             </div>
             <Button type="submit" disabled={pending}>
-              {pending ? "…" : "Créer le modèle"}
+              {pending ? "…" : t.templates.createTemplate}
             </Button>
           </form>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

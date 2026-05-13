@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar } from "@/components/avatar";
+import { useI18n } from "@/lib/i18n/provider";
+import type { Dict } from "@/lib/i18n/dictionary";
 import {
   addCommentAction,
   deleteCommentAction,
@@ -34,6 +36,7 @@ export function CommentsCard({
   currentUserId: string;
   isAdmin: boolean;
 }) {
+  const { t, locale } = useI18n();
   const [comments, setComments] = useState<CommentRow[]>(initial);
   const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -126,7 +129,7 @@ export function CommentsCard({
   }
 
   function onDelete(id: string) {
-    if (!confirm("Supprimer ce commentaire ?")) return;
+    if (!confirm(t.taskDetail.deleteCommentConfirm)) return;
     const before = comments;
     setComments((prev) => prev.filter((c) => c.id !== id));
     const fd = new FormData();
@@ -177,7 +180,7 @@ export function CommentsCard({
     <Card className="max-w-3xl">
       <CardHeader>
         <CardTitle>
-          Commentaires
+          {t.taskDetail.comments}
           <span className="ml-1.5 text-xs font-medium text-ink/40">
             {comments.length}
           </span>
@@ -195,7 +198,7 @@ export function CommentsCard({
             onClick={updateMentionState}
             onKeyUp={updateMentionState}
             onKeyDown={onKeyDown}
-            placeholder="Écrire un commentaire — utilisez @ pour mentionner…"
+            placeholder={t.taskDetail.writeComment}
             rows={2}
             disabled={pending}
           />
@@ -204,7 +207,7 @@ export function CommentsCard({
           {mentionQuery !== null && mentionHits.length > 0 && (
             <div className="absolute left-2 right-2 top-full z-30 mt-1 max-w-xs overflow-hidden rounded-xl border border-ink/10 bg-white shadow-lift dark:border-white/10 dark:bg-[#1e2029]">
               <p className="border-b border-ink/5 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-ink/45">
-                Mentionner
+                {t.taskDetail.mention}
               </p>
               <ul>
                 {mentionHits.map((h, i) => (
@@ -247,16 +250,18 @@ export function CommentsCard({
               </kbd>
               {" + "}
               <kbd className="rounded border border-ink/15 bg-cream-dark/50 px-1 py-px text-[10px] font-semibold">
-                Entrée
+                {t.taskDetail.enterKey}
               </kbd>{" "}
-              pour envoyer · <span className="font-mono">@</span> pour mentionner
+              {t.taskDetail.sendHint} ·{" "}
+              <span className="font-mono">@</span>{" "}
+              {t.taskDetail.mentionHint}
             </p>
             <Button
               type="submit"
               size="sm"
               disabled={pending || !body.trim()}
             >
-              {pending ? "…" : "Publier"}
+              {pending ? "…" : t.taskDetail.publish}
             </Button>
           </div>
           {error && <p className="text-sm text-red-600">{error}</p>}
@@ -266,7 +271,7 @@ export function CommentsCard({
 
         {comments.length === 0 ? (
           <p className="py-6 text-center text-sm text-ink/40">
-            Aucun commentaire — soyez le premier.
+            {t.taskDetail.noComments}
           </p>
         ) : (
           <ul className="space-y-4">
@@ -278,6 +283,8 @@ export function CommentsCard({
                   isAdmin || (c.author_id !== null && c.author_id === currentUserId)
                 }
                 onDelete={() => onDelete(c.id)}
+                t={t}
+                locale={locale}
               />
             ))}
           </ul>
@@ -291,13 +298,19 @@ function Item({
   comment,
   canDelete,
   onDelete,
+  t,
+  locale,
 }: {
   comment: CommentRow;
   canDelete: boolean;
   onDelete: () => void;
+  t: Dict;
+  locale: string;
 }) {
   const a = comment.author;
-  const name = a?.full_name ?? (a?.username ? `@${a.username}` : "Utilisateur");
+  const name =
+    a?.full_name ??
+    (a?.username ? `@${a.username}` : t.taskDetail.userFallback);
 
   return (
     <li className="group flex items-start gap-3">
@@ -307,15 +320,17 @@ function Item({
           <div className="flex items-center gap-2 text-xs">
             <span className="font-semibold text-ink">{name}</span>
             <span className="text-ink/40">·</span>
-            <time className="text-ink/45">{formatRelative(comment.created_at)}</time>
+            <time className="text-ink/45">
+              {formatRelative(comment.created_at, t, locale)}
+            </time>
           </div>
           {canDelete && (
             <button
               type="button"
               onClick={onDelete}
               className="text-xs text-ink/30 opacity-0 transition-opacity hover:text-red-600 group-hover:opacity-100"
-              title="Supprimer"
-              aria-label="Supprimer le commentaire"
+              title={t.common.delete}
+              aria-label={t.taskDetail.deleteCommentTitle}
             >
               ×
             </button>
@@ -355,17 +370,20 @@ function renderWithMentions(body: string): React.ReactNode[] {
   return out;
 }
 
-function formatRelative(iso: string): string {
+function formatRelative(iso: string, t: Dict, locale: string): string {
   const then = new Date(iso).getTime();
   const now = Date.now();
   const diff = Math.round((now - then) / 1000);
-  if (diff < 60) return "à l'instant";
-  if (diff < 3600) return `il y a ${Math.floor(diff / 60)} min`;
-  if (diff < 86400) return `il y a ${Math.floor(diff / 3600)} h`;
-  if (diff < 86400 * 7) return `il y a ${Math.floor(diff / 86400)} j`;
-  return new Date(iso).toLocaleDateString("fr-FR", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+  if (diff < 60) return t.taskDetail.now;
+  if (diff < 3600) return t.taskDetail.minsAgo(Math.floor(diff / 60));
+  if (diff < 86400) return t.taskDetail.hoursAgo(Math.floor(diff / 3600));
+  if (diff < 86400 * 7) return t.taskDetail.daysAgo(Math.floor(diff / 86400));
+  return new Date(iso).toLocaleDateString(
+    locale === "en" ? "en-US" : "fr-FR",
+    {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    },
+  );
 }

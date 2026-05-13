@@ -9,7 +9,7 @@ import { CommentsCard, type CommentRow } from "./comments-card";
 import { FilesCard, type TaskFile } from "./files-card";
 import { TimeTracker, type TimeEntry } from "./time-tracker";
 import { ActivityFeed, type ActivityRow } from "./activity-feed";
-import { PriorityPinButton } from "@/components/priority-pin-button";
+import { PinHintRow } from "./pin-hint-row";
 
 export default async function TaskEditPage({
   params,
@@ -187,14 +187,7 @@ export default async function TaskEditPage({
         </p>
       )}
 
-      <div className="flex items-center gap-3">
-        <PriorityPinButton taskId={task.id} initiallyPinned={isPinned} />
-        <span className="text-xs text-ink/55">
-          {isPinned
-            ? "Cette tâche fait partie de vos priorités du jour"
-            : "Épingler dans mes priorités du jour"}
-        </span>
-      </div>
+      <PinHintRow taskId={task.id} isPinned={isPinned} />
 
       <TaskForm
         mode="edit"

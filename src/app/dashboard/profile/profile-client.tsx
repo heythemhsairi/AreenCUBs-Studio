@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar } from "@/components/avatar";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/dashboard/page-header";
+import { useI18n } from "@/lib/i18n/provider";
 import {
   updateMyProfileAction,
   uploadMyAvatarAction,
@@ -30,16 +31,14 @@ const roleTone: Record<UserRole, "violet" | "blue" | "green"> = {
   freelancer: "green",
 };
 
-const roleLabel: Record<UserRole, string> = {
-  admin: "Administrateur",
-  worker: "Collaborateur",
-  freelancer: "Freelance",
-};
-
 export function ProfileClient({ profile }: { profile: Profile }) {
+  const { t } = useI18n();
   return (
     <div className="space-y-6">
-      <PageHeader title="Mon profil" subtitle="Gérez vos informations" />
+      <PageHeader
+        title={t.profile.title}
+        description={t.profile.subtitle}
+      />
 
       <ProfileSummary profile={profile} />
       <NameForm initial={profile.full_name ?? ""} />
@@ -49,6 +48,7 @@ export function ProfileClient({ profile }: { profile: Profile }) {
 }
 
 function ProfileSummary({ profile }: { profile: Profile }) {
+  const { t } = useI18n();
   const inputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -68,7 +68,7 @@ function ProfileSummary({ profile }: { profile: Profile }) {
   }
 
   function onRemove() {
-    if (!confirm("Supprimer votre photo de profil ?")) return;
+    if (!confirm(t.profile.removePhotoConfirm)) return;
     startRemove(async () => {
       await removeMyAvatarAction();
     });
@@ -77,7 +77,7 @@ function ProfileSummary({ profile }: { profile: Profile }) {
   return (
     <Card className="max-w-2xl">
       <CardHeader>
-        <CardTitle>Photo &amp; identité</CardTitle>
+        <CardTitle>{t.profile.photo}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-start">
@@ -95,7 +95,7 @@ function ProfileSummary({ profile }: { profile: Profile }) {
                 @{profile.username} · {profile.email}
               </p>
               <Badge tone={roleTone[profile.role]} className="mt-1.5">
-                {roleLabel[profile.role]}
+                {t.roles[profile.role]}
               </Badge>
             </div>
 
@@ -113,7 +113,7 @@ function ProfileSummary({ profile }: { profile: Profile }) {
                   className="inline-flex h-9 cursor-pointer items-center justify-center rounded-md bg-brand px-4 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-dark"
                   role="button"
                 >
-                  {pending ? "Téléversement…" : "Changer la photo"}
+                  {pending ? t.profile.uploading : t.profile.changePhoto}
                 </span>
               </label>
               {profile.avatar_url && (
@@ -124,11 +124,11 @@ function ProfileSummary({ profile }: { profile: Profile }) {
                   onClick={onRemove}
                   disabled={removePending}
                 >
-                  {removePending ? "…" : "Retirer"}
+                  {removePending ? "…" : t.profile.removePhoto}
                 </Button>
               )}
             </div>
-            <p className="text-xs text-ink/45">JPG, PNG ou WebP — 4 Mo max.</p>
+            <p className="text-xs text-ink/45">{t.profile.photoHint}</p>
             {error && <p className="text-sm text-red-600">{error}</p>}
           </div>
         </div>
@@ -138,6 +138,7 @@ function ProfileSummary({ profile }: { profile: Profile }) {
 }
 
 function NameForm({ initial }: { initial: string }) {
+  const { t } = useI18n();
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -157,15 +158,17 @@ function NameForm({ initial }: { initial: string }) {
   return (
     <Card className="max-w-2xl">
       <CardHeader>
-        <CardTitle>Nom complet</CardTitle>
+        <CardTitle>{t.profile.fullName}</CardTitle>
       </CardHeader>
       <CardContent>
         <form className="space-y-4" onSubmit={onSubmit}>
           <Input name="full_name" defaultValue={initial} required />
           {error && <p className="text-sm text-red-600">{error}</p>}
-          {saved && <p className="text-sm text-green-700">Enregistré ✓</p>}
+          {saved && (
+            <p className="text-sm text-green-700">{t.profile.savedTick}</p>
+          )}
           <Button type="submit" disabled={pending}>
-            {pending ? "…" : "Enregistrer"}
+            {pending ? "…" : t.common.save}
           </Button>
         </form>
       </CardContent>
@@ -174,6 +177,7 @@ function NameForm({ initial }: { initial: string }) {
 }
 
 function PasswordForm() {
+  const { t } = useI18n();
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -196,13 +200,13 @@ function PasswordForm() {
   return (
     <Card className="max-w-2xl">
       <CardHeader>
-        <CardTitle>Changer le mot de passe</CardTitle>
+        <CardTitle>{t.profile.changePassword}</CardTitle>
       </CardHeader>
       <CardContent>
         <form className="space-y-4" onSubmit={onSubmit}>
           <div className="space-y-1.5">
             <label className="text-xs font-semibold uppercase tracking-wider text-ink/55">
-              Nouveau mot de passe
+              {t.profile.newPassword}
             </label>
             <Input
               name="password"
@@ -211,12 +215,16 @@ function PasswordForm() {
               required
               autoComplete="new-password"
             />
-            <p className="text-xs text-ink/45">Minimum 8 caractères.</p>
+            <p className="text-xs text-ink/45">{t.profile.passwordHint}</p>
           </div>
           {error && <p className="text-sm text-red-600">{error}</p>}
-          {done && <p className="text-sm text-green-700">Mot de passe modifié ✓</p>}
+          {done && (
+            <p className="text-sm text-green-700">
+              {t.profile.passwordChanged}
+            </p>
+          )}
           <Button type="submit" variant="outline" disabled={pending}>
-            {pending ? "…" : "Mettre à jour"}
+            {pending ? "…" : t.profile.update}
           </Button>
         </form>
       </CardContent>

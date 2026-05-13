@@ -2,11 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireSession } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { ProjectDetailActions } from "./detail-actions";
+import { ProjectDetailsCard, TasksSectionHeader } from "./detail-card";
 import { TasksKanban, type TaskCard } from "../../tasks/tasks-kanban";
 
 export default async function ProjectDetailPage({
@@ -86,71 +84,24 @@ export default async function ProjectDetailPage({
       />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle>Détails</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm">
-            <div>
-              <p className="text-xs uppercase tracking-wide text-slate-500">
-                Statut
-              </p>
-              <Badge
-                tone={
-                  project.status === "active"
-                    ? "blue"
-                    : project.status === "completed"
-                      ? "green"
-                      : project.status === "on_hold"
-                        ? "amber"
-                        : "slate"
-                }
-              >
-                {project.status}
-              </Badge>
-            </div>
-            <div>
-              <p className="text-xs uppercase tracking-wide text-slate-500">
-                Responsable
-              </p>
-              <p className="text-slate-800">
-                {owner
-                  ? (owner.full_name ?? `@${owner.username}`)
-                  : "—"}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs uppercase tracking-wide text-slate-500">
-                Échéance
-              </p>
-              <p className="text-slate-800">
-                {project.end_date
-                  ? new Date(project.end_date).toLocaleDateString()
-                  : "—"}
-              </p>
-            </div>
-            {project.description && (
-              <div>
-                <p className="text-xs uppercase tracking-wide text-slate-500">
-                  Description
-                </p>
-                <p className="whitespace-pre-wrap text-slate-800">
-                  {project.description}
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <ProjectDetailsCard
+          project={{
+            status: project.status,
+            end_date: project.end_date,
+            description: project.description,
+          }}
+          ownerName={
+            owner
+              ? (owner.full_name ?? `@${owner.username}`)
+              : "—"
+          }
+        />
 
         <div className="space-y-3 lg:col-span-2">
-          <div className="flex items-center justify-between">
-            <h2 className="text-base font-semibold text-slate-900">Tâches</h2>
-            {session.role !== "freelancer" && (
-              <Link href={`/dashboard/tasks/new?projectId=${project.id}`}>
-                <Button size="sm">+ Nouvelle tâche</Button>
-              </Link>
-            )}
-          </div>
+          <TasksSectionHeader
+            projectId={project.id}
+            isFreelancer={session.role === "freelancer"}
+          />
           <TasksKanban tasks={taskCards} compact />
         </div>
       </div>
