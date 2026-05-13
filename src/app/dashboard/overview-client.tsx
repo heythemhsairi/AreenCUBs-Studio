@@ -637,7 +637,7 @@ function FeaturedCard({
             nothing gets cropped by the gradient mask
           - tracking-[-0.01em] for a confident SaaS-grade title
         */}
-        <div className="min-w-0 flex-1 space-y-2.5">
+        <div className="min-w-0 flex-1 space-y-2.5 sm:pt-3">
           <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-300/15 px-3 py-1 text-[10.5px] font-bold uppercase leading-none tracking-[0.20em] text-cyan-100 ring-1 ring-cyan-300/40">
               ✦ {t.featured.title}
