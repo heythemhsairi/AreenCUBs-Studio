@@ -89,20 +89,10 @@ export function FeaturedEmployeeClient({
       />
 
       {currentRecord && (
-        <Card className="relative overflow-hidden border-accent/40 bg-gradient-to-br from-accent/15 via-white/80 to-brand/10 dark:from-accent/25 dark:via-[#1c1f29]/85 dark:to-brand/20 surface-grain">
-          {/* Decorative glow */}
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -right-12 -top-12 h-56 w-56 rounded-full bg-accent/40 blur-3xl dark:bg-accent/30"
-          />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -bottom-16 -left-10 h-44 w-44 rounded-full bg-brand/25 blur-3xl dark:bg-brand/30"
-          />
-
+        <Card className="featured-card relative overflow-hidden border-accent/40 dark:border-accent/30">
           <CardContent className="relative p-6 md:p-8">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-accent/20 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-accent-dark ring-1 ring-accent/40 dark:bg-accent/25 dark:text-accent">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-accent/20 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-accent-dark ring-1 ring-accent/40 dark:bg-accent/30 dark:text-[#ffd9a3] dark:ring-accent/60">
                 ⭐ Employé du mois · {formatMonth(currentRecord.month)}
               </span>
               <Button
@@ -110,24 +100,24 @@ export function FeaturedEmployeeClient({
                 variant="outline"
                 onClick={() => onClear(currentRecord.month)}
                 disabled={clearPending}
-                className="border-accent/40 text-accent-dark dark:text-accent"
+                className="border-accent/40 text-accent-dark dark:border-accent/50 dark:bg-accent/10 dark:text-[#ffd9a3]"
               >
                 {clearPending ? "…" : "Retirer"}
               </Button>
             </div>
 
             <div className="mt-6 flex flex-col items-center gap-6 sm:flex-row sm:items-stretch">
-              {/* Avatar with double-glow halo + crown */}
+              {/* Avatar with triple-layer halo + crown */}
               <div className="relative shrink-0">
-                <div className="absolute inset-0 -m-3 animate-pulse rounded-full bg-gradient-to-br from-accent via-accent-dark to-brand opacity-55 blur-xl" />
+                <div className="absolute inset-0 -m-3 animate-pulse rounded-full bg-gradient-to-br from-accent via-accent-dark to-brand opacity-55 blur-xl dark:opacity-75" />
                 <div className="absolute inset-0 -m-1 rounded-full bg-gradient-to-br from-accent to-brand p-[3px]">
-                  <div className="h-full w-full rounded-full bg-cream dark:bg-[#1c1f29]" />
+                  <div className="h-full w-full rounded-full bg-cream dark:bg-[#13151c]" />
                 </div>
                 <Avatar
                   src={currentRecord.avatar_url}
                   name={currentRecord.full_name ?? currentRecord.username}
                   size="xl"
-                  className="relative ring-2 ring-accent ring-offset-2 ring-offset-cream dark:ring-offset-[#1c1f29]"
+                  className="relative ring-2 ring-accent ring-offset-2 ring-offset-cream dark:ring-offset-[#13151c]"
                 />
                 <span
                   className="absolute -top-4 left-1/2 -translate-x-1/2 -rotate-12 text-3xl drop-shadow-md"
@@ -139,12 +129,12 @@ export function FeaturedEmployeeClient({
 
               <div className="flex flex-col justify-center text-center sm:text-left">
                 <h2 className="text-3xl font-semibold tracking-tight md:text-[34px]">
-                  <span className="bg-gradient-to-r from-accent-dark via-accent to-brand bg-clip-text text-transparent dark:from-accent dark:via-[#ffc07a] dark:to-[#7ab9d9]">
+                  <span className="bg-gradient-to-r from-accent-dark via-accent to-brand bg-clip-text text-transparent dark:from-[#ffb84d] dark:via-[#ffd9a3] dark:to-[#a0d2eb]">
                     {currentRecord.full_name ?? currentRecord.username}
                   </span>
                 </h2>
                 {currentRecord.reason && (
-                  <p className="mt-2 max-w-xl text-sm italic leading-relaxed text-ink/75 dark:text-cream/75">
+                  <p className="mt-2 max-w-xl text-sm italic leading-relaxed text-ink/75 dark:text-cream/90">
                     « {currentRecord.reason} »
                   </p>
                 )}

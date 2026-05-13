@@ -437,6 +437,40 @@ html.dark .bg-accent\/20 { background-color: rgba(255, 158, 31, 0.28); }
 html.dark .text-cream\/65 { color: rgba(247, 239, 227, 0.7); }
 html.dark .text-cream\/70 { color: rgba(247, 239, 227, 0.75); }
 
+/* ===== Employee-of-the-Month surface =====
+   Single class so both the compact (overview) and hero (team/featured)
+   cards share the same lighting + texture. */
+.featured-card {
+  background-image:
+    radial-gradient(circle at 12% 14%, rgba(255, 158, 31, 0.45), transparent 55%),
+    radial-gradient(circle at 92% 22%, rgba(255, 158, 31, 0.32), transparent 50%),
+    radial-gradient(circle at 6% 92%, rgba(59, 139, 186, 0.22), transparent 55%),
+    linear-gradient(135deg, rgba(255, 248, 240, 0.85) 0%, rgba(255, 255, 255, 0.92) 60%);
+  position: relative;
+}
+.featured-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 80% 80%, rgba(255, 158, 31, 0.12), transparent 60%);
+  border-radius: inherit;
+}
+
+html.dark .featured-card {
+  background-image:
+    radial-gradient(circle at 8% 12%, rgba(255, 158, 31, 0.55), transparent 45%),
+    radial-gradient(circle at 95% 18%, rgba(255, 184, 77, 0.4), transparent 42%),
+    radial-gradient(circle at 0% 100%, rgba(59, 139, 186, 0.45), transparent 55%),
+    radial-gradient(circle at 100% 100%, rgba(122, 185, 217, 0.32), transparent 50%),
+    linear-gradient(135deg, #1c1322 0%, #161a26 55%, #102230 100%);
+}
+html.dark .featured-card::after {
+  background-image:
+    radial-gradient(circle at 50% 50%, rgba(255, 217, 163, 0.05), transparent 70%);
+}
+
 /* Chart variables — components use these via inline style */
 :root {
   --chart-track: rgba(30, 30, 36, 0.06);

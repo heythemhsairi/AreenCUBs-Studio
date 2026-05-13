@@ -510,32 +510,21 @@ function FeaturedCard({
     <Card
       variant="accent"
       interactive
-      className="relative overflow-hidden border-accent/40 bg-gradient-to-br from-accent/15 via-white/80 to-brand/10 dark:from-accent/25 dark:via-[#1c1f29]/85 dark:to-brand/20 dark:border-accent/40 surface-grain"
+      className="featured-card relative overflow-hidden border-accent/40 dark:border-accent/30"
     >
-      {/* Decorative sparkle ribbon */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -top-10 -right-10 h-44 w-44 rounded-full bg-accent/40 blur-3xl dark:bg-accent/30"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -bottom-10 -left-6 h-32 w-32 rounded-full bg-brand/25 blur-3xl dark:bg-brand/30"
-      />
-
       <CardContent className="relative flex flex-col items-center gap-5 p-6 text-center sm:flex-row sm:items-stretch sm:text-left">
-        {/* Avatar with double-glow halo */}
+        {/* Avatar with triple-layer halo */}
         <div className="relative shrink-0">
-          <div className="absolute inset-0 -m-2 animate-pulse rounded-full bg-gradient-to-br from-accent via-accent-dark to-brand opacity-50 blur-lg" />
+          <div className="absolute inset-0 -m-2 animate-pulse rounded-full bg-gradient-to-br from-accent via-accent-dark to-brand opacity-50 blur-lg dark:opacity-70" />
           <div className="absolute inset-0 -m-0.5 rounded-full bg-gradient-to-br from-accent to-brand p-[2px]">
-            <div className="h-full w-full rounded-full bg-cream dark:bg-[#1c1f29]" />
+            <div className="h-full w-full rounded-full bg-cream dark:bg-[#13151c]" />
           </div>
           <Avatar
             src={featured.avatar_url}
             name={name}
             size="xl"
-            className="relative ring-2 ring-accent ring-offset-2 ring-offset-cream dark:ring-offset-[#1c1f29]"
+            className="relative ring-2 ring-accent ring-offset-2 ring-offset-cream dark:ring-offset-[#13151c]"
           />
-          {/* Crown emoji */}
           <span
             className="absolute -top-3 left-1/2 -translate-x-1/2 -rotate-12 text-2xl drop-shadow-md"
             aria-hidden
@@ -546,20 +535,20 @@ function FeaturedCard({
 
         <div className="flex-1 sm:py-1">
           <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-            <span className="inline-flex items-center gap-1 rounded-full bg-accent/20 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.18em] text-accent-dark ring-1 ring-accent/40 dark:bg-accent/25 dark:text-accent">
+            <span className="inline-flex items-center gap-1 rounded-full bg-accent/20 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.18em] text-accent-dark ring-1 ring-accent/40 dark:bg-accent/30 dark:text-[#ffd9a3] dark:ring-accent/60">
               ⭐ Employé du mois
             </span>
-            <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ink/45 dark:text-cream/55">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ink/45 dark:text-cream/65">
               {formatMonth(featured.month)}
             </span>
           </div>
           <h3 className="mt-2 text-2xl font-semibold tracking-tight md:text-[26px]">
-            <span className="bg-gradient-to-r from-accent-dark via-accent to-brand bg-clip-text text-transparent dark:from-accent dark:via-[#ffc07a] dark:to-[#7ab9d9]">
+            <span className="bg-gradient-to-r from-accent-dark via-accent to-brand bg-clip-text text-transparent dark:from-[#ffb84d] dark:via-[#ffd9a3] dark:to-[#a0d2eb]">
               {name}
             </span>
           </h3>
           {featured.reason && (
-            <p className="mt-1.5 text-sm leading-relaxed text-ink/75 dark:text-cream/75">
+            <p className="mt-1.5 text-sm italic leading-relaxed text-ink/75 dark:text-cream/90">
               « {featured.reason} »
             </p>
           )}
@@ -569,7 +558,7 @@ function FeaturedCard({
           <div className="flex shrink-0 items-start">
             <Link
               href="/dashboard/team/featured"
-              className="inline-flex items-center gap-1 rounded-full border border-accent/40 bg-white/70 px-3 py-1 text-xs font-semibold text-accent-dark backdrop-blur transition-all hover:bg-accent hover:text-white hover:shadow-accent-glow dark:bg-white/5 dark:text-accent dark:hover:bg-accent dark:hover:text-ink"
+              className="inline-flex items-center gap-1 rounded-full border border-accent/40 bg-white/70 px-3 py-1 text-xs font-semibold text-accent-dark backdrop-blur transition-all hover:bg-accent hover:text-white hover:shadow-accent-glow dark:border-accent/50 dark:bg-accent/15 dark:text-[#ffd9a3] dark:hover:bg-accent dark:hover:text-ink"
             >
               Modifier →
             </Link>
