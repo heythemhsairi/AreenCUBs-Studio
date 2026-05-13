@@ -7,6 +7,8 @@ import {
   type StaleDevisRow,
 } from "@/components/stale-devis-banner";
 import { PriorityPinsSection } from "./priorities-section";
+import { QuickActions } from "@/components/dashboard/quick-actions";
+import { TodaySummary } from "@/components/dashboard/today-summary";
 
 // Defensive helper so one failing query can't take down the whole page.
 async function safe<T>(
@@ -111,6 +113,39 @@ export default async function DashboardPage() {
     },
     0,
     "myOverdueTasks",
+  );
+
+  // For admin: team-wide overdue + due-today. For others: their own.
+  const summaryOverdue: number = isAdmin
+    ? await safe(
+        async () => {
+          const { count } = await supabase
+            .from("tasks")
+            .select("id", { count: "exact", head: true })
+            .in("status", ["todo", "in_progress", "review"])
+            .lt("deadline", todayIso)
+            .is("parent_task_id", null);
+          return count ?? 0;
+        },
+        0,
+        "teamOverdue",
+      )
+    : myOverdueTasks;
+
+  const summaryDueToday: number = await safe(
+    async () => {
+      let q = supabase
+        .from("tasks")
+        .select("id", { count: "exact", head: true })
+        .in("status", ["todo", "in_progress", "review"])
+        .eq("deadline", todayIso)
+        .is("parent_task_id", null);
+      if (!isAdmin) q = q.eq("assignee_id", session.id);
+      const { count } = await q;
+      return count ?? 0;
+    },
+    0,
+    "dueToday",
   );
 
   const teamSize: number | null = isAdmin
@@ -524,6 +559,12 @@ export default async function DashboardPage() {
       {isAdmin && staleDevis.length > 0 && (
         <StaleDevisBanner rows={staleDevis} />
       )}
+      <QuickActions role={session.role} />
+      <TodaySummary
+        overdueCount={summaryOverdue}
+        dueTodayCount={summaryDueToday}
+        scope={isAdmin ? "team" : "me"}
+      />
       {priorityPins.length > 0 && (
         <PriorityPinsSection
           pins={priorityPins.map((p) => ({
