@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { rescheduleTaskAction } from "./actions";
 import { toast } from "@/components/toast";
+import { startTouchDrag } from "@/lib/touch-drag";
 
 type Status = "todo" | "in_progress" | "review" | "done" | "cancelled";
 type Priority = "low" | "normal" | "high" | "urgent";
@@ -393,6 +394,7 @@ function DayCell({
 
   return (
     <div
+      data-drop-zone={iso}
       onDragOver={(e) => {
         e.preventDefault();
         if (!isOver) setIsOver(true);
@@ -436,7 +438,7 @@ function DayCell({
       <ul className="space-y-1">
         {tasks.slice(0, isWeek ? 30 : 4).map((t) => (
           <li key={t.id}>
-            <TaskChip task={t} />
+            <TaskChip task={t} onDropTask={onDropTask} />
           </li>
         ))}
         {!isWeek && tasks.length > 4 && (
@@ -449,7 +451,13 @@ function DayCell({
   );
 }
 
-function TaskChip({ task }: { task: CalendarTask }) {
+function TaskChip({
+  task,
+  onDropTask,
+}: {
+  task: CalendarTask;
+  onDropTask: (taskId: string, targetIso: string) => void;
+}) {
   const [dragging, setDragging] = useState(false);
   return (
     <Link
@@ -461,6 +469,13 @@ function TaskChip({ task }: { task: CalendarTask }) {
         setDragging(true);
       }}
       onDragEnd={() => setDragging(false)}
+      onTouchStart={(e) =>
+        startTouchDrag(e, {
+          data: task.id,
+          ghostLabel: task.title,
+          onDrop: (zoneId) => zoneId && onDropTask(task.id, zoneId),
+        })
+      }
       className={cn(
         "block truncate rounded-md px-1.5 py-0.5 text-[10.5px] font-medium shadow-sm transition-all hover:shadow-soft cursor-grab active:cursor-grabbing",
         PRIORITY_COLOR[task.priority],

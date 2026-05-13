@@ -6,6 +6,8 @@ import { useI18n } from "@/lib/i18n/provider";
 import { Badge } from "@/components/ui/badge";
 import { changeTaskStatusAction } from "./actions";
 import { cn } from "@/lib/utils";
+import { startTouchDrag } from "@/lib/touch-drag";
+import { toast } from "@/components/toast";
 
 type Status = "todo" | "in_progress" | "review" | "done" | "cancelled";
 type Priority = "low" | "normal" | "high" | "urgent";
@@ -56,9 +58,25 @@ export function TasksKanban({
   const [override, setOverride] = useState<Record<string, Status>>({});
 
   function moveTask(taskId: string, to: Status) {
+    const task = tasks.find((x) => x.id === taskId);
+    if (!task) return;
+    const current = override[taskId] ?? task.status;
+    if (current === to) return;
     setOverride((m) => ({ ...m, [taskId]: to }));
     startTransition(async () => {
-      await changeTaskStatusAction(taskId, to);
+      const res = await changeTaskStatusAction(taskId, to);
+      if (!res.ok) {
+        setOverride((m) => {
+          const next = { ...m };
+          delete next[taskId];
+          return next;
+        });
+        toast.error(res.error);
+      } else if (to === "done") {
+        toast.success("Tâche terminée");
+      } else {
+        toast.success("Statut mis à jour");
+      }
     });
   }
 
@@ -88,6 +106,7 @@ export function TasksKanban({
         return (
           <div
             key={status}
+            data-drop-zone={status}
             onDragOver={(e) => {
               e.preventDefault();
               if (dragOver !== status) setDragOver(status);
@@ -197,6 +216,14 @@ function KanbanCard({
         setDragging(true);
       }}
       onDragEnd={() => setDragging(false)}
+      onTouchStart={(e) =>
+        startTouchDrag(e, {
+          data: task.id,
+          ghostLabel: task.title,
+          onDrop: (zoneId) =>
+            zoneId && onMove(task.id, zoneId as Status),
+        })
+      }
       className={cn(
         "group space-y-2 rounded-xl border border-ink/8 bg-white p-3 shadow-soft transition-all duration-150 hover:-translate-y-px hover:shadow-lift hover:border-brand/30 cursor-grab active:cursor-grabbing",
         dragging && "opacity-50",
