@@ -46,10 +46,12 @@ export function TasksKanban({
   tasks,
   compact,
   showProject,
+  tagColors,
 }: {
   tasks: TaskCard[];
   compact?: boolean;
   showProject?: boolean;
+  tagColors?: Record<string, string>;
 }) {
   const { t } = useI18n();
   const [, startTransition] = useTransition();
@@ -152,6 +154,7 @@ export function TasksKanban({
                   priorityLabel={t.tasks.priority[task.priority]}
                   showProject={showProject}
                   onMove={moveTask}
+                  tagColors={tagColors}
                 />
               ))}
               {grouped[status].length === 0 && (
@@ -181,6 +184,7 @@ function KanbanCard({
   priorityLabel,
   showProject,
   onMove,
+  tagColors,
 }: {
   task: TaskCard;
   effectiveStatus: Status;
@@ -188,6 +192,7 @@ function KanbanCard({
   priorityLabel: string;
   showProject?: boolean;
   onMove: (id: string, to: Status) => void;
+  tagColors?: Record<string, string>;
 }) {
   const { t } = useI18n();
   const [dragging, setDragging] = useState(false);
@@ -253,14 +258,25 @@ function KanbanCard({
 
       {task.tags && task.tags.length > 0 && (
         <div className="flex flex-wrap gap-1">
-          {task.tags.slice(0, 4).map((tag) => (
-            <span
-              key={tag}
-              className="rounded-md bg-brand/8 px-1.5 py-0.5 text-[10px] font-medium text-brand-dark"
-            >
-              #{tag}
-            </span>
-          ))}
+          {task.tags.slice(0, 4).map((tag) => {
+            const c = tagColors?.[tag];
+            return c ? (
+              <span
+                key={tag}
+                className="rounded-md px-1.5 py-0.5 text-[10px] font-semibold text-white"
+                style={{ backgroundColor: c }}
+              >
+                #{tag}
+              </span>
+            ) : (
+              <span
+                key={tag}
+                className="rounded-md bg-brand/8 px-1.5 py-0.5 text-[10px] font-medium text-brand-dark"
+              >
+                #{tag}
+              </span>
+            );
+          })}
         </div>
       )}
 

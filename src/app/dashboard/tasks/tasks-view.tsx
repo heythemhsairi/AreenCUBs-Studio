@@ -18,12 +18,14 @@ export function TasksView({
   assignees,
   currentUserId,
   currentUserAssigneeId,
+  tagColors,
 }: {
   tasks: TaskCard[];
   projects: Option[];
   assignees: Option[];
   currentUserId: string;
   currentUserAssigneeId: string;
+  tagColors?: Record<string, string>;
 }) {
   const [filters, setFilters] = useState<TasksFilters>(DEFAULT_FILTERS);
   const [view, setView] = useState<View>("kanban");
@@ -48,9 +50,9 @@ export function TasksView({
       {filtered.length === 0 ? (
         <EmptyState />
       ) : view === "kanban" ? (
-        <TasksKanban tasks={filtered} showProject />
+        <TasksKanban tasks={filtered} showProject tagColors={tagColors} />
       ) : (
-        <TasksList tasks={filtered} />
+        <TasksList tasks={filtered} tagColors={tagColors} />
       )}
     </div>
   );

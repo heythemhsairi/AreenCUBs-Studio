@@ -31,7 +31,7 @@ export type CompletedEntry = {
   completedAt: string;
 };
 
-type View = "month" | "week";
+type View = "month" | "week" | "agenda";
 
 const PRIORITY_COLOR: Record<Priority, string> = {
   urgent: "bg-red-500 text-white",
@@ -252,6 +252,11 @@ export function CalendarView({
                 onClick={() => setView("week")}
                 label="Semaine"
               />
+              <ViewBtn
+                active={view === "agenda"}
+                onClick={() => setView("agenda")}
+                label="Agenda"
+              />
             </div>
           </div>
         </div>
@@ -264,47 +269,55 @@ export function CalendarView({
         </div>
 
         {/* Grid */}
-        <div className="glass overflow-hidden rounded-2xl">
-          {/* Weekday header */}
-          <div className="grid grid-cols-7 border-b border-ink/8 bg-white/40">
-            {WEEKDAYS_FR.map((wd) => (
-              <div
-                key={wd}
-                className="px-2 py-2 text-center text-[11px] font-semibold uppercase tracking-[0.08em] text-ink/55"
-              >
-                {wd}
-              </div>
-            ))}
+        {view === "agenda" ? (
+          <AgendaView
+            tasks={filteredTasks}
+            today={today}
+            onDropTask={onDropTask}
+          />
+        ) : (
+          <div className="glass overflow-hidden rounded-2xl">
+            {/* Weekday header */}
+            <div className="grid grid-cols-7 border-b border-ink/8 bg-white/40">
+              {WEEKDAYS_FR.map((wd) => (
+                <div
+                  key={wd}
+                  className="px-2 py-2 text-center text-[11px] font-semibold uppercase tracking-[0.08em] text-ink/55"
+                >
+                  {wd}
+                </div>
+              ))}
+            </div>
+            {/* Cells */}
+            <div
+              className={cn(
+                "grid grid-cols-7",
+                view === "month" ? "grid-rows-6" : "grid-rows-1",
+              )}
+            >
+              {cells.map((d) => {
+                const iso = isoFromDate(d);
+                const dayTasks = tasksByDate[iso] ?? [];
+                const isToday = d.getTime() === today.getTime();
+                const isOutsideMonth =
+                  view === "month" && d.getMonth() !== currentMonth;
+                return (
+                  <DayCell
+                    key={iso}
+                    date={d}
+                    iso={iso}
+                    tasks={dayTasks}
+                    isToday={isToday}
+                    isOutsideMonth={isOutsideMonth}
+                    isWeek={view === "week"}
+                    pending={pending}
+                    onDropTask={onDropTask}
+                  />
+                );
+              })}
+            </div>
           </div>
-          {/* Cells */}
-          <div
-            className={cn(
-              "grid grid-cols-7",
-              view === "month" ? "grid-rows-6" : "grid-rows-1",
-            )}
-          >
-            {cells.map((d) => {
-              const iso = isoFromDate(d);
-              const dayTasks = tasksByDate[iso] ?? [];
-              const isToday = d.getTime() === today.getTime();
-              const isOutsideMonth =
-                view === "month" && d.getMonth() !== currentMonth;
-              return (
-                <DayCell
-                  key={iso}
-                  date={d}
-                  iso={iso}
-                  tasks={dayTasks}
-                  isToday={isToday}
-                  isOutsideMonth={isOutsideMonth}
-                  isWeek={view === "week"}
-                  pending={pending}
-                  onDropTask={onDropTask}
-                />
-              );
-            })}
-          </div>
-        </div>
+        )}
       </div>
 
       {/* Side rail */}
@@ -368,6 +381,161 @@ export function CalendarView({
         </Card>
       </div>
     </div>
+  );
+}
+
+function AgendaView({
+  tasks,
+  today,
+  onDropTask,
+}: {
+  tasks: CalendarTask[];
+  today: Date;
+  onDropTask: (taskId: string, targetIso: string) => void;
+}) {
+  // Group by deadline date, sorted ascending. Past-due and today get
+  // pinned to the top with a tonal accent.
+  const groups = useMemo(() => {
+    const map: Record<string, CalendarTask[]> = {};
+    for (const t of tasks) {
+      const k = t.deadline.slice(0, 10);
+      if (!map[k]) map[k] = [];
+      map[k].push(t);
+    }
+    return Object.entries(map)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([iso, items]) => ({ iso, items }));
+  }, [tasks]);
+
+  if (groups.length === 0) {
+    return (
+      <div className="glass flex flex-col items-center justify-center gap-2 rounded-2xl px-6 py-16 text-center">
+        <span className="text-3xl">📅</span>
+        <p className="text-sm font-medium text-ink">Aucune tâche planifiée</p>
+        <p className="text-xs text-ink/55">
+          Définissez une échéance sur une tâche pour la voir apparaître ici.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="glass overflow-hidden rounded-2xl">
+      <ul className="divide-y divide-ink/8">
+        {groups.map(({ iso, items }) => {
+          const d = new Date(iso);
+          d.setHours(0, 0, 0, 0);
+          const isPast = d.getTime() < today.getTime();
+          const isToday = d.getTime() === today.getTime();
+          const dayLabel = d.toLocaleDateString("fr-FR", {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          });
+          return (
+            <li
+              key={iso}
+              data-drop-zone={iso}
+              className={cn(
+                "p-4 transition-colors",
+                isToday
+                  ? "bg-brand/8"
+                  : isPast
+                    ? "bg-red-50/40 dark:bg-red-500/8"
+                    : "bg-white/30",
+              )}
+            >
+              <div className="mb-2 flex items-center gap-2">
+                <span
+                  className={cn(
+                    "inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.08em]",
+                    isToday
+                      ? "bg-brand text-white"
+                      : isPast
+                        ? "bg-red-100 text-red-700"
+                        : "bg-ink/5 text-ink/65",
+                  )}
+                >
+                  {isToday ? "Aujourd'hui" : isPast ? "En retard" : dayLabel}
+                </span>
+                {!isToday && !isPast && (
+                  <span className="text-[11px] text-ink/45">{dayLabel}</span>
+                )}
+                <span className="ml-auto text-[11px] font-semibold text-ink/45">
+                  {items.length} tâche{items.length > 1 ? "s" : ""}
+                </span>
+              </div>
+              <ul className="space-y-1.5">
+                {items.map((t) => (
+                  <li key={t.id}>
+                    <AgendaRow task={t} onDropTask={onDropTask} />
+                  </li>
+                ))}
+              </ul>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+function AgendaRow({
+  task,
+  onDropTask,
+}: {
+  task: CalendarTask;
+  onDropTask: (taskId: string, targetIso: string) => void;
+}) {
+  const [dragging, setDragging] = useState(false);
+  return (
+    <Link
+      href={`/dashboard/tasks/${task.id}`}
+      draggable
+      onDragStart={(e) => {
+        e.dataTransfer.setData("text/task-id", task.id);
+        e.dataTransfer.effectAllowed = "move";
+        setDragging(true);
+      }}
+      onDragEnd={() => setDragging(false)}
+      onTouchStart={(e) =>
+        startTouchDrag(e, {
+          data: task.id,
+          ghostLabel: task.title,
+          onDrop: (zoneId) => zoneId && onDropTask(task.id, zoneId),
+        })
+      }
+      className={cn(
+        "group flex items-center gap-3 rounded-lg border border-ink/8 bg-white p-2.5 transition-all hover:border-brand/30 hover:shadow-soft dark:bg-white/5 cursor-grab active:cursor-grabbing",
+        dragging && "opacity-50",
+        STATUS_OPACITY[task.status],
+      )}
+    >
+      <span
+        className={cn(
+          "h-7 w-1 shrink-0 rounded-full",
+          PRIORITY_COLOR[task.priority].split(" ")[0],
+        )}
+      />
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-medium text-ink group-hover:text-brand">
+          {task.title}
+        </p>
+        <p className="truncate text-[11px] text-ink/55">
+          {task.project?.name ?? "—"}
+          {task.assignee && <> · {task.assignee}</>}
+        </p>
+      </div>
+      <span
+        className={cn(
+          "shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-semibold text-white",
+          PRIORITY_COLOR[task.priority].split(" ")[0],
+        )}
+      >
+        {PRIORITY_LABEL[task.priority]}
+      </span>
+    </Link>
   );
 }
 

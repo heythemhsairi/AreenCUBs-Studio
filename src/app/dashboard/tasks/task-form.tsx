@@ -269,7 +269,13 @@ export function TaskForm(props: Props) {
                   defaultValue={(tk?.tags ?? []).join(", ")}
                 />
                 <p className="text-[11px] text-ink/45">
-                  Séparez les tags par des virgules.
+                  Séparez par des virgules.{" "}
+                  <Link
+                    href="/dashboard/tasks/tags"
+                    className="font-semibold text-brand hover:text-brand-dark"
+                  >
+                    Gérer les tags →
+                  </Link>
                 </p>
               </Field>
               <Field label="Récurrence">

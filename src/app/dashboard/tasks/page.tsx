@@ -10,24 +10,34 @@ export default async function TasksPage() {
   const session = await requireSession();
   const supabase = await createClient();
 
-  const [{ data: tasksRaw }, { data: projectsRaw }, { data: assigneesRaw }] =
-    await Promise.all([
-      supabase
-        .from("tasks")
-        .select(
-          "id, title, status, priority, deadline, assignee_id, tags, profiles:assignee_id(username, full_name), projects:project_id(id, name, clients:client_id(id, name))",
-        )
-        .is("parent_task_id", null)
-        .order("created_at", { ascending: false }),
-      supabase
-        .from("projects")
-        .select("id, name")
-        .order("name", { ascending: true }),
-      supabase
-        .from("profiles")
-        .select("id, username, full_name")
-        .order("full_name", { ascending: true }),
-    ]);
+  const [
+    { data: tasksRaw },
+    { data: projectsRaw },
+    { data: assigneesRaw },
+    { data: tagCatalog },
+  ] = await Promise.all([
+    supabase
+      .from("tasks")
+      .select(
+        "id, title, status, priority, deadline, assignee_id, tags, profiles:assignee_id(username, full_name), projects:project_id(id, name, clients:client_id(id, name))",
+      )
+      .is("parent_task_id", null)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("projects")
+      .select("id, name")
+      .order("name", { ascending: true }),
+    supabase
+      .from("profiles")
+      .select("id, username, full_name")
+      .order("full_name", { ascending: true }),
+    supabase
+      .from("task_tag_catalog")
+      .select("name, color"),
+  ]);
+
+  const tagColors: Record<string, string> = {};
+  for (const t of tagCatalog ?? []) tagColors[t.name] = t.color;
 
   const tasks: TaskCard[] = (tasksRaw ?? []).map((tk) => {
     const assignee = Array.isArray(tk.profiles) ? tk.profiles[0] : tk.profiles;
@@ -89,6 +99,7 @@ export default async function TasksPage() {
         assignees={assignees}
         currentUserId={session.id}
         currentUserAssigneeId={session.id}
+        tagColors={tagColors}
       />
     </div>
   );
