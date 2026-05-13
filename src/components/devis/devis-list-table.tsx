@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, useTransition } from "react";
+import { createPortal } from "react-dom";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -279,43 +280,93 @@ function Dropdown({
   children: (close: () => void) => React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState<{ top: number; left: number }>({
+    top: 0,
+    left: 0,
+  });
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const MENU_WIDTH = 200;
+  const MARGIN = 8;
+
+  function compute() {
+    const t = triggerRef.current;
+    if (!t) return;
+    const r = t.getBoundingClientRect();
+    // Use viewport-relative (fixed) coords so we never get clipped by an
+    // overflow ancestor (e.g. the table wrapper).
+    let left = r.left;
+    if (left + MENU_WIDTH > window.innerWidth - MARGIN) {
+      // Flip: right-align to the trigger so the menu opens to the left.
+      left = r.right - MENU_WIDTH;
+    }
+    setPos({ top: r.bottom + 6, left: Math.max(MARGIN, left) });
+  }
+
+  // Position before paint to avoid a flash
+  useLayoutEffect(() => {
+    if (open) compute();
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
-    function onClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node))
-        setOpen(false);
+    function onPointerDown(e: MouseEvent) {
+      const target = e.target as Node;
+      if (
+        triggerRef.current?.contains(target) ||
+        menuRef.current?.contains(target)
+      ) {
+        return;
+      }
+      setOpen(false);
     }
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") setOpen(false);
     }
-    document.addEventListener("mousedown", onClick);
+    function onScrollOrResize() {
+      compute();
+    }
+    document.addEventListener("mousedown", onPointerDown);
     document.addEventListener("keydown", onKey);
+    window.addEventListener("resize", onScrollOrResize);
+    window.addEventListener("scroll", onScrollOrResize, true);
     return () => {
-      document.removeEventListener("mousedown", onClick);
+      document.removeEventListener("mousedown", onPointerDown);
       document.removeEventListener("keydown", onKey);
+      window.removeEventListener("resize", onScrollOrResize);
+      window.removeEventListener("scroll", onScrollOrResize, true);
     };
   }, [open]);
 
   return (
-    <div ref={ref} className="relative inline-block">
+    <>
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setOpen((v) => !v)}
         className="inline-flex cursor-pointer items-center"
       >
         {trigger}
       </button>
-      {open && (
-        <div
-          className="absolute left-0 top-full z-20 mt-1.5 min-w-[180px] rounded-xl border border-ink/10 bg-white p-1 shadow-lift"
-          role="menu"
-        >
-          {children(() => setOpen(false))}
-        </div>
-      )}
-    </div>
+      {open &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            ref={menuRef}
+            style={{
+              position: "fixed",
+              top: pos.top,
+              left: pos.left,
+              minWidth: MENU_WIDTH,
+            }}
+            className="z-[100] rounded-xl border border-ink/10 bg-white p-1 shadow-lift dark:border-white/10 dark:bg-[#1e2029]"
+            role="menu"
+          >
+            {children(() => setOpen(false))}
+          </div>,
+          document.body,
+        )}
+    </>
   );
 }
 
