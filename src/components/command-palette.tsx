@@ -3,27 +3,61 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n/provider";
 import { searchAction, type SearchHit } from "@/app/dashboard/search-actions";
 
-const kindIcon: Record<SearchHit["kind"], string> = {
-  client: "👥",
-  project: "📁",
-  devis: "📄",
-  facture: "🧾",
-  task: "✅",
-  member: "🧑",
-};
+type IconKey = SearchHit["kind"];
 
-const kindLabel: Record<SearchHit["kind"], string> = {
-  client: "Client",
-  project: "Projet",
-  devis: "Devis",
-  facture: "Facture",
-  task: "Tâche",
-  member: "Membre",
-};
+function KindIcon({ kind }: { kind: IconKey }) {
+  const paths: Record<IconKey, React.ReactNode> = {
+    client: (
+      <>
+        <circle cx="9" cy="8" r="3.5" />
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      </>
+    ),
+    project: (
+      <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" />
+    ),
+    devis: (
+      <>
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" />
+        <path d="M14 2v6h6" />
+      </>
+    ),
+    facture: (
+      <>
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" />
+        <path d="M14 2v6h6" />
+        <path d="M9 12l2 2 4-4" />
+      </>
+    ),
+    task: <path d="M3 6h2l1 2h13M3 12h18M3 18h18" />,
+    member: (
+      <>
+        <circle cx="12" cy="8" r="3.5" />
+        <path d="M5 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2" />
+      </>
+    ),
+  };
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      {paths[kind]}
+    </svg>
+  );
+}
 
 export function CommandPalette() {
+  const { t, locale } = useI18n();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [hits, setHits] = useState<SearchHit[]>([]);
@@ -131,7 +165,7 @@ export function CommandPalette() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={onInputKey}
-            placeholder="Rechercher un client, projet, tâche, devis, membre…"
+            placeholder={t.common.searchPlaceholder}
             className="flex-1 bg-transparent text-sm text-ink placeholder:text-ink/40 focus:outline-none dark:text-cream dark:placeholder:text-cream/40"
             autoFocus
           />
@@ -143,21 +177,28 @@ export function CommandPalette() {
         <div className="max-h-[60vh] overflow-y-auto">
           {pending && hits.length === 0 && query.length >= 2 && (
             <p className="px-4 py-8 text-center text-sm text-ink/45">
-              Recherche…
+              {locale === "en" ? "Searching…" : "Recherche…"}
             </p>
           )}
           {!pending && query.length >= 2 && hits.length === 0 && (
             <p className="px-4 py-8 text-center text-sm text-ink/45">
-              Aucun résultat pour « {query} »
+              {locale === "en"
+                ? `No results for « ${query} »`
+                : `Aucun résultat pour « ${query} »`}
             </p>
           )}
           {query.length < 2 && (
             <div className="px-4 py-8 text-center text-xs text-ink/45">
-              Tapez au moins 2 lettres.
+              {locale === "en"
+                ? "Type at least 2 letters."
+                : "Tapez au moins 2 lettres."}
               <div className="mt-3 flex justify-center gap-1.5">
-                <Tip k="↑↓" v="naviguer" />
-                <Tip k="↵" v="ouvrir" />
-                <Tip k="Esc" v="fermer" />
+                <Tip
+                  k="↑↓"
+                  v={locale === "en" ? "navigate" : "naviguer"}
+                />
+                <Tip k="↵" v={locale === "en" ? "open" : "ouvrir"} />
+                <Tip k="Esc" v={locale === "en" ? "close" : "fermer"} />
               </div>
             </div>
           )}
@@ -175,8 +216,8 @@ export function CommandPalette() {
                       : "hover:bg-cream-dark/40 dark:hover:bg-white/5",
                   )}
                 >
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-ink/5 text-base dark:bg-white/5">
-                    {kindIcon[hit.kind]}
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand dark:bg-brand/20">
+                    <KindIcon kind={hit.kind} />
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-ink dark:text-cream">
@@ -189,7 +230,7 @@ export function CommandPalette() {
                     )}
                   </div>
                   <span className="shrink-0 rounded-full bg-ink/5 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-ink/55 dark:bg-white/10 dark:text-cream/60">
-                    {kindLabel[hit.kind]}
+                    {kindLabel(hit.kind, locale)}
                   </span>
                 </button>
               </li>
@@ -199,6 +240,18 @@ export function CommandPalette() {
       </div>
     </div>
   );
+}
+
+function kindLabel(kind: SearchHit["kind"], locale: "fr" | "en"): string {
+  const labels: Record<SearchHit["kind"], { fr: string; en: string }> = {
+    client: { fr: "Client", en: "Client" },
+    project: { fr: "Projet", en: "Project" },
+    devis: { fr: "Devis", en: "Quote" },
+    facture: { fr: "Facture", en: "Invoice" },
+    task: { fr: "Tâche", en: "Task" },
+    member: { fr: "Membre", en: "Member" },
+  };
+  return labels[kind][locale];
 }
 
 function Tip({ k, v }: { k: string; v: string }) {

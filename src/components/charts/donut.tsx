@@ -49,8 +49,13 @@ export function Donut({
         style={{ width: size, height: size }}
       >
         <div
-          className="rounded-full border-[22px] border-ink/5"
-          style={{ width: size, height: size }}
+          className="rounded-full border-ink/5"
+          style={{
+            width: size,
+            height: size,
+            borderWidth: thickness,
+            borderColor: "var(--chart-track)",
+          }}
         />
       </div>
     );
@@ -87,7 +92,7 @@ export function Donut({
             cy={cy}
             r={radius}
             fill="none"
-            stroke="rgba(30,30,36,0.06)"
+            stroke="var(--chart-track)"
             strokeWidth={thickness}
           />
           {segments.map((s) => {
