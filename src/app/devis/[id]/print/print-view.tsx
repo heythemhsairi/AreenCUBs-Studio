@@ -150,7 +150,19 @@ export function DevisPrintView({
 
       <section className="signature">
         <div className="signature-tag">Cachet &amp; Signature</div>
-        <div className="signature-box" />
+        <div className="signature-box">
+          {/*
+            Areen CUBs official stamp + signature. The file lives at
+            public/stamp.png so it ships with the build and prints
+            inside the signature box on every devis / facture PDF.
+          */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/stamp.png"
+            alt="Cachet et signature Areen CUBs"
+            className="signature-stamp"
+          />
+        </div>
       </section>
 
       <footer className="footer">
@@ -329,11 +341,25 @@ export function DevisPrintView({
         .signature-tag {
           font-weight: 700;
           margin-bottom: 2mm;
+          text-align: center;
         }
         .signature-box {
-          height: 28mm;
-          border: 1px dashed rgba(30, 30, 36, 0.3);
+          height: 36mm;
+          border: 1px solid rgba(30, 30, 36, 0.2);
           border-radius: 2mm;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 2mm;
+          background: #fff;
+        }
+        .signature-stamp {
+          max-width: 100%;
+          max-height: 100%;
+          object-fit: contain;
+          /* slight multiply blend so the stamp ink reads naturally on the
+             cream paper background of the page without a hard white box */
+          mix-blend-mode: multiply;
         }
 
         .footer {
