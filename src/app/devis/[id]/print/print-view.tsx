@@ -348,29 +348,29 @@ export function DevisPrintView({
         }
 
         .signature {
-          flex: 1;
-          min-width: 0;
+          width: 78mm;
         }
         .signature-tag {
           font-weight: 700;
-          margin-bottom: 3mm;
+          margin-bottom: 2mm;
           text-align: center;
         }
-        /* No box / border / white background — the stamp prints
-           directly onto the cream page like a real ink cachet. */
         .signature-box {
+          height: 42mm;
+          border: 1px solid rgba(30, 30, 36, 0.35);
+          border-radius: 2mm;
           display: flex;
           align-items: center;
           justify-content: center;
-          min-height: 62mm;
+          padding: 3mm;
+          background: #fff;
         }
         .signature-stamp {
-          width: 100%;
-          max-width: 100mm;
-          height: auto;
+          max-width: 90%;
+          max-height: 100%;
           object-fit: contain;
-          /* multiply so the blue ink reads naturally on cream paper
-             with no hard white tile behind it */
+          /* multiply so the blue ink blends with the box instead of a
+             hard white tile */
           mix-blend-mode: multiply;
         }
 
