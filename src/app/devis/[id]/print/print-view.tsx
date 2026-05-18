@@ -132,6 +132,25 @@ export function DevisPrintView({
       </section>
 
       <div className="doc-tail">
+        {/* Stamp / signature on the LEFT */}
+        <section className="signature">
+          <div className="signature-tag">Cachet &amp; Signature</div>
+          <div className="signature-box">
+            {/*
+              Areen CUBs official stamp + signature (public/stamp.png).
+              No box/border — it sits directly on the page so the
+              cachet reads like a real ink stamp.
+            */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/stamp.png"
+              alt="Cachet et signature Areen CUBs"
+              className="signature-stamp"
+            />
+          </div>
+        </section>
+
+        {/* Totals on the RIGHT */}
         <section className="totals">
           <div className="totals-inner">
             <div className="totals-row">
@@ -146,23 +165,6 @@ export function DevisPrintView({
               <span>Total TTC :</span>
               <strong>{formatDt(devis.total_dt)}</strong>
             </div>
-          </div>
-        </section>
-
-        <section className="signature">
-          <div className="signature-tag">Cachet &amp; Signature</div>
-          <div className="signature-box">
-            {/*
-              Areen CUBs official stamp + signature. The file lives at
-              public/stamp.png so it ships with the build and prints
-              inside the signature box on every devis / facture PDF.
-            */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/stamp.png"
-              alt="Cachet et signature Areen CUBs"
-              className="signature-stamp"
-            />
           </div>
         </section>
       </div>
@@ -312,13 +314,23 @@ export function DevisPrintView({
           text-align: right;
         }
 
+        /* Tail = stamp (left) + totals (right) on the same row so a long
+           devis/facture doesn't waste a whole extra block of vertical
+           space. */
+        .doc-tail {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 10mm;
+          margin-top: 8mm;
+        }
         .totals {
           display: flex;
           justify-content: flex-end;
-          margin-top: 6mm;
+          flex-shrink: 0;
         }
         .totals-inner {
-          width: 70mm;
+          width: 72mm;
           font-size: 10pt;
         }
         .totals-row {
@@ -336,31 +348,29 @@ export function DevisPrintView({
         }
 
         .signature {
-          margin-top: 10mm;
-          width: 88mm;
-          margin-left: auto;
+          flex: 1;
+          min-width: 0;
         }
         .signature-tag {
           font-weight: 700;
-          margin-bottom: 2mm;
+          margin-bottom: 3mm;
           text-align: center;
         }
+        /* No box / border / white background — the stamp prints
+           directly onto the cream page like a real ink cachet. */
         .signature-box {
-          height: 50mm;
-          border: 1px solid rgba(30, 30, 36, 0.2);
-          border-radius: 2mm;
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 3mm;
-          background: #fff;
+          min-height: 62mm;
         }
         .signature-stamp {
           width: 100%;
-          height: 100%;
+          max-width: 100mm;
+          height: auto;
           object-fit: contain;
-          /* slight multiply blend so the stamp ink reads naturally on the
-             cream paper background of the page without a hard white box */
+          /* multiply so the blue ink reads naturally on cream paper
+             with no hard white tile behind it */
           mix-blend-mode: multiply;
         }
 
