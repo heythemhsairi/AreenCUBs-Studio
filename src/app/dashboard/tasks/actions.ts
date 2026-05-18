@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireSession, requireWorkerOrAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { logActivity } from "@/lib/activity";
 import { notify } from "@/lib/notify";
 
@@ -38,6 +37,24 @@ function pickTaskFields(formData: FormData) {
     .map((s) => s.trim().toLowerCase().replace(/^#/, ""))
     .filter((s) => s.length > 0 && s.length <= 32)
     .slice(0, 12);
+
+  // Multi-assignee: the form posts one `assignee_ids` entry per selected
+  // person. We dedupe and keep `assignee_id` = the first one as the
+  // denormalized "primary" so existing Kanban / filters / notifications /
+  // dashboard counts keep working unchanged.
+  const assigneeIds = Array.from(
+    new Set(
+      formData
+        .getAll("assignee_ids")
+        .map((v) => String(v).trim())
+        .filter((v) => v.length > 0),
+    ),
+  );
+  const legacySingle = stringOrNull(formData.get("assignee_id"));
+  if (legacySingle && !assigneeIds.includes(legacySingle)) {
+    assigneeIds.unshift(legacySingle);
+  }
+
   return {
     project_id: String(formData.get("project_id") ?? ""),
     title: String(formData.get("title") ?? "").trim(),
@@ -46,13 +63,93 @@ function pickTaskFields(formData: FormData) {
     priority: PRIORITIES.includes(priority)
       ? priority
       : ("normal" as TaskPriority),
-    assignee_id: stringOrNull(formData.get("assignee_id")),
+    assignee_id: assigneeIds[0] ?? null,
+    assignee_ids: assigneeIds,
     deadline: stringOrNull(formData.get("deadline")),
     deliverable_url: stringOrNull(formData.get("deliverable_url")),
     parent_task_id: stringOrNull(formData.get("parent_task_id")),
     tags,
     recurrence,
   };
+}
+
+/**
+ * Replace the full assignee set for a task (works for subtasks too — a
+ * subtask is just a task with parent_task_id). Keeps tasks.assignee_id in
+ * sync as the denormalized primary. Safe to call with an empty array.
+ */
+async function syncTaskAssignees(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  taskId: string,
+  userIds: string[],
+): Promise<void> {
+  const uniq = Array.from(new Set(userIds.filter(Boolean)));
+  await supabase.from("task_assignees").delete().eq("task_id", taskId);
+  if (uniq.length > 0) {
+    await supabase
+      .from("task_assignees")
+      .insert(uniq.map((user_id) => ({ task_id: taskId, user_id })));
+  }
+  await supabase
+    .from("tasks")
+    .update({ assignee_id: uniq[0] ?? null })
+    .eq("id", taskId);
+}
+
+export async function setTaskAssigneesAction(
+  taskId: string,
+  userIds: string[],
+): Promise<ActionResult> {
+  const session = await requireSession();
+  if (!taskId) return { ok: false, error: "Tâche manquante." };
+
+  const supabase = await createClient();
+  const { data: before } = await supabase
+    .from("tasks")
+    .select("title, project_id, parent_task_id")
+    .eq("id", taskId)
+    .single();
+
+  const { data: prevRows } = await supabase
+    .from("task_assignees")
+    .select("user_id")
+    .eq("task_id", taskId);
+  const prevIds = new Set<string>(
+    (prevRows ?? []).map((r: { user_id: string }) => r.user_id),
+  );
+
+  await syncTaskAssignees(supabase, taskId, userIds);
+
+  // Notify newly added people (skip self).
+  const added = userIds.filter((u) => !prevIds.has(u) && u !== session.id);
+  if (added.length > 0 && before) {
+    await notify(
+      added[0],
+      "task_assigned",
+      `Tâche assignée : ${before.title}`,
+      `/dashboard/tasks/${taskId}`,
+    );
+    for (let i = 1; i < added.length; i++) {
+      await notify(
+        added[i],
+        "task_assigned",
+        `Tâche assignée : ${before.title}`,
+        `/dashboard/tasks/${taskId}`,
+      );
+    }
+    await logActivity(taskId, session.id, "task_assigned", {
+      count: userIds.length,
+    });
+  }
+
+  revalidatePath("/dashboard/tasks");
+  revalidatePath(`/dashboard/tasks/${taskId}`);
+  if (before?.parent_task_id)
+    revalidatePath(`/dashboard/tasks/${before.parent_task_id}`);
+  if (before?.project_id)
+    revalidatePath(`/dashboard/projects/${before.project_id}`);
+  return { ok: true };
 }
 
 function shiftDeadline(iso: string, recurrence: Recurrence): string {
@@ -80,30 +177,33 @@ export async function createTaskAction(
   if (!fields.title) return { ok: false, error: "Le titre est requis." };
 
   const supabase = await createClient();
+  const { assignee_ids, ...taskCols } = fields;
   const { data, error } = await supabase
     .from("tasks")
-    .insert({ ...fields, created_by: session.id })
+    .insert({ ...taskCols, created_by: session.id })
     .select("id, project_id")
     .single();
   if (error) return { ok: false, error: error.message };
 
+  await syncTaskAssignees(supabase, data.id, assignee_ids);
+
   await logActivity(data.id, session.id, "task_created", {
     title: fields.title,
   });
-  if (fields.assignee_id) {
-    const assigneeName = await resolveProfileName(fields.assignee_id);
+  if (assignee_ids.length > 0) {
     await logActivity(data.id, session.id, "task_assigned", {
-      assignee_id: fields.assignee_id,
-      assignee_name: assigneeName,
+      count: assignee_ids.length,
     });
-    // Notify the assignee — unless they assigned the task to themselves.
-    if (fields.assignee_id !== session.id) {
-      await notify(
-        fields.assignee_id,
-        "task_assigned",
-        `Nouvelle tâche : ${fields.title}`,
-        `/dashboard/tasks/${data.id}`,
-      );
+    // Notify each assignee — unless they assigned it to themselves.
+    for (const uid of assignee_ids) {
+      if (uid !== session.id) {
+        await notify(
+          uid,
+          "task_assigned",
+          `Nouvelle tâche : ${fields.title}`,
+          `/dashboard/tasks/${data.id}`,
+        );
+      }
     }
   }
 
@@ -112,19 +212,6 @@ export async function createTaskAction(
   redirect(`/dashboard/projects/${data.project_id}`);
 }
 
-async function resolveProfileName(userId: string): Promise<string> {
-  try {
-    const admin = createAdminClient();
-    const { data } = await admin
-      .from("profiles")
-      .select("full_name, username")
-      .eq("id", userId)
-      .maybeSingle();
-    return data?.full_name ?? (data?.username ? `@${data.username}` : "quelqu'un");
-  } catch {
-    return "quelqu'un";
-  }
-}
 
 export async function updateTaskAction(
   formData: FormData,
@@ -163,6 +250,26 @@ export async function updateTaskAction(
     .single();
   if (error) return { ok: false, error: error.message };
 
+  // Sync the full assignee set + notify newly added people.
+  const { data: prevAssignees } = await supabase
+    .from("task_assignees")
+    .select("user_id")
+    .eq("task_id", id);
+  const prevIds = new Set<string>(
+    (prevAssignees ?? []).map((r: { user_id: string }) => r.user_id),
+  );
+  await syncTaskAssignees(supabase, id, fields.assignee_ids);
+  for (const uid of fields.assignee_ids) {
+    if (!prevIds.has(uid) && uid !== session.id) {
+      await notify(
+        uid,
+        "task_assigned",
+        `Tâche assignée : ${fields.title}`,
+        `/dashboard/tasks/${id}`,
+      );
+    }
+  }
+
   if (before) {
     if (before.status !== fields.status) {
       await logActivity(id, session.id, "status_changed", {
@@ -196,21 +303,13 @@ export async function updateTaskAction(
         to: fields.deadline,
       });
     }
+    // Assignee-set changes: notifications already fired above via the
+    // sync path; just record an activity entry.
     if ((before.assignee_id ?? null) !== (fields.assignee_id ?? null)) {
-      if (fields.assignee_id) {
-        const assigneeName = await resolveProfileName(fields.assignee_id);
+      if (fields.assignee_ids.length > 0) {
         await logActivity(id, session.id, "task_assigned", {
-          assignee_id: fields.assignee_id,
-          assignee_name: assigneeName,
+          count: fields.assignee_ids.length,
         });
-        if (fields.assignee_id !== session.id) {
-          await notify(
-            fields.assignee_id,
-            "task_assigned",
-            `Tâche assignée : ${fields.title}`,
-            `/dashboard/tasks/${id}`,
-          );
-        }
       } else {
         await logActivity(id, session.id, "task_unassigned");
       }
@@ -383,7 +482,7 @@ export async function createSubtaskAction(
   }
 
   const supabase = await createClient();
-  // Lookup parent to inherit project_id + assignee
+  // Lookup parent to inherit project_id + assignees
   const { data: parent } = await supabase
     .from("tasks")
     .select("project_id, assignee_id")
@@ -391,16 +490,30 @@ export async function createSubtaskAction(
     .single();
   if (!parent) return { ok: false, error: "Tâche parente introuvable." };
 
-  const { error } = await supabase.from("tasks").insert({
-    project_id: parent.project_id,
-    parent_task_id: parentId,
-    title,
-    status: "todo",
-    priority: "normal",
-    assignee_id: parent.assignee_id,
-    created_by: session.id,
-  });
+  const { data: parentAssignees } = await supabase
+    .from("task_assignees")
+    .select("user_id")
+    .eq("task_id", parentId);
+  const inheritIds = (parentAssignees ?? []).map(
+    (r: { user_id: string }) => r.user_id,
+  );
+
+  const { data: sub, error } = await supabase
+    .from("tasks")
+    .insert({
+      project_id: parent.project_id,
+      parent_task_id: parentId,
+      title,
+      status: "todo",
+      priority: "normal",
+      assignee_id: inheritIds[0] ?? parent.assignee_id ?? null,
+      created_by: session.id,
+    })
+    .select("id")
+    .single();
   if (error) return { ok: false, error: error.message };
+
+  if (sub) await syncTaskAssignees(supabase, sub.id, inheritIds);
 
   await logActivity(parentId, session.id, "subtask_added", { title });
   revalidatePath(`/dashboard/tasks/${parentId}`);

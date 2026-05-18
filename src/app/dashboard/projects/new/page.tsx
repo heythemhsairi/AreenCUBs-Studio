@@ -15,8 +15,7 @@ export default async function NewProjectPage({
     supabase.from("clients").select("id, name").order("name"),
     supabase
       .from("profiles")
-      .select("id, username, full_name, role")
-      .in("role", ["admin", "worker"])
+      .select("id, username, full_name, role, avatar_url")
       .order("full_name"),
   ]);
 

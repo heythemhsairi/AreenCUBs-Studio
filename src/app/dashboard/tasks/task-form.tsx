@@ -10,6 +10,7 @@ import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/dashboard/page-header";
+import { MultiAssignee } from "@/components/multi-assignee";
 import { createTaskAction, updateTaskAction } from "./actions";
 
 type Project = { id: string; name: string; client_name: string | null };
@@ -18,6 +19,7 @@ type Assignee = {
   username: string;
   full_name: string | null;
   role: string;
+  avatar_url?: string | null;
 };
 
 type TaskRow = {
@@ -28,6 +30,7 @@ type TaskRow = {
   status: "todo" | "in_progress" | "review" | "done" | "cancelled";
   priority: "low" | "normal" | "high" | "urgent";
   assignee_id: string | null;
+  assignee_ids?: string[];
   deadline: string | null;
   deliverable_url: string | null;
   tags?: string[] | null;
@@ -208,17 +211,15 @@ export function TaskForm(props: Props) {
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field label={t.tasks.form.assignee}>
-                <Select
-                  name="assignee_id"
-                  defaultValue={tk?.assignee_id ?? ""}
-                >
-                  <option value="">{t.tasks.form.unassigned}</option>
-                  {props.assignees.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.full_name ?? `@${a.username}`} ({a.role})
-                    </option>
-                  ))}
-                </Select>
+                <MultiAssignee
+                  people={props.assignees.map((a) => ({
+                    id: a.id,
+                    label: a.full_name ?? `@${a.username}`,
+                    avatar_url: a.avatar_url ?? null,
+                  }))}
+                  defaultSelected={tk?.assignee_ids ?? []}
+                  emptyLabel={t.tasks.form.unassigned}
+                />
               </Field>
 
               <Field label={t.tasks.form.deadline}>

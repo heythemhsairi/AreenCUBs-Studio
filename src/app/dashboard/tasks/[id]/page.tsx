@@ -29,6 +29,7 @@ export default async function TaskEditPage({
     { data: timeRaw },
     { data: activityRaw },
     { data: pinRow },
+    { data: assigneesForTaskRaw },
   ] = await Promise.all([
     supabase
       .from("tasks")
@@ -39,7 +40,7 @@ export default async function TaskEditPage({
       .single(),
     supabase
       .from("profiles")
-      .select("id, username, full_name, role")
+      .select("id, username, full_name, role, avatar_url")
       .order("full_name"),
     supabase
       .from("tasks")
@@ -82,9 +83,33 @@ export default async function TaskEditPage({
       .eq("task_id", id)
       .eq("user_id", session.id)
       .maybeSingle(),
+    supabase
+      .from("task_assignees")
+      .select("user_id")
+      .eq("task_id", id),
   ]);
 
   if (!task) notFound();
+
+  const taskAssigneeIds = (
+    (assigneesForTaskRaw as { user_id: string }[] | null) ?? []
+  ).map((r) => r.user_id);
+
+  // Assignees per subtask (one query keyed by all subtask ids).
+  const subtaskIds = (subtasks ?? []).map((s) => s.id);
+  const subtaskAssigneeMap: Record<string, string[]> = {};
+  if (subtaskIds.length > 0) {
+    const { data: subAssignees } = await supabase
+      .from("task_assignees")
+      .select("task_id, user_id")
+      .in("task_id", subtaskIds);
+    for (const r of (subAssignees ?? []) as {
+      task_id: string;
+      user_id: string;
+    }[]) {
+      (subtaskAssigneeMap[r.task_id] ??= []).push(r.user_id);
+    }
+  }
 
   const project = Array.isArray(task.projects)
     ? task.projects[0]
@@ -191,7 +216,7 @@ export default async function TaskEditPage({
 
       <TaskForm
         mode="edit"
-        task={task}
+        task={{ ...task, assignee_ids: taskAssigneeIds }}
         assignees={assignees ?? []}
       />
 
@@ -207,7 +232,15 @@ export default async function TaskEditPage({
       {!task.parent_task_id && (
         <SubtasksCard
           parentId={task.id}
-          initial={(subtasks ?? []) as Subtask[]}
+          initial={(subtasks ?? []).map((s) => ({
+            ...s,
+            assignee_ids: subtaskAssigneeMap[s.id] ?? [],
+          })) as Subtask[]}
+          people={(assignees ?? []).map((a) => ({
+            id: a.id,
+            label: a.full_name ?? `@${a.username}`,
+            avatar_url: a.avatar_url ?? null,
+          }))}
         />
       )}
 

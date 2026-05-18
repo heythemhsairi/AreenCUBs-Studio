@@ -12,12 +12,21 @@ type ProjectStatus = (typeof STATUSES)[number];
 
 function pickProjectFields(formData: FormData) {
   const status = String(formData.get("status") ?? "active") as ProjectStatus;
+  const assigneeIds = Array.from(
+    new Set(
+      formData
+        .getAll("assignee_ids")
+        .map((v) => String(v).trim())
+        .filter((v) => v.length > 0),
+    ),
+  );
   return {
     client_id: String(formData.get("client_id") ?? ""),
     name: String(formData.get("name") ?? "").trim(),
     description: stringOrNull(formData.get("description")),
     status: STATUSES.includes(status) ? status : ("active" as ProjectStatus),
     owner_id: stringOrNull(formData.get("owner_id")),
+    assignee_ids: assigneeIds,
     start_date: stringOrNull(formData.get("start_date")),
     end_date: stringOrNull(formData.get("end_date")),
   };
@@ -27,6 +36,24 @@ function stringOrNull(v: FormDataEntryValue | null): string | null {
   if (v === null) return null;
   const s = String(v).trim();
   return s.length === 0 ? null : s;
+}
+
+async function syncProjectAssignees(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  projectId: string,
+  userIds: string[],
+): Promise<void> {
+  const uniq = Array.from(new Set(userIds.filter(Boolean)));
+  await supabase
+    .from("project_assignees")
+    .delete()
+    .eq("project_id", projectId);
+  if (uniq.length > 0) {
+    await supabase
+      .from("project_assignees")
+      .insert(uniq.map((user_id) => ({ project_id: projectId, user_id })));
+  }
 }
 
 export async function createProjectAction(
@@ -39,12 +66,15 @@ export async function createProjectAction(
   if (!fields.name) return { ok: false, error: "Le nom est requis." };
 
   const supabase = await createClient();
+  const { assignee_ids, ...projectCols } = fields;
   const { data, error } = await supabase
     .from("projects")
-    .insert(fields)
+    .insert(projectCols)
     .select("id")
     .single();
   if (error) return { ok: false, error: error.message };
+
+  await syncProjectAssignees(supabase, data.id, assignee_ids);
 
   revalidatePath("/dashboard/projects");
   revalidatePath(`/dashboard/clients/${fields.client_id}`);
@@ -74,6 +104,8 @@ export async function updateProjectAction(
     })
     .eq("id", id);
   if (error) return { ok: false, error: error.message };
+
+  await syncProjectAssignees(supabase, id, fields.assignee_ids);
 
   revalidatePath("/dashboard/projects");
   revalidatePath(`/dashboard/projects/${id}`);

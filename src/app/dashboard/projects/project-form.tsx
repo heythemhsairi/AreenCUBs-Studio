@@ -9,6 +9,7 @@ import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/dashboard/page-header";
+import { MultiAssignee } from "@/components/multi-assignee";
 import { createProjectAction, updateProjectAction } from "./actions";
 
 type Member = {
@@ -16,6 +17,7 @@ type Member = {
   username: string;
   full_name: string | null;
   role: string;
+  avatar_url?: string | null;
 };
 
 type Client = { id: string; name: string };
@@ -27,6 +29,7 @@ type ProjectRow = {
   description: string | null;
   status: "active" | "on_hold" | "completed" | "cancelled";
   owner_id: string | null;
+  assignee_ids?: string[];
   start_date: string | null;
   end_date: string | null;
 };
@@ -152,6 +155,17 @@ export function ProjectForm(props: Props) {
                 </Select>
               </Field>
             </div>
+
+            <Field label={t.projects.form.team}>
+              <MultiAssignee
+                people={props.potentialOwners.map((m) => ({
+                  id: m.id,
+                  label: m.full_name ?? `@${m.username}`,
+                  avatar_url: m.avatar_url ?? null,
+                }))}
+                defaultSelected={p?.assignee_ids ?? []}
+              />
+            </Field>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field label={t.projects.form.startDate}>
