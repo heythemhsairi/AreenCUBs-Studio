@@ -131,39 +131,41 @@ export function DevisPrintView({
         </table>
       </section>
 
-      <section className="totals">
-        <div className="totals-inner">
-          <div className="totals-row">
-            <span>Sous total :</span>
-            <strong>{formatDt(devis.subtotal_dt)}</strong>
+      <div className="doc-tail">
+        <section className="totals">
+          <div className="totals-inner">
+            <div className="totals-row">
+              <span>Sous total :</span>
+              <strong>{formatDt(devis.subtotal_dt)}</strong>
+            </div>
+            <div className="totals-row">
+              <span>TVA ({Number(devis.tva_rate).toFixed(0)}%) :</span>
+              <strong>{formatDt(devis.tva_dt)}</strong>
+            </div>
+            <div className="totals-row totals-row--final">
+              <span>Total TTC :</span>
+              <strong>{formatDt(devis.total_dt)}</strong>
+            </div>
           </div>
-          <div className="totals-row">
-            <span>TVA ({Number(devis.tva_rate).toFixed(0)}%) :</span>
-            <strong>{formatDt(devis.tva_dt)}</strong>
-          </div>
-          <div className="totals-row totals-row--final">
-            <span>Total TTC :</span>
-            <strong>{formatDt(devis.total_dt)}</strong>
-          </div>
-        </div>
-      </section>
+        </section>
 
-      <section className="signature">
-        <div className="signature-tag">Cachet &amp; Signature</div>
-        <div className="signature-box">
-          {/*
-            Areen CUBs official stamp + signature. The file lives at
-            public/stamp.png so it ships with the build and prints
-            inside the signature box on every devis / facture PDF.
-          */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/stamp.png"
-            alt="Cachet et signature Areen CUBs"
-            className="signature-stamp"
-          />
-        </div>
-      </section>
+        <section className="signature">
+          <div className="signature-tag">Cachet &amp; Signature</div>
+          <div className="signature-box">
+            {/*
+              Areen CUBs official stamp + signature. The file lives at
+              public/stamp.png so it ships with the build and prints
+              inside the signature box on every devis / facture PDF.
+            */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/stamp.png"
+              alt="Cachet et signature Areen CUBs"
+              className="signature-stamp"
+            />
+          </div>
+        </section>
+      </div>
 
       <footer className="footer">
         <span>📧 {settings.email}</span>
@@ -335,7 +337,7 @@ export function DevisPrintView({
 
         .signature {
           margin-top: 10mm;
-          width: 70mm;
+          width: 88mm;
           margin-left: auto;
         }
         .signature-tag {
@@ -344,22 +346,31 @@ export function DevisPrintView({
           text-align: center;
         }
         .signature-box {
-          height: 36mm;
+          height: 50mm;
           border: 1px solid rgba(30, 30, 36, 0.2);
           border-radius: 2mm;
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 2mm;
+          padding: 3mm;
           background: #fff;
         }
         .signature-stamp {
-          max-width: 100%;
-          max-height: 100%;
+          width: 100%;
+          height: 100%;
           object-fit: contain;
           /* slight multiply blend so the stamp ink reads naturally on the
              cream paper background of the page without a hard white box */
           mix-blend-mode: multiply;
+        }
+
+        /* Keep a line-item row from being split across two printed pages,
+           and keep the totals + signature block together. */
+        .items tr {
+          page-break-inside: avoid;
+        }
+        .doc-tail {
+          page-break-inside: avoid;
         }
 
         .footer {
@@ -398,7 +409,10 @@ export function DevisPrintView({
 
         @page {
           size: A4;
-          margin: 0;
+          /* Real page margins so a 2nd/3rd page (long devis like
+             EST-036) keeps the same framing as page 1 instead of
+             content running into the paper edge. */
+          margin: 14mm;
         }
 
         @media print {
@@ -407,9 +421,27 @@ export function DevisPrintView({
             background: #fff;
           }
           .devis-page {
+            /* @page margin now handles the framing — let the document
+               flow naturally across as many pages as it needs. */
+            width: auto;
+            min-height: 0;
             margin: 0;
+            padding: 0;
             box-shadow: none;
-            page-break-after: always;
+          }
+          /* Repeat the table header on every printed page */
+          .items thead {
+            display: table-header-group;
+          }
+          /* In print the footer flows after the content (works for
+             multi-page) instead of being absolutely pinned to a
+             fixed-height box. */
+          .footer {
+            position: static;
+            left: auto;
+            right: auto;
+            bottom: auto;
+            margin-top: 12mm;
           }
           .print-controls {
             display: none;
