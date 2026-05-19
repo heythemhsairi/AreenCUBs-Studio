@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
+import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -193,16 +200,63 @@ function SubtaskAssignees({
   disabled?: boolean;
 }) {
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState<{
+    top: number;
+    left: number;
+    width: number;
+  }>({ top: 0, left: 0, width: 240 });
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const MENU_W = 240;
+  const MENU_MAXH = 280;
+
+  function compute() {
+    const el = triggerRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    // Right-align the menu to the trigger; flip above if not enough
+    // room below in the viewport.
+    let left = r.right - MENU_W;
+    if (left < 8) left = 8;
+    const spaceBelow = window.innerHeight - r.bottom;
+    const top =
+      spaceBelow < MENU_MAXH + 12 && r.top > spaceBelow
+        ? Math.max(8, r.top - Math.min(MENU_MAXH, r.top - 8) - 6)
+        : r.bottom + 6;
+    setPos({ top, left, width: MENU_W });
+  }
+
+  useLayoutEffect(() => {
+    if (open) compute();
+  }, [open]);
 
   useEffect(() => {
-    function onDoc(e: MouseEvent) {
-      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+    if (!open) return;
+    function onPointer(e: MouseEvent) {
+      const t = e.target as Node;
+      if (
+        triggerRef.current?.contains(t) ||
+        menuRef.current?.contains(t)
+      )
+        return;
+      setOpen(false);
     }
-    if (open) {
-      document.addEventListener("mousedown", onDoc);
-      return () => document.removeEventListener("mousedown", onDoc);
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
     }
+    function reflow() {
+      compute();
+    }
+    document.addEventListener("mousedown", onPointer);
+    document.addEventListener("keydown", onKey);
+    window.addEventListener("resize", reflow);
+    window.addEventListener("scroll", reflow, true);
+    return () => {
+      document.removeEventListener("mousedown", onPointer);
+      document.removeEventListener("keydown", onKey);
+      window.removeEventListener("resize", reflow);
+      window.removeEventListener("scroll", reflow, true);
+    };
   }, [open]);
 
   const chosen = people.filter((p) => selected.includes(p.id));
@@ -216,8 +270,9 @@ function SubtaskAssignees({
   }
 
   return (
-    <div ref={ref} className="relative shrink-0">
+    <div className="shrink-0">
       <button
+        ref={triggerRef}
         type="button"
         disabled={disabled}
         onClick={() => setOpen((v) => !v)}
@@ -246,43 +301,57 @@ function SubtaskAssignees({
           </span>
         )}
       </button>
-      {open && (
-        <div className="absolute right-0 top-full z-30 mt-1.5 max-h-60 w-56 overflow-y-auto rounded-xl border border-ink/10 bg-white p-1 shadow-lift dark:border-white/10 dark:bg-[#1e2029]">
-          {people.map((p) => {
-            const on = selected.includes(p.id);
-            return (
-              <button
-                key={p.id}
-                type="button"
-                onClick={() => toggle(p.id)}
-                className={cn(
-                  "flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm transition-colors",
-                  on
-                    ? "bg-brand/10 text-brand-dark dark:text-brand"
-                    : "text-ink/75 hover:bg-ink/5",
-                )}
-              >
-                <Avatar src={p.avatar_url} name={p.label} size="xs" />
-                <span className="min-w-0 flex-1 truncate">{p.label}</span>
-                {on && (
-                  <svg
-                    width="13"
-                    height="13"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M20 6 9 17l-5-5" />
-                  </svg>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      )}
+      {open &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            ref={menuRef}
+            style={{
+              position: "fixed",
+              top: pos.top,
+              left: pos.left,
+              width: pos.width,
+              maxHeight: MENU_MAXH,
+            }}
+            className="z-[100] overflow-y-auto rounded-xl border border-ink/10 bg-white p-1 shadow-lift dark:border-white/10 dark:bg-[#1e2029]"
+            role="menu"
+          >
+            {people.map((p) => {
+              const on = selected.includes(p.id);
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => toggle(p.id)}
+                  className={cn(
+                    "flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm transition-colors",
+                    on
+                      ? "bg-brand/10 text-brand-dark dark:text-brand"
+                      : "text-ink/75 hover:bg-ink/5",
+                  )}
+                >
+                  <Avatar src={p.avatar_url} name={p.label} size="xs" />
+                  <span className="min-w-0 flex-1 truncate">{p.label}</span>
+                  {on && (
+                    <svg
+                      width="13"
+                      height="13"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M20 6 9 17l-5-5" />
+                    </svg>
+                  )}
+                </button>
+              );
+            })}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }
