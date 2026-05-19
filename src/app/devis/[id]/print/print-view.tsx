@@ -42,18 +42,23 @@ export function DevisPrintView({
   items: Item[];
   settings: AppSettings;
 }) {
-  useEffect(() => {
-    const t = setTimeout(() => window.print(), 400);
-    return () => clearTimeout(t);
-  }, []);
-
   const isFacture = devis.kind === "facture";
   const docTitle = isFacture ? "Facture." : "Devis.";
   const numberLabel = isFacture ? "#FACT" : "#EST";
-  const numberFormatted = formatDevisNumber(devis.devis_number, devis.kind).replace(
-    /^(EST|FACT)-/,
-    "",
-  );
+  const fullNumber = formatDevisNumber(devis.devis_number, devis.kind);
+  const numberFormatted = fullNumber.replace(/^(EST|FACT)-/, "");
+
+  useEffect(() => {
+    // The browser's "Save as PDF" defaults to document.title, so set it
+    // to e.g. "Devis-EST-0000038" / "Facture-FACT-0000012".
+    const prev = document.title;
+    document.title = `${isFacture ? "Facture" : "Devis"}-${fullNumber}`;
+    const t = setTimeout(() => window.print(), 400);
+    return () => {
+      clearTimeout(t);
+      document.title = prev;
+    };
+  }, [isFacture, fullNumber]);
 
   return (
     <div className="devis-page">
@@ -210,6 +215,11 @@ export function DevisPrintView({
           box-sizing: border-box;
           box-shadow: 0 4px 24px rgba(30, 30, 36, 0.12);
           position: relative;
+          /* Column layout so the footer can be pushed to the bottom of
+             the sheet on short (1-page) devis instead of floating in the
+             middle, while still flowing naturally on long ones. */
+          display: flex;
+          flex-direction: column;
         }
 
         .devis-header {
@@ -348,25 +358,25 @@ export function DevisPrintView({
         }
 
         .signature {
-          width: 78mm;
+          width: 95mm;
         }
         .signature-tag {
           font-weight: 700;
-          margin-bottom: 2mm;
+          margin-bottom: 2.5mm;
           text-align: center;
         }
         .signature-box {
-          height: 42mm;
+          height: 58mm;
           border: 1px solid rgba(30, 30, 36, 0.35);
           border-radius: 2mm;
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 3mm;
+          padding: 4mm;
           background: #fff;
         }
         .signature-stamp {
-          max-width: 90%;
+          max-width: 100%;
           max-height: 100%;
           object-fit: contain;
           /* multiply so the blue ink blends with the box instead of a
@@ -383,17 +393,16 @@ export function DevisPrintView({
           page-break-inside: avoid;
         }
 
+        /* Push the footer to the bottom of the sheet (flex-column parent)
+           so short devis aren't half-empty with a floating footer. */
         .footer {
-          position: absolute;
-          left: 16mm;
-          right: 16mm;
-          bottom: 8mm;
+          margin-top: auto;
+          padding-top: 6mm;
           display: flex;
           justify-content: space-between;
           color: var(--muted);
           font-size: 9pt;
           border-top: 1px solid rgba(30, 30, 36, 0.1);
-          padding-top: 3mm;
         }
 
         .print-controls {
@@ -419,10 +428,7 @@ export function DevisPrintView({
 
         @page {
           size: A4;
-          /* Real page margins so a 2nd/3rd page (long devis like
-             EST-036) keeps the same framing as page 1 instead of
-             content running into the paper edge. */
-          margin: 14mm;
+          margin: 0;
         }
 
         @media print {
@@ -430,28 +436,17 @@ export function DevisPrintView({
           body {
             background: #fff;
           }
+          /* Keep the full-sheet box (with its own padding) so the
+             flex-column + footer margin-top:auto pins the footer to the
+             bottom of page 1. Long devis just grow past 297mm and the
+             browser paginates. */
           .devis-page {
-            /* @page margin now handles the framing — let the document
-               flow naturally across as many pages as it needs. */
-            width: auto;
-            min-height: 0;
             margin: 0;
-            padding: 0;
             box-shadow: none;
           }
           /* Repeat the table header on every printed page */
           .items thead {
             display: table-header-group;
-          }
-          /* In print the footer flows after the content (works for
-             multi-page) instead of being absolutely pinned to a
-             fixed-height box. */
-          .footer {
-            position: static;
-            left: auto;
-            right: auto;
-            bottom: auto;
-            margin-top: 12mm;
           }
           .print-controls {
             display: none;
