@@ -331,7 +331,7 @@ export function DevisPrintView({
           display: flex;
           justify-content: space-between;
           align-items: flex-start;
-          gap: 10mm;
+          gap: 6mm;
           margin-top: 8mm;
         }
         .totals {
@@ -358,7 +358,7 @@ export function DevisPrintView({
         }
 
         .signature {
-          width: 95mm;
+          width: 100mm;
         }
         .signature-tag {
           font-weight: 700;
@@ -366,19 +366,22 @@ export function DevisPrintView({
           text-align: center;
         }
         .signature-box {
-          height: 58mm;
+          height: 76mm;
           border: 1px solid rgba(30, 30, 36, 0.35);
           border-radius: 2mm;
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 4mm;
+          padding: 2mm;
           background: #fff;
         }
         .signature-stamp {
           max-width: 100%;
           max-height: 100%;
           object-fit: contain;
+          /* +30% over the previous size — the source PNG has internal
+             whitespace so we scale it up a touch past the box bounds. */
+          transform: scale(1.15);
           /* multiply so the blue ink blends with the box instead of a
              hard white tile */
           mix-blend-mode: multiply;
