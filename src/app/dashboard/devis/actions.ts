@@ -37,6 +37,8 @@ type DevisInput = {
   items: DevisItemInput[];
   kind: DevisKind;
   discount_dt: number;
+  /** Optional manual override of the document number. */
+  devis_number: number | null;
 };
 
 function parseItems(formData: FormData): DevisItemInput[] {
@@ -77,7 +79,17 @@ function pickDevisInput(formData: FormData): DevisInput {
     items: parseItems(formData),
     kind,
     discount_dt: Math.max(0, Number(formData.get("discount_dt") ?? 0) || 0),
+    devis_number: parseDevisNumber(formData.get("devis_number")),
   };
+}
+
+/** Manual document number: positive integer, or null to auto-assign. */
+function parseDevisNumber(v: FormDataEntryValue | null): number | null {
+  if (v === null) return null;
+  const s = String(v).trim();
+  if (s.length === 0) return null;
+  const n = Math.floor(Number(s));
+  return Number.isFinite(n) && n > 0 ? n : null;
 }
 
 function stringOrNull(v: FormDataEntryValue | null): string | null {
@@ -125,6 +137,27 @@ async function nextNumber(kind: DevisKind): Promise<number> {
   return ((row?.devis_number as number | undefined) ?? (kind === "facture" ? 0 : 36)) + 1;
 }
 
+/**
+ * True if `number` is already used by another document of the same kind.
+ * `excludeId` lets the edit form keep its own current number.
+ */
+async function numberTaken(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  kind: DevisKind,
+  number: number,
+  excludeId: string | null,
+): Promise<boolean> {
+  let q = supabase
+    .from("devis")
+    .select("id")
+    .eq("kind", kind)
+    .eq("devis_number", number);
+  if (excludeId) q = q.neq("id", excludeId);
+  const { data } = await q.limit(1).maybeSingle();
+  return !!data;
+}
+
 export async function createDevisAction(
   formData: FormData,
 ): Promise<ActionResult> {
@@ -138,8 +171,24 @@ export async function createDevisAction(
   const totals = computeTotals(input.items, input.discount_dt);
   const supabase = await createClient();
 
-  // Get the right sequence number based on kind.
-  const number = await nextNumber(input.kind);
+  // Manual number if the admin set one, otherwise the next in sequence.
+  let number: number;
+  if (input.devis_number !== null) {
+    const taken = await numberTaken(
+      supabase,
+      input.kind,
+      input.devis_number,
+      null,
+    );
+    if (taken)
+      return {
+        ok: false,
+        error: `Le numéro ${input.devis_number} est déjà utilisé.`,
+      };
+    number = input.devis_number;
+  } else {
+    number = await nextNumber(input.kind);
+  }
 
   const { data: devis, error } = await supabase
     .from("devis")
@@ -200,6 +249,32 @@ export async function updateDevisAction(
   const totals = computeTotals(input.items, input.discount_dt);
   const supabase = await createClient();
 
+  // Allow editing the document number; reject collisions with a
+  // different document of the same kind.
+  const numberPatch: { devis_number?: number } = {};
+  if (input.devis_number !== null) {
+    const { data: cur } = await supabase
+      .from("devis")
+      .select("kind, devis_number")
+      .eq("id", id)
+      .single();
+    const kind = (cur?.kind as DevisKind) ?? input.kind;
+    if (cur && cur.devis_number !== input.devis_number) {
+      const taken = await numberTaken(
+        supabase,
+        kind,
+        input.devis_number,
+        id,
+      );
+      if (taken)
+        return {
+          ok: false,
+          error: `Le numéro ${input.devis_number} est déjà utilisé.`,
+        };
+      numberPatch.devis_number = input.devis_number;
+    }
+  }
+
   const { error } = await supabase
     .from("devis")
     .update({
@@ -213,6 +288,7 @@ export async function updateDevisAction(
       tva_rate: TVA_RATE,
       tva_dt: totals.tva,
       total_dt: totals.total,
+      ...numberPatch,
     })
     .eq("id", id);
   if (error) return { ok: false, error: error.message };

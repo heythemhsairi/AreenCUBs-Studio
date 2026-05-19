@@ -17,7 +17,7 @@ export default async function EditDevisPage({
       supabase
         .from("devis")
         .select(
-          "id, kind, client_id, date, due_date, object, notes, discount_dt, devis_items(service_id, description, quantity, unit_price_dt, is_bonus, position)",
+          "id, kind, devis_number, client_id, date, due_date, object, notes, discount_dt, devis_items(service_id, description, quantity, unit_price_dt, is_bonus, position)",
         )
         .eq("id", id)
         .single(),
@@ -53,6 +53,7 @@ export default async function EditDevisPage({
         due_date: devis.due_date,
         object: devis.object,
         notes: devis.notes,
+        devis_number: devis.devis_number ?? undefined,
         discount_dt: Number(devis.discount_dt ?? 0),
         items,
       }}

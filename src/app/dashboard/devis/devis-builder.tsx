@@ -38,6 +38,7 @@ type Devis = {
   due_date: string;
   object: string | null;
   notes: string | null;
+  devis_number?: number;
   discount_dt?: number;
   items: Array<{
     service_id: string | null;
@@ -103,6 +104,11 @@ export function DevisBuilder(props: Props) {
   );
   const [notes, setNotes] = useState(
     props.mode === "edit" ? (props.devis.notes ?? "") : "",
+  );
+  const [docNumber, setDocNumber] = useState(
+    props.mode === "edit" && props.devis.devis_number != null
+      ? String(props.devis.devis_number)
+      : "",
   );
   const [discountDt, setDiscountDt] = useState<number>(
     props.mode === "edit" ? Number(props.devis.discount_dt ?? 0) : 0,
@@ -190,6 +196,7 @@ export function DevisBuilder(props: Props) {
     fd.set("due_date", dueDate);
     fd.set("object", object);
     fd.set("notes", notes);
+    fd.set("devis_number", docNumber.trim());
     fd.set("discount_dt", String(discountDt || 0));
     fd.set(
       "items_json",
@@ -256,6 +263,21 @@ export function DevisBuilder(props: Props) {
                 <Input
                   value={object}
                   onChange={(e) => setObject(e.target.value)}
+                />
+              </Field>
+              <Field
+                label={`Numéro ${docLabel}${
+                  props.mode === "create" ? " (auto si vide)" : ""
+                }`}
+              >
+                <Input
+                  type="number"
+                  min="1"
+                  step="1"
+                  inputMode="numeric"
+                  placeholder={props.mode === "create" ? "Automatique" : ""}
+                  value={docNumber}
+                  onChange={(e) => setDocNumber(e.target.value)}
                 />
               </Field>
               <Field label="Date">
