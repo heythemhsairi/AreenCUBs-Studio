@@ -91,9 +91,9 @@ export default async function TaskEditPage({
       .eq("task_id", id),
     supabase
       .from("social_posts")
-      .select("id, title, platform, status, scheduled_at")
+      .select("id, title, platforms, status, scheduled_at")
       .eq("task_id", id)
-      .order("scheduled_at", { ascending: true }),
+      .order("created_at", { ascending: false }),
   ]);
 
   if (!task) notFound();
@@ -226,7 +226,7 @@ export default async function TaskEditPage({
         posts={(linkedPostsRaw ?? []) as {
           id: string;
           title: string;
-          platform: string;
+          platforms: string[];
           status: string;
           scheduled_at: string | null;
         }[]}
