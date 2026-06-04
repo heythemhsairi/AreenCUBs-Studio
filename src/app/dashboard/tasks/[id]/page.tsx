@@ -10,6 +10,7 @@ import { FilesCard, type TaskFile } from "./files-card";
 import { TimeTracker, type TimeEntry } from "./time-tracker";
 import { ActivityFeed, type ActivityRow } from "./activity-feed";
 import { PinHintRow } from "./pin-hint-row";
+import { LinkedSocialPosts } from "./linked-social-posts";
 
 export default async function TaskEditPage({
   params,
@@ -30,6 +31,7 @@ export default async function TaskEditPage({
     { data: activityRaw },
     { data: pinRow },
     { data: assigneesForTaskRaw },
+    { data: linkedPostsRaw },
   ] = await Promise.all([
     supabase
       .from("tasks")
@@ -87,6 +89,11 @@ export default async function TaskEditPage({
       .from("task_assignees")
       .select("user_id")
       .eq("task_id", id),
+    supabase
+      .from("social_posts")
+      .select("id, title, platform, status, scheduled_at")
+      .eq("task_id", id)
+      .order("scheduled_at", { ascending: true }),
   ]);
 
   if (!task) notFound();
@@ -213,6 +220,18 @@ export default async function TaskEditPage({
       )}
 
       <PinHintRow taskId={task.id} isPinned={isPinned} />
+
+      <LinkedSocialPosts
+        taskId={task.id}
+        posts={(linkedPostsRaw ?? []) as {
+          id: string;
+          title: string;
+          platform: string;
+          status: string;
+          scheduled_at: string | null;
+        }[]}
+        canSchedule={session.role !== "freelancer"}
+      />
 
       <TaskForm
         mode="edit"

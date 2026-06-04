@@ -34,6 +34,8 @@ const ICONS: Record<string, string> = {
     "M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z M16 3v4 M8 3v4 M3 11h18 M8 15h2 M14 15h2 M8 19h2",
   settings:
     "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M12 2v3 M12 19v3 M4.22 4.22l2.12 2.12 M17.66 17.66l2.12 2.12 M2 12h3 M19 12h3 M4.22 19.78l2.12-2.12 M17.66 6.34l2.12-2.12",
+  socialMedia:
+    "M4 4m0 4a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v8a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4z M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z M17.5 6.5h.01",
 };
 
 function buildNav(
@@ -60,6 +62,13 @@ function buildNav(
       label: t.nav.calendar,
       icon: ICONS.calendar,
       rolesAllowed: ["admin", "worker", "freelancer"],
+      group: "workspace",
+    },
+    {
+      href: "/dashboard/social-media",
+      label: t.nav.socialMedia,
+      icon: ICONS.socialMedia,
+      rolesAllowed: ["admin", "worker"],
       group: "workspace",
     },
     {
