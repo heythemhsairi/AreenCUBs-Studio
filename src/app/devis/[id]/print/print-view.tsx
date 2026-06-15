@@ -12,6 +12,7 @@ type Devis = {
   due_date: string;
   object: string | null;
   subtotal_dt: number;
+  discount_dt: number;
   tva_dt: number;
   tva_rate: number;
   total_dt: number;
@@ -162,6 +163,18 @@ export function DevisPrintView({
               <span>Sous total :</span>
               <strong>{formatDt(devis.subtotal_dt)}</strong>
             </div>
+            {devis.discount_dt > 0 && (
+              <>
+                <div className="totals-row totals-row--discount">
+                  <span>Remise :</span>
+                  <strong>− {formatDt(devis.discount_dt)}</strong>
+                </div>
+                <div className="totals-row totals-row--net">
+                  <span>Net HT :</span>
+                  <strong>{formatDt(devis.subtotal_dt - devis.discount_dt)}</strong>
+                </div>
+              </>
+            )}
             <div className="totals-row">
               <span>TVA ({Number(devis.tva_rate).toFixed(0)}%) :</span>
               <strong>{formatDt(devis.tva_dt)}</strong>
@@ -347,6 +360,15 @@ export function DevisPrintView({
           display: flex;
           justify-content: space-between;
           padding: 1.5mm 0;
+        }
+        .totals-row--discount {
+          color: #c0392b;
+        }
+        .totals-row--net {
+          border-top: 1px dashed rgba(30, 30, 36, 0.15);
+          padding-top: 1.5mm;
+          margin-top: 1mm;
+          font-weight: 600;
         }
         .totals-row--final {
           border-top: 1px solid var(--brand);

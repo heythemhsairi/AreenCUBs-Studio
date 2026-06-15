@@ -21,7 +21,7 @@ export default async function DevisPrintPage({
     supabase
       .from("devis")
       .select(
-        "id, kind, devis_number, date, due_date, object, subtotal_dt, tva_dt, tva_rate, total_dt, clients:client_id(id, name, address, matricule_fiscal), devis_items(id, description, quantity, unit_price_dt, line_total_dt, is_bonus, position)",
+        "id, kind, devis_number, date, due_date, object, subtotal_dt, tva_dt, tva_rate, total_dt, discount_dt, clients:client_id(id, name, address, matricule_fiscal), devis_items(id, description, quantity, unit_price_dt, line_total_dt, is_bonus, position)",
       )
       .eq("id", id)
       .single(),
@@ -45,6 +45,7 @@ export default async function DevisPrintPage({
         due_date: devis.due_date,
         object: devis.object,
         subtotal_dt: Number(devis.subtotal_dt),
+        discount_dt: Number(devis.discount_dt ?? 0),
         tva_dt: Number(devis.tva_dt),
         tva_rate: Number(devis.tva_rate),
         total_dt: Number(devis.total_dt),
