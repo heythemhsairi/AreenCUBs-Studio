@@ -48,6 +48,7 @@ export function DevisToolbar({
     (filters.date !== "all" ? 1 : 0) +
     (filters.search.trim().length > 0 ? 1 : 0);
 
+  // Desktop: "all" shown as plain "Tous" inside a labeled dropdown button
   const statusOptions: Option[] = [
     { value: "all", label: t.common.all },
     { value: "draft", label: t.devis.status.draft },
@@ -55,25 +56,36 @@ export function DevisToolbar({
     { value: "accepted", label: t.devis.status.accepted },
     { value: "rejected", label: t.devis.status.rejected },
   ];
-
   const paymentOptions: Option[] = [
     { value: "all", label: t.common.all },
     { value: "unpaid", label: t.devis.payment.unpaid },
     { value: "partial", label: t.devis.payment.partial },
     { value: "paid", label: t.devis.payment.paid },
   ];
-
   const clientOptions: Option[] = [
     { value: "all", label: t.filters.allClients },
     ...clients,
   ];
-
   const dateOptions: Option[] = [
     { value: "all", label: t.common.all },
     { value: "month", label: t.common.thisMonth },
     { value: "quarter", label: t.common.thisQuarter },
     { value: "year", label: t.filters.thisYear },
     { value: "overdue", label: t.filters.overdue },
+  ];
+
+  // Mobile: "all" option shows "Label: Tous" so the select chip is self-explanatory
+  const mobileStatusOptions: Option[] = [
+    { value: "all", label: `${t.filters.status}: ${t.common.all}` },
+    ...statusOptions.slice(1),
+  ];
+  const mobilePaymentOptions: Option[] = [
+    { value: "all", label: `${t.filters.payment}: ${t.common.all}` },
+    ...paymentOptions.slice(1),
+  ];
+  const mobileDateOptions: Option[] = [
+    { value: "all", label: `${t.filters.period}: ${t.common.all}` },
+    ...dateOptions.slice(1),
   ];
 
   return (
@@ -110,14 +122,14 @@ export function DevisToolbar({
           <NativeSelect
             label={t.filters.status}
             value={filters.status}
-            options={statusOptions}
+            options={mobileStatusOptions}
             onChange={(v) => patch("status", v as DevisFilters["status"])}
             active={filters.status !== "all"}
           />
           <NativeSelect
             label={t.filters.payment}
             value={filters.payment}
-            options={paymentOptions}
+            options={mobilePaymentOptions}
             onChange={(v) => patch("payment", v as DevisFilters["payment"])}
             active={filters.payment !== "all"}
           />
@@ -133,7 +145,7 @@ export function DevisToolbar({
           <NativeSelect
             label={t.filters.period}
             value={filters.date}
-            options={dateOptions}
+            options={mobileDateOptions}
             onChange={(v) => patch("date", v as DevisFilters["date"])}
             active={filters.date !== "all"}
           />
@@ -219,7 +231,7 @@ function NativeSelect({
       >
         {options.map((opt) => (
           <option key={opt.value} value={opt.value} className="bg-[#111827] text-[#F8FAFC]">
-            {opt.value === "all" ? label : opt.label}
+            {opt.label}
           </option>
         ))}
       </select>

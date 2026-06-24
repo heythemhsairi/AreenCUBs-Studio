@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/utils";
@@ -154,10 +155,24 @@ const GROUP_ORDER: NavItem["group"][] = [
 export function Sidebar({ role }: { role: UserRole }) {
   const { t } = useI18n();
   const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
   const items = buildNav(role, t).filter((i) => i.rolesAllowed.includes(role));
 
+  // Only render sidebar when ≥768 px — keeps it off the mobile DOM entirely
+  const [isDesktop, setIsDesktop] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px)");
+    setIsDesktop(mq.matches);
+    setMounted(true);
+    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  if (!mounted || !isDesktop) return null;
+
   return (
-    <aside className="hidden md:flex w-60 shrink-0 flex-col h-screen sticky top-0 bg-[#111827] border-r border-[#263244] overflow-y-auto">
+    <aside className="flex w-60 shrink-0 flex-col h-screen sticky top-0 bg-[#111827] border-r border-[#263244] overflow-y-auto">
       {/* Logo lockup */}
       <div className="flex items-center gap-2.5 h-16 px-5 border-b border-[#263244] shrink-0">
         <Link href="/dashboard" className="flex items-center">

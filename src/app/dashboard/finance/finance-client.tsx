@@ -115,9 +115,9 @@ function isNew(c: number, p: number): boolean {
   return p === 0 && c > 0;
 }
 
-/** True when both current and previous are 0 — no data to compare. */
-function noData(c: number, p: number): boolean {
-  return c === 0 && p === 0;
+/** True when current value is 0 — nothing to report, trend is meaningless. */
+function noData(c: number, _p: number): boolean {
+  return c === 0;
 }
 
 // ---------------------------------------------------------------------------
