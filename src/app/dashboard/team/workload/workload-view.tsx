@@ -427,7 +427,7 @@ function SummaryTile({
   );
 }
 
-function Th({ children }: { children: React.ReactNode }) {
+function Th({ children }: { children?: React.ReactNode }) {
   return (
     <th className="px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.06em] text-ink/50">
       {children}
