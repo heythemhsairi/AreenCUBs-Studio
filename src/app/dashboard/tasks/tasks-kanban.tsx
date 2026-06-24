@@ -24,6 +24,7 @@ export type TaskCard = {
   client?: { id: string; name: string };
   tags?: string[];
   estimated_minutes?: number | null;
+  completed_at?: string | null;
 };
 
 const COLUMN_ORDER: Status[] = ["todo", "in_progress", "review", "done"];

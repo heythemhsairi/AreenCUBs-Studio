@@ -877,8 +877,18 @@ function applyQuickFilter(
   endOfWeek.setDate(endOfWeek.getDate() + 6);
 
   switch (qf) {
-    case "active":
-      return tasks.filter((t) => t.status !== "done" && t.status !== "cancelled");
+    case "active": {
+      const cutoff = now.getTime() - 24 * 60 * 60 * 1000;
+      return tasks.filter((t) => {
+        if (t.status === "cancelled") return false;
+        if (t.status === "done") {
+          // Show done tasks only for 24h after completion
+          if (!t.completed_at) return false;
+          return new Date(t.completed_at).getTime() >= cutoff;
+        }
+        return true;
+      });
+    }
     case "my_tasks":
       return tasks.filter(
         (t) => t.assigneeId === meId && t.status !== "done" && t.status !== "cancelled",
@@ -926,6 +936,7 @@ function computeQuickCounts(
   now.setHours(0, 0, 0, 0);
   const endOfWeek = new Date(now);
   endOfWeek.setDate(endOfWeek.getDate() + 6);
+  const cutoff = Date.now() - 24 * 60 * 60 * 1000;
 
   const counts: Record<QuickFilter, number> = {
     active: 0,
@@ -941,7 +952,9 @@ function computeQuickCounts(
   for (const t of tasks) {
     const isDone = t.status === "done";
     const isCancelled = t.status === "cancelled";
-    if (!isDone && !isCancelled) counts.active++;
+    // Count in "active" if not cancelled AND (not done OR done within last 24h)
+    const recentDone = isDone && !!t.completed_at && new Date(t.completed_at).getTime() >= cutoff;
+    if (!isCancelled && (!isDone || recentDone)) counts.active++;
     if (t.assigneeId === meId && !isDone && !isCancelled) counts.my_tasks++;
     if (t.status === "in_progress") counts.in_progress++;
     if (t.status === "review") counts.review++;
