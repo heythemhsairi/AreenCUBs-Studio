@@ -42,14 +42,11 @@ export async function createFollowUpTaskAction(
   // Find a project for this devis to link the task to
   const { data: devis } = await supabase
     .from("devis")
-    .select("client_id, clients:client_id(id)")
+    .select("client_id")
     .eq("id", devisId)
     .single();
 
-  // Find the first project for this client
-  const clientId =
-    devis?.client_id ??
-    (Array.isArray(devis?.clients) ? devis.clients[0]?.id : devis?.clients?.id);
+  const clientId = devis?.client_id ?? null;
 
   let projectId: string | null = null;
   if (clientId) {
