@@ -358,6 +358,57 @@
 }
 
 /* =========================================================================
+   DARK MODE DEFAULTS — override legacy "ink" color tokens
+   The app is dark-first. Legacy classes like text-ink (#1E1E24, near-black)
+   are invisible on dark surfaces. When NOT in light mode, remap them to
+   readable light equivalents so existing pages look correct.
+   ========================================================================= */
+
+html:not(.light) .text-ink { color: #F8FAFC !important; }
+html:not(.light) .text-ink\/35 { color: rgba(248,250,252,0.35) !important; }
+html:not(.light) .text-ink\/40 { color: rgba(248,250,252,0.40) !important; }
+html:not(.light) .text-ink\/45 { color: rgba(248,250,252,0.45) !important; }
+html:not(.light) .text-ink\/50 { color: rgba(248,250,252,0.50) !important; }
+html:not(.light) .text-ink\/55 { color: rgba(248,250,252,0.55) !important; }
+html:not(.light) .text-ink\/60 { color: rgba(248,250,252,0.60) !important; }
+html:not(.light) .text-ink\/65 { color: rgba(248,250,252,0.65) !important; }
+html:not(.light) .text-ink\/70 { color: rgba(248,250,252,0.70) !important; }
+html:not(.light) .text-ink\/75 { color: rgba(248,250,252,0.75) !important; }
+html:not(.light) .text-ink\/80 { color: rgba(248,250,252,0.80) !important; }
+html:not(.light) .bg-ink\/5  { background-color: rgba(248,250,252,0.05) !important; }
+html:not(.light) .bg-ink\/8  { background-color: rgba(248,250,252,0.08) !important; }
+html:not(.light) .bg-ink\/10 { background-color: rgba(248,250,252,0.10) !important; }
+html:not(.light) .bg-ink\/50 { background-color: rgba(0,0,0,0.50) !important; }
+html:not(.light) .border-ink\/8  { border-color: rgba(248,250,252,0.08) !important; }
+html:not(.light) .border-ink\/10 { border-color: rgba(248,250,252,0.10) !important; }
+html:not(.light) .border-ink\/12 { border-color: rgba(248,250,252,0.12) !important; }
+html:not(.light) .border-ink\/15 { border-color: rgba(248,250,252,0.15) !important; }
+html:not(.light) .border-ink\/20 { border-color: rgba(248,250,252,0.20) !important; }
+html:not(.light) .border-ink\/25 { border-color: rgba(248,250,252,0.25) !important; }
+
+/* Form inputs: in dark mode use dark background instead of white */
+html:not(.light) input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+html:not(.light) select,
+html:not(.light) textarea {
+  background-color: #111827 !important;
+  border-color: #263244 !important;
+  color: #F8FAFC !important;
+}
+html:not(.light) input::placeholder,
+html:not(.light) textarea::placeholder {
+  color: rgba(148, 163, 184, 0.6) !important;
+}
+
+/* Dark-mode overrides for legacy white/light containers */
+html:not(.light) .bg-white    { background-color: #111827 !important; }
+html:not(.light) .bg-white\/40 { background-color: rgba(255,255,255,0.04) !important; }
+html:not(.light) .bg-white\/50 { background-color: rgba(255,255,255,0.05) !important; }
+html:not(.light) .bg-white\/55 { background-color: rgba(255,255,255,0.05) !important; }
+html:not(.light) .bg-white\/60 { background-color: rgba(255,255,255,0.06) !important; }
+html:not(.light) .bg-white\/70 { background-color: rgba(255,255,255,0.07) !important; }
+html:not(.light) .bg-white\/90 { background-color: rgba(255,255,255,0.09) !important; }
+
+/* =========================================================================
    LIGHT MODE — opt-in via html.light class
    ========================================================================= */
 

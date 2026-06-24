@@ -1,6 +1,6 @@
 import { requireSession } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { Sidebar, MobileNav } from "@/components/dashboard/sidebar";
+import { Sidebar } from "@/components/dashboard/sidebar";
 import { Topbar } from "@/components/dashboard/topbar";
 import { CommandPalette } from "@/components/command-palette";
 import type { NotificationRow } from "@/components/dashboard/notification-bell";
@@ -60,8 +60,6 @@ export default async function DashboardLayout({
           jobTitle={session.job_title}
           notifications={notifications}
         />
-        <MobileNav role={session.role} />
-
         <main className="flex-1 overflow-y-auto pb-20 md:pb-0">
           <div className="mx-auto max-w-[1280px] px-4 py-5 md:px-6 md:py-6 lg:px-8 lg:py-8 space-y-6">
             {unseenUpdate && <WhatsNewBanner update={unseenUpdate} />}
