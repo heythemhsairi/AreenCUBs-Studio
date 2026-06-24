@@ -6,6 +6,7 @@ import { CommandPalette } from "@/components/command-palette";
 import type { NotificationRow } from "@/components/dashboard/notification-bell";
 import { WhatsNewBanner } from "@/components/dashboard/whats-new-banner";
 import { getUnseenUpdate } from "@/lib/updates";
+import { MobileBottomNav } from "@/components/dashboard/mobile-bottom-nav";
 
 export default async function DashboardLayout({
   children,
@@ -39,42 +40,37 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen">
-      {/*
-        Decorative background lives in a FIXED, viewport-sized layer so it:
-        1. Never affects document flow (no sticky/overflow conflicts).
-        2. Doesn't disappear when the user scrolls down a long page.
-        3. Clips its own blurred blobs (overflow-hidden is scoped here only).
-      */}
-      <div
-        aria-hidden
-        className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
-      >
-        <div className="absolute inset-0 bg-mesh" />
-        <div className="absolute -left-40 -top-40 h-[40rem] w-[40rem] rounded-full bg-brand/30 blur-[120px]" />
-        <div className="absolute right-[-10rem] top-1/3 h-[28rem] w-[28rem] rounded-full bg-[#7c4dff]/20 blur-[110px]" />
-        <div className="absolute -bottom-40 left-1/4 h-[32rem] w-[32rem] rounded-full bg-cyan-400/12 blur-[120px]" />
+    <div className="flex h-screen overflow-hidden bg-[#0B0F14]">
+      {/* fixed dark mesh background */}
+      <div aria-hidden className="pointer-events-none fixed inset-0 -z-10">
+        <div className="absolute inset-0 bg-mesh opacity-60" />
+        <div className="absolute -left-40 -top-20 h-96 w-96 rounded-full bg-neon-cyan/6 blur-[100px]" />
+        <div className="absolute right-0 top-1/3 h-80 w-80 rounded-full bg-neon-violet/5 blur-[100px]" />
       </div>
 
-      <Topbar
-        role={session.role}
-        username={session.username}
-        avatarUrl={session.avatar_url}
-        jobTitle={session.job_title}
-        notifications={notifications}
-      />
-      <MobileNav role={session.role} />
+      {/* Desktop sidebar — full height, sticky */}
+      <Sidebar role={session.role} />
 
-      <div className="mx-auto flex w-full max-w-[1440px] gap-0">
-        <Sidebar role={session.role} />
-        <main className="reveal min-w-0 flex-1 px-4 py-6 md:px-8 md:py-10 lg:px-10">
-          <div className="mx-auto w-full max-w-[1180px] space-y-6">
+      {/* Right column: topbar + mobile nav + scrollable content */}
+      <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
+        <Topbar
+          role={session.role}
+          username={session.username}
+          avatarUrl={session.avatar_url}
+          jobTitle={session.job_title}
+          notifications={notifications}
+        />
+        <MobileNav role={session.role} />
+
+        <main className="flex-1 overflow-y-auto pb-20 md:pb-0">
+          <div className="mx-auto max-w-[1280px] px-4 py-5 md:px-6 md:py-6 lg:px-8 lg:py-8 space-y-6">
             {unseenUpdate && <WhatsNewBanner update={unseenUpdate} />}
             {children}
           </div>
         </main>
       </div>
 
+      <MobileBottomNav role={session.role} />
       <CommandPalette />
     </div>
   );
