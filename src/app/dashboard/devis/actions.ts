@@ -629,6 +629,62 @@ export async function convertDevisToFactureAction(
     }
   }
 
+  // Transfer existing devis payments to the new facture.
+  // Rule: once a facture exists for a devis, payments belong to the facture.
+  const { data: devisPayments } = await supabase
+    .from("payments")
+    .select("id, amount_dt, paid_at, method, notes, recorded_by, created_at")
+    .eq("devis_id", devisId);
+
+  for (const pay of devisPayments ?? []) {
+    // Dedup guard: skip if a copy already exists on this facture for this source payment
+    const { data: exists } = await supabase
+      .from("payments")
+      .select("id")
+      .eq("devis_id", facture.id)
+      .eq("source_payment_id", pay.id)
+      .maybeSingle();
+    if (!exists) {
+      await supabase.from("payments").insert({
+        devis_id: facture.id,
+        amount_dt: pay.amount_dt,
+        paid_at: pay.paid_at,
+        method: pay.method ?? "transféré depuis devis",
+        notes: pay.notes,
+        recorded_by: pay.recorded_by,
+        source_devis_id: devisId,
+        source_payment_id: pay.id,
+        migrated_from_devis: true,
+        created_at: pay.created_at,
+      });
+    }
+  }
+
+  // Mark original devis payments as superseded so the dashboard excludes them
+  if ((devisPayments ?? []).length > 0) {
+    await supabase
+      .from("payments")
+      .update({ source_devis_id: devisId })
+      .eq("devis_id", devisId)
+      .is("source_devis_id", null);
+  }
+
+  // Recompute facture payment_status from its now-linked payments
+  const { data: paidRows } = await supabase
+    .from("payments")
+    .select("amount_dt")
+    .eq("devis_id", facture.id);
+  const totalPaid = (paidRows ?? []).reduce((s, p) => s + Number(p.amount_dt ?? 0), 0);
+  const totalDt   = Number(source.total_dt ?? 0);
+  const newStatus =
+    totalPaid <= 0 ? "unpaid"
+    : totalPaid + 0.01 >= totalDt ? "paid"
+    : "partial";
+  await supabase
+    .from("devis")
+    .update({ payment_status: newStatus })
+    .eq("id", facture.id);
+
   revalidatePath("/dashboard/devis");
   revalidatePath("/dashboard/factures");
   revalidatePath(`/dashboard/devis/${devisId}`);

@@ -176,34 +176,40 @@ export default async function DashboardPage() {
       : null;
 
   // ---- Admin-only finance data ----
-  type DevisRow = {
+  // Rules:
+  //   Facturé   = facture totals only (kind='facture')
+  //   Encaissé  = payments linked to factures only
+  //   Impayés   = unpaid facture balances (not devis totals)
+  type FactureRow = {
     id: string;
     date: string;
     total_dt: number;
     status: string;
     payment_status: string;
   };
-  type PaymentRow = { amount_dt: number; paid_at: string };
+  type PaymentRow = { devis_id: string; amount_dt: number; paid_at: string };
 
-  const devisRows: DevisRow[] = isAdmin
+  const factureRows: FactureRow[] = isAdmin
     ? await safe(
         async () => {
           const { data } = await supabase
             .from("devis")
             .select("id, date, total_dt, status, payment_status")
+            .eq("kind", "facture")
             .gte("date", oldestStart);
-          return (data ?? []) as DevisRow[];
+          return (data ?? []) as FactureRow[];
         },
         [],
-        "devis",
+        "factures",
       )
     : [];
+
   const paymentRows: PaymentRow[] = isAdmin
     ? await safe(
         async () => {
           const { data } = await supabase
             .from("payments")
-            .select("amount_dt, paid_at")
+            .select("devis_id, amount_dt, paid_at")
             .gte("paid_at", oldestStart);
           return (data ?? []) as PaymentRow[];
         },
@@ -212,6 +218,28 @@ export default async function DashboardPage() {
       )
     : [];
 
+  // Set of facture IDs so we count only facture-linked payments
+  const factureIdSet = new Set(factureRows.map((f) => f.id));
+
+  // Unpaid facture balances (need all-time payments to compute balance correctly)
+  const { data: unpaidFacturesFull } = isAdmin
+    ? await supabase
+        .from("devis")
+        .select("id, total_dt, payment_status, status")
+        .eq("kind", "facture")
+        .in("payment_status", ["unpaid", "partial"])
+        .neq("status", "rejected")
+    : { data: [] };
+
+  const { data: allPaymentsFull } = isAdmin
+    ? await supabase.from("payments").select("devis_id, amount_dt")
+    : { data: [] };
+
+  const paidPerDoc = new Map<string, number>();
+  for (const p of allPaymentsFull ?? []) {
+    paidPerDoc.set(p.devis_id, (paidPerDoc.get(p.devis_id) ?? 0) + Number(p.amount_dt ?? 0));
+  }
+
   let mtdInvoiced = 0,
     prevInvoiced = 0,
     mtdPaid = 0,
@@ -219,23 +247,25 @@ export default async function DashboardPage() {
     totalOutstanding = 0,
     outstandingPrev = 0;
 
-  for (const d of devisRows) {
-    if (d.status === "rejected" || d.status === "draft") continue;
-    const dt = new Date(d.date);
-    if (dt >= startOfMonth) mtdInvoiced += Number(d.total_dt ?? 0);
-    else if (dt >= startOfPrevMonth) prevInvoiced += Number(d.total_dt ?? 0);
+  for (const f of factureRows) {
+    if (f.status === "rejected") continue;
+    const dt = new Date(f.date);
+    if (dt >= startOfMonth) mtdInvoiced += Number(f.total_dt ?? 0);
+    else if (dt >= startOfPrevMonth) prevInvoiced += Number(f.total_dt ?? 0);
   }
   for (const p of paymentRows) {
+    // Only count payments on factures
+    if (!factureIdSet.has(p.devis_id)) continue;
     const dt = new Date(p.paid_at);
     if (dt >= startOfMonth) mtdPaid += Number(p.amount_dt ?? 0);
     else if (dt >= startOfPrevMonth) prevPaid += Number(p.amount_dt ?? 0);
   }
-  for (const d of devisRows) {
-    if (d.payment_status === "paid") continue;
-    if (d.status === "rejected" || d.status === "draft") continue;
-    totalOutstanding += Number(d.total_dt ?? 0);
-    if (new Date(d.date) < startOfMonth)
-      outstandingPrev += Number(d.total_dt ?? 0);
+  for (const f of unpaidFacturesFull ?? []) {
+    const paid = paidPerDoc.get(f.id) ?? 0;
+    const balance = Math.max(0, Number(f.total_dt) - paid);
+    if (balance <= 0.01) continue;
+    totalOutstanding += balance;
+    outstandingPrev += balance; // approximate: all outstanding treated as prior
   }
 
   function pctTrend(c: number, p: number): number | null {
@@ -245,18 +275,19 @@ export default async function DashboardPage() {
 
   const paidByMonth = new Map<string, number>();
   for (const p of paymentRows) {
+    if (!factureIdSet.has(p.devis_id)) continue; // Only facture payments
     const d = new Date(p.paid_at);
     const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
     paidByMonth.set(k, (paidByMonth.get(k) ?? 0) + Number(p.amount_dt ?? 0));
   }
   const invoicedByMonth = new Map<string, number>();
-  for (const d of devisRows) {
-    if (d.status === "rejected" || d.status === "draft") continue;
-    const dt = new Date(d.date);
+  for (const f of factureRows) {
+    if (f.status === "rejected") continue;
+    const dt = new Date(f.date);
     const k = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}`;
     invoicedByMonth.set(
       k,
-      (invoicedByMonth.get(k) ?? 0) + Number(d.total_dt ?? 0),
+      (invoicedByMonth.get(k) ?? 0) + Number(f.total_dt ?? 0),
     );
   }
   const monthlySeries = months.map((m) => ({
@@ -265,12 +296,12 @@ export default async function DashboardPage() {
     invoiced: invoicedByMonth.get(m.key) ?? 0,
   }));
 
-  // ---- Service donut (admin) ----
+  // ---- Service donut (admin) — facture items only (real billed revenue) ----
   type ServiceLine = {
     line_total_dt: number;
     is_bonus: boolean;
     services: { name_fr?: string } | { name_fr?: string }[] | null;
-    devis: { status?: string } | { status?: string }[] | null;
+    devis: { status?: string; kind?: string } | { status?: string; kind?: string }[] | null;
   };
   const serviceLines: ServiceLine[] = isAdmin
     ? await safe(
@@ -278,7 +309,7 @@ export default async function DashboardPage() {
           const { data } = await supabase
             .from("devis_items")
             .select(
-              "line_total_dt, is_bonus, services:service_id(name_fr), devis:devis_id(status)",
+              "line_total_dt, is_bonus, services:service_id(name_fr), devis:devis_id(status, kind)",
             );
           return (data ?? []) as ServiceLine[];
         },
@@ -290,9 +321,11 @@ export default async function DashboardPage() {
   for (const line of serviceLines) {
     if (line.is_bonus) continue;
     const parent = Array.isArray(line.devis) ? line.devis[0] : line.devis;
-    if (parent?.status !== "accepted" && parent?.status !== "sent") continue;
+    // Only count lines from factures (real billed revenue), skip devis
+    if ((parent as { kind?: string } | null)?.kind !== "facture") continue;
+    if ((parent as { status?: string } | null)?.status === "rejected") continue;
     const svc = Array.isArray(line.services) ? line.services[0] : line.services;
-    const name = svc?.name_fr ?? "Autre";
+    const name = (svc as { name_fr?: string } | null)?.name_fr ?? "Autre";
     const t = serviceTally.get(name) ?? { name, total_dt: 0 };
     t.total_dt += Number(line.line_total_dt ?? 0);
     serviceTally.set(name, t);

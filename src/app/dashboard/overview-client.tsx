@@ -389,8 +389,10 @@ function HeroRevenueCard({
   paidTrend: number | null;
 }) {
   const { t } = useI18n();
-  const collectionRate =
-    mtdInvoiced > 0 ? Math.min(100, (mtdPaid / mtdInvoiced) * 100) : 0;
+  const rawRate = mtdInvoiced > 0 ? (mtdPaid / mtdInvoiced) * 100 : 0;
+  // Never cap at 100 — show true rate; if >100% client paid more than we invoiced this month
+  const collectionRate = rawRate;
+  const barWidth = Math.min(100, collectionRate); // bar can't overflow visually
 
   return (
     <Card className="relative h-full overflow-hidden border-0 bg-gradient-to-br from-brand via-brand-dark to-[#0a1326] p-0 shadow-brand-glow lg:col-span-1 surface-grain">
@@ -415,12 +417,20 @@ function HeroRevenueCard({
         <div className="mt-5">
           <div className="flex items-center justify-between text-[11px] font-semibold text-cream/80">
             <span>{t.kpis.collectionRate}</span>
-            <span>{collectionRate.toFixed(0)}%</span>
+            <span>
+              {collectionRate > 100
+                ? `${collectionRate.toFixed(0)}% ✓`
+                : `${collectionRate.toFixed(0)}%`}
+            </span>
           </div>
           <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/15">
             <div
-              className="h-full bg-gradient-to-r from-cyan-300 via-[#a0d2eb] to-white transition-all duration-700"
-              style={{ width: `${collectionRate}%` }}
+              className={`h-full bg-gradient-to-r transition-all duration-700 ${
+                collectionRate >= 100
+                  ? "from-emerald-300 via-emerald-200 to-white"
+                  : "from-cyan-300 via-[#a0d2eb] to-white"
+              }`}
+              style={{ width: `${barWidth}%` }}
             />
           </div>
         </div>

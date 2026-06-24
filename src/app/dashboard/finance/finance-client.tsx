@@ -15,6 +15,7 @@ import { ExpensesTab, type ExpenseRow } from "./expenses-tab";
 import { DevisPipelineTab } from "./devis-pipeline-tab";
 import { FacturesTab } from "./factures-tab";
 import { ClientProfilesTab, type ClientProfile } from "./client-profiles-tab";
+import { AuditTab, type AuditData } from "./audit-tab";
 
 type MonthlySeries = { label: string; paid: number; invoiced: number; expenses: number; profit: number };
 type ServiceTally = { name: string; total_dt: number; count: number };
@@ -67,6 +68,7 @@ type Props = {
   clients: { id: string; name: string }[];
   clientProfiles: ClientProfile[];
   today: string;
+  auditData: AuditData;
 };
 
 const TABS = [
@@ -75,6 +77,7 @@ const TABS = [
   { key: "devis",     label: "Pipeline devis" },
   { key: "expenses",  label: "Dépenses" },
   { key: "clients",   label: "Clients" },
+  { key: "audit",     label: "Audit" },
 ] as const;
 type TabKey = (typeof TABS)[number]["key"];
 
@@ -131,6 +134,7 @@ export function FinanceDashboardClient(props: Props) {
         />
       )}
       {tab === "clients"   && <ClientProfilesTab profiles={props.clientProfiles} />}
+      {tab === "audit"     && <AuditTab data={props.auditData} />}
     </div>
   );
 }

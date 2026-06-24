@@ -88,6 +88,9 @@ export default async function FinancePage() {
   ]);
 
   // ── PAID-PER-DOC MAP ───────────────────────────────────────────
+  // allFactureData used for full balance calculations (all time)
+  const allFactureIds = new Set((allFactureData ?? []).map((f) => f.id as string));
+
   const paidPerDoc = new Map<string, number>();
   for (const p of allPayments ?? []) {
     paidPerDoc.set(p.devis_id, (paidPerDoc.get(p.devis_id) ?? 0) + Number(p.amount_dt ?? 0));
@@ -96,12 +99,15 @@ export default async function FinancePage() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
+  // RULE: Encaissé = only payments whose devis_id is a FACTURE
+  const facturePaymentRows = (paymentRows ?? []).filter((p) => allFactureIds.has(p.devis_id));
+
   // ── KPIs ───────────────────────────────────────────────────────
-  const mtdPaid = (paymentRows ?? [])
+  const mtdPaid = facturePaymentRows
     .filter((p) => new Date(p.paid_at) >= startOfMonth)
     .reduce((s, p) => s + Number(p.amount_dt ?? 0), 0);
 
-  const prevPaid = (paymentRows ?? [])
+  const prevPaid = facturePaymentRows
     .filter((p) => { const d = new Date(p.paid_at); return d >= startOfPrevMonth && d < startOfMonth; })
     .reduce((s, p) => s + Number(p.amount_dt ?? 0), 0);
 
@@ -113,7 +119,7 @@ export default async function FinancePage() {
     .filter((f) => { const d = new Date(f.date); return d >= startOfPrevMonth && d < startOfMonth; })
     .reduce((s, f) => s + Number(f.total_dt ?? 0), 0);
 
-  const qtdPaid = (paymentRows ?? [])
+  const qtdPaid = facturePaymentRows
     .filter((p) => new Date(p.paid_at) >= startOfQuarter)
     .reduce((s, p) => s + Number(p.amount_dt ?? 0), 0);
 
@@ -158,7 +164,7 @@ export default async function FinancePage() {
 
   // ── MONTHLY SERIES ─────────────────────────────────────────────
   const paidByMonth = new Map<string, number>();
-  for (const p of paymentRows ?? []) {
+  for (const p of facturePaymentRows) { // Only facture payments
     const d = new Date(p.paid_at);
     const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
     paidByMonth.set(k, (paidByMonth.get(k) ?? 0) + Number(p.amount_dt ?? 0));
@@ -301,6 +307,130 @@ export default async function FinancePage() {
     .filter((r) => r.days_overdue <= 0 && r.due_date <= next30Str)
     .slice(0, 6);
 
+  // ── ADMIN AUDIT DATA ───────────────────────────────────────────
+  // Fetch converted devis IDs (devis that have a linked facture)
+  const { data: convertedLinks } = await supabase
+    .from("devis")
+    .select("parent_devis_id")
+    .eq("kind", "facture")
+    .not("parent_devis_id", "is", null);
+  const convertedDevisIds = new Set((convertedLinks ?? []).map((r) => r.parent_devis_id as string));
+
+  // Factures paid but no payment record
+  const facturePaidNoPayment = (allFactureData ?? [])
+    .filter((f) => f.payment_status === "paid" && (paidPerDoc.get(f.id) ?? 0) <= 0.01)
+    .map((f) => {
+      const client = (clientRows ?? []).find((c) => c.id === f.client_id);
+      return {
+        id: f.id as string,
+        devis_number: f.devis_number as number,
+        client_name: (client?.name as string) ?? "—",
+        total_dt: Number(f.total_dt),
+      };
+    });
+
+  // Payments on devis that have a linked facture (these are the migrated ones)
+  const allPaymentsAll = allPayments ?? [];
+  const devisPaymentsSuperseded = allPaymentsAll.filter((p) => convertedDevisIds.has(p.devis_id));
+  const devisWithMigratedPayments = Array.from(
+    devisPaymentsSuperseded.reduce((map, p) => {
+      const existing = map.get(p.devis_id) ?? { devis_id: p.devis_id, migrated_count: 0, migrated_amount: 0 };
+      existing.migrated_count += 1;
+      existing.migrated_amount += Number(p.amount_dt ?? 0);
+      map.set(p.devis_id, existing);
+      return map;
+    }, new Map<string, { devis_id: string; migrated_count: number; migrated_amount: number }>()).values()
+  ).map((entry) => {
+    const devisInfo = (devisRows ?? []).find((d) => d.id === entry.devis_id);
+    const clientId = (Array.isArray(devisInfo?.clients) ? devisInfo?.clients[0] : devisInfo?.clients) as { id: string; name: string } | null;
+    return {
+      devis_id: entry.devis_id,
+      devis_number: (devisInfo?.devis_number as number) ?? 0,
+      client_name: clientId?.name ?? "—",
+      migrated_count: entry.migrated_count,
+      migrated_amount: entry.migrated_amount,
+    };
+  });
+
+  // Duplicate payment risk: factures where total payments > total_dt by more than 1 DT
+  const duplicateRisk = (allFactureData ?? [])
+    .filter((f) => {
+      const paid = paidPerDoc.get(f.id) ?? 0;
+      return paid > Number(f.total_dt) + 1;
+    })
+    .map((f) => {
+      const client = (clientRows ?? []).find((c) => c.id === f.client_id);
+      return {
+        devis_id: f.id as string,
+        devis_number: f.devis_number as number,
+        client_name: (client?.name as string) ?? "—",
+        payment_count: allPaymentsAll.filter((p) => p.devis_id === f.id).length,
+        total_amount: paidPerDoc.get(f.id) ?? 0,
+      };
+    });
+
+  // Devis converted but their payments not yet marked (source_devis_id still null on original devis row)
+  // We approximate this from what we know client-side:
+  // A converted devis that has payments in paymentRows but no migrated copy on its facture
+  const { data: allFacturePayments } = await supabase
+    .from("payments")
+    .select("devis_id, amount_dt, migrated_from_devis, source_devis_id");
+  const migratedSources = new Set(
+    (allFacturePayments ?? [])
+      .filter((p) => p.migrated_from_devis === true)
+      .map((p) => p.source_devis_id as string)
+      .filter(Boolean)
+  );
+  const convertedDevisStillCountedOnDevis = Array.from(convertedDevisIds)
+    .filter((devisId) => {
+      const hasPayments = allPaymentsAll.some((p) => p.devis_id === devisId);
+      const hasMigratedCopy = migratedSources.has(devisId);
+      return hasPayments && !hasMigratedCopy;
+    })
+    .map((devisId) => {
+      const devisInfo = (devisRows ?? []).find((d) => d.id === devisId);
+      const clientId = (Array.isArray(devisInfo?.clients) ? devisInfo?.clients[0] : devisInfo?.clients) as { id: string; name: string } | null;
+      const paymentAmount = allPaymentsAll
+        .filter((p) => p.devis_id === devisId)
+        .reduce((s, p) => s + Number(p.amount_dt ?? 0), 0);
+      return {
+        devis_id: devisId,
+        devis_number: (devisInfo?.devis_number as number) ?? 0,
+        client_name: clientId?.name ?? "—",
+        payment_amount: paymentAmount,
+      };
+    });
+
+  // Total collected from factures = payments where devis_id is a facture
+  const factureIdSetForAudit = new Set((allFactureData ?? []).map((f) => f.id as string));
+  const totalCollectedFromFactures = allPaymentsAll
+    .filter((p) => factureIdSetForAudit.has(p.devis_id))
+    .reduce((s, p) => s + Number(p.amount_dt ?? 0), 0);
+
+  // Total collected on devis (devis still showing payments that aren't migrated)
+  const totalCollectedFromDevis = allPaymentsAll
+    .filter((p) => convertedDevisIds.has(p.devis_id) && !migratedSources.has(p.devis_id))
+    .reduce((s, p) => s + Number(p.amount_dt ?? 0), 0);
+
+  const migrationCoverage =
+    convertedDevisIds.size > 0
+      ? (migratedSources.size / convertedDevisIds.size) * 100
+      : 100;
+
+  const auditData = {
+    totalPaymentRecords: allPaymentsAll.length,
+    totalFactures: (allFactureData ?? []).length,
+    totalDevis: (devisRows ?? []).length,
+    convertedDevisCount: convertedDevisIds.size,
+    facturePaidNoPaymentRecord: facturePaidNoPayment,
+    devisWithMigratedPayments,
+    duplicateRisk,
+    convertedDevisStillCountedOnDevis,
+    totalCollectedFromFactures,
+    totalCollectedFromDevis,
+    migrationCoverage,
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader title="Finance OS" subtitle="v2.0 — tableau de bord financier complet" />
@@ -353,6 +483,7 @@ export default async function FinancePage() {
         clients={(clientRows ?? []).map((c) => ({ id: c.id as string, name: c.name as string }))}
         clientProfiles={clientProfiles}
         today={todayStr}
+        auditData={auditData}
       />
     </div>
   );
