@@ -1,7 +1,7 @@
 import { forwardRef, type ButtonHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
-type Variant = "primary" | "ghost" | "outline" | "accent" | "ink";
+type Variant = "primary" | "ghost" | "outline" | "danger" | "accent" | "ink";
 type Size = "sm" | "md" | "lg";
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -11,15 +11,17 @@ type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const variantClass: Record<Variant, string> = {
   primary:
-    "bg-gradient-to-b from-brand to-brand-dark text-white shadow-sm hover:shadow-brand-glow hover:from-[#4b9ccc] hover:to-brand active:translate-y-[1px] focus-visible:ring-brand disabled:opacity-50 disabled:hover:shadow-sm disabled:hover:from-brand disabled:hover:to-brand-dark",
+    "bg-[#22D3EE] text-[#0B0F14] font-semibold hover:bg-[#22D3EE]/90 active:translate-y-[1px] focus-visible:ring-[#22D3EE] disabled:opacity-50 disabled:hover:bg-[#22D3EE]",
+  outline:
+    "border border-[#263244] text-[#94A3B8] bg-transparent hover:bg-[#18212F] hover:text-[#F8FAFC] hover:border-[#22D3EE]/40 focus-visible:ring-[#263244] disabled:opacity-50",
+  ghost:
+    "bg-transparent text-[#94A3B8] hover:bg-[#18212F] hover:text-[#F8FAFC] focus-visible:ring-[#263244]/40 disabled:opacity-50",
+  danger:
+    "bg-[#F43F5E]/10 text-[#F43F5E] border border-[#F43F5E]/20 hover:bg-[#F43F5E]/20 focus-visible:ring-[#F43F5E]/40 disabled:opacity-50",
   accent:
     "bg-gradient-to-b from-accent to-accent-dark text-ink shadow-sm hover:shadow-accent-glow hover:text-ink hover:from-[#ffb24d] hover:to-accent active:translate-y-[1px] focus-visible:ring-accent disabled:opacity-50",
   ink:
     "bg-gradient-to-b from-ink to-[#0c0c10] text-cream shadow-sm hover:from-[#2a2a33] hover:to-ink active:translate-y-[1px] focus-visible:ring-ink disabled:opacity-50",
-  ghost:
-    "bg-transparent text-ink/70 hover:bg-ink/5 hover:text-ink focus-visible:ring-ink/20",
-  outline:
-    "border border-ink/15 bg-white text-ink shadow-soft hover:bg-cream-dark hover:border-ink/25 focus-visible:ring-ink/20",
 };
 
 const sizeClass: Record<Size, string> = {
@@ -36,7 +38,7 @@ export const Button = forwardRef<HTMLButtonElement, Props>(function Button(
     <button
       ref={ref}
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-md font-medium tracking-tight transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-cream disabled:cursor-not-allowed",
+        "inline-flex items-center justify-center gap-2 rounded-md font-medium tracking-tight transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B0F14] disabled:cursor-not-allowed",
         variantClass[variant],
         sizeClass[size],
         className,

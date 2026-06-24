@@ -1,9 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { AlertTriangle, CheckCircle2, Clock, TrendingUp, Users, FileText } from "lucide-react";
 import { useI18n } from "@/lib/i18n/provider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Badge, StatusBadge } from "@/components/ui/badge";
+import { KpiCard } from "@/components/ui/kpi-card";
+import { MoneyAmount } from "@/components/ui/money-amount";
 import { Avatar } from "@/components/avatar";
 import { CountUp } from "@/components/charts/count-up";
 import { TrendPill } from "@/components/charts/trend-pill";
@@ -12,6 +15,10 @@ import { MonthlyBars, type BarPoint } from "@/components/charts/bars";
 import { WorkCalendar } from "@/components/work-calendar";
 import { formatDevisNumber, formatDt, formatDate } from "@/lib/format";
 import type { UserRole } from "@/lib/utils";
+
+// ---------------------------------------------------------------------------
+// Types — kept exactly as-is
+// ---------------------------------------------------------------------------
 
 type Counts = {
   activeProjects: number;
@@ -74,10 +81,11 @@ type Props = {
   workSchedule: Record<string, "office" | "home">;
 };
 
-function formatMonth(
-  monthIso: string,
-  months: readonly string[],
-): string {
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function formatMonth(monthIso: string, months: readonly string[]): string {
   const [y, m] = monthIso.split("-").map(Number);
   const monthName = months[(m ?? 1) - 1] ?? "";
   return `${monthName} ${y}`;
@@ -90,22 +98,22 @@ const statusTone: Record<string, "slate" | "blue" | "green" | "red"> = {
   rejected: "red",
 };
 
-const statusLabel: Record<string, string> = {
-  draft: "Brouillon",
-  sent: "Envoyé",
-  accepted: "Accepté",
-  rejected: "Refusé",
-  unpaid: "Impayé",
-  partial: "Partiel",
-  paid: "Payé",
-};
-
 const priorityTone: Record<string, "slate" | "neutral" | "amber" | "red"> = {
   low: "slate",
   normal: "neutral",
   high: "amber",
   urgent: "red",
 };
+
+// Section label style — consistent across the whole file
+const SECTION_LABEL =
+  "text-[10px] font-semibold uppercase tracking-widest text-[#64748B]";
+
+const SECTION_DIVIDER = "border-[#263244]";
+
+// ---------------------------------------------------------------------------
+// Main export
+// ---------------------------------------------------------------------------
 
 export function OverviewClient({
   role,
@@ -129,98 +137,374 @@ export function OverviewClient({
         ? t.dashboard.worker.title
         : t.dashboard.freelancer.title;
 
+  // Compute today helpers used by multiple sections
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const overdueTasks = upcomingTasks.filter((task) => {
+    const due = new Date(task.deadline);
+    return due < today && task.status !== "done";
+  });
+
+  const overdueInvoices = recentDevis.filter(
+    (d) =>
+      d.payment_status === "unpaid" &&
+      (d.status === "sent" || d.status === "accepted"),
+  );
+
+  const hasPriorities = overdueTasks.length > 0 || overdueInvoices.length > 0;
+
+  // Kanban status distribution
+  const statusGroups = {
+    todo: upcomingTasks.filter((t) => t.status === "todo").length,
+    in_progress: upcomingTasks.filter((t) => t.status === "in_progress").length,
+    review: upcomingTasks.filter((t) => t.status === "review").length,
+    done: upcomingTasks.filter((t) => t.status === "done").length,
+  };
+  const totalTasks =
+    statusGroups.todo +
+    statusGroups.in_progress +
+    statusGroups.review +
+    statusGroups.done;
+
+  // Net profit (admin only): paid - expenses (no expenses field on revenue, show as paid - outstanding)
+  const netProfit = revenue.mtdPaid - revenue.outstanding;
+
   return (
-    <div className="space-y-7">
+    <div className="space-y-8">
+      {/* ------------------------------------------------------------------ */}
+      {/* GREETING                                                            */}
+      {/* ------------------------------------------------------------------ */}
       <Greeting fullName={fullName} subtitle={subtitle} role={role} />
 
-      {isAdmin && (
-        <section className="grid grid-cols-1 items-stretch gap-4 lg:grid-cols-4">
-          <HeroRevenueCard
-            mtdPaid={revenue.mtdPaid}
-            mtdInvoiced={revenue.mtdInvoiced}
-            paidTrend={revenue.paidTrend}
-          />
+      {/* ================================================================== */}
+      {/* 1. TODAY'S PRIORITIES                                               */}
+      {/* ================================================================== */}
+      {hasPriorities && (
+        <section>
+          <p className={SECTION_LABEL}>Priorités du jour</p>
+          <div className="mt-3 rounded-xl border-l-2 border-[#F43F5E] bg-[#111827] ring-1 ring-[#263244]">
+            <div className="flex items-center justify-between border-b border-[#263244] px-5 py-3">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-[#F43F5E]" />
+                <span className="text-sm font-semibold text-[#F8FAFC]">
+                  Attention requise
+                </span>
+                {(overdueTasks.length + overdueInvoices.length) > 0 && (
+                  <span className="ml-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#F43F5E] px-1.5 text-[10px] font-bold text-white">
+                    {overdueTasks.length + overdueInvoices.length}
+                  </span>
+                )}
+              </div>
+              <Link
+                href="/dashboard/tasks"
+                className="text-[11px] font-semibold text-[#38BDF8] hover:text-[#7DD3FC] transition-colors"
+              >
+                Voir tout →
+              </Link>
+            </div>
 
-          <KpiCard
-            label={t.kpis.invoicedMonth}
-            value={revenue.mtdInvoiced}
-            currency
-            trend={revenue.invoicedTrend}
-            tone="brand"
-            trendSuffix={t.kpis.vsLastMonth}
-            icon={
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z M14 2v6h6 M9 13h6 M9 17h6" />
-            }
-          />
-          <KpiCard
-            label={t.kpis.outstanding}
-            value={revenue.outstanding}
-            currency
-            trend={revenue.outstandingTrend}
-            invertTrend
-            tone="amber"
-            trendSuffix={t.kpis.vsLastMonth}
-            icon={
-              <>
-                <circle cx="12" cy="12" r="9" />
-                <path d="M12 7v5l3 2" />
-              </>
-            }
-          />
-          <KpiCard
-            label={t.kpis.activeProjects}
-            value={counts.activeProjects}
-            tone="ink"
-            icon={
-              <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" />
-            }
-          />
+            <div className="divide-y divide-[#1E293B]">
+              {overdueTasks.slice(0, 3).map((task) => {
+                const due = new Date(task.deadline);
+                const daysLate = Math.floor(
+                  (today.getTime() - due.getTime()) / (1000 * 60 * 60 * 24),
+                );
+                return (
+                  <Link
+                    key={task.id}
+                    href={`/dashboard/tasks/${task.id}`}
+                    className="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-white/4"
+                  >
+                    <Clock className="h-3.5 w-3.5 shrink-0 text-[#F43F5E]" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium text-[#F8FAFC]">
+                        {task.title}
+                      </p>
+                      <p className="truncate text-[11px] text-[#64748B]">
+                        {task.client} · {task.project}
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <StatusBadge status={task.priority} type="priority" />
+                      <span className="rounded-md bg-[#F43F5E]/15 px-2 py-0.5 text-[11px] font-semibold text-[#F43F5E]">
+                        {daysLate}j retard
+                      </span>
+                    </div>
+                  </Link>
+                );
+              })}
+
+              {overdueInvoices.slice(0, 2).map((doc) => (
+                <Link
+                  key={doc.id}
+                  href={`/dashboard/${doc.kind === "facture" ? "factures" : "devis"}/${doc.id}`}
+                  className="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-white/4"
+                >
+                  <FileText className="h-3.5 w-3.5 shrink-0 text-[#F59E0B]" />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-[#F8FAFC]">
+                      {doc.client_name}
+                    </p>
+                    <p className="truncate text-[11px] text-[#64748B]">
+                      {formatDevisNumber(doc.devis_number, doc.kind)} · {formatDate(doc.date)}
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <span className="rounded-md bg-[#F59E0B]/15 px-2 py-0.5 text-[11px] font-semibold text-[#F59E0B]">
+                      Impayé
+                    </span>
+                    <MoneyAmount amount={doc.total_dt} size="sm" />
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
         </section>
       )}
 
+      {!hasPriorities && (
+        <section>
+          <p className={SECTION_LABEL}>Priorités du jour</p>
+          <div className="mt-3 flex items-center gap-3 rounded-xl border border-[#22C55E]/20 bg-[#22C55E]/5 px-5 py-4">
+            <CheckCircle2 className="h-4 w-4 text-[#22C55E]" />
+            <p className="text-sm font-medium text-[#22C55E]">
+              Tout est sous contrôle — aucune urgence aujourd'hui.
+            </p>
+          </div>
+        </section>
+      )}
+
+      {/* ================================================================== */}
+      {/* 2. FINANCE HEALTH (admin only)                                      */}
+      {/* ================================================================== */}
+      {isAdmin && (
+        <section>
+          <div className="flex items-center justify-between">
+            <p className={SECTION_LABEL}>Santé financière — mois en cours</p>
+            <Link
+              href="/dashboard/finance"
+              className="text-[11px] font-semibold text-[#38BDF8] hover:text-[#7DD3FC] transition-colors"
+            >
+              Détails →
+            </Link>
+          </div>
+          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {/* Hero card — cash encaissé */}
+            <HeroRevenueCard
+              mtdPaid={revenue.mtdPaid}
+              mtdInvoiced={revenue.mtdInvoiced}
+              paidTrend={revenue.paidTrend}
+            />
+
+            {/* Facturé mois */}
+            <KpiCard
+              label="Facturé (mois)"
+              value={revenue.mtdInvoiced}
+              suffix=" DT"
+              tone="cyan"
+              trend={revenue.invoicedTrend}
+              trendLabel={t.kpis.vsLastMonth}
+              icon={<FileText className="h-4 w-4" />}
+            />
+
+            {/* Impayés */}
+            <KpiCard
+              label="Impayés"
+              value={revenue.outstanding}
+              suffix=" DT"
+              tone={revenue.outstanding > 0 ? "amber" : "neutral"}
+              trend={revenue.outstandingTrend}
+              trendLabel={t.kpis.vsLastMonth}
+              icon={<AlertTriangle className="h-4 w-4" />}
+              tooltip={
+                revenue.outstanding > 0
+                  ? "Factures envoyées non réglées"
+                  : "Aucun impayé"
+              }
+            />
+
+            {/* Profit net */}
+            <KpiCard
+              label="Profit net (estimé)"
+              value={netProfit}
+              suffix=" DT"
+              tone={netProfit >= 0 ? "green" : "red"}
+              icon={<TrendingUp className="h-4 w-4" />}
+              tooltip="Encaissé − impayés"
+            />
+          </div>
+        </section>
+      )}
+
+      {/* Worker/freelancer KPI strip */}
       {!isAdmin && (
-        <>
-          <section className="grid grid-cols-2 items-stretch gap-4 lg:grid-cols-4">
+        <section>
+          <p className={SECTION_LABEL}>Mes indicateurs</p>
+          <div className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-4">
             <KpiCard
               label={t.kpis.myActiveTasks}
               value={counts.myActiveTasks}
-              tone="brand"
-              icon={<path d="M3 6h2l1 2h13M3 12h18M3 18h18" />}
+              tone="cyan"
+              icon={<CheckCircle2 className="h-4 w-4" />}
             />
             <KpiCard
               label={t.kpis.overdue}
               value={counts.myOverdueTasks}
-              tone={counts.myOverdueTasks > 0 ? "amber" : "ink"}
-              icon={
-                <>
-                  <circle cx="12" cy="12" r="9" />
-                  <path d="M12 7v5l3 2" />
-                </>
-              }
+              tone={counts.myOverdueTasks > 0 ? "red" : "neutral"}
+              icon={<AlertTriangle className="h-4 w-4" />}
             />
             <KpiCard
               label={t.kpis.activeProjects}
               value={counts.activeProjects}
-              tone="ink"
-              icon={
-                <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" />
-              }
+              tone="violet"
+              icon={<TrendingUp className="h-4 w-4" />}
             />
             {counts.clients !== null && (
               <KpiCard
                 label={t.kpis.clients}
                 value={counts.clients}
-                icon={
-                  <>
-                    <circle cx="9" cy="8" r="3.5" />
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                  </>
-                }
+                tone="neutral"
+                icon={<Users className="h-4 w-4" />}
               />
             )}
-          </section>
+          </div>
+        </section>
+      )}
 
-          <section className="grid grid-cols-1 gap-5 lg:grid-cols-5">
+      {/* ================================================================== */}
+      {/* 3. ACTIVE WORK — kanban status distribution                         */}
+      {/* ================================================================== */}
+      <section>
+        <div className="flex items-center justify-between">
+          <p className={SECTION_LABEL}>Travaux en cours</p>
+          <Link
+            href="/dashboard/tasks"
+            className="text-[11px] font-semibold text-[#38BDF8] hover:text-[#7DD3FC] transition-colors"
+          >
+            Kanban →
+          </Link>
+        </div>
+        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <ActiveWorkColumn
+            label="À faire"
+            count={statusGroups.todo}
+            total={totalTasks}
+            color="#64748B"
+            gradientFrom="from-[#64748B]"
+            gradientTo="to-[#94A3B8]"
+          />
+          <ActiveWorkColumn
+            label="En cours"
+            count={statusGroups.in_progress}
+            total={totalTasks}
+            color="#22D3EE"
+            gradientFrom="from-[#0891B2]"
+            gradientTo="to-[#22D3EE]"
+            pulse
+          />
+          <ActiveWorkColumn
+            label="À valider"
+            count={statusGroups.review}
+            total={totalTasks}
+            color="#A78BFA"
+            gradientFrom="from-[#7C3AED]"
+            gradientTo="to-[#A78BFA]"
+          />
+          <ActiveWorkColumn
+            label="Terminé"
+            count={statusGroups.done}
+            total={totalTasks}
+            color="#22C55E"
+            gradientFrom="from-[#15803D]"
+            gradientTo="to-[#22C55E]"
+          />
+        </div>
+      </section>
+
+      {/* ================================================================== */}
+      {/* 4. UPCOMING DEADLINES                                               */}
+      {/* ================================================================== */}
+      <section>
+        <div className="flex items-center justify-between">
+          <p className={SECTION_LABEL}>Prochaines échéances</p>
+          <Link
+            href="/dashboard/tasks"
+            className="text-[11px] font-semibold text-[#38BDF8] hover:text-[#7DD3FC] transition-colors"
+          >
+            Voir tout →
+          </Link>
+        </div>
+        <div className="mt-3 rounded-xl bg-[#111827] ring-1 ring-[#263244] overflow-hidden">
+          <UpcomingDeadlinesList rows={upcomingTasks.slice(0, 5)} today={today} />
+        </div>
+      </section>
+
+      {/* ================================================================== */}
+      {/* 5. RECENT DOCUMENTS                                                 */}
+      {/* ================================================================== */}
+      <section>
+        <div className="flex items-center justify-between">
+          <p className={SECTION_LABEL}>Documents récents</p>
+          <Link
+            href="/dashboard/devis"
+            className="text-[11px] font-semibold text-[#38BDF8] hover:text-[#7DD3FC] transition-colors"
+          >
+            Tout voir →
+          </Link>
+        </div>
+        <div className="mt-3 rounded-xl bg-[#111827] ring-1 ring-[#263244] overflow-hidden">
+          <RecentDocsFeed rows={recentDevis} />
+        </div>
+      </section>
+
+      {/* ================================================================== */}
+      {/* REVENUE CHART (admin only)                                          */}
+      {/* ================================================================== */}
+      {isAdmin && (
+        <section>
+          <div className="flex items-center justify-between">
+            <p className={SECTION_LABEL}>Chiffre d'affaires — 12 mois</p>
+            <Link
+              href="/dashboard/finance"
+              className="text-[11px] font-semibold text-[#38BDF8] hover:text-[#7DD3FC] transition-colors"
+            >
+              Finances →
+            </Link>
+          </div>
+          <div className="mt-3 grid grid-cols-1 gap-4 lg:grid-cols-3">
+            <div className="lg:col-span-2 rounded-xl bg-[#111827] ring-1 ring-[#263244] p-5">
+              <MonthlyBars series={monthlySeries} />
+            </div>
+            <div className="rounded-xl bg-[#111827] ring-1 ring-[#263244] p-5">
+              <p className="mb-4 text-sm font-semibold text-[#F8FAFC]">
+                {t.overview.serviceMix}
+              </p>
+              <p className="mb-4 text-[11px] text-[#64748B]">
+                {t.overview.serviceMixHint}
+              </p>
+              {donutData.length > 0 ? (
+                <div className="space-y-4">
+                  <Donut data={donutData} size={160} thickness={18} />
+                  <DonutLegend data={donutData.slice(0, 5)} />
+                </div>
+              ) : (
+                <p className="py-6 text-center text-sm text-[#64748B]">
+                  {t.overview.noServiceMix}
+                </p>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ================================================================== */}
+      {/* Worker: My Tasks + Work Calendar                                    */}
+      {/* ================================================================== */}
+      {!isAdmin && (
+        <section>
+          <p className={SECTION_LABEL}>Mon espace de travail</p>
+          <div className="mt-3 grid grid-cols-1 gap-4 lg:grid-cols-5">
             <Card className="lg:col-span-3">
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -241,106 +525,93 @@ export function OverviewClient({
             <Card className="lg:col-span-2">
               <CardHeader>
                 <CardTitle>{t.overview.myPlanning}</CardTitle>
-                <p className="text-xs text-ink/55">
-                  {t.overview.myPlanningHint}
-                </p>
+                <p className="text-xs text-ink/55">{t.overview.myPlanningHint}</p>
               </CardHeader>
               <CardContent>
                 <WorkCalendar initial={workSchedule} />
               </CardContent>
             </Card>
-          </section>
-        </>
-      )}
-
-      {isAdmin && (
-        <section className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-          <Card className="lg:col-span-2">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>{t.overview.revenue12}</CardTitle>
-                <Link
-                  href="/dashboard/finance"
-                  className="text-xs font-semibold text-brand hover:text-brand-dark"
-                >
-                  {t.overview.financeDetails}
-                </Link>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <MonthlyBars series={monthlySeries} />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>{t.overview.serviceMix}</CardTitle>
-              <p className="text-xs text-ink/50">
-                {t.overview.serviceMixHint}
-              </p>
-            </CardHeader>
-            <CardContent>
-              {donutData.length > 0 ? (
-                <div className="space-y-4">
-                  <Donut data={donutData} size={180} thickness={20} />
-                  <DonutLegend data={donutData.slice(0, 5)} />
-                </div>
-              ) : (
-                <p className="py-6 text-center text-sm text-ink/50">
-                  {t.overview.noServiceMix}
-                </p>
-              )}
-            </CardContent>
-          </Card>
+          </div>
         </section>
       )}
 
+      {/* ================================================================== */}
+      {/* 6. TEAM QUICK-VIEW (admin only)                                     */}
+      {/* ================================================================== */}
+      {isAdmin && counts.teamSize !== null && counts.teamSize > 0 && (
+        <section>
+          <div className="flex items-center justify-between">
+            <p className={SECTION_LABEL}>Équipe</p>
+            <Link
+              href="/dashboard/team"
+              className="text-[11px] font-semibold text-[#38BDF8] hover:text-[#7DD3FC] transition-colors"
+            >
+              Gérer →
+            </Link>
+          </div>
+          <div className="mt-3 flex items-center gap-4 rounded-xl bg-[#111827] px-5 py-4 ring-1 ring-[#263244]">
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-[#64748B]" />
+              <span className="text-sm font-semibold text-[#F8FAFC]">
+                {counts.teamSize} membres
+              </span>
+            </div>
+            <div className="h-4 w-px bg-[#263244]" />
+            {counts.activeTasks > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#22D3EE] opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-[#22D3EE]" />
+                </span>
+                <span className="text-sm text-[#94A3B8]">
+                  {counts.activeTasks} tâches actives
+                </span>
+              </div>
+            )}
+            {counts.activeProjects > 0 && (
+              <>
+                <div className="h-4 w-px bg-[#263244]" />
+                <span className="text-sm text-[#94A3B8]">
+                  {counts.activeProjects} projets
+                </span>
+              </>
+            )}
+            {counts.clients !== null && counts.clients > 0 && (
+              <>
+                <div className="h-4 w-px bg-[#263244]" />
+                <span className="text-sm text-[#94A3B8]">
+                  {counts.clients} clients
+                </span>
+              </>
+            )}
+            <div className="ml-auto">
+              <Link
+                href="/dashboard/planning"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-white/5 px-3 py-1.5 text-[11px] font-semibold text-[#94A3B8] ring-1 ring-[#263244] transition-all hover:bg-white/10 hover:text-[#F8FAFC]"
+              >
+                <span>Planning équipe</span>
+                <span aria-hidden>→</span>
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ================================================================== */}
+      {/* FEATURED EMPLOYEE                                                   */}
+      {/* ================================================================== */}
       {featuredEmployee && (
         <FeaturedCard featured={featuredEmployee} canEdit={isAdmin} />
       )}
 
       {isAdmin && !featuredEmployee && <FeaturedEmptyCta />}
-
-      {isAdmin && (
-        <section className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>{t.overview.recentActivity}</CardTitle>
-                <Link
-                  href="/dashboard/devis"
-                  className="text-xs font-semibold text-brand hover:text-brand-dark"
-                >
-                  {t.overview.seeAll}
-                </Link>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <RecentDevisFeed rows={recentDevis} />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>{t.overview.upcoming}</CardTitle>
-                <Link
-                  href="/dashboard/tasks"
-                  className="text-xs font-semibold text-brand hover:text-brand-dark"
-                >
-                  {t.overview.seeAll}
-                </Link>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <UpcomingTasksList rows={upcomingTasks} />
-            </CardContent>
-          </Card>
-        </section>
-      )}
     </div>
   );
 }
+
+// ---------------------------------------------------------------------------
+// Greeting
+// ---------------------------------------------------------------------------
 
 function Greeting({
   fullName,
@@ -379,6 +650,10 @@ function Greeting({
   );
 }
 
+// ---------------------------------------------------------------------------
+// HeroRevenueCard — kept exactly as before
+// ---------------------------------------------------------------------------
+
 function HeroRevenueCard({
   mtdPaid,
   mtdInvoiced,
@@ -395,7 +670,7 @@ function HeroRevenueCard({
   const barWidth = Math.min(100, collectionRate); // bar can't overflow visually
 
   return (
-    <Card className="relative h-full overflow-hidden border-0 bg-gradient-to-br from-brand via-brand-dark to-[#0a1326] p-0 shadow-brand-glow lg:col-span-1 surface-grain">
+    <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-brand via-brand-dark to-[#0a1326] shadow-brand-glow surface-grain">
       <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-cyan-400/25 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-10 -left-10 h-32 w-32 rounded-full bg-[#7c4dff]/30 blur-3xl" />
 
@@ -435,364 +710,99 @@ function HeroRevenueCard({
           </div>
         </div>
       </div>
-    </Card>
+    </div>
   );
 }
 
-function KpiCard({
+// ---------------------------------------------------------------------------
+// ActiveWorkColumn — kanban status column with animated progress bar
+// ---------------------------------------------------------------------------
+
+function ActiveWorkColumn({
   label,
-  value,
-  trend,
-  invertTrend,
-  currency,
-  tone = "neutral",
-  icon,
-  trendSuffix,
-  scaleMax,
+  count,
+  total,
+  color,
+  gradientFrom,
+  gradientTo,
+  pulse,
 }: {
   label: string;
-  value: number;
-  trend?: number | null;
-  invertTrend?: boolean;
-  currency?: boolean;
-  tone?: "brand" | "amber" | "ink" | "neutral";
-  icon?: React.ReactNode;
-  trendSuffix?: string;
-  /** Optional value reference for the progress bar (0..scaleMax). */
-  scaleMax?: number;
+  count: number;
+  total: number;
+  color: string;
+  gradientFrom: string;
+  gradientTo: string;
+  pulse?: boolean;
 }) {
-  // Tone-driven palette. Orange/amber stays available for legacy callers but
-  // we route admin "outstanding" → amber, everything else → brand/ink/violet.
-  const iconClass =
-    tone === "brand"
-      ? "bg-brand/15 text-brand"
-      : tone === "amber"
-        ? "bg-[#7c4dff]/18 text-[#bfa6ff]"
-        : tone === "ink"
-          ? "bg-ink/10 text-ink"
-          : "bg-ink/5 text-ink/60";
-
-  const glowClass =
-    tone === "brand"
-      ? "bg-brand/15"
-      : tone === "amber"
-        ? "bg-[#7c4dff]/18"
-        : tone === "ink"
-          ? "bg-cyan-400/10"
-          : "bg-ink/4";
-
-  const barClass =
-    tone === "brand"
-      ? "from-brand to-cyan-400"
-      : tone === "amber"
-        ? "from-[#7c4dff] to-[#a78bfa]"
-        : tone === "ink"
-          ? "from-ink to-ink-soft"
-          : "from-ink/30 to-ink/15";
-
-  // Progress bar width (0..100%). If no scaleMax given, fall back to a fixed
-  // reference so the bar still visualizes activity without being misleading.
-  const pct =
-    scaleMax && scaleMax > 0
-      ? Math.max(0, Math.min(100, (value / scaleMax) * 100))
-      : value === 0
-        ? 0
-        : Math.min(100, 18 + Math.log10(Math.max(value, 1)) * 28);
+  const pct = total > 0 ? Math.max(2, (count / total) * 100) : 0;
 
   return (
-    <Card
-      interactive
-      className="relative h-full overflow-hidden border-0 p-0"
-    >
-      {/*
-        Solid layered card surface — fixes the "label floats outside the
-        card" perception from Heythem's screenshot. The previous
-        bg-white/8 was so transparent that labels read as sitting on the
-        page background instead of inside a card.
-      */}
-      <div
-        aria-hidden
-        className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#161f3a] via-[#121a2e] to-[#0d1424] ring-1 ring-inset ring-white/10"
-      />
-      <div
-        aria-hidden
-        className={`pointer-events-none absolute -bottom-14 -right-14 h-40 w-40 rounded-full blur-3xl ${glowClass}`}
-      />
-      <CardContent className="relative flex h-full flex-col px-5 py-5 md:px-6 md:py-6">
-        {/* Top row: label + icon chip */}
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-cream/60">
-            {label}
-          </p>
-          {icon && (
-            <span
-              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 ring-white/10 ${iconClass}`}
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                {icon}
-              </svg>
-            </span>
-          )}
-        </div>
-
-        {/* Value + scale bar — centered in the remaining space so all four
-            cards share the same value baseline. */}
-        <div className="flex flex-1 flex-col justify-center pt-5">
-          <p className="font-mono text-[32px] font-semibold leading-none tracking-tight text-cream">
-            <CountUp
-              to={value}
-              decimals={0}
-              suffix={currency ? " DT" : ""}
-            />
-          </p>
-          {/* Slim relative-scale bar so the card never reads "empty". */}
-          <div className="mt-4 h-1 overflow-hidden rounded-full bg-white/8">
-            <div
-              className={`h-full bg-gradient-to-r ${barClass} transition-all duration-700`}
-              style={{ width: `${pct}%` }}
-            />
-          </div>
-          <div className="mt-2.5 flex min-h-[18px] items-center gap-2">
-            {trend !== undefined ? (
-              <>
-                <TrendPill pct={trend} invert={invertTrend} />
-                {trendSuffix && (
-                  <span className="text-[11px] text-cream/50">
-                    {trendSuffix}
-                  </span>
-                )}
-              </>
-            ) : (
-              <span className="text-[11px] text-cream/30">
-                &nbsp;
-              </span>
-            )}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function FeaturedCard({
-  featured,
-  canEdit,
-}: {
-  featured: NonNullable<Featured>;
-  canEdit: boolean;
-}) {
-  const name = featured.full_name ?? featured.username;
-  const { t } = useI18n();
-  return (
-    <Card
-      interactive
-      className="relative overflow-hidden border-0 p-0"
-    >
-      {/* Deep navy backdrop with floating brand/violet/cyan blobs */}
-      <div
-        aria-hidden
-        className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#1a2a4a] via-[#0f1830] to-[#0a1326] ring-1 ring-inset ring-white/12"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -left-20 -top-20 h-72 w-72 rounded-full bg-brand/40 blur-3xl"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -bottom-24 right-1/4 h-64 w-64 rounded-full bg-[#7c4dff]/30 blur-3xl"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -right-12 top-1/3 h-48 w-48 rounded-full bg-cyan-400/22 blur-3xl"
-      />
-
-      <CardContent className="relative flex min-h-[140px] flex-col items-center gap-6 px-8 py-8 text-center sm:flex-row sm:items-center sm:gap-8 sm:text-left">
-        {/* Avatar with electric halo */}
-        <div className="relative shrink-0">
-          <div
-            aria-hidden
-            className="absolute inset-0 -m-2.5 animate-pulse rounded-full bg-gradient-to-br from-brand via-[#7c4dff] to-cyan-400 opacity-70 blur-xl"
-          />
-          <div className="absolute inset-0 -m-1 rounded-full bg-gradient-to-br from-brand via-[#7c4dff] to-cyan-400 p-[2px]">
-            <div className="h-full w-full rounded-full bg-[#0a1326]" />
-          </div>
-          <Avatar
-            src={featured.avatar_url}
-            name={name}
-            size="xl"
-            className="relative ring-2 ring-brand/70 ring-offset-2 ring-offset-[#0a1326]"
-          />
-          <span
-            className="absolute -top-3 left-1/2 -translate-x-1/2 -rotate-12 text-2xl drop-shadow-md"
-            aria-hidden
-          >
-            ⭐
+    <div className="flex flex-col gap-3 rounded-xl bg-[#111827] p-4 ring-1 ring-[#263244]">
+      <div className="flex items-center justify-between">
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-[#64748B]">
+          {label}
+        </p>
+        {pulse && count > 0 && (
+          <span className="relative flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" style={{ backgroundColor: color }} />
+            <span className="relative inline-flex h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
           </span>
-        </div>
-
-        {/*
-          Robust text column:
-          - min-w-0 lets the flex child shrink properly
-          - leading-snug + py-1 reserves room for descenders on every glyph
-          - solid white name (text-white) — no bg-clip-text trickery so
-            nothing gets cropped by the gradient mask
-          - tracking-[-0.01em] for a confident SaaS-grade title
-        */}
-        <div className="min-w-0 flex-1 space-y-2.5 sm:pt-3">
-          <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-300/15 px-3 py-1 text-[10.5px] font-bold uppercase leading-none tracking-[0.20em] text-cyan-100 ring-1 ring-cyan-300/40">
-              ✦ {t.featured.title}
-            </span>
-            <span className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-cream/55">
-              {formatMonth(featured.month, t.overview.months)}
-            </span>
-          </div>
-          <h3 className="text-[28px] font-semibold leading-snug tracking-[-0.01em] text-white md:text-[32px]">
-            {name}
-          </h3>
-          {featured.reason && (
-            <p className="text-sm italic leading-relaxed text-cream/75">
-              « {featured.reason} »
-            </p>
-          )}
-        </div>
-
-        {canEdit && (
-          <div className="flex shrink-0 items-center">
-            <Link
-              href="/dashboard/team/featured"
-              className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/10 px-4 py-1.5 text-xs font-semibold text-cream/95 backdrop-blur transition-all hover:border-brand/60 hover:bg-brand/30 hover:text-white"
-            >
-              {t.featured.edit}
-            </Link>
-          </div>
         )}
-      </CardContent>
-    </Card>
-  );
-}
-
-function FeaturedEmptyCta() {
-  const { t } = useI18n();
-  return (
-    <Card className="border-dashed border-brand/30 bg-brand/5 dark:border-white/10 dark:bg-white/3">
-      <CardContent className="flex items-center justify-between p-5">
-        <div className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand/12 text-lg text-brand">
-            ✦
-          </span>
-          <div>
-            <p className="text-sm font-semibold text-ink">
-              {t.featured.empty}
-            </p>
-            <p className="text-xs text-ink/55">{t.featured.emptyHint}</p>
-          </div>
-        </div>
-        <Link
-          href="/dashboard/team/featured"
-          className="text-sm font-semibold text-brand hover:text-brand-dark"
-        >
-          {t.featured.designate}
-        </Link>
-      </CardContent>
-    </Card>
-  );
-}
-
-function RecentDevisFeed({ rows }: { rows: RecentDevis[] }) {
-  const { t } = useI18n();
-  if (rows.length === 0) {
-    return (
-      <p className="py-6 text-center text-sm text-ink/45">
-        {t.overview.noRecent}
+      </div>
+      <p className="font-mono text-3xl font-bold leading-none" style={{ color }}>
+        <CountUp to={count} decimals={0} />
       </p>
-    );
-  }
-  return (
-    <ul className="space-y-1">
-      {rows.map((d) => {
-        const baseUrl =
-          d.kind === "facture" ? "/dashboard/factures" : "/dashboard/devis";
-        const statusKey = d.status as keyof typeof t.devis.status;
-        const statusText = t.devis.status[statusKey] ?? d.status;
-        return (
-          <li key={d.id}>
-            <Link
-              href={`${baseUrl}/${d.id}`}
-              className="flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-white/8"
-            >
-              <span
-                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${
-                  d.kind === "facture"
-                    ? "bg-[#7c4dff]/20 text-[#bfa6ff]"
-                    : "bg-brand/10 text-brand"
-                }`}
-              >
-                {d.kind === "facture" ? "FA" : "DE"}
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-ink">
-                  {d.client_name}
-                </p>
-                <p className="truncate text-xs text-ink/50">
-                  {formatDevisNumber(d.devis_number, d.kind)} ·{" "}
-                  {formatDate(d.date)}
-                </p>
-              </div>
-              <div className="flex shrink-0 items-center gap-2">
-                <Badge tone={statusTone[d.status]}>{statusText}</Badge>
-                <span className="text-sm font-semibold text-ink">
-                  {formatDt(d.total_dt)}
-                </span>
-              </div>
-            </Link>
-          </li>
-        );
-      })}
-    </ul>
+      <div className="h-1.5 overflow-hidden rounded-full bg-white/8">
+        <div
+          className={`h-full bg-gradient-to-r ${gradientFrom} ${gradientTo} transition-all duration-700`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <p className="text-[11px] text-[#64748B]">
+        {total > 0 ? `${Math.round((count / total) * 100)}% du total` : "—"}
+      </p>
+    </div>
   );
 }
 
-function UpcomingTasksList({ rows }: { rows: UpcomingTask[] }) {
-  const { t } = useI18n();
+// ---------------------------------------------------------------------------
+// UpcomingDeadlinesList — premium deadline rows
+// ---------------------------------------------------------------------------
+
+function UpcomingDeadlinesList({
+  rows,
+  today,
+}: {
+  rows: UpcomingTask[];
+  today: Date;
+}) {
   if (rows.length === 0) {
     return (
-      <p className="py-6 text-center text-sm text-ink/45">
-        {t.overview.noUpcoming}
+      <p className="py-8 text-center text-sm text-[#64748B]">
+        Aucune échéance à venir.
       </p>
     );
   }
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
   return (
-    <ul className="space-y-1">
+    <ul className="divide-y divide-[#1E293B]">
       {rows.map((task) => {
         const due = new Date(task.deadline);
         const days = Math.floor(
           (due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
         );
         const isOverdue = days < 0;
-        const isSoon = days >= 0 && days <= 3;
-        const priKey = task.priority as keyof typeof t.tasks.priority;
-        const priorityText = t.tasks.priority[priKey] ?? task.priority;
+        const isToday = days === 0;
+        const isSoon = days > 0 && days <= 2;
 
         return (
           <li key={task.id}>
             <Link
               href={`/dashboard/tasks/${task.id}`}
-              className="flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-white/8"
+              className="flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-white/4"
             >
+              {/* Assignee avatar */}
               {task.assignee ? (
                 <Avatar
                   src={task.assignee.avatar}
@@ -800,37 +810,98 @@ function UpcomingTasksList({ rows }: { rows: UpcomingTask[] }) {
                   size="sm"
                 />
               ) : (
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ink/10 text-xs text-ink/40">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#1E293B] text-xs text-[#64748B]">
                   ?
                 </span>
               )}
+
+              {/* Title + project */}
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-ink">
+                <p
+                  className={`truncate text-sm font-medium ${
+                    isOverdue ? "text-[#F43F5E]" : "text-[#F8FAFC]"
+                  }`}
+                >
                   {task.title}
                 </p>
-                <p className="truncate text-xs text-ink/50">
+                <p className="truncate text-[11px] text-[#64748B]">
                   {task.client} · {task.project}
                 </p>
               </div>
-              <div className="flex shrink-0 items-center gap-2">
-                <Badge tone={priorityTone[task.priority]}>
-                  {priorityText}
-                </Badge>
-                <span
-                  className={`shrink-0 rounded-md px-2 py-0.5 text-[11px] font-semibold ${
-                    isOverdue
-                      ? "bg-red-500/15 text-red-300"
+
+              {/* Priority badge */}
+              <StatusBadge status={task.priority} type="priority" />
+
+              {/* Due date chip */}
+              <span
+                className={`shrink-0 rounded-lg px-2.5 py-1 text-[11px] font-semibold ${
+                  isOverdue
+                    ? "bg-[#F43F5E]/15 text-[#F43F5E]"
+                    : isToday
+                      ? "bg-[#F59E0B]/15 text-[#F59E0B]"
                       : isSoon
-                        ? "bg-brand/15 text-brand"
-                        : "bg-white/8 text-ink/55"
-                  }`}
-                >
-                  {isOverdue
-                    ? t.overview.relativeOverdue(days)
-                    : days === 0
-                      ? t.overview.relativeTodayShort
-                      : t.overview.relativeIn(days)}
-                </span>
+                        ? "bg-[#38BDF8]/10 text-[#38BDF8]"
+                        : "bg-white/5 text-[#64748B]"
+                }`}
+              >
+                {isOverdue
+                  ? `${Math.abs(days)}j retard`
+                  : isToday
+                    ? "Aujourd'hui"
+                    : `J+${days}`}
+              </span>
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// RecentDocsFeed
+// ---------------------------------------------------------------------------
+
+function RecentDocsFeed({ rows }: { rows: RecentDevis[] }) {
+  if (rows.length === 0) {
+    return (
+      <p className="py-8 text-center text-sm text-[#64748B]">
+        Aucun document récent.
+      </p>
+    );
+  }
+
+  return (
+    <ul className="divide-y divide-[#1E293B]">
+      {rows.map((d) => {
+        const baseUrl =
+          d.kind === "facture" ? "/dashboard/factures" : "/dashboard/devis";
+        return (
+          <li key={d.id}>
+            <Link
+              href={`${baseUrl}/${d.id}`}
+              className="flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-white/4"
+            >
+              <span
+                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${
+                  d.kind === "facture"
+                    ? "bg-[#7c4dff]/20 text-[#A78BFA]"
+                    : "bg-[#38BDF8]/10 text-[#38BDF8]"
+                }`}
+              >
+                {d.kind === "facture" ? "FA" : "DE"}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-[#F8FAFC]">
+                  {d.client_name}
+                </p>
+                <p className="truncate text-[11px] text-[#64748B]">
+                  {formatDevisNumber(d.devis_number, d.kind)} · {formatDate(d.date)}
+                </p>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <StatusBadge status={d.payment_status || d.status} type="finance" />
+                <MoneyAmount amount={d.total_dt} size="sm" />
               </div>
             </Link>
           </li>
@@ -840,12 +911,9 @@ function UpcomingTasksList({ rows }: { rows: UpcomingTask[] }) {
   );
 }
 
-const myStatusTone: Record<string, "slate" | "blue" | "amber" | "green"> = {
-  todo: "slate",
-  in_progress: "blue",
-  review: "amber",
-  done: "green",
-};
+// ---------------------------------------------------------------------------
+// MyTasksList (worker/freelancer)
+// ---------------------------------------------------------------------------
 
 function MyTasksList({ rows }: { rows: UpcomingTask[] }) {
   const { t } = useI18n();
@@ -874,6 +942,14 @@ function MyTasksList({ rows }: { rows: UpcomingTask[] }) {
         const statusText = t.tasks.status[statusKey] ?? task.status;
         const priKey = task.priority as keyof typeof t.tasks.priority;
         const priorityText = t.tasks.priority[priKey] ?? task.priority;
+
+        const myStatusTone: Record<string, "slate" | "blue" | "amber" | "green"> =
+          {
+            todo: "slate",
+            in_progress: "blue",
+            review: "amber",
+            done: "green",
+          };
 
         return (
           <li key={task.id}>
@@ -924,5 +1000,123 @@ function MyTasksList({ rows }: { rows: UpcomingTask[] }) {
         );
       })}
     </ul>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// FeaturedCard — kept exactly as before
+// ---------------------------------------------------------------------------
+
+function FeaturedCard({
+  featured,
+  canEdit,
+}: {
+  featured: NonNullable<Featured>;
+  canEdit: boolean;
+}) {
+  const name = featured.full_name ?? featured.username;
+  const { t } = useI18n();
+  return (
+    <Card interactive className="relative overflow-hidden border-0 p-0">
+      <div
+        aria-hidden
+        className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#1a2a4a] via-[#0f1830] to-[#0a1326] ring-1 ring-inset ring-white/12"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -left-20 -top-20 h-72 w-72 rounded-full bg-brand/40 blur-3xl"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -bottom-24 right-1/4 h-64 w-64 rounded-full bg-[#7c4dff]/30 blur-3xl"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -right-12 top-1/3 h-48 w-48 rounded-full bg-cyan-400/22 blur-3xl"
+      />
+
+      <CardContent className="relative flex min-h-[140px] flex-col items-center gap-6 px-8 py-8 text-center sm:flex-row sm:items-center sm:gap-8 sm:text-left">
+        <div className="relative shrink-0">
+          <div
+            aria-hidden
+            className="absolute inset-0 -m-2.5 animate-pulse rounded-full bg-gradient-to-br from-brand via-[#7c4dff] to-cyan-400 opacity-70 blur-xl"
+          />
+          <div className="absolute inset-0 -m-1 rounded-full bg-gradient-to-br from-brand via-[#7c4dff] to-cyan-400 p-[2px]">
+            <div className="h-full w-full rounded-full bg-[#0a1326]" />
+          </div>
+          <Avatar
+            src={featured.avatar_url}
+            name={name}
+            size="xl"
+            className="relative ring-2 ring-brand/70 ring-offset-2 ring-offset-[#0a1326]"
+          />
+          <span
+            className="absolute -top-3 left-1/2 -translate-x-1/2 -rotate-12 text-2xl drop-shadow-md"
+            aria-hidden
+          >
+            ⭐
+          </span>
+        </div>
+
+        <div className="min-w-0 flex-1 space-y-2.5 sm:pt-3">
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-300/15 px-3 py-1 text-[10.5px] font-bold uppercase leading-none tracking-[0.20em] text-cyan-100 ring-1 ring-cyan-300/40">
+              ✦ {t.featured.title}
+            </span>
+            <span className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-cream/55">
+              {formatMonth(featured.month, t.overview.months)}
+            </span>
+          </div>
+          <h3 className="text-[28px] font-semibold leading-snug tracking-[-0.01em] text-white md:text-[32px]">
+            {name}
+          </h3>
+          {featured.reason && (
+            <p className="text-sm italic leading-relaxed text-cream/75">
+              « {featured.reason} »
+            </p>
+          )}
+        </div>
+
+        {canEdit && (
+          <div className="flex shrink-0 items-center">
+            <Link
+              href="/dashboard/team/featured"
+              className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/10 px-4 py-1.5 text-xs font-semibold text-cream/95 backdrop-blur transition-all hover:border-brand/60 hover:bg-brand/30 hover:text-white"
+            >
+              {t.featured.edit}
+            </Link>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// FeaturedEmptyCta
+// ---------------------------------------------------------------------------
+
+function FeaturedEmptyCta() {
+  const { t } = useI18n();
+  return (
+    <Card className="border-dashed border-brand/30 bg-brand/5 dark:border-white/10 dark:bg-white/3">
+      <CardContent className="flex items-center justify-between p-5">
+        <div className="flex items-center gap-3">
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand/12 text-lg text-brand">
+            ✦
+          </span>
+          <div>
+            <p className="text-sm font-semibold text-ink">{t.featured.empty}</p>
+            <p className="text-xs text-ink/55">{t.featured.emptyHint}</p>
+          </div>
+        </div>
+        <Link
+          href="/dashboard/team/featured"
+          className="text-sm font-semibold text-brand hover:text-brand-dark"
+        >
+          {t.featured.designate}
+        </Link>
+      </CardContent>
+    </Card>
   );
 }

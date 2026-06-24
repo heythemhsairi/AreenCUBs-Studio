@@ -10,7 +10,7 @@ import {
   LayoutDashboard,
   CheckSquare,
   Calendar,
-  Instagram,
+  Share2,
   Users,
   FolderOpen,
   FileText,
@@ -61,7 +61,7 @@ function buildNav(
     {
       href: "/dashboard/social-media",
       label: t.nav.socialMedia,
-      icon: Instagram,
+      icon: Share2,
       rolesAllowed: ["admin", "worker"],
       group: "workspace",
     },

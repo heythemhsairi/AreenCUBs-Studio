@@ -3,6 +3,7 @@ import { Libre_Franklin } from "next/font/google";
 import "./globals.css";
 import { I18nProvider } from "@/lib/i18n/provider";
 import { ToastProvider } from "@/components/toast";
+import { Toaster } from "sonner";
 
 const franklin = Libre_Franklin({
   subsets: ["latin"],
@@ -30,6 +31,12 @@ export default function RootLayout({
         <I18nProvider>
           <ToastProvider>{children}</ToastProvider>
         </I18nProvider>
+        <Toaster
+          position="bottom-right"
+          theme="dark"
+          richColors
+          toastOptions={{ style: { background: '#111827', border: '1px solid #263244', color: '#F8FAFC' } }}
+        />
       </body>
     </html>
   );

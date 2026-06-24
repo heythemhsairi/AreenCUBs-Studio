@@ -1,35 +1,39 @@
 import { type HTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
+type CardVariant = "default" | "elevated" | "glass" | "ghost" | "ring";
+
 type CardProps = HTMLAttributes<HTMLDivElement> & {
-  /** Adds a subtle hover-lift + shadow transition */
+  /** Visual variant controlling background and border style */
+  variant?: CardVariant;
+  /** Adds hover glow and border-color transition for clickable cards */
   interactive?: boolean;
-  /** Visual variant. `glass` is the default, frosted white surface. */
-  variant?: "glass" | "glass-strong" | "ring" | "accent" | "ink" | "solid";
 };
+
+const variantClass: Record<CardVariant, string> = {
+  default:  "bg-[#111827] border border-[#263244] rounded-2xl",
+  elevated: "bg-[#18212F] border border-[#263244] rounded-2xl",
+  glass:    "bg-[#111827]/80 backdrop-blur-xl border border-[#263244]/80 rounded-2xl",
+  ghost:    "bg-transparent border border-[#263244]/50 rounded-2xl",
+  ring:     "bg-[#111827] border-2 border-[#22D3EE]/40 rounded-2xl shadow-[0_0_16px_rgba(34,211,238,0.12)]",
+};
+
+const interactiveClass =
+  "hover:border-[#22D3EE]/30 hover:shadow-[0_0_20px_rgba(34,211,238,0.06)] transition-all duration-200";
 
 export function Card({
   className,
+  variant = "default",
   interactive,
-  variant = "glass",
   ...rest
 }: CardProps) {
-  const variantClass =
-    variant === "glass-strong"
-      ? "glass-strong rounded-2xl"
-      : variant === "ring"
-        ? "ring-gradient rounded-2xl shadow-soft"
-        : variant === "accent"
-          ? "rounded-2xl border border-accent/35 bg-white/85 backdrop-blur shadow-soft"
-          : variant === "ink"
-            ? "glass-dark rounded-2xl"
-            : variant === "solid"
-              ? "rounded-2xl border border-ink/8 bg-white shadow-soft"
-              : "glass rounded-2xl";
-
   return (
     <div
-      className={cn(variantClass, interactive && "lift", className)}
+      className={cn(
+        variantClass[variant],
+        interactive && interactiveClass,
+        className,
+      )}
       {...rest}
     />
   );
@@ -57,7 +61,7 @@ export function CardTitle({
   return (
     <h3
       className={cn(
-        "text-[15px] font-semibold tracking-tight text-ink leading-tight",
+        "text-[15px] font-semibold tracking-tight text-[#F8FAFC] leading-tight",
         className,
       )}
       {...rest}
@@ -71,7 +75,7 @@ export function CardDescription({
 }: HTMLAttributes<HTMLParagraphElement>) {
   return (
     <p
-      className={cn("text-xs leading-relaxed text-ink/55", className)}
+      className={cn("text-xs leading-relaxed text-[#94A3B8]", className)}
       {...rest}
     />
   );
@@ -93,7 +97,7 @@ export function CardFooter({
   return (
     <div
       className={cn(
-        "flex items-center gap-2 border-t border-ink/8 px-5 py-3 md:px-6",
+        "flex items-center gap-2 border-t border-[#263244] px-5 py-3 md:px-6",
         className,
       )}
       {...rest}

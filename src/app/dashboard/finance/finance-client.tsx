@@ -3,12 +3,7 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { formatDt, formatDate } from "@/lib/format";
-import { CountUp } from "@/components/charts/count-up";
-import { TrendPill } from "@/components/charts/trend-pill";
-import { MonthlyBars } from "@/components/charts/bars";
-import { Donut, DonutLegend } from "@/components/charts/donut";
-import { getDonutPalette } from "@/components/charts/palette";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { KpiCard } from "@/components/ui/kpi-card";
 import { Badge } from "@/components/ui/badge";
 import { OutstandingTable, type OutstandingRow } from "./outstanding-table";
 import { ExpensesTab, type ExpenseRow } from "./expenses-tab";
@@ -16,6 +11,23 @@ import { DevisPipelineTab } from "./devis-pipeline-tab";
 import { FacturesTab } from "./factures-tab";
 import { ClientProfilesTab, type ClientProfile } from "./client-profiles-tab";
 import { AuditTab, type AuditData } from "./audit-tab";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+  Legend,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
+
+// ---------------------------------------------------------------------------
+// Types — keep EXACTLY as-is
+// ---------------------------------------------------------------------------
 
 type MonthlySeries = { label: string; paid: number; invoiced: number; expenses: number; profit: number };
 type ServiceTally = { name: string; total_dt: number; count: number };
@@ -71,6 +83,10 @@ type Props = {
   auditData: AuditData;
 };
 
+// ---------------------------------------------------------------------------
+// Tab config
+// ---------------------------------------------------------------------------
+
 const TABS = [
   { key: "dashboard", label: "Dashboard" },
   { key: "factures",  label: "Factures" },
@@ -81,73 +97,291 @@ const TABS = [
 ] as const;
 type TabKey = (typeof TABS)[number]["key"];
 
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
 function pct(c: number, p: number): number | null {
   if (p === 0) return c > 0 ? 100 : null;
   return ((c - p) / p) * 100;
 }
 
-export function FinanceDashboardClient(props: Props) {
-  const [tab, setTab] = useState<TabKey>("dashboard");
+// ---------------------------------------------------------------------------
+// Chart palette
+// ---------------------------------------------------------------------------
 
+const CHART_COLORS = {
+  paid:     "#22C55E",
+  invoiced: "#22D3EE",
+  expenses: "#F43F5E",
+  profit:   "#A78BFA",
+};
+
+const PIE_PALETTE = [
+  "#22D3EE", "#22C55E", "#A78BFA", "#F59E0B",
+  "#F43F5E", "#FB923C", "#34D399", "#818CF8",
+];
+
+// ---------------------------------------------------------------------------
+// Custom Recharts Tooltip
+// ---------------------------------------------------------------------------
+
+function DarkTooltip({ active, payload, label }: {
+  active?: boolean;
+  payload?: Array<{ name: string; value: number; color: string }>;
+  label?: string;
+}) {
+  if (!active || !payload?.length) return null;
   return (
-    <div className="space-y-6">
-      {/* Tab strip */}
-      <div className="flex gap-1 rounded-xl border border-ink/8 bg-white/40 p-1 backdrop-blur-sm">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            type="button"
-            onClick={() => setTab(t.key)}
-            className={cn(
-              "flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-all",
-              tab === t.key
-                ? "bg-brand text-white shadow-sm"
-                : "text-ink/60 hover:bg-white/60 hover:text-ink",
-            )}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      {tab === "dashboard" && <DashboardTab {...props} />}
-      {tab === "factures"  && <FacturesTab rows={props.facturesWithBalance} clients={props.clients} today={props.today} />}
-      {tab === "devis"     && (
-        <DevisPipelineTab
-          rows={props.devisRows}
-          totalSent={props.totalDevisSent}
-          totalAccepted={props.totalDevisAccepted}
-          totalRejected={props.totalDevisRejected}
-          conversionRate={props.conversionRate}
-          expectedRevenue={props.expectedRevenue}
-          lostRevenue={props.lostRevenue}
-          avgDealSize={props.avgDealSize}
-        />
-      )}
-      {tab === "expenses"  && (
-        <ExpensesTab
-          rows={props.expenseRows}
-          projects={props.projects}
-          clients={props.clients}
-          expByCategory={props.expByCategory}
-          mtdExpenses={props.mtdExpenses}
-        />
-      )}
-      {tab === "clients"   && <ClientProfilesTab profiles={props.clientProfiles} />}
-      {tab === "audit"     && <AuditTab data={props.auditData} />}
+    <div className="rounded-lg border border-[#263244] bg-[#18212F] px-3 py-2 text-xs shadow-xl">
+      {label && <p className="mb-1.5 font-semibold text-[#94A3B8]">{label}</p>}
+      {payload.map((p) => (
+        <div key={p.name} className="flex items-center gap-2 py-0.5">
+          <span className="h-2 w-2 rounded-full flex-shrink-0" style={{ background: p.color }} />
+          <span className="text-[#94A3B8]">{p.name}:</span>
+          <span className="font-semibold text-[#F8FAFC]">{p.value.toLocaleString("fr-TN")} DT</span>
+        </div>
+      ))}
     </div>
   );
 }
 
-function DashboardTab(props: Props) {
-  const palette = getDonutPalette();
+function PieDarkTooltip({ active, payload }: {
+  active?: boolean;
+  payload?: Array<{ name: string; value: number; payload: { color: string } }>;
+}) {
+  if (!active || !payload?.length) return null;
+  const entry = payload[0];
+  return (
+    <div className="rounded-lg border border-[#263244] bg-[#18212F] px-3 py-2 text-xs shadow-xl">
+      <div className="flex items-center gap-2">
+        <span className="h-2 w-2 rounded-full flex-shrink-0" style={{ background: entry.payload.color }} />
+        <span className="text-[#94A3B8]">{entry.name}:</span>
+        <span className="font-semibold text-[#F8FAFC]">{entry.value.toLocaleString("fr-TN")} DT</span>
+      </div>
+    </div>
+  );
+}
 
+// ---------------------------------------------------------------------------
+// Area chart — replaces MonthlyBars
+// ---------------------------------------------------------------------------
+
+function RevenueAreaChart({ series }: { series: MonthlySeries[] }) {
+  if (!series.length) {
+    return (
+      <div className="flex h-60 items-center justify-center text-sm text-[#64748B]">
+        Pas encore de données.
+      </div>
+    );
+  }
+
+  const data = series.map((s) => ({
+    name: s.label,
+    "Encaissé": s.paid,
+    "Facturé":  s.invoiced,
+    "Dépenses": s.expenses,
+    "Profit":   s.profit,
+  }));
+
+  return (
+    <ResponsiveContainer width="100%" height={260}>
+      <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 8 }}>
+        <defs>
+          <linearGradient id="gradPaid" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%"  stopColor={CHART_COLORS.paid}     stopOpacity={0.3} />
+            <stop offset="95%" stopColor={CHART_COLORS.paid}     stopOpacity={0} />
+          </linearGradient>
+          <linearGradient id="gradInvoiced" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%"  stopColor={CHART_COLORS.invoiced} stopOpacity={0.25} />
+            <stop offset="95%" stopColor={CHART_COLORS.invoiced} stopOpacity={0} />
+          </linearGradient>
+          <linearGradient id="gradExpenses" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%"  stopColor={CHART_COLORS.expenses} stopOpacity={0.25} />
+            <stop offset="95%" stopColor={CHART_COLORS.expenses} stopOpacity={0} />
+          </linearGradient>
+          <linearGradient id="gradProfit" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%"  stopColor={CHART_COLORS.profit}   stopOpacity={0.25} />
+            <stop offset="95%" stopColor={CHART_COLORS.profit}   stopOpacity={0} />
+          </linearGradient>
+        </defs>
+
+        <CartesianGrid stroke="#263244" strokeDasharray="4 2" vertical={false} />
+
+        <XAxis
+          dataKey="name"
+          tick={{ fill: "#64748B", fontSize: 11 }}
+          axisLine={false}
+          tickLine={false}
+        />
+        <YAxis
+          tick={{ fill: "#64748B", fontSize: 11 }}
+          axisLine={false}
+          tickLine={false}
+          tickFormatter={(v: number) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`}
+          width={42}
+        />
+
+        <RechartsTooltip content={<DarkTooltip />} />
+
+        <Legend
+          wrapperStyle={{ fontSize: 11, color: "#94A3B8", paddingTop: 12 }}
+          iconType="circle"
+          iconSize={8}
+        />
+
+        <Area
+          type="monotone"
+          dataKey="Encaissé"
+          stroke={CHART_COLORS.paid}
+          strokeWidth={2}
+          fill="url(#gradPaid)"
+          dot={false}
+          activeDot={{ r: 4, fill: CHART_COLORS.paid }}
+        />
+        <Area
+          type="monotone"
+          dataKey="Facturé"
+          stroke={CHART_COLORS.invoiced}
+          strokeWidth={2}
+          fill="url(#gradInvoiced)"
+          dot={false}
+          activeDot={{ r: 4, fill: CHART_COLORS.invoiced }}
+        />
+        <Area
+          type="monotone"
+          dataKey="Dépenses"
+          stroke={CHART_COLORS.expenses}
+          strokeWidth={2}
+          fill="url(#gradExpenses)"
+          dot={false}
+          activeDot={{ r: 4, fill: CHART_COLORS.expenses }}
+        />
+        <Area
+          type="monotone"
+          dataKey="Profit"
+          stroke={CHART_COLORS.profit}
+          strokeWidth={2}
+          fill="url(#gradProfit)"
+          dot={false}
+          activeDot={{ r: 4, fill: CHART_COLORS.profit }}
+        />
+      </AreaChart>
+    </ResponsiveContainer>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Recharts donut — replaces Donut + DonutLegend
+// ---------------------------------------------------------------------------
+
+function RechartsDonut({ data }: { data: { label: string; value: number; color: string }[] }) {
+  if (!data.length) {
+    return <p className="py-8 text-center text-sm text-[#64748B]">Pas encore de données.</p>;
+  }
+
+  const pieData = data.map((d) => ({ name: d.label, value: d.value, color: d.color }));
+
+  return (
+    <div className="space-y-4">
+      <ResponsiveContainer width="100%" height={200}>
+        <PieChart>
+          <Pie
+            data={pieData}
+            cx="50%"
+            cy="50%"
+            innerRadius="55%"
+            outerRadius="80%"
+            dataKey="value"
+            strokeWidth={0}
+          >
+            {pieData.map((entry, i) => (
+              <Cell key={i} fill={entry.color} />
+            ))}
+          </Pie>
+          <RechartsTooltip content={<PieDarkTooltip />} />
+        </PieChart>
+      </ResponsiveContainer>
+
+      {/* Legend */}
+      <div className="space-y-1.5">
+        {data.map((d) => {
+          const total = data.reduce((sum, x) => sum + x.value, 0);
+          const pctVal = total > 0 ? ((d.value / total) * 100).toFixed(1) : "0";
+          return (
+            <div key={d.label} className="flex items-center gap-2 text-xs">
+              <span
+                className="h-2 w-2 flex-shrink-0 rounded-full"
+                style={{ background: d.color }}
+              />
+              <span className="min-w-0 flex-1 truncate text-[#94A3B8]">{d.label}</span>
+              <span className="text-[#64748B]">{pctVal}%</span>
+              <span className="font-semibold text-[#F8FAFC]">{d.value.toLocaleString("fr-TN")}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Mini donut card
+// ---------------------------------------------------------------------------
+
+function MiniDonutCard({
+  title,
+  subtitle,
+  data,
+}: {
+  title: string;
+  subtitle: string;
+  data: { label: string; value: number; color: string }[];
+}) {
+  return (
+    <div className="rounded-xl border border-[#263244] bg-[#111827] p-5">
+      <div className="mb-1 text-sm font-semibold text-[#F8FAFC]">{title}</div>
+      <div className="mb-4 text-xs text-[#64748B]">{subtitle}</div>
+      <RechartsDonut data={data} />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Risk badge
+// ---------------------------------------------------------------------------
+
+export function RiskBadge({ risk }: { risk: "good" | "late" | "risky" }) {
+  if (risk === "good")
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-950/60 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
+        ● Bon
+      </span>
+    );
+  if (risk === "late")
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-amber-950/60 px-2 py-0.5 text-[10px] font-semibold text-amber-400">
+        ● En retard
+      </span>
+    );
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-rose-950/60 px-2 py-0.5 text-[10px] font-semibold text-rose-400">
+      ● Risqué
+    </span>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Dashboard tab
+// ---------------------------------------------------------------------------
+
+function DashboardTab(props: Props) {
   // Service donut
   const topSlices = props.topServices.slice(0, 6);
   const restTotal = props.topServices.slice(6).reduce((s, t) => s + t.total_dt, 0);
   const serviceDonut = [
-    ...topSlices.map((s, i) => ({ label: s.name, value: s.total_dt, color: palette[i % palette.length] })),
-    ...(restTotal > 0 ? [{ label: "Autres", value: restTotal, color: palette[6 % palette.length] }] : []),
+    ...topSlices.map((s, i) => ({ label: s.name, value: s.total_dt, color: PIE_PALETTE[i % PIE_PALETTE.length] })),
+    ...(restTotal > 0 ? [{ label: "Autres", value: restTotal, color: PIE_PALETTE[6 % PIE_PALETTE.length] }] : []),
   ];
 
   // Expense donut
@@ -159,181 +393,246 @@ function DashboardTab(props: Props) {
   const expDonut = Object.entries(props.expByCategory)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 7)
-    .map(([k, v], i) => ({ label: CATEGORY_LABELS[k] ?? k, value: v, color: palette[i % palette.length] }));
+    .map(([k, v], i) => ({ label: CATEGORY_LABELS[k] ?? k, value: v, color: PIE_PALETTE[i % PIE_PALETTE.length] }));
 
   // Top clients donut
   const clientDonut = props.topClients.slice(0, 6).map((c, i) => ({
     label: c.name,
     value: c.paid,
-    color: palette[i % palette.length],
+    color: PIE_PALETTE[i % PIE_PALETTE.length],
   }));
 
   return (
     <div className="space-y-6">
       {/* ── 8 KPI CARDS ─────────────────────────────────────────── */}
       <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <KpiCard label="Encaissé (mois)" value={props.mtdPaid} trend={pct(props.mtdPaid, props.prevPaid)} tone="green" suffix=" DT" />
-        <KpiCard label="Facturé (mois)" value={props.mtdInvoiced} trend={pct(props.mtdInvoiced, props.prevInvoiced)} tone="brand" suffix=" DT" />
-        <KpiCard label="Impayés total" value={props.totalOutstanding} tone={props.totalOutstanding > 0 ? "amber" : "neutral"} suffix=" DT" />
-        <KpiCard label="En retard" value={props.totalOverdue} tone={props.totalOverdue > 0 ? "red" : "neutral"} suffix=" DT" />
-        <KpiCard label="Dépenses (mois)" value={props.mtdExpenses} tone="ink" suffix=" DT" />
-        <KpiCard label="Profit net (mois)" value={props.netProfit} tone={props.netProfit >= 0 ? "green" : "red"} suffix=" DT" />
-        <KpiCard label="Marge bénéficiaire" value={props.profitMargin} tone={props.profitMargin >= 50 ? "green" : props.profitMargin >= 20 ? "amber" : "red"} suffix="%" decimals={1} />
-        <KpiCard label="Attendu 30j" value={props.expectedNext30} tone="brand" suffix=" DT" />
+        <KpiCard
+          label="Encaissé ce mois"
+          value={props.mtdPaid}
+          suffix=" DT"
+          trend={pct(props.mtdPaid, props.prevPaid)}
+          trendLabel="vs mois dernier"
+          tone="green"
+          tooltip="Paiements réellement reçus sur factures uniquement"
+        />
+        <KpiCard
+          label="Facturé ce mois"
+          value={props.mtdInvoiced}
+          suffix=" DT"
+          trend={pct(props.mtdInvoiced, props.prevInvoiced)}
+          trendLabel="vs mois dernier"
+          tone="cyan"
+          tooltip="Total des factures émises ce mois"
+        />
+        <KpiCard
+          label="Impayés total"
+          value={props.totalOutstanding}
+          suffix=" DT"
+          tone={props.totalOverdue > 0 ? "red" : props.totalOutstanding > 0 ? "amber" : "neutral"}
+          tooltip="Balance impayée sur toutes les factures actives"
+        />
+        <KpiCard
+          label="En retard"
+          value={props.totalOverdue}
+          suffix=" DT"
+          tone={props.totalOverdue > 0 ? "red" : "neutral"}
+          tooltip="Montant des factures dont l'échéance est dépassée"
+        />
+        <KpiCard
+          label="Dépenses ce mois"
+          value={props.mtdExpenses}
+          suffix=" DT"
+          tone="neutral"
+          tooltip="Total des dépenses enregistrées ce mois"
+        />
+        <KpiCard
+          label="Profit net"
+          value={props.netProfit}
+          suffix=" DT"
+          tone={props.netProfit >= 0 ? "green" : "red"}
+          tooltip="Encaissé moins dépenses sur le mois en cours"
+        />
+        <KpiCard
+          label="Marge"
+          value={props.profitMargin}
+          suffix="%"
+          decimals={1}
+          tone="violet"
+          tooltip="Profit net / Encaissé × 100"
+        />
+        <KpiCard
+          label="Attendu 30j"
+          value={props.expectedNext30}
+          suffix=" DT"
+          tone="cyan"
+          tooltip="Soldes impayés dont l'échéance tombe dans les 30 prochains jours"
+        />
       </section>
 
-      {/* ── MAIN CHART ───────────────────────────────────────────── */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Encaissé vs Facturé vs Dépenses — 12 mois</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <MonthlyBars series={props.monthlySeries} height={240} />
-        </CardContent>
-      </Card>
-
-      {/* ── 3-COL CHARTS ────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-        <MiniDonutCard title="Services (factures)" subtitle="Répartition par chiffre d'affaires" data={serviceDonut} />
-        <MiniDonutCard title="Dépenses par catégorie" subtitle="Toutes périodes" data={expDonut} />
-        <MiniDonutCard title="Top clients (encaissé)" subtitle="Tous temps" data={clientDonut} />
+      {/* ── MAIN AREA CHART ─────────────────────────────────────── */}
+      <div className="rounded-xl border border-[#263244] bg-[#111827] p-5">
+        <div className="mb-1 text-sm font-semibold text-[#F8FAFC]">
+          Encaissé vs Facturé vs Dépenses — 12 mois
+        </div>
+        <div className="mb-4 text-xs text-[#64748B]">Vue mensuelle agrégée</div>
+        <RevenueAreaChart series={props.monthlySeries} />
       </div>
 
-      {/* ── OUTSTANDING + ACTIONS ────────────────────────────────── */}
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Factures impayées</CardTitle>
-              {props.totalOverdue > 0 && (
-                <Badge tone="red">{formatDt(props.totalOverdue)} en retard</Badge>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent>
-            <OutstandingTable rows={props.outstandingRows.slice(0, 10)} />
-          </CardContent>
-        </Card>
+      {/* ── 3-COL DONUT CHARTS ──────────────────────────────────── */}
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+        <MiniDonutCard
+          title="Services (factures)"
+          subtitle="Répartition par chiffre d'affaires"
+          data={serviceDonut}
+        />
+        <MiniDonutCard
+          title="Dépenses par catégorie"
+          subtitle="Toutes périodes"
+          data={expDonut}
+        />
+        <MiniDonutCard
+          title="Top clients (encaissé)"
+          subtitle="Tous temps"
+          data={clientDonut}
+        />
+      </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Paiements attendus (30j)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {props.paymentsSoon.length === 0 ? (
-              <p className="py-6 text-center text-sm text-ink/45">Aucun paiement attendu dans les 30 prochains jours.</p>
-            ) : (
-              <ul className="divide-y divide-ink/8">
-                {props.paymentsSoon.map((r) => (
-                  <li key={r.devis_id} className="flex items-center justify-between py-2.5">
-                    <div>
-                      <p className="text-sm font-medium text-ink">{r.client_name}</p>
-                      <p className="text-xs text-ink/50">Facture #{r.devis_number} · échéance {formatDate(r.due_date)}</p>
-                    </div>
-                    <span className="text-sm font-semibold text-brand">{formatDt(r.outstanding_dt)}</span>
-                  </li>
-                ))}
-              </ul>
+      {/* ── OUTSTANDING + EXPECTED ──────────────────────────────── */}
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+        <div className="rounded-xl border border-[#263244] bg-[#111827] p-5">
+          <div className="mb-4 flex items-center justify-between">
+            <div className="text-sm font-semibold text-[#F8FAFC]">Factures impayées</div>
+            {props.totalOverdue > 0 && (
+              <Badge tone="red">{formatDt(props.totalOverdue)} en retard</Badge>
             )}
-          </CardContent>
-        </Card>
+          </div>
+          <OutstandingTable rows={props.outstandingRows.slice(0, 10)} />
+        </div>
+
+        <div className="rounded-xl border border-[#263244] bg-[#111827] p-5">
+          <div className="mb-4 text-sm font-semibold text-[#F8FAFC]">Paiements attendus (30j)</div>
+          {props.paymentsSoon.length === 0 ? (
+            <p className="py-6 text-center text-sm text-[#64748B]">
+              Aucun paiement attendu dans les 30 prochains jours.
+            </p>
+          ) : (
+            <ul className="divide-y divide-[#263244]">
+              {props.paymentsSoon.map((r) => (
+                <li key={r.devis_id} className="flex items-center justify-between py-2.5">
+                  <div>
+                    <p className="text-sm font-medium text-[#F8FAFC]">{r.client_name}</p>
+                    <p className="text-xs text-[#64748B]">
+                      Facture #{r.devis_number} · échéance {formatDate(r.due_date)}
+                    </p>
+                  </div>
+                  <span className="text-sm font-semibold text-[#22D3EE]">
+                    {formatDt(r.outstanding_dt)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
 
       {/* ── TOP CLIENTS TABLE ────────────────────────────────────── */}
       {props.topClients.length > 0 && (
-        <Card>
-          <CardHeader><CardTitle>Meilleurs clients</CardTitle></CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-ink/8 text-left text-xs font-semibold uppercase tracking-wider text-ink/45">
-                    <th className="pb-2">Client</th>
-                    <th className="pb-2 text-right">Facturé</th>
-                    <th className="pb-2 text-right">Encaissé</th>
-                    <th className="pb-2 text-right">Impayé</th>
-                    <th className="pb-2 text-right">Risque</th>
+        <div className="rounded-xl border border-[#263244] bg-[#111827] p-5">
+          <div className="mb-4 text-sm font-semibold text-[#F8FAFC]">Meilleurs clients</div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-[#263244] text-left">
+                  <th className="pb-2.5 text-[10px] font-semibold uppercase tracking-widest text-[#64748B]">Client</th>
+                  <th className="pb-2.5 text-right text-[10px] font-semibold uppercase tracking-widest text-[#64748B]">Facturé</th>
+                  <th className="pb-2.5 text-right text-[10px] font-semibold uppercase tracking-widest text-[#64748B]">Encaissé</th>
+                  <th className="pb-2.5 text-right text-[10px] font-semibold uppercase tracking-widest text-[#64748B]">Impayé</th>
+                  <th className="pb-2.5 text-right text-[10px] font-semibold uppercase tracking-widest text-[#64748B]">Risque</th>
+                </tr>
+              </thead>
+              <tbody>
+                {props.topClients.map((c) => (
+                  <tr key={c.id} className="border-b border-[#1E293B] last:border-0">
+                    <td className="py-2.5 font-medium text-[#F8FAFC]">{c.name}</td>
+                    <td className="py-2.5 text-right text-[#94A3B8]">{formatDt(c.invoiced)}</td>
+                    <td className="py-2.5 text-right font-semibold text-[#22C55E]">{formatDt(c.paid)}</td>
+                    <td className="py-2.5 text-right text-[#94A3B8]">{c.unpaid > 0 ? formatDt(c.unpaid) : "—"}</td>
+                    <td className="py-2.5 text-right">
+                      <RiskBadge risk={c.risk as "good" | "late" | "risky"} />
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {props.topClients.map((c) => (
-                    <tr key={c.id} className="border-b border-ink/5 last:border-0">
-                      <td className="py-2 font-medium text-ink">{c.name}</td>
-                      <td className="py-2 text-right text-ink/70">{formatDt(c.invoiced)}</td>
-                      <td className="py-2 text-right font-semibold text-emerald-700">{formatDt(c.paid)}</td>
-                      <td className="py-2 text-right text-ink/70">{c.unpaid > 0 ? formatDt(c.unpaid) : "—"}</td>
-                      <td className="py-2 text-right">
-                        <RiskBadge risk={c.risk as "good" | "late" | "risky"} />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
     </div>
   );
 }
 
-function KpiCard({
-  label, value, trend, tone = "neutral", suffix = "", decimals = 0,
-}: {
-  label: string; value: number; trend?: number | null;
-  tone?: "green" | "brand" | "amber" | "red" | "ink" | "neutral";
-  suffix?: string; decimals?: number;
-}) {
-  const ribbon = {
-    green: "bg-emerald-500", brand: "bg-brand", amber: "bg-accent",
-    red: "bg-red-500", ink: "bg-ink", neutral: "bg-ink/20",
-  }[tone];
-  const valueColor = {
-    green: "text-emerald-700", brand: "text-brand-dark", amber: "text-accent-dark",
-    red: "text-red-600", ink: "text-ink", neutral: "text-ink",
-  }[tone];
-  return (
-    <Card interactive className="relative overflow-hidden">
-      <div className={`absolute inset-x-0 top-0 h-0.5 ${ribbon}`} />
-      <CardContent className="p-4">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-ink/50">{label}</p>
-        <p className={`mt-2.5 text-2xl font-bold tracking-tight ${valueColor}`}>
-          <CountUp to={value} suffix={suffix} decimals={decimals} />
-        </p>
-        {trend !== undefined && (
-          <div className="mt-1 flex items-center gap-1.5">
-            <TrendPill pct={trend} />
-            <span className="text-[10px] text-ink/40">vs mois dernier</span>
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
+// ---------------------------------------------------------------------------
+// Root component
+// ---------------------------------------------------------------------------
 
-function MiniDonutCard({ title, subtitle, data }: { title: string; subtitle: string; data: { label: string; value: number; color: string }[] }) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        <p className="text-xs text-ink/50">{subtitle}</p>
-      </CardHeader>
-      <CardContent>
-        {data.length > 0 ? (
-          <div className="space-y-4">
-            <Donut data={data} size={180} thickness={20} />
-            <DonutLegend data={data} />
-          </div>
-        ) : (
-          <p className="py-8 text-center text-sm text-ink/40">Pas encore de données.</p>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
+export function FinanceDashboardClient(props: Props) {
+  const [tab, setTab] = useState<TabKey>("dashboard");
 
-export function RiskBadge({ risk }: { risk: "good" | "late" | "risky" }) {
-  if (risk === "good") return <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">● Bon</span>;
-  if (risk === "late") return <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">● En retard</span>;
-  return <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-semibold text-red-700">● Risqué</span>;
+  return (
+    <div className="space-y-6">
+      {/* ── TAB STRIP ───────────────────────────────────────────── */}
+      <div className="bg-[#0B0F14] border-b border-[#263244]">
+        <div className="flex overflow-x-auto">
+          {TABS.map((t) => (
+            <button
+              key={t.key}
+              type="button"
+              onClick={() => setTab(t.key)}
+              className={cn(
+                "flex-shrink-0 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap",
+                tab === t.key
+                  ? "border-b-2 border-[#22D3EE] text-[#22D3EE]"
+                  : "border-b-2 border-transparent text-[#64748B] hover:text-[#94A3B8]",
+              )}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── TAB CONTENT ─────────────────────────────────────────── */}
+      {tab === "dashboard" && <DashboardTab {...props} />}
+      {tab === "factures" && (
+        <FacturesTab
+          rows={props.facturesWithBalance}
+          clients={props.clients}
+          today={props.today}
+        />
+      )}
+      {tab === "devis" && (
+        <DevisPipelineTab
+          rows={props.devisRows}
+          totalSent={props.totalDevisSent}
+          totalAccepted={props.totalDevisAccepted}
+          totalRejected={props.totalDevisRejected}
+          conversionRate={props.conversionRate}
+          expectedRevenue={props.expectedRevenue}
+          lostRevenue={props.lostRevenue}
+          avgDealSize={props.avgDealSize}
+        />
+      )}
+      {tab === "expenses" && (
+        <ExpensesTab
+          rows={props.expenseRows}
+          projects={props.projects}
+          clients={props.clients}
+          expByCategory={props.expByCategory}
+          mtdExpenses={props.mtdExpenses}
+        />
+      )}
+      {tab === "clients" && <ClientProfilesTab profiles={props.clientProfiles} />}
+      {tab === "audit"   && <AuditTab data={props.auditData} />}
+    </div>
+  );
 }
