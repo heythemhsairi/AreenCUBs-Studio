@@ -52,16 +52,24 @@ function LanguageSwitcher({ className }: { className?: string }) {
 
 /* ─── Quick-create dropdown ───────────────────────────────────────────────── */
 
-const QUICK_CREATE_ITEMS = [
-  { label: "Nouvelle tâche", href: "/dashboard/tasks/new" },
-  { label: "Nouveau devis", href: "/dashboard/devis/new" },
-  { label: "Nouvelle facture", href: "/dashboard/factures/new" },
-  { label: "Nouveau client", href: "/dashboard/clients/new" },
+const QUICK_CREATE_HREFS = [
+  "/dashboard/tasks/new",
+  "/dashboard/devis/new",
+  "/dashboard/factures/new",
+  "/dashboard/clients/new",
 ] as const;
 
 function QuickCreateButton({ role }: { role: UserRole }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+
+  const quickCreateItems = [
+    { label: t.quickActions.newTask,    href: QUICK_CREATE_HREFS[0] },
+    { label: t.quickActions.newDevis,   href: QUICK_CREATE_HREFS[1] },
+    { label: t.quickActions.newFacture, href: QUICK_CREATE_HREFS[2] },
+    { label: t.quickActions.newClient,  href: QUICK_CREATE_HREFS[3] },
+  ];
 
   // Close on outside click
   function handleBlur(e: React.FocusEvent<HTMLDivElement>) {
@@ -89,7 +97,7 @@ function QuickCreateButton({ role }: { role: UserRole }) {
 
       {open && (
         <div className="absolute right-0 top-full mt-2 w-48 rounded-xl bg-[#0D2D47] border border-[#22506F] shadow-2xl shadow-black/40 py-1 z-50">
-          {QUICK_CREATE_ITEMS.map((item) => (
+          {quickCreateItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
@@ -123,7 +131,7 @@ function ProfileMenu({
   onSignOut,
   signingOut,
 }: ProfileMenuProps) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -171,13 +179,13 @@ function ProfileMenu({
               onClick={() => setOpen(false)}
               className="flex items-center gap-2.5 px-3 py-2 text-sm text-[#94A3B8] hover:text-white hover:bg-[#1A3E5C] transition-colors"
             >
-              Mon profil
+              {t.nav.profile}
             </Link>
           </div>
 
           {/* Theme toggle row */}
           <div className="px-3 py-2.5 border-t border-[#22506F]">
-            <p className="mb-2 text-xs text-[#64748B]">Apparence</p>
+            <p className="mb-2 text-xs text-[#64748B]">{locale === "en" ? "Appearance" : "Apparence"}</p>
             <ThemeToggle className="w-full" />
           </div>
 
@@ -199,7 +207,7 @@ function ProfileMenu({
               className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-[#F87171] hover:bg-[#1A3E5C] transition-colors disabled:opacity-50"
             >
               <LogOut size={14} />
-              {signingOut ? "Déconnexion…" : t.nav.logout}
+              {signingOut ? t.common.loading : t.nav.logout}
             </button>
           </div>
         </div>

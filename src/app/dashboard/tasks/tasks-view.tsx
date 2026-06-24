@@ -39,14 +39,9 @@ type QuickFilter =
   | "my_tasks"
   | "done";
 
-const QUICK_FILTERS: { id: QuickFilter; label: string }[] = [
-  { id: "active",      label: "Toutes" },
-  { id: "my_tasks",   label: "Mes tâches" },
-  { id: "today",      label: "Aujourd'hui" },
-  { id: "overdue",    label: "En retard" },
-  { id: "this_week",  label: "Cette semaine" },
-  { id: "review",     label: "En révision" },
-  { id: "done",       label: "Terminées" },
+// QUICK_FILTERS labels are now computed inside the component using t (see below)
+const QUICK_FILTER_IDS: QuickFilter[] = [
+  "active", "my_tasks", "today", "overdue", "this_week", "review", "done",
 ];
 
 // ---------------------------------------------------------------------------
@@ -75,6 +70,11 @@ export function TasksView({
   const [view, setView] = useState<ViewMode>("kanban");
   const [quickFilter, setQuickFilter] = useState<QuickFilter>("active");
   const [showFilters, setShowFilters] = useState(false);
+
+  const QUICK_FILTERS = QUICK_FILTER_IDS.map((id) => ({
+    id,
+    label: t.tasksUi.quickFilters[id],
+  }));
 
   const qCounts = useMemo(
     () => computeQuickCounts(tasks, currentUserAssigneeId),
@@ -174,7 +174,7 @@ export function TasksView({
             )}
           >
             <Filter size={13} />
-            <span className="hidden sm:inline">Filtres</span>
+            <span className="hidden sm:inline">{t.tasksUi.filters}</span>
             {activeFilterCount > 0 && (
               <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#22D3EE]/20 text-[10px] font-bold text-[#22D3EE]">
                 {activeFilterCount}
@@ -186,19 +186,19 @@ export function TasksView({
           <div className="inline-flex items-center gap-0.5 rounded-lg border border-[#22506F] bg-[#071B2C]/80 p-0.5">
             <ViewToggleBtn
               icon={<LayoutGrid size={14} />}
-              label="Kanban"
+              label={t.tasksUi.kanbanLabel}
               active={view === "kanban"}
               onClick={() => setView("kanban")}
             />
             <ViewToggleBtn
               icon={<List size={14} />}
-              label="Liste"
+              label={t.tasksUi.listLabel}
               active={view === "list"}
               onClick={() => setView("list")}
             />
             <ViewToggleBtn
               icon={<Calendar size={14} />}
-              label="Calendrier"
+              label={t.tasksUi.calendarLabel}
               active={view === "calendar"}
               onClick={() => setView("calendar")}
             />
@@ -296,23 +296,20 @@ const COLUMN_ORDER: Status[] = ["todo", "in_progress", "review", "done"];
 
 const columnConfig: Record<
   Status,
-  { label: string; textColor: string; bgColor: string; dotPulse?: boolean }
+  { textColor: string; bgColor: string; dotPulse?: boolean }
 > = {
-  todo:        { label: "À faire",      textColor: "text-[#64748B]", bgColor: "bg-[#64748B]/10" },
-  in_progress: { label: "En cours",     textColor: "text-[#22D3EE]", bgColor: "bg-[#22D3EE]/10", dotPulse: true },
-  review:      { label: "En révision",  textColor: "text-[#A78BFA]", bgColor: "bg-[#A78BFA]/10" },
-  done:        { label: "Terminé",      textColor: "text-[#22C55E]", bgColor: "bg-[#22C55E]/10" },
-  cancelled:   { label: "Annulé",       textColor: "text-[#F43F5E]", bgColor: "bg-[#F43F5E]/10" },
+  todo:        { textColor: "text-[#64748B]", bgColor: "bg-[#64748B]/10" },
+  in_progress: { textColor: "text-[#22D3EE]", bgColor: "bg-[#22D3EE]/10", dotPulse: true },
+  review:      { textColor: "text-[#A78BFA]", bgColor: "bg-[#A78BFA]/10" },
+  done:        { textColor: "text-[#22C55E]", bgColor: "bg-[#22C55E]/10" },
+  cancelled:   { textColor: "text-[#F43F5E]", bgColor: "bg-[#F43F5E]/10" },
 };
 
-const priorityConfig: Record<
-  Priority,
-  { tone: "slate" | "blue" | "amber" | "red"; label: string }
-> = {
-  low:    { tone: "slate", label: "Faible" },
-  normal: { tone: "blue",  label: "Normal" },
-  high:   { tone: "amber", label: "Élevé" },
-  urgent: { tone: "red",   label: "Urgent" },
+const priorityTone: Record<Priority, "slate" | "blue" | "amber" | "red"> = {
+  low:    "slate",
+  normal: "blue",
+  high:   "amber",
+  urgent: "red",
 };
 
 import { changeTaskStatusAction } from "./actions";
@@ -326,9 +323,10 @@ function DarkKanban({
   tasks: TaskCard[];
   tagColors?: Record<string, string>;
 }) {
+  const { t } = useI18n();
   const [, startTransition] = useTransition();
   const [dragOver, setDragOver] = useState<Status | null>(null);
-  const [override, setOverride] = useState<Record<string, Status>>({});
+  const [override, setOverride] = useState<Record<string, Status>>({})
 
   function moveTask(taskId: string, to: Status) {
     const task = tasks.find((x) => x.id === taskId);
@@ -346,9 +344,9 @@ function DarkKanban({
         });
         toast.error(res.error);
       } else if (to === "done") {
-        toast.success("Tâche terminée");
+        toast.success(t.tasksUi.taskCompleted);
       } else {
-        toast.success("Statut mis à jour");
+        toast.success(t.tasksUi.statusUpdated);
       }
     });
   }
@@ -406,7 +404,7 @@ function DarkKanban({
                     col.textColor,
                   )}
                 >
-                  {col.label}
+                  {t.tasks.status[status as keyof typeof t.tasks.status] ?? status}
                 </span>
               </div>
               <span
@@ -440,7 +438,7 @@ function DarkKanban({
                       : "border-[#22506F] text-[#374151]",
                   )}
                 >
-                  {isOver ? "Déposez ici" : "—"}
+                  {isOver ? t.tasksUi.dropHere : "—"}
                 </div>
               )}
             </div>
@@ -473,7 +471,7 @@ function DarkKanbanCard({
   const isOverdue =
     overdueDays !== null && overdueDays > 0 && effectiveStatus !== "done";
 
-  const pCfg = priorityConfig[task.priority];
+  const pTone = priorityTone[task.priority as Priority] ?? "slate";
 
   return (
     <div
@@ -553,7 +551,7 @@ function DarkKanbanCard({
 
       {/* Bottom row: priority + due date + assignee */}
       <div className="flex items-center justify-between gap-2">
-        <Badge tone={pCfg.tone}>{pCfg.label}</Badge>
+        <Badge tone={pTone}>{t.tasks.priority[task.priority as Priority] ?? task.priority}</Badge>
 
         <div className="flex items-center gap-1.5">
           {task.estimated_minutes != null && (
@@ -580,11 +578,16 @@ function DarkKanbanCard({
             </span>
           )}
           {task.assignee && (
-            <span
-              className="flex h-5 w-5 items-center justify-center rounded-full bg-[#22D3EE]/15 text-[9px] font-bold text-[#22D3EE]"
-              title={task.assignee}
-            >
-              {task.assignee.charAt(0).toUpperCase()}
+            <span className="flex items-center gap-1">
+              <span
+                className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#22D3EE]/15 text-[9px] font-bold text-[#22D3EE]"
+                aria-hidden="true"
+              >
+                {task.assignee.charAt(0).toUpperCase()}
+              </span>
+              <span className="max-w-[80px] truncate text-[10px] font-medium text-[#B8D0E4]">
+                {task.assignee}
+              </span>
             </span>
           )}
         </div>
@@ -638,7 +641,7 @@ function DarkList({
             overdueDays !== null &&
             overdueDays > 0 &&
             task.status !== "done";
-          const pCfg = priorityConfig[task.priority as Priority];
+          const pTone = priorityTone[task.priority as Priority] ?? "slate";
 
           return (
             <div
@@ -664,7 +667,7 @@ function DarkList({
                 {task.assignee && (
                   <span className="text-[#64748B]">· {task.assignee}</span>
                 )}
-                <Badge tone={pCfg.tone}>{pCfg.label}</Badge>
+                <Badge tone={pTone}>{t.tasks.priority[task.priority as Priority] ?? task.priority}</Badge>
                 {task.deadline && (
                   <span
                     className={cn(
@@ -693,7 +696,7 @@ function DarkList({
           <table className="w-full min-w-[720px] text-sm">
             <thead className="sticky top-0 z-10 border-b border-[#22506F] bg-[#071B2C]">
               <tr className="text-left">
-                {["Tâche", "Assigné", "Statut", "Priorité", "Échéance", "Projet"].map(
+                {t.tasksUi.listHeaders.map(
                   (h) => (
                     <th
                       key={h}
@@ -717,7 +720,7 @@ function DarkList({
                   overdueDays !== null &&
                   overdueDays > 0 &&
                   task.status !== "done";
-                const pCfg = priorityConfig[task.priority as Priority];
+                const pTone = priorityTone[task.priority as Priority] ?? "slate";
 
                 return (
                   <tr
@@ -780,7 +783,7 @@ function DarkList({
 
                     {/* Priority */}
                     <td className="px-4 py-2 align-middle">
-                      <Badge tone={pCfg.tone}>{pCfg.label}</Badge>
+                      <Badge tone={pTone}>{t.tasks.priority[task.priority as Priority] ?? task.priority}</Badge>
                     </td>
 
                     {/* Due date */}

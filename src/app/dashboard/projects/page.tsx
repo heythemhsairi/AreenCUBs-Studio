@@ -1,9 +1,7 @@
-import Link from "next/link";
 import { requireWorkerOrAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { Button } from "@/components/ui/button";
-import { PageHeader } from "@/components/dashboard/page-header";
 import { ProjectsTable, type ProjectRow } from "./projects-table";
+import { ProjectsPageClient } from "./projects-page-client";
 
 export default async function ProjectsPage() {
   await requireWorkerOrAdmin();
@@ -32,14 +30,7 @@ export default async function ProjectsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Projets"
-        action={
-          <Link href="/dashboard/projects/new">
-            <Button>+ Nouveau projet</Button>
-          </Link>
-        }
-      />
+      <ProjectsPageClient />
       <ProjectsTable projects={rows} showClient />
     </div>
   );

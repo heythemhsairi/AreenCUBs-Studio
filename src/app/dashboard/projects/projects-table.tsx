@@ -52,20 +52,20 @@ export function ProjectsTable({
       <TBody>
         {projects.map((p) => (
           <TR key={p.id}>
-            <TD className="font-medium text-slate-900">
+            <TD className="font-medium text-[#F4FAFF]">
               <Link
                 href={`/dashboard/projects/${p.id}`}
-                className="hover:text-brand"
+                className="hover:text-[#22D3EE]"
               >
                 {p.name}
               </Link>
             </TD>
             {showClient && (
-              <TD className="text-slate-600">
+              <TD className="text-[#B8D0E4]">
                 {p.client ? (
                   <Link
                     href={`/dashboard/clients/${p.client.id}`}
-                    className="hover:text-brand"
+                    className="hover:text-[#22D3EE]"
                   >
                     {p.client.name}
                   </Link>
@@ -79,13 +79,13 @@ export function ProjectsTable({
                 {t.projects.status[p.status]}
               </Badge>
             </TD>
-            <TD className="text-slate-600">{p.owner}</TD>
-            <TD className="text-slate-600">
+            <TD className="text-[#B8D0E4]">{p.owner}</TD>
+            <TD className="text-[#B8D0E4]">
               {p.end_date
                 ? new Date(p.end_date).toLocaleDateString()
                 : "—"}
             </TD>
-            <TD className="text-slate-600">{p.tasks_count}</TD>
+            <TD className="text-[#B8D0E4]">{p.tasks_count}</TD>
           </TR>
         ))}
       </TBody>
