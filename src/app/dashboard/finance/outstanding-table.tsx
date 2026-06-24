@@ -23,7 +23,7 @@ export type OutstandingRow = {
 };
 
 function agingBucket(days: number): { label: string; cls: string } {
-  if (days <= 0)  return { label: `dans ${Math.abs(days)}j`,    cls: "text-[#94A3B8] bg-[#1E293B]" };
+  if (days <= 0)  return { label: `dans ${Math.abs(days)}j`,    cls: "text-[#94A3B8] bg-[#1A3E5C]" };
   if (days <= 7)  return { label: `+${days}j`,                  cls: "text-amber-400 bg-amber-900/30" };
   if (days <= 30) return { label: `+${days}j retard`,           cls: "text-orange-400 bg-orange-900/30" };
   if (days <= 60) return { label: `+${days}j retard`,           cls: "text-red-400 bg-red-900/30" };
@@ -52,7 +52,7 @@ export function OutstandingTable({ rows }: { rows: OutstandingRow[] }) {
       <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-sm border-collapse">
           <thead>
-            <tr className="border-b border-[#263244]">
+            <tr className="border-b border-[#22506F]">
               <th className="py-3 px-4 text-left text-xs font-semibold uppercase tracking-wider text-[#64748B]">Client</th>
               <th className="py-3 px-4 text-left text-xs font-semibold uppercase tracking-wider text-[#64748B]">Facture</th>
               <th className="py-3 px-4 text-left text-xs font-semibold uppercase tracking-wider text-[#64748B]">Echeance</th>
@@ -61,7 +61,7 @@ export function OutstandingTable({ rows }: { rows: OutstandingRow[] }) {
               <th className="py-3 px-4 text-center text-xs font-semibold uppercase tracking-wider text-[#64748B]">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#263244]">
+          <tbody className="divide-y divide-[#22506F]">
             {rows.map((r) => (
               <OutstandingTableRow key={r.devis_id} row={r} />
             ))}
@@ -112,7 +112,7 @@ function OutstandingCard({ row: r }: { row: OutstandingRow }) {
   }
 
   return (
-    <li className="bg-[#111827] border border-[#263244] rounded-xl p-4 mb-2 list-none">
+    <li className="bg-[#0D2D47] border border-[#22506F] rounded-xl p-4 mb-2 list-none">
       {/* Top row: client name + aging badge */}
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5 min-w-0">
@@ -148,7 +148,7 @@ function OutstandingCard({ row: r }: { row: OutstandingRow }) {
       {/* Progress bar (if partial payment) */}
       {r.paid_dt > 0 && (
         <div className="mt-2 flex items-center gap-2">
-          <div className="h-1 flex-1 overflow-hidden rounded-full bg-[#263244]">
+          <div className="h-1 flex-1 overflow-hidden rounded-full bg-[#22506F]">
             <div className="h-full rounded-full bg-emerald-500" style={{ width: `${paidPct}%` }} />
           </div>
           <span className="text-[10px] text-[#64748B]">{formatDt(r.paid_dt)} paye</span>
@@ -187,7 +187,7 @@ function OutstandingCard({ row: r }: { row: OutstandingRow }) {
 
       {/* Expandable follow-up form */}
       {open && (
-        <div className="mt-3 space-y-3 rounded-xl border border-[#263244] bg-[#0D1117] p-3.5">
+        <div className="mt-3 space-y-3 rounded-xl border border-[#22506F] bg-[#0D1117] p-3.5">
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
@@ -198,7 +198,7 @@ function OutstandingCard({ row: r }: { row: OutstandingRow }) {
             </button>
             <Link
               href={`/dashboard/factures/${r.devis_id}`}
-              className="flex items-center justify-center rounded-lg border border-[#263244] bg-[#111827] px-3 py-1.5 text-xs font-medium text-[#94A3B8] hover:border-brand/30 hover:text-brand"
+              className="flex items-center justify-center rounded-lg border border-[#22506F] bg-[#0D2D47] px-3 py-1.5 text-xs font-medium text-[#94A3B8] hover:border-brand/30 hover:text-brand"
             >
               Voir la facture
             </Link>
@@ -212,7 +212,7 @@ function OutstandingCard({ row: r }: { row: OutstandingRow }) {
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="Email envoye, appel passe..."
-              className="mt-1 w-full rounded-lg border border-[#263244] bg-[#111827] px-3 py-2 text-xs text-[#F8FAFC] placeholder:text-[#64748B] focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+              className="mt-1 w-full rounded-lg border border-[#22506F] bg-[#0D2D47] px-3 py-2 text-xs text-[#F8FAFC] placeholder:text-[#64748B] focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
             />
           </div>
           <div className="flex items-end gap-2">
@@ -224,7 +224,7 @@ function OutstandingCard({ row: r }: { row: OutstandingRow }) {
                 type="date"
                 value={nextDate}
                 onChange={(e) => setNextDate(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-[#263244] bg-[#111827] px-3 py-2 text-xs text-[#F8FAFC] focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+                className="mt-1 w-full rounded-lg border border-[#22506F] bg-[#0D2D47] px-3 py-2 text-xs text-[#F8FAFC] focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
               />
             </div>
             <button
@@ -282,7 +282,7 @@ function OutstandingTableRow({ row: r }: { row: OutstandingRow }) {
 
   return (
     <>
-      <tr className="hover:bg-[#18212F]/50 transition-colors">
+      <tr className="hover:bg-[#123A5A]/50 transition-colors">
         {/* Client */}
         <td className="py-3 px-4">
           <div className="flex items-center gap-1.5">
@@ -328,7 +328,7 @@ function OutstandingTableRow({ row: r }: { row: OutstandingRow }) {
           <span className="font-mono font-bold text-[#22C55E]">{formatDt(r.outstanding_dt)}</span>
           {r.paid_dt > 0 && (
             <div className="mt-1 flex items-center justify-end gap-2">
-              <div className="h-1 w-20 overflow-hidden rounded-full bg-[#263244]">
+              <div className="h-1 w-20 overflow-hidden rounded-full bg-[#22506F]">
                 <div className="h-full rounded-full bg-emerald-500" style={{ width: `${paidPct}%` }} />
               </div>
               <span className="text-[10px] text-[#64748B]">{formatDt(r.paid_dt)} paye</span>
@@ -362,7 +362,7 @@ function OutstandingTableRow({ row: r }: { row: OutstandingRow }) {
       {open && (
         <tr className="bg-[#0D1117]">
           <td colSpan={6} className="px-4 pb-4 pt-2">
-            <div className="space-y-3 rounded-xl border border-[#263244] bg-[#111827] p-4">
+            <div className="space-y-3 rounded-xl border border-[#22506F] bg-[#0D2D47] p-4">
               <div className="grid grid-cols-2 gap-2 max-w-md">
                 <button
                   type="button"
@@ -373,7 +373,7 @@ function OutstandingTableRow({ row: r }: { row: OutstandingRow }) {
                 </button>
                 <Link
                   href={`/dashboard/factures/${r.devis_id}`}
-                  className="flex items-center justify-center rounded-lg border border-[#263244] bg-[#0D1117] px-3 py-1.5 text-xs font-medium text-[#94A3B8] hover:border-brand/30 hover:text-brand"
+                  className="flex items-center justify-center rounded-lg border border-[#22506F] bg-[#0D1117] px-3 py-1.5 text-xs font-medium text-[#94A3B8] hover:border-brand/30 hover:text-brand"
                 >
                   Voir la facture
                 </Link>
@@ -387,7 +387,7 @@ function OutstandingTableRow({ row: r }: { row: OutstandingRow }) {
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   placeholder="Email envoye, appel passe..."
-                  className="mt-1 w-full rounded-lg border border-[#263244] bg-[#0D1117] px-3 py-2 text-xs text-[#F8FAFC] placeholder:text-[#64748B] focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+                  className="mt-1 w-full rounded-lg border border-[#22506F] bg-[#0D1117] px-3 py-2 text-xs text-[#F8FAFC] placeholder:text-[#64748B] focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
                 />
               </div>
               <div className="flex items-end gap-2 max-w-md">
@@ -399,7 +399,7 @@ function OutstandingTableRow({ row: r }: { row: OutstandingRow }) {
                     type="date"
                     value={nextDate}
                     onChange={(e) => setNextDate(e.target.value)}
-                    className="mt-1 w-full rounded-lg border border-[#263244] bg-[#0D1117] px-3 py-2 text-xs text-[#F8FAFC] focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+                    className="mt-1 w-full rounded-lg border border-[#22506F] bg-[#0D1117] px-3 py-2 text-xs text-[#F8FAFC] focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
                   />
                 </div>
                 <button

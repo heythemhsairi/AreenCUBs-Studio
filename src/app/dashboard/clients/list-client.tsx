@@ -60,7 +60,7 @@ export function ClientsListClient({ clients }: { clients: ClientRow[] }) {
       ) : (
         <>
           {/* Toolbar */}
-          <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-[#263244] bg-[#111827] px-4 py-3 md:px-5">
+          <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-[#22506F] bg-[#0D2D47] px-4 py-3 md:px-5">
             <div className="relative min-w-[220px] flex-1">
               <svg
                 className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]"
@@ -81,19 +81,19 @@ export function ClientsListClient({ clients }: { clients: ClientRow[] }) {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={t.filters.searchClient}
-                className="w-full rounded-lg border border-[#263244] bg-[#18212F] py-2 pl-9 pr-3 text-sm text-[#F8FAFC] placeholder:text-[#64748B] transition-colors focus:border-[#22D3EE] focus:outline-none focus:ring-2 focus:ring-[#22D3EE]/20"
+                className="w-full rounded-lg border border-[#22506F] bg-[#123A5A] py-2 pl-9 pr-3 text-sm text-[#F8FAFC] placeholder:text-[#64748B] transition-colors focus:border-[#22D3EE] focus:outline-none focus:ring-2 focus:ring-[#22D3EE]/20"
               />
             </div>
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value as Sort)}
-              className="h-9 rounded-lg border border-[#263244] bg-[#18212F] px-3 text-xs font-medium text-[#94A3B8] focus:border-[#22D3EE] focus:outline-none focus:ring-2 focus:ring-[#22D3EE]/20"
+              className="h-9 rounded-lg border border-[#22506F] bg-[#123A5A] px-3 text-xs font-medium text-[#94A3B8] focus:border-[#22D3EE] focus:outline-none focus:ring-2 focus:ring-[#22D3EE]/20"
             >
               <option value="newest">{t.common.newest}</option>
               <option value="name">{t.common.nameAZ}</option>
               <option value="projects">{t.common.mostProjects}</option>
             </select>
-            <span className="ml-auto rounded-md bg-[#263244] px-2 py-1 text-xs font-medium text-[#94A3B8]">
+            <span className="ml-auto rounded-md bg-[#22506F] px-2 py-1 text-xs font-medium text-[#94A3B8]">
               {t.clientsUi.clients(filtered.length)}
             </span>
           </div>
@@ -142,7 +142,7 @@ export function ClientsListClient({ clients }: { clients: ClientRow[] }) {
                 <Link
                   key={c.id}
                   href={`/dashboard/clients/${c.id}`}
-                  className="block rounded-xl border border-[#263244] bg-[#111827] p-4 hover:border-[#22D3EE]/30 hover:bg-[#1E2A3A] transition-colors"
+                  className="block rounded-xl border border-[#22506F] bg-[#0D2D47] p-4 hover:border-[#22D3EE]/30 hover:bg-[#1A3E5C] transition-colors"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
@@ -157,7 +157,7 @@ export function ClientsListClient({ clients }: { clients: ClientRow[] }) {
                       </span>
                     )}
                   </div>
-                  <div className="mt-3 flex items-center justify-between border-t border-[#1E2A3A] pt-3">
+                  <div className="mt-3 flex items-center justify-between border-t border-[#1A3E5C] pt-3">
                     {c.phone ? (
                       <p className="text-xs text-[#64748B]">{c.phone}</p>
                     ) : (

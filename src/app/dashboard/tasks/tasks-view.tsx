@@ -136,7 +136,7 @@ export function TasksView({
                       ? "border-[#22D3EE]/30 bg-[#22D3EE]/10 text-[#22D3EE]"
                       : isOverdue && count > 0
                         ? "border-[#F43F5E]/20 bg-[#F43F5E]/5 text-[#F43F5E]/80 hover:border-[#F43F5E]/40 hover:text-[#F43F5E]"
-                        : "border-[#263244] bg-[#111827] text-[#94A3B8] hover:border-[#22D3EE]/20 hover:text-[#CBD5E1]",
+                        : "border-[#22506F] bg-[#0D2D47] text-[#94A3B8] hover:border-[#22D3EE]/20 hover:text-[#CBD5E1]",
                   )}
                 >
                   <span>{qf.label}</span>
@@ -148,7 +148,7 @@ export function TasksView({
                           ? "bg-[#22D3EE]/20 text-[#22D3EE]"
                           : isOverdue
                             ? "bg-[#F43F5E]/10 text-[#F43F5E]"
-                            : "bg-[#263244] text-[#64748B]",
+                            : "bg-[#22506F] text-[#64748B]",
                       )}
                     >
                       {count}
@@ -170,7 +170,7 @@ export function TasksView({
               "inline-flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium transition-all",
               showFilters || activeFilterCount > 0
                 ? "border-[#22D3EE]/20 bg-[#22D3EE]/10 text-[#22D3EE]"
-                : "border-[#263244] bg-[#111827] text-[#94A3B8] hover:border-[#263244] hover:text-[#CBD5E1]",
+                : "border-[#22506F] bg-[#0D2D47] text-[#94A3B8] hover:border-[#22506F] hover:text-[#CBD5E1]",
             )}
           >
             <Filter size={13} />
@@ -183,7 +183,7 @@ export function TasksView({
           </button>
 
           {/* View toggle: Kanban / List / Calendar */}
-          <div className="inline-flex items-center gap-0.5 rounded-lg border border-[#263244] bg-[#0B0F14]/80 p-0.5">
+          <div className="inline-flex items-center gap-0.5 rounded-lg border border-[#22506F] bg-[#071B2C]/80 p-0.5">
             <ViewToggleBtn
               icon={<LayoutGrid size={14} />}
               label="Kanban"
@@ -240,7 +240,7 @@ export function TasksView({
           <Link href="/dashboard/tasks/new">
             <button
               type="button"
-              className="flex h-12 w-12 items-center justify-center rounded-full bg-[#22D3EE] text-[#0B0F14] shadow-lg shadow-[#22D3EE]/25 transition-all hover:scale-105 hover:bg-[#06B6D4] active:scale-95"
+              className="flex h-12 w-12 items-center justify-center rounded-full bg-[#22D3EE] text-[#071B2C] shadow-lg shadow-[#22D3EE]/25 transition-all hover:scale-105 hover:bg-[#06B6D4] active:scale-95"
             >
               <Plus size={20} />
             </button>
@@ -385,7 +385,7 @@ function DarkKanban({
               if (taskId) moveTask(taskId, status);
             }}
             className={cn(
-              "flex flex-col gap-2 rounded-xl border border-[#263244] bg-[#0B0F14]/50 p-3 transition-all",
+              "flex flex-col gap-2 rounded-xl border border-[#22506F] bg-[#071B2C]/50 p-3 transition-all",
               isOver && "border-[#22D3EE]/40 bg-[#22D3EE]/5 ring-1 ring-[#22D3EE]/20",
             )}
           >
@@ -437,7 +437,7 @@ function DarkKanban({
                     "rounded-lg border border-dashed px-3 py-6 text-center text-xs transition-colors",
                     isOver
                       ? "border-[#22D3EE]/30 bg-[#22D3EE]/5 text-[#22D3EE]/60"
-                      : "border-[#263244] text-[#374151]",
+                      : "border-[#22506F] text-[#374151]",
                   )}
                 >
                   {isOver ? "Déposez ici" : "—"}
@@ -492,9 +492,9 @@ function DarkKanbanCard({
         })
       }
       className={cn(
-        "group relative cursor-grab rounded-xl border bg-[#111827] p-3.5 transition-all duration-150",
+        "group relative cursor-grab rounded-xl border bg-[#0D2D47] p-3.5 transition-all duration-150",
         "hover:border-[#22D3EE]/30 hover:-translate-y-px active:cursor-grabbing",
-        isOverdue ? "border-[#F43F5E]/30" : "border-[#263244]",
+        isOverdue ? "border-[#F43F5E]/30" : "border-[#22506F]",
         dragging && "opacity-50",
       )}
     >
@@ -557,7 +557,7 @@ function DarkKanbanCard({
 
         <div className="flex items-center gap-1.5">
           {task.estimated_minutes != null && (
-            <span className="rounded-md bg-[#1E2A3A] px-1.5 py-0.5 text-[10px] font-medium text-[#64748B]">
+            <span className="rounded-md bg-[#1A3E5C] px-1.5 py-0.5 text-[10px] font-medium text-[#64748B]">
               ~{task.estimated_minutes >= 60
                 ? `${Math.round(task.estimated_minutes / 60)}h`
                 : `${task.estimated_minutes}m`}
@@ -569,7 +569,7 @@ function DarkKanbanCard({
                 "rounded-md px-1.5 py-0.5 text-[10px] font-medium",
                 isOverdue
                   ? "bg-[#F43F5E]/10 text-[#F43F5E]"
-                  : "bg-[#1E2A3A] text-[#64748B]",
+                  : "bg-[#1A3E5C] text-[#64748B]",
               )}
             >
               {isOverdue && "⚠ "}
@@ -598,7 +598,7 @@ function DarkKanbanCard({
           if (s !== effectiveStatus) onMove(task.id, s);
         }}
         onClick={(e) => e.stopPropagation()}
-        className="mt-2.5 w-full rounded-lg border border-[#263244] bg-[#0B0F14]/70 px-2 py-1.5 text-xs text-[#64748B] transition-colors focus:border-[#22D3EE]/40 focus:outline-none focus:ring-1 focus:ring-[#22D3EE]/20"
+        className="mt-2.5 w-full rounded-lg border border-[#22506F] bg-[#071B2C]/70 px-2 py-1.5 text-xs text-[#64748B] transition-colors focus:border-[#22D3EE]/40 focus:outline-none focus:ring-1 focus:ring-[#22D3EE]/20"
       >
         <option value="todo">{t.tasks.status.todo}</option>
         <option value="in_progress">{t.tasks.status.in_progress}</option>
@@ -644,8 +644,8 @@ function DarkList({
             <div
               key={task.id}
               className={cn(
-                "rounded-xl border bg-[#111827] p-4 transition-all",
-                isOverdue ? "border-[#F43F5E]/20" : "border-[#263244]",
+                "rounded-xl border bg-[#0D2D47] p-4 transition-all",
+                isOverdue ? "border-[#F43F5E]/20" : "border-[#22506F]",
               )}
             >
               <div className="mb-2 flex items-start justify-between gap-2">
@@ -671,7 +671,7 @@ function DarkList({
                       "rounded-md px-1.5 py-0.5 text-[10px] font-medium",
                       isOverdue
                         ? "bg-[#F43F5E]/10 text-[#F43F5E]"
-                        : "bg-[#1E2A3A] text-[#64748B]",
+                        : "bg-[#1A3E5C] text-[#64748B]",
                     )}
                   >
                     {isOverdue && "⚠ "}
@@ -688,10 +688,10 @@ function DarkList({
       </div>
 
       {/* Desktop: compact table */}
-      <div className="hidden overflow-hidden rounded-xl border border-[#263244] bg-[#0B0F14]/50 md:block">
+      <div className="hidden overflow-hidden rounded-xl border border-[#22506F] bg-[#071B2C]/50 md:block">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[720px] text-sm">
-            <thead className="sticky top-0 z-10 border-b border-[#263244] bg-[#0B0F14]">
+            <thead className="sticky top-0 z-10 border-b border-[#22506F] bg-[#071B2C]">
               <tr className="text-left">
                 {["Tâche", "Assigné", "Statut", "Priorité", "Échéance", "Projet"].map(
                   (h) => (
@@ -722,7 +722,7 @@ function DarkList({
                 return (
                   <tr
                     key={task.id}
-                    className="h-12 border-b border-[#1E2A3A] transition-colors last:border-0 hover:bg-[#111827]"
+                    className="h-12 border-b border-[#1A3E5C] transition-colors last:border-0 hover:bg-[#0D2D47]"
                   >
                     {/* Title */}
                     <td className="max-w-[260px] px-4 py-2 align-middle">
@@ -791,7 +791,7 @@ function DarkList({
                             "inline-flex rounded-md px-2 py-0.5 text-xs font-medium",
                             isOverdue
                               ? "bg-[#F43F5E]/10 text-[#F43F5E]"
-                              : "bg-[#1E2A3A] text-[#64748B]",
+                              : "bg-[#1A3E5C] text-[#64748B]",
                           )}
                         >
                           {isOverdue && "⚠ "}
@@ -834,7 +834,7 @@ function DarkList({
 
 function CalendarPlaceholder() {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-[#263244] bg-[#0B0F14]/50 px-6 py-20 text-center">
+    <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-[#22506F] bg-[#071B2C]/50 px-6 py-20 text-center">
       <Calendar size={32} className="text-[#374151]" />
       <p className="text-sm font-medium text-[#64748B]">Vue calendrier</p>
       <p className="max-w-sm text-xs text-[#374151]">
@@ -851,7 +851,7 @@ function CalendarPlaceholder() {
 function EmptyState() {
   const { t } = useI18n();
   return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-[#263244] bg-[#0B0F14]/50 px-6 py-16 text-center">
+    <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-[#22506F] bg-[#071B2C]/50 px-6 py-16 text-center">
       <span className="text-3xl">🔍</span>
       <p className="text-sm font-medium text-[#94A3B8]">{t.tasksUi.noResults}</p>
       <p className="max-w-sm text-xs text-[#64748B]">{t.tasksUi.noResultsHint}</p>

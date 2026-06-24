@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 export function Table({ className, ...rest }: HTMLAttributes<HTMLTableElement>) {
   return (
-    <div className="w-full overflow-x-auto rounded-2xl border border-[#263244] bg-[#111827] shadow-[0_1px_3px_rgba(0,0,0,0.4)]">
+    <div className="w-full overflow-x-auto rounded-2xl border border-[#22506F] bg-[#0D2D47] shadow-[0_1px_3px_rgba(0,0,0,0.4)]">
       <table className={cn("w-full text-sm", className)} {...rest} />
     </div>
   );
@@ -12,20 +12,20 @@ export function Table({ className, ...rest }: HTMLAttributes<HTMLTableElement>) 
 export function THead(props: HTMLAttributes<HTMLTableSectionElement>) {
   return (
     <thead
-      className="border-b border-[#263244] bg-[#18212F] text-[#94A3B8]"
+      className="border-b border-[#22506F] bg-[#123A5A] text-[#94A3B8]"
       {...props}
     />
   );
 }
 
 export function TBody(props: HTMLAttributes<HTMLTableSectionElement>) {
-  return <tbody className="divide-y divide-[#1E2A3A]" {...props} />;
+  return <tbody className="divide-y divide-[#1A3E5C]" {...props} />;
 }
 
 export function TR(props: HTMLAttributes<HTMLTableRowElement>) {
   return (
     <tr
-      className="transition-colors duration-150 hover:bg-[#1E2A3A]"
+      className="transition-colors duration-150 hover:bg-[#1A3E5C]"
       {...props}
     />
   );
@@ -57,8 +57,8 @@ export function TD({ className, ...rest }: TdHTMLAttributes<HTMLTableCellElement
 
 export function EmptyState({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-dashed border-[#263244] bg-[#111827]/50 px-6 py-16 text-center">
-      <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#18212F] text-[#64748B]">
+    <div className="rounded-2xl border border-dashed border-[#22506F] bg-[#0D2D47]/50 px-6 py-16 text-center">
+      <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#123A5A] text-[#64748B]">
         <svg
           width="18"
           height="18"

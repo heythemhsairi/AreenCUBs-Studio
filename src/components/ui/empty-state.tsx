@@ -76,7 +76,7 @@ export function EmptyState({
     >
       {icon && (
         <div
-          className={`bg-[#18212F] rounded-full ${cfg.iconWrapper} flex items-center justify-center`}
+          className={`bg-[#123A5A] rounded-full ${cfg.iconWrapper} flex items-center justify-center`}
         >
           <span className={`text-[#64748B] ${cfg.icon} [&>svg]:w-full [&>svg]:h-full`}>
             {icon}

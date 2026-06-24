@@ -169,7 +169,7 @@ export function MobileBottomNav({ role }: Props) {
     <>
       {/* Bottom Nav Bar */}
       <nav
-        className="fixed bottom-0 left-0 right-0 z-50 md:hidden flex items-center bg-[#111827]/95 backdrop-blur-xl border-t border-[#263244]"
+        className="fixed bottom-0 left-0 right-0 z-50 md:hidden flex items-center bg-[#0D2D47]/95 backdrop-blur-xl border-t border-[#22506F]"
         style={{
           height: 64,
           paddingBottom: "env(safe-area-inset-bottom)",
@@ -232,14 +232,14 @@ export function MobileBottomNav({ role }: Props) {
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 28, stiffness: 300 }}
-              className="fixed left-0 right-0 bottom-0 z-50 md:hidden bg-[#111827] border-t border-[#263244] rounded-t-2xl"
+              className="fixed left-0 right-0 bottom-0 z-50 md:hidden bg-[#0D2D47] border-t border-[#22506F] rounded-t-2xl"
               style={{
                 paddingBottom: "calc(env(safe-area-inset-bottom) + 16px)",
               }}
             >
               {/* Handle */}
               <div className="flex justify-center pt-3 pb-2">
-                <div className="w-10 h-1 rounded-full bg-[#263244]" />
+                <div className="w-10 h-1 rounded-full bg-[#22506F]" />
               </div>
 
               {/* Header */}

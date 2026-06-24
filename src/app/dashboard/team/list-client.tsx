@@ -88,7 +88,7 @@ export function TeamListClient({
       ) : (
         <>
           {/* Toolbar */}
-          <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-[#263244] bg-[#111827] px-4 py-3 md:px-5">
+          <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-[#22506F] bg-[#0D2D47] px-4 py-3 md:px-5">
             <div className="relative min-w-[220px] flex-1">
               <svg
                 className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]"
@@ -109,11 +109,11 @@ export function TeamListClient({
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={t.filters.searchMember}
-                className="w-full rounded-lg border border-[#263244] bg-[#18212F] py-2 pl-9 pr-3 text-sm text-[#F8FAFC] placeholder:text-[#64748B] transition-colors focus:border-[#22D3EE] focus:outline-none focus:ring-2 focus:ring-[#22D3EE]/20"
+                className="w-full rounded-lg border border-[#22506F] bg-[#123A5A] py-2 pl-9 pr-3 text-sm text-[#F8FAFC] placeholder:text-[#64748B] transition-colors focus:border-[#22D3EE] focus:outline-none focus:ring-2 focus:ring-[#22D3EE]/20"
               />
             </div>
             {/* Role filter tabs */}
-            <div className="inline-flex items-center rounded-lg border border-[#263244] bg-[#18212F] p-0.5">
+            <div className="inline-flex items-center rounded-lg border border-[#22506F] bg-[#123A5A] p-0.5">
               {(["all", "admin", "worker", "freelancer"] as RoleFilter[]).map(
                 (r) => (
                   <button
@@ -124,8 +124,8 @@ export function TeamListClient({
                     className={cn(
                       "h-7 rounded-md px-3 text-xs font-medium transition-all",
                       roleFilter === r
-                        ? "bg-[#22D3EE] text-[#0B0F14] shadow-sm"
-                        : "text-[#94A3B8] hover:bg-[#263244] hover:text-[#F8FAFC]",
+                        ? "bg-[#22D3EE] text-[#071B2C] shadow-sm"
+                        : "text-[#94A3B8] hover:bg-[#22506F] hover:text-[#F8FAFC]",
                     )}
                   >
                     {r === "all" ? t.common.all : t.roles[r as UserRole]}
@@ -136,7 +136,7 @@ export function TeamListClient({
                 ),
               )}
             </div>
-            <span className="ml-auto rounded-md bg-[#263244] px-2 py-1 text-xs font-medium text-[#94A3B8]">
+            <span className="ml-auto rounded-md bg-[#22506F] px-2 py-1 text-xs font-medium text-[#94A3B8]">
               {t.teamUi.members(filtered.length)}
             </span>
           </div>
@@ -204,7 +204,7 @@ export function TeamListClient({
               filtered.map((m) => (
                 <div
                   key={m.id}
-                  className="rounded-xl border border-[#263244] bg-[#111827] p-4"
+                  className="rounded-xl border border-[#22506F] bg-[#0D2D47] p-4"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">
@@ -226,7 +226,7 @@ export function TeamListClient({
                     </div>
                     <Badge tone={roleTone[m.role]}>{t.roles[m.role]}</Badge>
                   </div>
-                  <div className="mt-3 space-y-1 border-t border-[#1E2A3A] pt-3">
+                  <div className="mt-3 space-y-1 border-t border-[#1A3E5C] pt-3">
                     <p className="text-xs text-[#94A3B8]">
                       <span className="text-[#64748B]">@</span>{m.username}
                     </p>

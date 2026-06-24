@@ -44,7 +44,7 @@ export function MobileCard({
   return (
     <div
       className={cn(
-        "bg-[#111827] border border-[#263244] rounded-xl p-4 flex flex-col gap-3",
+        "bg-[#0D2D47] border border-[#22506F] rounded-xl p-4 flex flex-col gap-3",
         onClick && "cursor-pointer active:opacity-80 transition-opacity",
         className
       )}
@@ -103,7 +103,7 @@ export function MobileCard({
       {/* Actions row */}
       {hasActions && (
         <div
-          className="flex items-center gap-2 pt-1 border-t border-[#263244] flex-wrap"
+          className="flex items-center gap-2 pt-1 border-t border-[#22506F] flex-wrap"
           onClick={(e) => e.stopPropagation()}
         >
           {actions.map((action, i) => {
@@ -112,7 +112,7 @@ export function MobileCard({
             const variantClass =
               action.variant === "danger"
                 ? "text-[#EF4444] hover:bg-[#EF4444]/10 active:bg-[#EF4444]/20"
-                : "text-[#94A3B8] hover:bg-[#263244] active:bg-[#2d3c55]";
+                : "text-[#94A3B8] hover:bg-[#22506F] active:bg-[#2d3c55]";
 
             if (action.href) {
               return (
@@ -149,14 +149,14 @@ export function MobileCardSkeleton({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "bg-[#111827] border border-[#263244] rounded-xl p-4 flex flex-col gap-3 animate-pulse",
+        "bg-[#0D2D47] border border-[#22506F] rounded-xl p-4 flex flex-col gap-3 animate-pulse",
         className
       )}
     >
       {/* Top row */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex flex-col gap-1.5 flex-1 min-w-0">
-          <div className="h-4 w-2/3 bg-[#263244] rounded-md" />
+          <div className="h-4 w-2/3 bg-[#22506F] rounded-md" />
           <div className="h-3 w-1/2 bg-[#1e2d42] rounded-md" />
         </div>
         <div className="h-3 w-16 bg-[#1e2d42] rounded-md shrink-0 mt-0.5" />
@@ -169,7 +169,7 @@ export function MobileCardSkeleton({ className }: { className?: string }) {
       </div>
 
       {/* Actions row */}
-      <div className="flex items-center gap-2 pt-1 border-t border-[#263244]">
+      <div className="flex items-center gap-2 pt-1 border-t border-[#22506F]">
         <div className="h-7 w-16 bg-[#1e2d42] rounded-lg" />
         <div className="h-7 w-16 bg-[#1e2d42] rounded-lg" />
       </div>
@@ -186,7 +186,7 @@ export interface MobileCardListProps {
 
 export function MobileCardList({ children, className }: MobileCardListProps) {
   return (
-    <div className={cn("flex flex-col divide-y divide-[#263244]", className)}>
+    <div className={cn("flex flex-col divide-y divide-[#22506F]", className)}>
       {children}
     </div>
   );

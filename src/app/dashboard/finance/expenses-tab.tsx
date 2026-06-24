@@ -41,7 +41,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 const INPUT_CLS =
-  "mt-1 w-full rounded-lg border border-[#263244] bg-[#111827] px-3 py-2 text-sm text-[#F8FAFC] placeholder:text-[#64748B] focus:border-[#22D3EE] focus:outline-none focus:ring-2 focus:ring-[#22D3EE]/20";
+  "mt-1 w-full rounded-lg border border-[#22506F] bg-[#0D2D47] px-3 py-2 text-sm text-[#F8FAFC] placeholder:text-[#64748B] focus:border-[#22D3EE] focus:outline-none focus:ring-2 focus:ring-[#22D3EE]/20";
 
 export function ExpensesTab({
   rows, projects, clients, expByCategory, mtdExpenses,
@@ -114,7 +114,7 @@ export function ExpensesTab({
             <form
               ref={formRef}
               action={handleAdd}
-              className="rounded-xl border border-[#263244] bg-[#18212F] p-4 space-y-3"
+              className="rounded-xl border border-[#22506F] bg-[#123A5A] p-4 space-y-3"
             >
               <p className="text-xs font-semibold uppercase tracking-wider text-[#64748B]">Nouvelle dépense</p>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -199,7 +199,7 @@ export function ExpensesTab({
                 </thead>
                 <tbody>
                   {filtered.map((e) => (
-                    <tr key={e.id} className="border-b border-ink/5 last:border-0 hover:bg-[#1E2A3A]">
+                    <tr key={e.id} className="border-b border-ink/5 last:border-0 hover:bg-[#1A3E5C]">
                       <td className="py-2.5 text-ink/55">{formatDate(e.expense_date)}</td>
                       <td className="py-2.5">
                         <p className="font-medium text-ink">{e.title}</p>
@@ -249,7 +249,7 @@ export function ExpensesTab({
 
 function StatTile({ label, value, color }: { label: string; value: number; color: string }) {
   return (
-    <div className="rounded-xl border border-[#263244] bg-[#18212F] p-4">
+    <div className="rounded-xl border border-[#22506F] bg-[#123A5A] p-4">
       <p className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">{label}</p>
       <p className={cn("mt-2 text-xl font-bold", color)}>{formatDt(value)}</p>
     </div>

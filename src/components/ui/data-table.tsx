@@ -28,10 +28,10 @@ function TableSkeleton({ columns }: { columns: number }) {
   return (
     <>
       {Array.from({ length: 5 }).map((_, rowIndex) => (
-        <tr key={rowIndex} className="border-b border-[#263244]/60">
+        <tr key={rowIndex} className="border-b border-[#22506F]/60">
           {Array.from({ length: columns }).map((_, colIndex) => (
             <td key={colIndex} className="px-4 py-3">
-              <div className="h-4 bg-[#1E2A3A] rounded animate-pulse w-full max-w-[120px]" />
+              <div className="h-4 bg-[#1A3E5C] rounded animate-pulse w-full max-w-[120px]" />
             </td>
           ))}
         </tr>
@@ -46,11 +46,11 @@ function MobileCardSkeleton() {
       {Array.from({ length: 5 }).map((_, index) => (
         <div
           key={index}
-          className="bg-[#111827] border border-[#263244] rounded-xl mb-2 p-4 space-y-2"
+          className="bg-[#0D2D47] border border-[#22506F] rounded-xl mb-2 p-4 space-y-2"
         >
-          <div className="h-4 bg-[#1E2A3A] rounded animate-pulse w-3/4" />
-          <div className="h-3 bg-[#1E2A3A] rounded animate-pulse w-1/2" />
-          <div className="h-3 bg-[#1E2A3A] rounded animate-pulse w-2/3" />
+          <div className="h-4 bg-[#1A3E5C] rounded animate-pulse w-3/4" />
+          <div className="h-3 bg-[#1A3E5C] rounded animate-pulse w-1/2" />
+          <div className="h-3 bg-[#1A3E5C] rounded animate-pulse w-2/3" />
         </div>
       ))}
     </>
@@ -71,8 +71,8 @@ function DefaultMobileCard<T>({
   return (
     <div
       className={[
-        'bg-[#111827] border border-[#263244] rounded-xl mb-2 p-4',
-        onClick ? 'cursor-pointer active:bg-[#18212F]' : '',
+        'bg-[#0D2D47] border border-[#22506F] rounded-xl mb-2 p-4',
+        onClick ? 'cursor-pointer active:bg-[#123A5A]' : '',
       ]
         .filter(Boolean)
         .join(' ')}
@@ -182,7 +182,7 @@ export function DataTable<T extends Record<string, unknown>>({
       <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-[#263244]">
+            <tr className="border-b border-[#22506F]">
               {desktopColumns.map((col) => (
                 <th
                   key={col.key}
@@ -220,10 +220,10 @@ export function DataTable<T extends Record<string, unknown>>({
                 <tr
                   key={String(row[keyField])}
                   className={[
-                    'border-b border-[#263244]/60 transition-colors',
+                    'border-b border-[#22506F]/60 transition-colors',
                     onRowClick
-                      ? 'cursor-pointer hover:bg-[#18212F]/60'
-                      : 'hover:bg-[#18212F]/60',
+                      ? 'cursor-pointer hover:bg-[#123A5A]/60'
+                      : 'hover:bg-[#123A5A]/60',
                   ]
                     .filter(Boolean)
                     .join(' ')}

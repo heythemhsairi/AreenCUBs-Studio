@@ -62,7 +62,7 @@ export function ClientProfilesTab({ profiles }: { profiles: ClientProfile[] }) {
                     "rounded-full px-2.5 py-1 text-xs font-medium transition-colors",
                     riskFilter === r
                       ? "bg-brand text-white"
-                      : "bg-[#263244]/60 text-[#F8FAFC]/60 hover:bg-[#263244]",
+                      : "bg-[#22506F]/60 text-[#F8FAFC]/60 hover:bg-[#22506F]",
                   )}
                 >
                   {r === "all" ? "Tous" : r === "good" ? "Bon" : r === "late" ? "En retard" : "Risqué"}
@@ -77,7 +77,7 @@ export function ClientProfilesTab({ profiles }: { profiles: ClientProfile[] }) {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Rechercher un client…"
-            className="w-full max-w-xs rounded-lg border border-[#263244] bg-[#111827] px-3 py-1.5 text-sm text-[#F8FAFC] placeholder:text-[#F8FAFC]/35 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+            className="w-full max-w-xs rounded-lg border border-[#22506F] bg-[#0D2D47] px-3 py-1.5 text-sm text-[#F8FAFC] placeholder:text-[#F8FAFC]/35 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
           />
 
           {filtered.length === 0 ? (
@@ -86,7 +86,7 @@ export function ClientProfilesTab({ profiles }: { profiles: ClientProfile[] }) {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-[#263244] text-left text-xs font-semibold uppercase tracking-wider text-[#F8FAFC]/40">
+                  <tr className="border-b border-[#22506F] text-left text-xs font-semibold uppercase tracking-wider text-[#F8FAFC]/40">
                     <th className="pb-2">Client</th>
                     <th className="pb-2 text-right">Facturé</th>
                     <th className="pb-2 text-right">Encaissé</th>
@@ -98,7 +98,7 @@ export function ClientProfilesTab({ profiles }: { profiles: ClientProfile[] }) {
                 </thead>
                 <tbody>
                   {filtered.map((c) => (
-                    <tr key={c.id} className="border-b border-[#263244]/60 last:border-0 hover:bg-[#1E2A3A]">
+                    <tr key={c.id} className="border-b border-[#22506F]/60 last:border-0 hover:bg-[#1A3E5C]">
                       <td className="py-2.5">
                         <Link href={`/dashboard/clients/${c.id}`} className="font-medium text-[#F8FAFC] hover:text-brand">
                           {c.name}

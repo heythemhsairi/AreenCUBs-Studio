@@ -53,7 +53,7 @@ const accentBar: Record<KpiTone, string> = {
   amber:   "bg-[#F59E0B]",
   red:     "bg-[#F43F5E]",
   violet:  "bg-[#A78BFA]",
-  neutral: "bg-[#263244]",
+  neutral: "bg-[#22506F]",
 };
 
 const valueColor: Record<KpiTone, string> = {
@@ -101,19 +101,19 @@ function KpiSkeleton({ size = "md", className }: { size?: KpiSize; className?: s
     <div
       aria-hidden
       className={cn(
-        "bg-[#111827] border border-[#263244] rounded-xl overflow-hidden",
+        "bg-[#0D2D47] border border-[#22506F] rounded-xl overflow-hidden",
         className,
       )}
     >
       {/* accent bar */}
-      <div className="h-1 w-full animate-pulse bg-[#263244]" />
+      <div className="h-1 w-full animate-pulse bg-[#22506F]" />
       <div className={cn("flex flex-col gap-3", sizePadding[size])}>
         {/* label */}
-        <div className="h-2.5 w-20 animate-pulse rounded bg-[#1E293B]" />
+        <div className="h-2.5 w-20 animate-pulse rounded bg-[#1A3E5C]" />
         {/* value */}
-        <div className="h-8 w-32 animate-pulse rounded bg-[#1E293B]" />
+        <div className="h-8 w-32 animate-pulse rounded bg-[#1A3E5C]" />
         {/* trend */}
-        <div className="h-4 w-24 animate-pulse rounded-full bg-[#1E293B]" />
+        <div className="h-4 w-24 animate-pulse rounded-full bg-[#1A3E5C]" />
       </div>
     </div>
   );
@@ -152,7 +152,7 @@ export function KpiCard({
   return (
     <div
       className={cn(
-        "bg-[#111827] border border-[#263244] rounded-xl overflow-hidden",
+        "bg-[#0D2D47] border border-[#22506F] rounded-xl overflow-hidden",
         "flex flex-col",
         className,
       )}

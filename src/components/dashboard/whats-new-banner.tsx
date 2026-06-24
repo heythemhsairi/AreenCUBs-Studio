@@ -46,7 +46,7 @@ export function WhatsNewBanner({ update }: { update: AppUpdate }) {
   return (
     <>
       {/* Banner */}
-      <div className="relative flex items-center gap-3 rounded-xl border border-[#22D3EE]/20 bg-[#18212F] px-4 py-3 border-l-4 border-l-[#22D3EE]">
+      <div className="relative flex items-center gap-3 rounded-xl border border-[#22D3EE]/20 bg-[#123A5A] px-4 py-3 border-l-4 border-l-[#22D3EE]">
         <div className="min-w-0 flex-1">
           <p className="text-xs font-semibold text-[#22D3EE]">
             Nouveautés disponibles — v{update.version}
@@ -115,9 +115,9 @@ function WhatsNewModal({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="max-h-[85vh] w-full max-w-lg overflow-hidden rounded-2xl bg-[#111827] border border-[#263244] shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+      <div className="max-h-[85vh] w-full max-w-lg overflow-hidden rounded-2xl bg-[#0D2D47] border border-[#22506F] shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
         {/* Header */}
-        <div className="border-b border-[#263244] px-6 py-4">
+        <div className="border-b border-[#22506F] px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
               <div className="flex items-center gap-2">
@@ -182,11 +182,11 @@ function WhatsNewModal({
         </div>
 
         {/* Footer */}
-        <div className="border-t border-[#263244] px-6 py-3.5">
+        <div className="border-t border-[#22506F] px-6 py-3.5">
           <button
             type="button"
             onClick={onClose}
-            className="w-full rounded-xl bg-[#22D3EE] py-2.5 text-sm font-semibold text-[#0B0F14] transition-colors hover:bg-[#06B6D4]"
+            className="w-full rounded-xl bg-[#22D3EE] py-2.5 text-sm font-semibold text-[#071B2C] transition-colors hover:bg-[#06B6D4]"
           >
             Compris, merci !
           </button>
@@ -202,7 +202,7 @@ function UpdateItem({
   item: { title: string; body: string; role: string | null };
 }) {
   return (
-    <div className="flex gap-3 rounded-xl border border-[#263244] bg-[#18212F] p-3">
+    <div className="flex gap-3 rounded-xl border border-[#22506F] bg-[#123A5A] p-3">
       <span className="mt-0.5 text-base leading-none text-[#22D3EE]">✦</span>
       <div>
         <p className="text-sm font-semibold text-[#F8FAFC]">{item.title}</p>

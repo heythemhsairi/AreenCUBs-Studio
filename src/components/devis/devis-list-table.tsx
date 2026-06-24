@@ -96,7 +96,7 @@ export function DevisListTable({
           const payStatus = d.payment_status as PaymentStatus;
           const devStatus = d.status as DevisStatus;
           return (
-            <div key={d.id} className="rounded-xl border border-[#263244] bg-[#111827] p-4">
+            <div key={d.id} className="rounded-xl border border-[#22506F] bg-[#0D2D47] p-4">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <Link
@@ -149,7 +149,7 @@ export function DevisListTable({
                 <tr
                   key={d.id}
                   className={cn(
-                    "relative transition-colors duration-150 before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:rounded-r-full hover:bg-[#1E2A3A]",
+                    "relative transition-colors duration-150 before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:rounded-r-full hover:bg-[#1A3E5C]",
                     accent,
                   )}
                 >
@@ -300,7 +300,7 @@ function PaymentMenu({
             <DotSwatch tone="amber" />
             Annuler les paiements
           </MenuItem>
-          <div className="my-1 h-px bg-[#263244]" />
+          <div className="my-1 h-px bg-[#22506F]" />
           <MenuItem asLink href={`/dashboard/devis/${devisId}`}>
             <span className="text-[#64748B]">Détails &amp; partiel →</span>
           </MenuItem>
@@ -401,7 +401,7 @@ function Dropdown({
               left: pos.left,
               minWidth: MENU_WIDTH,
             }}
-            className="z-[100] rounded-xl border border-[#263244] bg-[#111827] p-1 shadow-[0_8px_32px_rgba(0,0,0,0.5)]"
+            className="z-[100] rounded-xl border border-[#22506F] bg-[#0D2D47] p-1 shadow-[0_8px_32px_rgba(0,0,0,0.5)]"
             role="menu"
           >
             {children(() => setOpen(false))}
@@ -439,7 +439,7 @@ function MenuItem({
     "flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-sm transition-colors",
     disabled
       ? "cursor-not-allowed text-[#3F4C59]"
-      : "text-[#94A3B8] hover:bg-[#1E2A3A] hover:text-[#F8FAFC]",
+      : "text-[#94A3B8] hover:bg-[#1A3E5C] hover:text-[#F8FAFC]",
     active && "bg-[#22D3EE]/10 text-[#22D3EE]",
   );
 

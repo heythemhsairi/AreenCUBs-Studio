@@ -59,8 +59,8 @@ export function ThemeToggle({ className }: { className?: string }) {
 
   if (!mounted) {
     return (
-      <div className={cn("flex h-8 rounded-lg border border-[#263244] bg-[#18212F]", className)}>
-        <div className="h-8 w-[88px] rounded-lg animate-pulse bg-[#263244]/50" />
+      <div className={cn("flex h-8 rounded-lg border border-[#22506F] bg-[#123A5A]", className)}>
+        <div className="h-8 w-[88px] rounded-lg animate-pulse bg-[#22506F]/50" />
       </div>
     );
   }
@@ -100,7 +100,7 @@ export function ThemeToggle({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "flex items-center rounded-lg border border-[#263244] bg-[#18212F] p-0.5 gap-0.5",
+        "flex items-center rounded-lg border border-[#22506F] bg-[#123A5A] p-0.5 gap-0.5",
         className,
       )}
       role="group"
@@ -116,8 +116,8 @@ export function ThemeToggle({ className }: { className?: string }) {
           className={cn(
             "flex flex-1 h-7 items-center justify-center gap-1.5 rounded-md px-2 text-[11px] font-medium transition-all",
             mode === opt.value
-              ? "bg-[#22D3EE] text-[#0B0F14] shadow-sm"
-              : "text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-[#263244]",
+              ? "bg-[#22D3EE] text-[#071B2C] shadow-sm"
+              : "text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-[#22506F]",
           )}
         >
           {opt.icon}

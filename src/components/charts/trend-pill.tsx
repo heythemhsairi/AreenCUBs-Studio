@@ -24,7 +24,7 @@ export function TrendPill({ pct, className, invert, isNew, noData }: Props) {
     return (
       <span
         className={cn(
-          "inline-flex items-center gap-0.5 rounded-full bg-[#263244] px-2 py-0.5 text-[11px] font-semibold text-[#64748B]",
+          "inline-flex items-center gap-0.5 rounded-full bg-[#22506F] px-2 py-0.5 text-[11px] font-semibold text-[#64748B]",
           className,
         )}
       >
@@ -52,7 +52,7 @@ export function TrendPill({ pct, className, invert, isNew, noData }: Props) {
     return (
       <span
         className={cn(
-          "inline-flex items-center gap-0.5 rounded-full bg-[#263244] px-2 py-0.5 text-[11px] font-semibold text-[#64748B]",
+          "inline-flex items-center gap-0.5 rounded-full bg-[#22506F] px-2 py-0.5 text-[11px] font-semibold text-[#64748B]",
           className,
         )}
       >
@@ -66,7 +66,7 @@ export function TrendPill({ pct, className, invert, isNew, noData }: Props) {
     return (
       <span
         className={cn(
-          "inline-flex items-center gap-0.5 rounded-full bg-[#263244] px-2 py-0.5 text-[11px] font-semibold text-[#64748B]",
+          "inline-flex items-center gap-0.5 rounded-full bg-[#22506F] px-2 py-0.5 text-[11px] font-semibold text-[#64748B]",
           className,
         )}
       >
@@ -80,7 +80,7 @@ export function TrendPill({ pct, className, invert, isNew, noData }: Props) {
     return (
       <span
         className={cn(
-          "inline-flex items-center gap-0.5 rounded-full bg-[#263244] px-2 py-0.5 text-[11px] font-semibold text-[#64748B]",
+          "inline-flex items-center gap-0.5 rounded-full bg-[#22506F] px-2 py-0.5 text-[11px] font-semibold text-[#64748B]",
           className,
         )}
       >

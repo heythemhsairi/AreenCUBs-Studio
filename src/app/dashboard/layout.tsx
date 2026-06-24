@@ -40,7 +40,7 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#0B0F14]">
+    <div className="flex h-screen overflow-hidden bg-[#071B2C]">
       {/* fixed dark mesh background */}
       <div aria-hidden className="pointer-events-none fixed inset-0 -z-10">
         <div className="absolute inset-0 bg-mesh opacity-60" />

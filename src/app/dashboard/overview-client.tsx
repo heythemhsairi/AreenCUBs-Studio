@@ -113,7 +113,7 @@ const priorityTone: Record<string, "slate" | "neutral" | "amber" | "red"> = {
 const SECTION_LABEL =
   "text-[10px] font-semibold uppercase tracking-widest text-[#64748B]";
 
-const SECTION_DIVIDER = "border-[#263244]";
+const SECTION_DIVIDER = "border-[#22506F]";
 
 // ---------------------------------------------------------------------------
 // Main export
@@ -186,8 +186,8 @@ export function OverviewClient({
       {hasPriorities && (
         <section>
           <p className={SECTION_LABEL}>Priorités du jour</p>
-          <div className="mt-3 rounded-xl border-l-2 border-[#F43F5E] bg-[#111827] ring-1 ring-[#263244]">
-            <div className="flex items-center justify-between border-b border-[#263244] px-5 py-3">
+          <div className="mt-3 rounded-xl border-l-2 border-[#F43F5E] bg-[#0D2D47] ring-1 ring-[#22506F]">
+            <div className="flex items-center justify-between border-b border-[#22506F] px-5 py-3">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4 text-[#F43F5E]" />
                 <span className="text-sm font-semibold text-[#F8FAFC]">
@@ -207,7 +207,7 @@ export function OverviewClient({
               </Link>
             </div>
 
-            <div className="divide-y divide-[#1E293B]">
+            <div className="divide-y divide-[#1A3E5C]">
               {overdueTasks.slice(0, 3).map((task) => {
                 const due = new Date(task.deadline);
                 const daysLate = Math.floor(
@@ -331,7 +331,7 @@ export function OverviewClient({
             />
 
             {/* Voir Finance OS */}
-            <div className="flex flex-col items-start justify-between rounded-xl bg-[#111827] border border-[#263244] p-5 gap-3">
+            <div className="flex flex-col items-start justify-between rounded-xl bg-[#0D2D47] border border-[#22506F] p-5 gap-3">
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-[#22D3EE]" />
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">Analyse complète</p>
@@ -449,7 +449,7 @@ export function OverviewClient({
             Voir tout →
           </Link>
         </div>
-        <div className="mt-3 rounded-xl bg-[#111827] ring-1 ring-[#263244] overflow-hidden">
+        <div className="mt-3 rounded-xl bg-[#0D2D47] ring-1 ring-[#22506F] overflow-hidden">
           <UpcomingDeadlinesList rows={upcomingTasks.slice(0, 5)} today={today} />
         </div>
       </section>
@@ -467,7 +467,7 @@ export function OverviewClient({
             Tout voir →
           </Link>
         </div>
-        <div className="mt-3 rounded-xl bg-[#111827] ring-1 ring-[#263244] overflow-hidden">
+        <div className="mt-3 rounded-xl bg-[#0D2D47] ring-1 ring-[#22506F] overflow-hidden">
           <RecentDocsFeed rows={recentDevis} />
         </div>
       </section>
@@ -487,10 +487,10 @@ export function OverviewClient({
             </Link>
           </div>
           <div className="mt-3 grid grid-cols-1 gap-4 lg:grid-cols-3">
-            <div className="lg:col-span-2 rounded-xl bg-[#111827] ring-1 ring-[#263244] p-5">
+            <div className="lg:col-span-2 rounded-xl bg-[#0D2D47] ring-1 ring-[#22506F] p-5">
               <MonthlyBars series={monthlySeries} />
             </div>
-            <div className="rounded-xl bg-[#111827] ring-1 ring-[#263244] p-5">
+            <div className="rounded-xl bg-[#0D2D47] ring-1 ring-[#22506F] p-5">
               <p className="mb-4 text-sm font-semibold text-[#F8FAFC]">
                 {t.overview.serviceMix}
               </p>
@@ -563,14 +563,14 @@ export function OverviewClient({
               Gérer →
             </Link>
           </div>
-          <div className="mt-3 flex items-center gap-4 rounded-xl bg-[#111827] px-5 py-4 ring-1 ring-[#263244]">
+          <div className="mt-3 flex items-center gap-4 rounded-xl bg-[#0D2D47] px-5 py-4 ring-1 ring-[#22506F]">
             <div className="flex items-center gap-2">
               <Users className="h-4 w-4 text-[#64748B]" />
               <span className="text-sm font-semibold text-[#F8FAFC]">
                 {counts.teamSize} membres
               </span>
             </div>
-            <div className="h-4 w-px bg-[#263244]" />
+            <div className="h-4 w-px bg-[#22506F]" />
             {counts.activeTasks > 0 && (
               <div className="flex items-center gap-2">
                 <span className="relative flex h-2 w-2">
@@ -584,7 +584,7 @@ export function OverviewClient({
             )}
             {counts.activeProjects > 0 && (
               <>
-                <div className="h-4 w-px bg-[#263244]" />
+                <div className="h-4 w-px bg-[#22506F]" />
                 <span className="text-sm text-[#94A3B8]">
                   {counts.activeProjects} projets
                 </span>
@@ -592,7 +592,7 @@ export function OverviewClient({
             )}
             {counts.clients !== null && counts.clients > 0 && (
               <>
-                <div className="h-4 w-px bg-[#263244]" />
+                <div className="h-4 w-px bg-[#22506F]" />
                 <span className="text-sm text-[#94A3B8]">
                   {counts.clients} clients
                 </span>
@@ -601,7 +601,7 @@ export function OverviewClient({
             <div className="ml-auto">
               <Link
                 href="/dashboard/planning"
-                className="inline-flex items-center gap-1.5 rounded-lg bg-white/5 px-3 py-1.5 text-[11px] font-semibold text-[#94A3B8] ring-1 ring-[#263244] transition-all hover:bg-white/10 hover:text-[#F8FAFC]"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-white/5 px-3 py-1.5 text-[11px] font-semibold text-[#94A3B8] ring-1 ring-[#22506F] transition-all hover:bg-white/10 hover:text-[#F8FAFC]"
               >
                 <span>Planning équipe</span>
                 <span aria-hidden>→</span>
@@ -761,7 +761,7 @@ function ActiveWorkColumn({
   const pct = total > 0 ? Math.max(2, (count / total) * 100) : 0;
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl bg-[#111827] p-4 ring-1 ring-[#263244]">
+    <div className="flex flex-col gap-3 rounded-xl bg-[#0D2D47] p-4 ring-1 ring-[#22506F]">
       <div className="flex items-center justify-between">
         <p className="text-[10px] font-semibold uppercase tracking-widest text-[#64748B]">
           {label}
@@ -809,7 +809,7 @@ function UpcomingDeadlinesList({
   }
 
   return (
-    <ul className="divide-y divide-[#1E293B]">
+    <ul className="divide-y divide-[#1A3E5C]">
       {rows.map((task) => {
         const due = new Date(task.deadline);
         const days = Math.floor(
@@ -833,7 +833,7 @@ function UpcomingDeadlinesList({
                   size="sm"
                 />
               ) : (
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#1E293B] text-xs text-[#64748B]">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#1A3E5C] text-xs text-[#64748B]">
                   ?
                 </span>
               )}
@@ -895,7 +895,7 @@ function RecentDocsFeed({ rows }: { rows: RecentDevis[] }) {
   }
 
   return (
-    <ul className="divide-y divide-[#1E293B]">
+    <ul className="divide-y divide-[#1A3E5C]">
       {rows.map((d) => {
         const baseUrl =
           d.kind === "facture" ? "/dashboard/factures" : "/dashboard/devis";

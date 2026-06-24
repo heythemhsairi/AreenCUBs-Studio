@@ -37,7 +37,7 @@ const toneClass: Record<Tone, string> = {
   cyan:     "bg-[#22D3EE]/15 text-[#67E8F9] border border-[#22D3EE]/30",
   slate:    "bg-[#334155] text-[#64748B] border border-[#475569]/30",
   accent:   "bg-[#FF9E1F]/20 text-[#FCD34D] border border-[#FF9E1F]/35",
-  ink:      "bg-[#F8FAFC] text-[#0B0F14] border border-transparent",
+  ink:      "bg-[#F8FAFC] text-[#071B2C] border border-transparent",
 };
 
 const dotColor: Record<Tone, string> = {
@@ -55,7 +55,7 @@ const dotColor: Record<Tone, string> = {
   cyan:     "bg-[#38BDF8]",
   slate:    "bg-[#64748B]",
   accent:   "bg-[#FF9E1F]",
-  ink:      "bg-[#0B0F14]",
+  ink:      "bg-[#071B2C]",
 };
 
 // ---------------------------------------------------------------------------

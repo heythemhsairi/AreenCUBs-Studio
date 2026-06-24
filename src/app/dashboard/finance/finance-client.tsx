@@ -147,7 +147,7 @@ function DarkTooltip({ active, payload, label }: {
 }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-lg border border-[#263244] bg-[#18212F] px-3 py-2 text-xs shadow-xl">
+    <div className="rounded-lg border border-[#22506F] bg-[#123A5A] px-3 py-2 text-xs shadow-xl">
       {label && <p className="mb-1.5 font-semibold text-[#94A3B8]">{label}</p>}
       {payload.map((p) => (
         <div key={p.name} className="flex items-center gap-2 py-0.5">
@@ -167,7 +167,7 @@ function PieDarkTooltip({ active, payload }: {
   if (!active || !payload?.length) return null;
   const entry = payload[0];
   return (
-    <div className="rounded-lg border border-[#263244] bg-[#18212F] px-3 py-2 text-xs shadow-xl">
+    <div className="rounded-lg border border-[#22506F] bg-[#123A5A] px-3 py-2 text-xs shadow-xl">
       <div className="flex items-center gap-2">
         <span className="h-2 w-2 rounded-full flex-shrink-0" style={{ background: entry.payload.color }} />
         <span className="text-[#94A3B8]">{entry.name}:</span>
@@ -220,7 +220,7 @@ function RevenueAreaChart({ series }: { series: MonthlySeries[] }) {
           </linearGradient>
         </defs>
 
-        <CartesianGrid stroke="#263244" strokeDasharray="4 2" vertical={false} />
+        <CartesianGrid stroke="#22506F" strokeDasharray="4 2" vertical={false} />
 
         <XAxis
           dataKey="name"
@@ -353,7 +353,7 @@ function MiniDonutCard({
   data: { label: string; value: number; color: string }[];
 }) {
   return (
-    <div className="rounded-xl border border-[#263244] bg-[#111827] p-5">
+    <div className="rounded-xl border border-[#22506F] bg-[#0D2D47] p-5">
       <div className="mb-1 text-sm font-semibold text-[#F8FAFC]">{title}</div>
       <div className="mb-4 text-xs text-[#64748B]">{subtitle}</div>
       <RechartsDonut data={data} />
@@ -492,7 +492,7 @@ function DashboardTab(props: Props) {
       </section>
 
       {/* ── MAIN AREA CHART ─────────────────────────────────────── */}
-      <div className="rounded-xl border border-[#263244] bg-[#111827] p-5">
+      <div className="rounded-xl border border-[#22506F] bg-[#0D2D47] p-5">
         <div className="mb-1 text-sm font-semibold text-[#F8FAFC]">
           Encaissé vs Facturé vs Dépenses — 12 mois
         </div>
@@ -521,7 +521,7 @@ function DashboardTab(props: Props) {
 
       {/* ── OUTSTANDING + EXPECTED ──────────────────────────────── */}
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-        <div className="rounded-xl border border-[#263244] bg-[#111827] p-5">
+        <div className="rounded-xl border border-[#22506F] bg-[#0D2D47] p-5">
           <div className="mb-4 flex items-center justify-between">
             <div className="text-sm font-semibold text-[#F8FAFC]">Factures impayées</div>
             {props.totalOverdue > 0 && (
@@ -531,14 +531,14 @@ function DashboardTab(props: Props) {
           <OutstandingTable rows={props.outstandingRows.slice(0, 10)} />
         </div>
 
-        <div className="rounded-xl border border-[#263244] bg-[#111827] p-5">
+        <div className="rounded-xl border border-[#22506F] bg-[#0D2D47] p-5">
           <div className="mb-4 text-sm font-semibold text-[#F8FAFC]">Paiements attendus (30j)</div>
           {props.paymentsSoon.length === 0 ? (
             <p className="py-6 text-center text-sm text-[#64748B]">
               Aucun paiement attendu dans les 30 prochains jours.
             </p>
           ) : (
-            <ul className="divide-y divide-[#263244]">
+            <ul className="divide-y divide-[#22506F]">
               {props.paymentsSoon.map((r) => (
                 <li key={r.devis_id} className="flex items-center justify-between py-2.5">
                   <div>
@@ -559,12 +559,12 @@ function DashboardTab(props: Props) {
 
       {/* ── TOP CLIENTS TABLE ────────────────────────────────────── */}
       {props.topClients.length > 0 && (
-        <div className="rounded-xl border border-[#263244] bg-[#111827] p-5">
+        <div className="rounded-xl border border-[#22506F] bg-[#0D2D47] p-5">
           <div className="mb-4 text-sm font-semibold text-[#F8FAFC]">Meilleurs clients</div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-[#263244] text-left">
+                <tr className="border-b border-[#22506F] text-left">
                   <th className="pb-2.5 text-[10px] font-semibold uppercase tracking-widest text-[#64748B]">Client</th>
                   <th className="pb-2.5 text-right text-[10px] font-semibold uppercase tracking-widest text-[#64748B]">Facturé</th>
                   <th className="pb-2.5 text-right text-[10px] font-semibold uppercase tracking-widest text-[#64748B]">Encaissé</th>
@@ -574,7 +574,7 @@ function DashboardTab(props: Props) {
               </thead>
               <tbody>
                 {props.topClients.map((c) => (
-                  <tr key={c.id} className="border-b border-[#1E293B] last:border-0">
+                  <tr key={c.id} className="border-b border-[#1A3E5C] last:border-0">
                     <td className="py-2.5 font-medium text-[#F8FAFC]">{c.name}</td>
                     <td className="py-2.5 text-right text-[#94A3B8]">{formatDt(c.invoiced)}</td>
                     <td className="py-2.5 text-right font-semibold text-[#22C55E]">{formatDt(c.paid)}</td>
@@ -603,7 +603,7 @@ export function FinanceDashboardClient(props: Props) {
   return (
     <div className="space-y-6">
       {/* ── TAB STRIP ───────────────────────────────────────────── */}
-      <div className="bg-[#0B0F14] border-b border-[#263244]">
+      <div className="bg-[#071B2C] border-b border-[#22506F]">
         <div className="flex overflow-x-auto">
           {TABS.map((t) => (
             <button

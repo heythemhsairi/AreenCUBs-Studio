@@ -11,11 +11,11 @@ type CardProps = HTMLAttributes<HTMLDivElement> & {
 };
 
 const variantClass: Record<CardVariant, string> = {
-  default:  "bg-[#111827] border border-[#263244] rounded-2xl",
-  elevated: "bg-[#18212F] border border-[#263244] rounded-2xl",
-  glass:    "bg-[#111827]/80 backdrop-blur-xl border border-[#263244]/80 rounded-2xl",
-  ghost:    "bg-transparent border border-[#263244]/50 rounded-2xl",
-  ring:     "bg-[#111827] border-2 border-[#22D3EE]/40 rounded-2xl shadow-[0_0_16px_rgba(34,211,238,0.12)]",
+  default:  "bg-[#0D2D47] border border-[#22506F] rounded-2xl",
+  elevated: "bg-[#123A5A] border border-[#22506F] rounded-2xl",
+  glass:    "bg-[#0D2D47]/80 backdrop-blur-xl border border-[#22506F]/80 rounded-2xl",
+  ghost:    "bg-transparent border border-[#22506F]/50 rounded-2xl",
+  ring:     "bg-[#0D2D47] border-2 border-[#22D3EE]/40 rounded-2xl shadow-[0_0_16px_rgba(34,211,238,0.12)]",
 };
 
 const interactiveClass =
@@ -97,7 +97,7 @@ export function CardFooter({
   return (
     <div
       className={cn(
-        "flex items-center gap-2 border-t border-[#263244] px-5 py-3 md:px-6",
+        "flex items-center gap-2 border-t border-[#22506F] px-5 py-3 md:px-6",
         className,
       )}
       {...rest}

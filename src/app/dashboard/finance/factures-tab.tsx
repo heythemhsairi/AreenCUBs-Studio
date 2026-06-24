@@ -8,12 +8,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { FactureWithBalance } from "./finance-client";
 
 const STATUS_META: Record<string, { label: string; cls: string }> = {
-  draft:     { label: "Brouillon",        cls: "bg-[#263244] text-[#94A3B8]" },
+  draft:     { label: "Brouillon",        cls: "bg-[#22506F] text-[#94A3B8]" },
   sent:      { label: "Envoyée",          cls: "bg-blue-900/40 text-blue-300" },
   partial:   { label: "Partiel. payée",   cls: "bg-amber-900/40 text-amber-300" },
   paid:      { label: "Payée",            cls: "bg-emerald-900/40 text-emerald-300" },
   overdue:   { label: "En retard",        cls: "bg-red-900/40 text-red-400" },
-  cancelled: { label: "Annulée",          cls: "bg-[#263244] text-[#94A3B8] line-through" },
+  cancelled: { label: "Annulée",          cls: "bg-[#22506F] text-[#94A3B8] line-through" },
 };
 
 export function FacturesTab({
@@ -83,7 +83,7 @@ export function FacturesTab({
             <select
               value={clientFilter}
               onChange={(e) => setClientFilter(e.target.value)}
-              className="rounded-lg border border-[#263244] bg-[#111827] px-3 py-1.5 text-xs text-[#F8FAFC] focus:border-brand focus:outline-none"
+              className="rounded-lg border border-[#22506F] bg-[#0D2D47] px-3 py-1.5 text-xs text-[#F8FAFC] focus:border-brand focus:outline-none"
             >
               <option value="all">Tous les clients</option>
               {clients.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -96,7 +96,7 @@ export function FacturesTab({
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-[#263244] text-left text-xs font-semibold uppercase tracking-wider text-[#94A3B8]">
+                  <tr className="border-b border-[#22506F] text-left text-xs font-semibold uppercase tracking-wider text-[#94A3B8]">
                     <th className="pb-2">N°</th>
                     <th className="pb-2">Client</th>
                     <th className="pb-2">Date</th>
@@ -113,7 +113,7 @@ export function FacturesTab({
                     const meta = STATUS_META[f.computed_status] ?? STATUS_META.sent;
                     const client = clients.find((c) => c.id === f.client_id);
                     return (
-                      <tr key={f.id} className="border-b border-[#263244] last:border-0 hover:bg-[#1E2A3A]">
+                      <tr key={f.id} className="border-b border-[#22506F] last:border-0 hover:bg-[#1A3E5C]">
                         <td className="py-2.5">
                           <Link href={`/dashboard/factures/${f.id}`} className="font-mono text-xs text-brand hover:underline">
                             #{f.devis_number}
@@ -146,7 +146,7 @@ export function FacturesTab({
                   })}
                 </tbody>
                 <tfoot>
-                  <tr className="border-t border-[#263244]">
+                  <tr className="border-t border-[#22506F]">
                     <td colSpan={5} className="pt-2.5 text-xs font-semibold uppercase tracking-wider text-[#94A3B8]">Total affiché</td>
                     <td className="pt-2.5 text-right font-bold text-[#F8FAFC]">{formatDt(filtered.reduce((s,f)=>s+f.total_dt,0))}</td>
                     <td className="pt-2.5 text-right font-bold text-emerald-400">{formatDt(filtered.reduce((s,f)=>s+f.paid_dt,0))}</td>
@@ -165,7 +165,7 @@ export function FacturesTab({
 
 function FactureStat({ label, value, color = "text-[#F8FAFC]" }: { label: string; value: number; color?: string }) {
   return (
-    <div className="rounded-xl border border-[#263244] bg-[#111827] p-4">
+    <div className="rounded-xl border border-[#22506F] bg-[#0D2D47] p-4">
       <p className="text-[11px] font-semibold uppercase tracking-wider text-[#94A3B8]">{label}</p>
       <p className={cn("mt-2 text-xl font-bold", color)}>{formatDt(value)}</p>
     </div>
@@ -179,7 +179,7 @@ function FilterPill({ active, onClick, children }: { active: boolean; onClick: (
       onClick={onClick}
       className={cn(
         "rounded-full px-2.5 py-1 text-xs font-medium transition-colors",
-        active ? "bg-brand text-white" : "bg-[#1E2A3A] text-[#94A3B8] hover:bg-[#263244]",
+        active ? "bg-brand text-white" : "bg-[#1A3E5C] text-[#94A3B8] hover:bg-[#22506F]",
       )}
     >
       {children}
