@@ -115,6 +115,11 @@ function isNew(c: number, p: number): boolean {
   return p === 0 && c > 0;
 }
 
+/** True when both current and previous are 0 — no data to compare. */
+function noData(c: number, p: number): boolean {
+  return c === 0 && p === 0;
+}
+
 // ---------------------------------------------------------------------------
 // Chart palette
 // ---------------------------------------------------------------------------
@@ -421,6 +426,7 @@ function DashboardTab(props: Props) {
           suffix=" DT"
           trend={pct(props.mtdPaid, props.prevPaid)}
           trendIsNew={isNew(props.mtdPaid, props.prevPaid)}
+          trendNoData={noData(props.mtdPaid, props.prevPaid)}
           trendLabel="vs mois dernier"
           tone="green"
           tooltip="Paiements réellement reçus sur factures uniquement"
@@ -431,6 +437,7 @@ function DashboardTab(props: Props) {
           suffix=" DT"
           trend={pct(props.mtdInvoiced, props.prevInvoiced)}
           trendIsNew={isNew(props.mtdInvoiced, props.prevInvoiced)}
+          trendNoData={noData(props.mtdInvoiced, props.prevInvoiced)}
           trendLabel="vs mois dernier"
           tone="cyan"
           tooltip="Total des factures émises ce mois"

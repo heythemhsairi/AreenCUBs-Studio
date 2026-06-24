@@ -4,7 +4,9 @@ export function formatDevisNumber(n: number, kind: "devis" | "facture" = "devis"
 }
 
 export function formatDt(value: number): string {
-  return `${Number(value).toLocaleString("fr-FR", {
+  // Normalize negative zero and suppress display of -0,00
+  const n = Object.is(value, -0) ? 0 : value === 0 ? 0 : value;
+  return `${n.toLocaleString("fr-FR", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })} DT`;

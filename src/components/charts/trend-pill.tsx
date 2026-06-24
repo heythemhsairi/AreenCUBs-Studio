@@ -11,9 +11,28 @@ type Props = {
    * Renders a "Nouveau" badge instead of a misleading percentage.
    */
   isNew?: boolean;
+  /**
+   * Pass true when both current and previous are 0.
+   * Renders an "Aucune donnée" badge instead of a percentage.
+   */
+  noData?: boolean;
 };
 
-export function TrendPill({ pct, className, invert, isNew }: Props) {
+export function TrendPill({ pct, className, invert, isNew, noData }: Props) {
+  // "Aucune donnée" — both values are 0, no comparison meaningful
+  if (noData) {
+    return (
+      <span
+        className={cn(
+          "inline-flex items-center gap-0.5 rounded-full bg-[#263244] px-2 py-0.5 text-[11px] font-semibold text-[#64748B]",
+          className,
+        )}
+      >
+        Aucune donnée
+      </span>
+    );
+  }
+
   // "Nouveau" badge takes priority — previous was 0, current > 0
   if (isNew) {
     return (

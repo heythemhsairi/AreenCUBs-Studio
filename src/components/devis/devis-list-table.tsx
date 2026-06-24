@@ -88,64 +88,106 @@ export function DevisListTable({
     kind === "facture" ? "/dashboard/factures" : "/dashboard/devis";
 
   return (
-    <Table>
-      <THead>
-        <TR>
-          <TH>N°</TH>
-          <TH>Client</TH>
-          <TH>Date</TH>
-          <TH>Échéance</TH>
-          <TH>Statut</TH>
-          <TH>Paiement</TH>
-          <TH className="text-right">Total TTC</TH>
-        </TR>
-      </THead>
-      <TBody>
+    <>
+      {/* Mobile cards — <md */}
+      <div className="md:hidden space-y-3">
         {rows.map((d) => {
           const client = Array.isArray(d.clients) ? d.clients[0] : d.clients;
-          const accent =
-            rowAccent[d.payment_status as PaymentStatus] ?? "before:bg-ink/10";
+          const payStatus = d.payment_status as PaymentStatus;
+          const devStatus = d.status as DevisStatus;
           return (
-            <tr
-              key={d.id}
-              className={cn(
-                "relative transition-colors duration-150 before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:rounded-r-full hover:bg-cream/40",
-                accent,
-              )}
-            >
-              <TD className="pl-5 font-mono text-xs text-ink/55">
-                <Link
-                  href={`${baseUrl}/${d.id}`}
-                  className="hover:text-brand"
-                >
-                  {formatDevisNumber(d.devis_number, kind)}
-                </Link>
-              </TD>
-              <TD className="font-medium text-ink">
-                {client?.name ?? "—"}
-              </TD>
-              <TD className="text-ink/60">{formatDate(d.date)}</TD>
-              <TD className="text-ink/60">{formatDate(d.due_date)}</TD>
-              <TD>
-                <StatusMenu
-                  devisId={d.id}
-                  current={d.status as DevisStatus}
-                />
-              </TD>
-              <TD>
-                <PaymentMenu
-                  devisId={d.id}
-                  current={d.payment_status as PaymentStatus}
-                />
-              </TD>
-              <TD className="text-right font-semibold text-ink">
-                {formatDt(d.total_dt)}
-              </TD>
-            </tr>
+            <div key={d.id} className="rounded-xl border border-[#263244] bg-[#111827] p-4">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <Link
+                    href={`${baseUrl}/${d.id}`}
+                    className="font-mono text-xs text-[#22D3EE] hover:underline"
+                  >
+                    {formatDevisNumber(d.devis_number, kind)}
+                  </Link>
+                  <p className="mt-0.5 font-semibold text-[#F8FAFC] truncate">
+                    {client?.name ?? "—"}
+                  </p>
+                </div>
+                <p className="shrink-0 font-bold text-[#22C55E] text-sm">
+                  {formatDt(d.total_dt)}
+                </p>
+              </div>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <StatusMenu devisId={d.id} current={devStatus} />
+                <PaymentMenu devisId={d.id} current={payStatus} />
+              </div>
+              <div className="mt-2 flex items-center justify-between text-xs text-[#64748B]">
+                <span>{formatDate(d.date)}</span>
+                <span>éch. {formatDate(d.due_date)}</span>
+              </div>
+            </div>
           );
         })}
-      </TBody>
-    </Table>
+      </div>
+
+      {/* Desktop table — ≥md */}
+      <div className="hidden md:block">
+        <Table>
+          <THead>
+            <TR>
+              <TH>N°</TH>
+              <TH>Client</TH>
+              <TH>Date</TH>
+              <TH>Échéance</TH>
+              <TH>Statut</TH>
+              <TH>Paiement</TH>
+              <TH className="text-right">Total TTC</TH>
+            </TR>
+          </THead>
+          <TBody>
+            {rows.map((d) => {
+              const client = Array.isArray(d.clients) ? d.clients[0] : d.clients;
+              const accent =
+                rowAccent[d.payment_status as PaymentStatus] ?? "before:bg-ink/10";
+              return (
+                <tr
+                  key={d.id}
+                  className={cn(
+                    "relative transition-colors duration-150 before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:rounded-r-full hover:bg-[#1E2A3A]",
+                    accent,
+                  )}
+                >
+                  <TD className="pl-5 font-mono text-xs text-[#64748B]">
+                    <Link
+                      href={`${baseUrl}/${d.id}`}
+                      className="hover:text-[#22D3EE]"
+                    >
+                      {formatDevisNumber(d.devis_number, kind)}
+                    </Link>
+                  </TD>
+                  <TD className="font-medium text-[#F8FAFC]">
+                    {client?.name ?? "—"}
+                  </TD>
+                  <TD className="text-[#94A3B8]">{formatDate(d.date)}</TD>
+                  <TD className="text-[#94A3B8]">{formatDate(d.due_date)}</TD>
+                  <TD>
+                    <StatusMenu
+                      devisId={d.id}
+                      current={d.status as DevisStatus}
+                    />
+                  </TD>
+                  <TD>
+                    <PaymentMenu
+                      devisId={d.id}
+                      current={d.payment_status as PaymentStatus}
+                    />
+                  </TD>
+                  <TD className="text-right font-semibold text-[#F8FAFC]">
+                    {formatDt(d.total_dt)}
+                  </TD>
+                </tr>
+              );
+            })}
+          </TBody>
+        </Table>
+      </div>
+    </>
   );
 }
 
@@ -258,9 +300,9 @@ function PaymentMenu({
             <DotSwatch tone="amber" />
             Annuler les paiements
           </MenuItem>
-          <div className="my-1 h-px bg-ink/5" />
+          <div className="my-1 h-px bg-[#263244]" />
           <MenuItem asLink href={`/dashboard/devis/${devisId}`}>
-            <span className="text-ink/50">Détails &amp; partiel →</span>
+            <span className="text-[#64748B]">Détails &amp; partiel →</span>
           </MenuItem>
         </>
       )}
@@ -359,7 +401,7 @@ function Dropdown({
               left: pos.left,
               minWidth: MENU_WIDTH,
             }}
-            className="z-[100] rounded-xl border border-ink/10 bg-white p-1 shadow-lift dark:border-white/10 dark:bg-[#1e2029]"
+            className="z-[100] rounded-xl border border-[#263244] bg-[#111827] p-1 shadow-[0_8px_32px_rgba(0,0,0,0.5)]"
             role="menu"
           >
             {children(() => setOpen(false))}
@@ -372,7 +414,7 @@ function Dropdown({
 
 function MenuHeader({ children }: { children: React.ReactNode }) {
   return (
-    <p className="px-2.5 pt-1.5 pb-1 text-[10px] font-semibold uppercase tracking-wider text-ink/40">
+    <p className="px-2.5 pt-1.5 pb-1 text-[10px] font-semibold uppercase tracking-wider text-[#64748B]">
       {children}
     </p>
   );
@@ -396,9 +438,9 @@ function MenuItem({
   const cls = cn(
     "flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-sm transition-colors",
     disabled
-      ? "cursor-not-allowed text-ink/30"
-      : "text-ink/80 hover:bg-cream-dark hover:text-ink",
-    active && "bg-brand/10 text-brand-dark",
+      ? "cursor-not-allowed text-[#3F4C59]"
+      : "text-[#94A3B8] hover:bg-[#1E2A3A] hover:text-[#F8FAFC]",
+    active && "bg-[#22D3EE]/10 text-[#22D3EE]",
   );
 
   if (asLink && href) {

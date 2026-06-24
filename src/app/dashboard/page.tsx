@@ -638,6 +638,8 @@ export default async function DashboardPage() {
           outstandingTrend: pctTrend(totalOutstanding, outstandingPrev),
           paidIsNew: prevPaid === 0 && mtdPaid > 0,
           invoicedIsNew: prevInvoiced === 0 && mtdInvoiced > 0,
+          paidNoData: prevPaid === 0 && mtdPaid === 0,
+          invoicedNoData: prevInvoiced === 0 && mtdInvoiced === 0,
         }}
         monthlySeries={monthlySeries}
         donutData={donutData}

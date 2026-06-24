@@ -38,6 +38,8 @@ type Revenue = {
   outstandingTrend: number | null;
   paidIsNew?: boolean;
   invoicedIsNew?: boolean;
+  paidNoData?: boolean;
+  invoicedNoData?: boolean;
 };
 
 type Featured = {
@@ -297,6 +299,7 @@ export function OverviewClient({
               mtdInvoiced={revenue.mtdInvoiced}
               paidTrend={revenue.paidTrend}
               paidIsNew={revenue.paidIsNew}
+              paidNoData={revenue.paidNoData}
             />
 
             {/* Facturé mois */}
@@ -307,6 +310,7 @@ export function OverviewClient({
               tone="cyan"
               trend={revenue.invoicedTrend}
               trendIsNew={revenue.invoicedIsNew}
+              trendNoData={revenue.invoicedNoData}
               trendLabel={t.kpis.vsLastMonth}
               icon={<FileText className="h-4 w-4" />}
             />
@@ -669,11 +673,13 @@ function HeroRevenueCard({
   mtdInvoiced,
   paidTrend,
   paidIsNew,
+  paidNoData,
 }: {
   mtdPaid: number;
   mtdInvoiced: number;
   paidTrend: number | null;
   paidIsNew?: boolean;
+  paidNoData?: boolean;
 }) {
   const { t } = useI18n();
   const hasInvoiced = mtdInvoiced > 0;
@@ -690,7 +696,7 @@ function HeroRevenueCard({
           <p className="text-[11px] font-semibold uppercase tracking-wider text-cream/70">
             {t.kpis.revenueMtd}
           </p>
-          <TrendPill pct={paidTrend} isNew={paidIsNew} className="!bg-white/15 !text-white !ring-0" />
+          <TrendPill pct={paidTrend} isNew={paidIsNew} noData={paidNoData} className="!bg-white/15 !text-white !ring-0" />
         </div>
 
         <p className="mt-3 text-3xl font-semibold tracking-tight text-cream md:text-[34px]">

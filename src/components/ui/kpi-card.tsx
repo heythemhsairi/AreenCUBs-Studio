@@ -26,6 +26,8 @@ export interface KpiCardProps {
   trend?: number | null;
   /** When true, renders a "Nouveau" badge instead of a percentage (prev was 0, current > 0). */
   trendIsNew?: boolean;
+  /** When true, renders "Aucune donnée" badge (both current and previous are 0). */
+  trendNoData?: boolean;
   /** Caption next to the trend pill, e.g. "vs mois dernier" */
   trendLabel?: string;
   /** Colour theme (default: neutral) */
@@ -128,6 +130,7 @@ export function KpiCard({
   decimals,
   trend = null,
   trendIsNew = false,
+  trendNoData = false,
   trendLabel,
   tone = "neutral",
   size = "md",
@@ -200,9 +203,13 @@ export function KpiCard({
         )}
 
         {/* Trend row */}
-        {(trendIsNew || (trend !== null && trend !== undefined)) && (
+        {(trendNoData || trendIsNew || (trend !== null && trend !== undefined)) && (
           <div className="flex items-center gap-1.5 flex-wrap">
-            <TrendPill pct={trendIsNew ? null : trend} isNew={trendIsNew} />
+            <TrendPill
+              pct={trendIsNew ? null : trend}
+              isNew={trendIsNew}
+              noData={trendNoData}
+            />
             {trendLabel && (
               <span className="text-[11px] text-[#64748B] leading-none">
                 {trendLabel}
