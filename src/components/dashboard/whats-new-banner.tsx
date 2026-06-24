@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { cn } from "@/lib/utils";
-import { markUpdateSeenAction } from "@/lib/updates";
+import { markUpdateSeenAction } from "@/lib/update-actions";
 import type { AppUpdate } from "@/lib/updates";
 
 export function WhatsNewBanner({ update }: { update: AppUpdate }) {
