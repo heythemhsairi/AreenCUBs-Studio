@@ -195,7 +195,7 @@ export function TeamPlanningClient({ members, today }: { members: TeamMember[]; 
               <button
                 type="button"
                 onClick={thisMonth}
-                className="rounded-md px-2.5 py-1 text-xs font-semibold text-[#94A3B8] transition-colors hover:bg-[#263244] hover:text-[#F8FAFC]"
+                className="rounded-md px-2.5 py-1 text-xs font-semibold text-[#94A3B8] transition-colors hover:bg-[#22506F] hover:text-[#F8FAFC]"
               >
                 {t.planning.today}
               </button>
@@ -208,7 +208,7 @@ export function TeamPlanningClient({ members, today }: { members: TeamMember[]; 
             <table className="w-full min-w-[900px] border-separate border-spacing-y-1.5">
               <thead>
                 <tr className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#64748B]">
-                  <th className="sticky left-0 z-10 bg-[#0B0F14] pl-1 pr-3 text-left">
+                  <th className="sticky left-0 z-10 bg-[#071B2C] pl-1 pr-3 text-left">
                     {t.planning.member}
                   </th>
                   {days.map((d) => {
@@ -242,10 +242,10 @@ export function TeamPlanningClient({ members, today }: { members: TeamMember[]; 
                   const totalsRow = totals.find((x) => x.id === m.id)!;
                   return (
                     <tr key={m.id} className="group">
-                      <td className="sticky left-0 z-10 bg-[#0B0F14] py-1.5 pl-1 pr-3">
+                      <td className="sticky left-0 z-10 bg-[#071B2C] py-1.5 pl-1 pr-3">
                         <Link
                           href={`/dashboard/team/planning/${m.id}`}
-                          className="flex items-center gap-2.5 rounded-lg px-1.5 py-1 transition-colors hover:bg-[#1E2A3A]"
+                          className="flex items-center gap-2.5 rounded-lg px-1.5 py-1 transition-colors hover:bg-[#1A3E5C]"
                         >
                           <Avatar
                             src={m.avatar_url}
@@ -274,7 +274,7 @@ export function TeamPlanningClient({ members, today }: { members: TeamMember[]; 
                                   </span>
                                 )}
                                 {m.workload.active > 0 && m.workload.overdue === 0 && m.workload.due_today === 0 && (
-                                  <span className="rounded-full bg-[#263244] px-1.5 py-0 text-[9px] text-[#64748B]">
+                                  <span className="rounded-full bg-[#22506F] px-1.5 py-0 text-[9px] text-[#64748B]">
                                     {m.workload.active} tâches
                                   </span>
                                 )}
@@ -312,7 +312,7 @@ export function TeamPlanningClient({ members, today }: { members: TeamMember[]; 
                                   ? "bg-gradient-to-br from-brand to-brand-dark text-white shadow-brand-glow"
                                   : loc === "home"
                                     ? "bg-gradient-to-br from-[#7c4dff] to-[#5b3df0] text-white shadow-[0_4px_12px_-4px_rgba(124,77,255,0.55)]"
-                                    : "bg-[#263244]/60 text-[#3F4C59] hover:bg-[#263244] hover:text-[#94A3B8]",
+                                    : "bg-[#22506F]/60 text-[#3F4C59] hover:bg-[#22506F] hover:text-[#94A3B8]",
                                 isToday &&
                                   loc === null &&
                                   "ring-1 ring-inset ring-brand/40",
@@ -358,7 +358,7 @@ function NavButton({
     <button
       type="button"
       onClick={onClick}
-      className="flex h-8 w-8 items-center justify-center rounded-md text-base font-semibold text-[#94A3B8] transition-colors hover:bg-[#263244] hover:text-[#F8FAFC]"
+      className="flex h-8 w-8 items-center justify-center rounded-md text-base font-semibold text-[#94A3B8] transition-colors hover:bg-[#22506F] hover:text-[#F8FAFC]"
     >
       {label}
     </button>

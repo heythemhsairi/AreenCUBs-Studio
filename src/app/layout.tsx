@@ -43,7 +43,7 @@ export default function RootLayout({
           position="bottom-right"
           theme="dark"
           richColors
-          toastOptions={{ style: { background: '#111827', border: '1px solid #263244', color: '#F8FAFC' } }}
+          toastOptions={{ style: { background: '#0D2D47', border: '1px solid #22506F', color: '#F4FAFF' } }}
         />
       </body>
     </html>

@@ -4,50 +4,70 @@
 
 @layer base {
   :root {
-    /* -----------------------------------------------------------------------
-       Dark-first design tokens — these ARE the defaults; no html.dark needed.
-       ----------------------------------------------------------------------- */
-    --shadow-soft: 0 1px 2px rgba(15, 30, 50, 0.04),
-      0 4px 14px rgba(15, 30, 50, 0.05);
-    --shadow-lift: 0 20px 40px -22px rgba(15, 30, 50, 0.22),
-      0 8px 16px -8px rgba(15, 30, 50, 0.10);
-    --shadow-brand: 0 22px 48px -22px rgba(59, 139, 186, 0.55),
-      0 8px 18px -8px rgba(59, 139, 186, 0.32);
-    --shadow-accent: 0 22px 48px -22px rgba(255, 158, 31, 0.55),
-      0 8px 18px -8px rgba(255, 158, 31, 0.32);
-    --shadow-surface: 0 1px 3px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.3);
-    --shadow-surface-lg: 0 8px 32px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.3);
+    /* ── Design token CSS variables — dark (default) ── */
+    --c-bg:        #071B2C;
+    --c-page:      #08243A;
+    --c-card:      #0D2D47;
+    --c-elevated:  #123A5A;
+    --c-border:    #22506F;
+    --c-text-1:    #F4FAFF;
+    --c-text-2:    #B8D0E4;
+    --c-text-3:    #86A8C2;
+    --c-brand:     #2C6E96;
+    --c-cyan:      #22B8D6;
+    --c-success:   #2ECC71;
+    --c-warning:   #F4A62A;
+    --c-danger:    #FF4D6D;
 
-    --bg-page: linear-gradient(180deg, #0B0F14 0%, #0D1117 100%);
+    --shadow-soft: 0 1px 2px rgba(0,10,20,0.15), 0 4px 14px rgba(0,10,20,0.2);
+    --shadow-lift: 0 20px 40px -22px rgba(0,10,20,0.5), 0 8px 16px -8px rgba(0,10,20,0.25);
+    --shadow-brand: 0 22px 48px -22px rgba(34,184,214,0.4), 0 8px 18px -8px rgba(34,184,214,0.2);
+    --shadow-surface: 0 1px 3px rgba(0,0,0,0.5), 0 4px 16px rgba(0,0,0,0.4);
+    --shadow-surface-lg: 0 8px 32px rgba(0,0,0,0.6), 0 2px 8px rgba(0,0,0,0.35);
 
     --bg-mesh:
-      radial-gradient(
-        ellipse 900px 500px at 12% -10%,
-        rgba(34, 211, 238, 0.08),
-        transparent 60%
-      ),
-      radial-gradient(
-        ellipse 750px 550px at 95% 5%,
-        rgba(167, 139, 250, 0.06),
-        transparent 65%
-      ),
-      radial-gradient(
-        ellipse 600px 400px at 50% 110%,
-        rgba(34, 211, 238, 0.05),
-        transparent 60%
-      );
+      radial-gradient(ellipse 900px 500px at 12% -10%, rgba(34,184,214,0.10), transparent 60%),
+      radial-gradient(ellipse 750px 550px at 95% 5%,  rgba(44,110,150,0.08), transparent 65%),
+      radial-gradient(ellipse 600px 400px at 50% 110%, rgba(34,184,214,0.06), transparent 60%);
 
-    /* Chart variables — dark by default */
-    --chart-track: rgba(255, 255, 255, 0.08);
-    --chart-bar-bg: rgba(122, 185, 217, 0.35);
-    --chart-paid-bg: rgba(74, 222, 128, 0.55);
-    --chart-text: #F8FAFC;
+    --chart-track:   rgba(255,255,255,0.08);
+    --chart-bar-bg:  rgba(34,184,214,0.35);
+    --chart-paid-bg: rgba(46,204,113,0.55);
+    --chart-text:    #F4FAFF;
   }
 
-  html,
-  body {
-    height: 100%;
+  /* ── Light mode token overrides ── */
+  html.light {
+    --c-bg:       #F5F9FF;
+    --c-page:     #F8FBFF;
+    --c-card:     #FFFFFF;
+    --c-elevated: #F0F6FF;
+    --c-border:   #D8E6F7;
+    --c-text-1:   #102033;
+    --c-text-2:   #49627A;
+    --c-text-3:   #6C8298;
+    --c-brand:    #2C6E96;
+    --c-cyan:     #1A9DBF;
+    --c-success:  #159A5B;
+    --c-warning:  #C77800;
+    --c-danger:   #D92D4A;
+
+    --shadow-soft: 0 1px 3px rgba(16,32,51,0.06), 0 4px 14px rgba(16,32,51,0.08);
+    --shadow-lift: 0 8px 24px -8px rgba(16,32,51,0.16), 0 2px 8px rgba(16,32,51,0.08);
+    --shadow-surface: 0 1px 3px rgba(16,32,51,0.08), 0 4px 16px rgba(16,32,51,0.06);
+    --shadow-surface-lg: 0 8px 32px rgba(16,32,51,0.12), 0 2px 8px rgba(16,32,51,0.06);
+
+    --bg-mesh:
+      radial-gradient(ellipse 900px 500px at 12% -10%, rgba(44,110,150,0.06), transparent 60%),
+      radial-gradient(ellipse 600px 400px at 95% 0%,  rgba(34,184,214,0.05), transparent 65%);
+
+    --chart-track:   rgba(16,32,51,0.06);
+    --chart-bar-bg:  rgba(44,110,150,0.22);
+    --chart-paid-bg: rgba(21,154,91,0.55);
+    --chart-text:    #102033;
   }
+
+  html, body { height: 100%; }
 
   html {
     scroll-behavior: smooth;
@@ -55,169 +75,167 @@
     color-scheme: dark;
   }
 
+  html.light { color-scheme: light; }
+
   body {
     @apply antialiased;
-    background:
-      radial-gradient(ellipse 900px 500px at 12% -10%, rgba(34, 211, 238, 0.08), transparent 60%),
-      radial-gradient(ellipse 750px 550px at 95% 5%, rgba(167, 139, 250, 0.06), transparent 65%),
-      radial-gradient(ellipse 600px 400px at 50% 110%, rgba(34, 211, 238, 0.05), transparent 60%),
-      linear-gradient(180deg, #0B0F14 0%, #0D1117 50%, #0B0F14 100%);
+    background: var(--c-bg);
     background-attachment: fixed;
-    color: #F8FAFC;
+    color: var(--c-text-1);
     font-family: var(--font-franklin), ui-sans-serif, system-ui, -apple-system,
       "Segoe UI", Helvetica, Arial, sans-serif;
-    font-feature-settings:
-      "ss01" on,
-      "cv11" on;
+    font-feature-settings: "ss01" on, "cv11" on;
+  }
+
+  /* dark body gets the mesh overlay too */
+  html:not(.light) body {
+    background:
+      radial-gradient(ellipse 900px 500px at 12% -10%, rgba(34,184,214,0.08), transparent 60%),
+      radial-gradient(ellipse 750px 550px at 95% 5%,  rgba(44,110,150,0.06), transparent 65%),
+      radial-gradient(ellipse 600px 400px at 50% 110%, rgba(34,184,214,0.05), transparent 60%),
+      linear-gradient(180deg, #071B2C 0%, #08243A 50%, #071B2C 100%);
+  }
+
+  html.light body {
+    background:
+      radial-gradient(ellipse 900px 600px at 10% -5%, rgba(44,110,150,0.08), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 90% 0%,  rgba(34,184,214,0.05), transparent 60%),
+      linear-gradient(180deg, #F5F9FF 0%, #EEF5FF 100%);
   }
 
   ::selection {
-    background: rgba(34, 211, 238, 0.25);
-    color: #F8FAFC;
+    background: rgba(34,184,214,0.25);
+    color: var(--c-text-1);
   }
 
   * {
     scrollbar-width: thin;
-    scrollbar-color: rgba(38, 50, 68, 0.8) transparent;
+    scrollbar-color: rgba(34,80,111,0.6) transparent;
   }
-  *::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-  }
-  *::-webkit-scrollbar-track {
-    background: transparent;
-  }
+  *::-webkit-scrollbar { width: 8px; height: 8px; }
+  *::-webkit-scrollbar-track { background: transparent; }
   *::-webkit-scrollbar-thumb {
-    background: rgba(38, 50, 68, 0.9);
+    background: rgba(34,80,111,0.7);
     border-radius: 999px;
     border: 2px solid transparent;
     background-clip: padding-box;
   }
+  html.light *::-webkit-scrollbar-thumb { background: rgba(44,110,150,0.3); }
   *::-webkit-scrollbar-thumb:hover {
-    background: rgba(34, 211, 238, 0.4);
+    background: rgba(34,184,214,0.5);
     background-clip: padding-box;
     border: 2px solid transparent;
   }
 
-  :focus-visible {
-    outline: none;
-  }
+  :focus-visible { outline: none; }
 
-  /* Accessible focus ring on interactive elements via keyboard */
-  a:focus-visible,
-  button:focus-visible,
-  input:focus-visible,
-  select:focus-visible,
-  textarea:focus-visible,
-  [role="button"]:focus-visible,
-  [role="link"]:focus-visible {
-    outline: 2px solid rgba(34, 211, 238, 0.6);
+  a:focus-visible, button:focus-visible, input:focus-visible,
+  select:focus-visible, textarea:focus-visible,
+  [role="button"]:focus-visible, [role="link"]:focus-visible {
+    outline: 2px solid rgba(34,184,214,0.6);
     outline-offset: 2px;
     border-radius: 6px;
   }
 }
 
+/* =========================================================================
+   COMPONENT CLASSES — theme-aware via CSS vars + overrides
+   ========================================================================= */
+
 @layer components {
-  /* Frosted glass card — dark by default */
+  /* Glass card */
   .glass {
-    background: rgba(17, 24, 39, 0.85);
+    background: rgba(13,45,71,0.88);
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow:
-      0 1px 0 rgba(255, 255, 255, 0.04) inset,
-      0 8px 24px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(34,80,111,0.5);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 8px 24px rgba(0,0,0,0.4);
+  }
+  html.light .glass {
+    background: rgba(255,255,255,0.85);
+    border: 1px solid rgba(216,230,247,0.8);
+    box-shadow: 0 1px 3px rgba(16,32,51,0.06), 0 4px 16px rgba(16,32,51,0.08);
+    color: #102033;
   }
 
   .glass-strong {
-    background: rgba(17, 24, 39, 0.95);
+    background: rgba(13,45,71,0.96);
     backdrop-filter: blur(24px) saturate(180%);
-    -webkit-backdrop-filter: blur(24px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow:
-      0 1px 0 rgba(255, 255, 255, 0.04) inset,
-      0 8px 24px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(34,80,111,0.5);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 8px 24px rgba(0,0,0,0.4);
+  }
+  html.light .glass-strong {
+    background: rgba(255,255,255,0.96);
+    border: 1px solid rgba(216,230,247,0.9);
+    color: #102033;
   }
 
   .glass-card {
-    background: rgba(17, 24, 39, 0.7);
+    background: rgba(13,45,71,0.75);
     backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(38, 50, 68, 0.8);
+    border: 1px solid rgba(34,80,111,0.45);
+  }
+  html.light .glass-card {
+    background: rgba(255,255,255,0.75);
+    border: 1px solid rgba(216,230,247,0.7);
   }
 
   .glass-dark {
-    background: rgba(20, 30, 45, 0.55);
+    background: rgba(7,27,44,0.6);
     backdrop-filter: saturate(160%) blur(20px);
-    -webkit-backdrop-filter: saturate(160%) blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #fff;
+    border: 1px solid rgba(34,80,111,0.4);
+    color: #F4FAFF;
   }
 
-  /* Solid dark surface cards */
   .surface-card {
-    background: #111827;
-    border: 1px solid #263244;
+    background: var(--c-card);
+    border: 1px solid var(--c-border);
     border-radius: 12px;
   }
 
   .surface-elevated {
-    background: #18212F;
-    border: 1px solid #263244;
+    background: var(--c-elevated);
+    border: 1px solid var(--c-border);
   }
 
-  /* Decorative noise overlay */
   .surface-grain::before {
     content: "";
     position: absolute;
     inset: 0;
     pointer-events: none;
-    opacity: 0.4;
+    opacity: 0.3;
     mix-blend-mode: overlay;
     background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.04 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
   }
 
-  /* Subtle gradient divider */
   .rule-brand {
     height: 1px;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(34, 211, 238, 0.35),
-      transparent
-    );
+    background: linear-gradient(90deg, transparent, rgba(34,184,214,0.35), transparent);
+  }
+  html.light .rule-brand {
+    background: linear-gradient(90deg, transparent, rgba(44,110,150,0.3), transparent);
   }
 
-  /* Hover-lift */
   .lift {
-    transition:
-      transform 0.18s ease,
-      box-shadow 0.22s ease,
-      border-color 0.22s ease;
+    transition: transform 0.18s ease, box-shadow 0.22s ease, border-color 0.22s ease;
   }
-  .lift:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lift);
-  }
+  .lift:hover { transform: translateY(-2px); box-shadow: var(--shadow-lift); }
 
-  /* Touch-drag drop-zone highlight (toggled by lib/touch-drag) */
   [data-drop-active="true"] {
-    outline: 2px solid rgba(34, 211, 238, 0.55);
+    outline: 2px solid rgba(34,184,214,0.55);
     outline-offset: -2px;
-    background-color: rgba(34, 211, 238, 0.06);
+    background-color: rgba(34,184,214,0.06);
     transition: background-color 80ms ease, outline-color 80ms ease;
   }
 
-  /* Eyebrow / section label used in headers, cards, page headers */
   .section-label {
     font-size: 10.5px;
     font-weight: 600;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: rgba(248, 250, 252, 0.45);
+    color: var(--c-text-3);
   }
 
-  /* Compact chip / pill primitive */
   .chip {
     display: inline-flex;
     align-items: center;
@@ -229,12 +247,11 @@
     font-weight: 600;
     line-height: 1;
     letter-spacing: 0.01em;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.06);
-    color: rgba(248, 250, 252, 0.78);
+    border: 1px solid var(--c-border);
+    background: var(--c-elevated);
+    color: var(--c-text-2);
   }
 
-  /* Keyboard-shortcut hint */
   .kbd {
     display: inline-flex;
     align-items: center;
@@ -243,17 +260,22 @@
     height: 18px;
     padding: 0 5px;
     border-radius: 4px;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--c-elevated);
+    border: 1px solid var(--c-border);
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     font-size: 10.5px;
     font-weight: 600;
-    color: rgba(248, 250, 252, 0.7);
+    color: var(--c-text-2);
   }
 
-  /* Gradient text */
   .text-gradient-brand {
-    background: linear-gradient(135deg, #22D3EE, #A78BFA);
+    background: linear-gradient(135deg, #22B8D6, #2C6E96);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+  html.light .text-gradient-brand {
+    background: linear-gradient(135deg, #1A9DBF, #2C6E96 50%, #102033);
     background-clip: text;
     -webkit-background-clip: text;
     color: transparent;
@@ -266,7 +288,6 @@
     color: transparent;
   }
 
-  /* Pulsing dot */
   .pulse-dot {
     position: relative;
     display: inline-block;
@@ -285,288 +306,259 @@
     animation: pulse-ring 1.6s ease-out infinite;
   }
   @keyframes pulse-ring {
-    0% {
-      transform: scale(0.6);
-      opacity: 0.5;
-    }
-    80%,
-    100% {
-      transform: scale(1.6);
-      opacity: 0;
-    }
+    0%       { transform: scale(0.6); opacity: 0.5; }
+    80%, 100% { transform: scale(1.6); opacity: 0; }
   }
 
-  /* Reveal-on-mount */
   .reveal {
     animation: reveal 0.55s cubic-bezier(0.2, 0.65, 0.25, 1) both;
   }
   @keyframes reveal {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
 
-  /* Gradient ring border */
   .ring-gradient {
     background:
-      linear-gradient(#111827, #111827) padding-box,
-      linear-gradient(135deg, #22D3EE, #A78BFA) border-box;
+      linear-gradient(var(--c-card), var(--c-card)) padding-box,
+      linear-gradient(135deg, #22B8D6, #A78BFA) border-box;
     border: 1.5px solid transparent;
-  }
-
-  /* Neon text / border utilities */
-  .neon-text-cyan {
-    color: #22D3EE;
-    text-shadow: 0 0 20px rgba(34, 211, 238, 0.5);
-  }
-
-  .neon-border-cyan {
-    border-color: #22D3EE;
-    box-shadow: 0 0 12px rgba(34, 211, 238, 0.3);
   }
 
   .gradient-border {
     background:
-      linear-gradient(#111827, #111827) padding-box,
-      linear-gradient(135deg, #22D3EE, #A78BFA) border-box;
+      linear-gradient(var(--c-card), var(--c-card)) padding-box,
+      linear-gradient(135deg, #22B8D6, #A78BFA) border-box;
     border: 1px solid transparent;
   }
+
+  .neon-text-cyan  { color: #22B8D6; text-shadow: 0 0 20px rgba(34,184,214,0.5); }
+  .neon-border-cyan { border-color: #22B8D6; box-shadow: 0 0 12px rgba(34,184,214,0.3); }
 }
 
 @layer utilities {
-  .bg-mesh {
-    background-image: var(--bg-mesh);
-  }
-
-  .shadow-soft {
-    box-shadow: var(--shadow-soft);
-  }
-  .shadow-lift {
-    box-shadow: var(--shadow-lift);
-  }
-  .shadow-surface {
-    box-shadow: var(--shadow-surface);
-  }
-  .shadow-surface-lg {
-    box-shadow: var(--shadow-surface-lg);
-  }
+  .bg-mesh { background-image: var(--bg-mesh); }
+  .shadow-soft     { box-shadow: var(--shadow-soft); }
+  .shadow-lift     { box-shadow: var(--shadow-lift); }
+  .shadow-surface  { box-shadow: var(--shadow-surface); }
+  .shadow-surface-lg { box-shadow: var(--shadow-surface-lg); }
 }
 
 /* =========================================================================
-   DARK MODE DEFAULTS — override legacy "ink" color tokens
-   The app is dark-first. Legacy classes like text-ink (#1E1E24, near-black)
-   are invisible on dark surfaces. When NOT in light mode, remap them to
-   readable light equivalents so existing pages look correct.
+   DARK MODE — override hardcoded hex tokens used throughout the codebase.
+   Dark is the default; these run when html does NOT have .light.
    ========================================================================= */
 
-html:not(.light) .text-ink { color: #F8FAFC !important; }
-html:not(.light) .text-ink\/35 { color: rgba(248,250,252,0.35) !important; }
-html:not(.light) .text-ink\/40 { color: rgba(248,250,252,0.40) !important; }
-html:not(.light) .text-ink\/45 { color: rgba(248,250,252,0.45) !important; }
-html:not(.light) .text-ink\/50 { color: rgba(248,250,252,0.50) !important; }
-html:not(.light) .text-ink\/55 { color: rgba(248,250,252,0.55) !important; }
-html:not(.light) .text-ink\/60 { color: rgba(248,250,252,0.60) !important; }
-html:not(.light) .text-ink\/65 { color: rgba(248,250,252,0.65) !important; }
-html:not(.light) .text-ink\/70 { color: rgba(248,250,252,0.70) !important; }
-html:not(.light) .text-ink\/75 { color: rgba(248,250,252,0.75) !important; }
-html:not(.light) .text-ink\/80 { color: rgba(248,250,252,0.80) !important; }
-html:not(.light) .bg-ink\/5  { background-color: rgba(248,250,252,0.05) !important; }
-html:not(.light) .bg-ink\/8  { background-color: rgba(248,250,252,0.08) !important; }
-html:not(.light) .bg-ink\/10 { background-color: rgba(248,250,252,0.10) !important; }
-html:not(.light) .bg-ink\/50 { background-color: rgba(0,0,0,0.50) !important; }
-html:not(.light) .border-ink\/8  { border-color: rgba(248,250,252,0.08) !important; }
-html:not(.light) .border-ink\/10 { border-color: rgba(248,250,252,0.10) !important; }
-html:not(.light) .border-ink\/12 { border-color: rgba(248,250,252,0.12) !important; }
-html:not(.light) .border-ink\/15 { border-color: rgba(248,250,252,0.15) !important; }
-html:not(.light) .border-ink\/20 { border-color: rgba(248,250,252,0.20) !important; }
-html:not(.light) .border-ink\/25 { border-color: rgba(248,250,252,0.25) !important; }
+/* Legacy ink tokens (near-black → light text) */
+html:not(.light) .text-ink    { color: #F4FAFF !important; }
+html:not(.light) .text-ink\/30 { color: rgba(244,250,255,0.30) !important; }
+html:not(.light) .text-ink\/35 { color: rgba(244,250,255,0.35) !important; }
+html:not(.light) .text-ink\/40 { color: rgba(244,250,255,0.40) !important; }
+html:not(.light) .text-ink\/45 { color: rgba(244,250,255,0.45) !important; }
+html:not(.light) .text-ink\/50 { color: rgba(244,250,255,0.50) !important; }
+html:not(.light) .text-ink\/55 { color: rgba(244,250,255,0.55) !important; }
+html:not(.light) .text-ink\/60 { color: rgba(244,250,255,0.60) !important; }
+html:not(.light) .text-ink\/65 { color: rgba(244,250,255,0.65) !important; }
+html:not(.light) .text-ink\/70 { color: rgba(244,250,255,0.70) !important; }
+html:not(.light) .text-ink\/75 { color: rgba(244,250,255,0.75) !important; }
+html:not(.light) .text-ink\/80 { color: rgba(244,250,255,0.80) !important; }
 
-/* Form inputs: in dark mode use dark background instead of white */
+html:not(.light) .bg-ink\/5   { background-color: rgba(244,250,255,0.05) !important; }
+html:not(.light) .bg-ink\/8   { background-color: rgba(244,250,255,0.08) !important; }
+html:not(.light) .bg-ink\/10  { background-color: rgba(244,250,255,0.10) !important; }
+html:not(.light) .bg-ink\/50  { background-color: rgba(0,0,0,0.50) !important; }
+
+html:not(.light) .border-ink\/8  { border-color: rgba(34,80,111,0.5) !important; }
+html:not(.light) .border-ink\/10 { border-color: rgba(34,80,111,0.6) !important; }
+html:not(.light) .border-ink\/12 { border-color: rgba(34,80,111,0.65) !important; }
+html:not(.light) .border-ink\/15 { border-color: rgba(34,80,111,0.7) !important; }
+html:not(.light) .border-ink\/20 { border-color: rgba(34,80,111,0.8) !important; }
+html:not(.light) .border-ink\/25 { border-color: rgba(34,80,111,0.9) !important; }
+
+/* Hardcoded dark hex surfaces → new dark-blue palette */
+html:not(.light) .bg-\[\#0B0F14\]  { background-color: #071B2C !important; }
+html:not(.light) .bg-\[\#111827\]  { background-color: #0D2D47 !important; }
+html:not(.light) .bg-\[\#18212F\]  { background-color: #123A5A !important; }
+html:not(.light) .bg-\[\#1E2A3A\]  { background-color: #1A3E5C !important; }
+html:not(.light) .bg-\[\#0B0F14\]\/90 { background-color: rgba(7,27,44,0.90) !important; }
+
+/* Borders */
+html:not(.light) .border-\[\#263244\] { border-color: #22506F !important; }
+html:not(.light) .divide-\[\#263244\] > * + * { border-color: #22506F !important; }
+html:not(.light) .divide-\[\#1E293B\] > * + * { border-color: #1A3E5C !important; }
+html:not(.light) .divide-\[\#1E2A3A\] > * + * { border-color: #1A3E5C !important; }
+
+/* Text in explicit dark hex */
+html:not(.light) .text-\[\#F8FAFC\]  { color: #F4FAFF !important; }
+html:not(.light) .text-\[\#94A3B8\]  { color: #B8D0E4 !important; }
+html:not(.light) .text-\[\#64748B\]  { color: #86A8C2 !important; }
+
+/* White backgrounds (legacy kanban cards, etc.) */
+html:not(.light) .bg-white { background-color: #0D2D47 !important; }
+html:not(.light) .bg-white\/40 { background-color: rgba(244,250,255,0.04) !important; }
+html:not(.light) .bg-white\/45 { background-color: rgba(244,250,255,0.05) !important; }
+html:not(.light) .bg-white\/50 { background-color: rgba(244,250,255,0.05) !important; }
+html:not(.light) .bg-white\/55 { background-color: rgba(244,250,255,0.05) !important; }
+html:not(.light) .bg-white\/60 { background-color: rgba(244,250,255,0.06) !important; }
+html:not(.light) .bg-white\/70 { background-color: rgba(244,250,255,0.07) !important; }
+html:not(.light) .bg-white\/8  { background-color: rgba(244,250,255,0.08) !important; }
+
+/* cream tokens */
+html:not(.light) .bg-cream\/30 { background-color: rgba(244,250,255,0.04) !important; }
+html:not(.light) .bg-cream\/50 { background-color: rgba(244,250,255,0.06) !important; }
+html:not(.light) .bg-cream\/60 { background-color: rgba(244,250,255,0.07) !important; }
+html:not(.light) .bg-cream-dark\/40 { background-color: rgba(244,250,255,0.05) !important; }
+html:not(.light) .bg-cream-dark\/50 { background-color: rgba(244,250,255,0.06) !important; }
+
+/* Forms */
 html:not(.light) input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
 html:not(.light) select,
 html:not(.light) textarea {
-  background-color: #111827 !important;
-  border-color: #263244 !important;
-  color: #F8FAFC !important;
+  background-color: #0D2D47 !important;
+  border-color: #22506F !important;
+  color: #F4FAFF !important;
 }
 html:not(.light) input::placeholder,
 html:not(.light) textarea::placeholder {
-  color: rgba(148, 163, 184, 0.6) !important;
+  color: rgba(184,208,228,0.5) !important;
 }
 
-/* Dark-mode overrides for legacy white/light containers */
-html:not(.light) .bg-white    { background-color: #111827 !important; }
-html:not(.light) .bg-white\/40 { background-color: rgba(255,255,255,0.04) !important; }
-html:not(.light) .bg-white\/50 { background-color: rgba(255,255,255,0.05) !important; }
-html:not(.light) .bg-white\/55 { background-color: rgba(255,255,255,0.05) !important; }
-html:not(.light) .bg-white\/60 { background-color: rgba(255,255,255,0.06) !important; }
-html:not(.light) .bg-white\/70 { background-color: rgba(255,255,255,0.07) !important; }
-html:not(.light) .bg-white\/90 { background-color: rgba(255,255,255,0.09) !important; }
+/* deadline/overdue chips that use red-50/red-700 */
+html:not(.light) .bg-red-50 { background-color: rgba(255,77,109,0.12) !important; }
+html:not(.light) .text-red-700 { color: #FF4D6D !important; }
+html:not(.light) .text-red-600 { color: #FF4D6D !important; }
 
 /* =========================================================================
-   LIGHT MODE — opt-in via html.light class
+   LIGHT MODE — all hardcoded dark hex tokens flipped to light palette
    ========================================================================= */
 
-html.light {
-  color-scheme: light;
-}
+/* Main surfaces */
+html.light body { color: #102033; }
 
-html.light body {
-  background:
-    linear-gradient(180deg, #e8f2f9 0%, #cfe1ee 45%, #b6d2e3 100%);
-  background-attachment: fixed;
-  color: #1E1E24;
-}
+html.light .bg-\[\#0B0F14\]  { background-color: #F5F9FF !important; }
+html.light .bg-\[\#111827\]  { background-color: #FFFFFF !important; }
+html.light .bg-\[\#18212F\]  { background-color: #F0F6FF !important; }
+html.light .bg-\[\#1E2A3A\]  { background-color: #E8F2FF !important; }
+html.light .bg-\[\#0B0F14\]\/90 { background-color: rgba(245,249,255,0.92) !important; }
 
-html.light ::selection {
-  background: rgba(59, 139, 186, 0.3);
-  color: #1e1e24;
-}
+/* Borders */
+html.light .border-\[\#263244\]  { border-color: #D8E6F7 !important; }
+html.light .divide-\[\#263244\] > * + * { border-color: #D8E6F7 !important; }
+html.light .divide-\[\#1E293B\] > * + * { border-color: #D8E6F7 !important; }
+html.light .divide-\[\#1E2A3A\] > * + * { border-color: #D8E6F7 !important; }
 
-html.light * {
-  scrollbar-color: rgba(15, 30, 50, 0.18) transparent;
-}
-html.light *::-webkit-scrollbar-thumb {
-  background: rgba(59, 139, 186, 0.35);
-}
-html.light *::-webkit-scrollbar-thumb:hover {
-  background: rgba(59, 139, 186, 0.7);
-}
+/* Text */
+html.light .text-\[\#F8FAFC\]  { color: #102033 !important; }
+html.light .text-\[\#94A3B8\]  { color: #49627A !important; }
+html.light .text-\[\#64748B\]  { color: #6C8298 !important; }
+html.light .text-\[\#3F4C59\]  { color: #6C8298 !important; }
+html.light .text-\[\#CBD5E1\]  { color: #49627A !important; }
+html.light .text-\[\#F4FAFF\]  { color: #102033 !important; }
+html.light .text-\[\#B8D0E4\]  { color: #49627A !important; }
+html.light .text-\[\#86A8C2\]  { color: #6C8298 !important; }
 
-html.light a:focus-visible,
-html.light button:focus-visible,
-html.light input:focus-visible,
-html.light select:focus-visible,
-html.light textarea:focus-visible,
-html.light [role="button"]:focus-visible,
-html.light [role="link"]:focus-visible {
-  outline: 2px solid rgba(59, 139, 186, 0.55);
-}
+/* ink tokens in light mode behave naturally (they're already dark) */
+html.light .text-ink    { color: #102033 !important; }
+html.light .text-ink\/55 { color: rgba(16,32,51,0.55) !important; }
+html.light .text-ink\/65 { color: rgba(16,32,51,0.65) !important; }
+html.light .text-ink\/70 { color: rgba(16,32,51,0.70) !important; }
 
-html.light .glass {
-  background: rgba(255, 255, 255, 0.78);
-  backdrop-filter: saturate(180%) blur(20px);
-  -webkit-backdrop-filter: saturate(180%) blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.6) inset,
-    var(--shadow-soft);
-  color: #1E1E24;
-}
+/* white/cream surfaces stay white in light mode */
+html.light .bg-white { background-color: #FFFFFF !important; }
+html.light .bg-white\/40 { background-color: rgba(255,255,255,0.6) !important; }
+html.light .bg-white\/70 { background-color: rgba(255,255,255,0.8) !important; }
+html.light .bg-cream\/50  { background-color: rgba(248,251,255,0.7) !important; }
+html.light .bg-cream\/60  { background-color: rgba(248,251,255,0.8) !important; }
+html.light .bg-cream-dark\/40 { background-color: rgba(240,246,255,0.6) !important; }
 
-html.light .glass-strong {
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: saturate(180%) blur(24px);
-  -webkit-backdrop-filter: saturate(180%) blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.6) inset,
-    var(--shadow-soft);
-  color: #1E1E24;
-}
+/* Brand cyan — stays readable in light */
+html.light .text-\[\#22D3EE\] { color: #1A9DBF !important; }
+html.light .text-\[\#22B8D6\] { color: #1A9DBF !important; }
+html.light .border-\[\#22D3EE\]\/40 { border-color: rgba(26,157,191,0.35) !important; }
+html.light .bg-\[\#22D3EE\]\/10 { background-color: rgba(26,157,191,0.10) !important; }
+html.light .bg-\[\#22D3EE\]\/15 { background-color: rgba(26,157,191,0.12) !important; }
 
-html.light .glass-card {
-  background: rgba(255, 255, 255, 0.65);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-}
+/* Kanban column headers in light mode */
+html.light .bg-white\/70.ring-1 { background-color: #FFFFFF !important; }
+html.light .ring-\[\#263244\]   { --tw-ring-color: #D8E6F7 !important; }
 
-html.light .surface-card {
-  background: #ffffff;
-  border: 1px solid rgba(59, 139, 186, 0.18);
-}
-
-html.light .surface-elevated {
-  background: #f4f8fc;
-  border: 1px solid rgba(59, 139, 186, 0.15);
-}
-
-html.light .section-label {
-  color: rgba(30, 30, 36, 0.5);
-}
-
-html.light .chip {
-  border: 1px solid rgba(30, 30, 36, 0.1);
-  background: rgba(255, 255, 255, 0.7);
-  color: rgba(30, 30, 36, 0.75);
-}
-
-html.light .kbd {
-  background: rgba(30, 30, 36, 0.05);
-  border: 1px solid rgba(30, 30, 36, 0.1);
-  color: rgba(30, 30, 36, 0.65);
-}
-
-html.light .text-gradient-brand {
-  background: linear-gradient(135deg, #3b8bba, #2c6e96 50%, #1e1e24);
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
-}
-
-html.light .ring-gradient {
-  background:
-    linear-gradient(#fff, #fff) padding-box,
-    linear-gradient(135deg, #3b8bba, #ff9e1f) border-box;
-  border: 1.5px solid transparent;
-}
-
-html.light .gradient-border {
-  background:
-    linear-gradient(#fff, #fff) padding-box,
-    linear-gradient(135deg, #3b8bba, #ff9e1f) border-box;
-  border: 1px solid transparent;
-}
-
-html.light .rule-brand {
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(59, 139, 186, 0.35),
-    transparent
-  );
-}
-
-/* Form controls in light mode */
-html.light input,
+/* Forms */
+html.light input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
 html.light select,
 html.light textarea {
-  background-color: rgba(255, 255, 255, 0.9);
-  border-color: rgba(30, 30, 36, 0.15);
-  color: #1e1e24;
+  background-color: #FFFFFF !important;
+  border-color: #D8E6F7 !important;
+  color: #102033 !important;
 }
 html.light input::placeholder,
 html.light textarea::placeholder {
-  color: rgba(30, 30, 36, 0.4);
+  color: rgba(16,32,51,0.4) !important;
 }
 
-/* Chart variables for light mode */
-html.light {
-  --chart-track: rgba(30, 30, 36, 0.06);
-  --chart-bar-bg: rgba(59, 139, 186, 0.22);
-  --chart-paid-bg: rgba(16, 185, 129, 0.55);
-  --chart-text: #1e1e24;
+/* Kanban card bg-white override */
+html.light .rounded-xl.border.border-ink\/8.bg-white {
+  background-color: #FFFFFF !important;
+  border-color: #D8E6F7 !important;
 }
+
+/* Overdue chips in light mode */
+html.light .bg-red-50  { background-color: rgba(217,45,74,0.08) !important; }
+html.light .text-red-700 { color: #D92D4A !important; }
+html.light .text-red-600 { color: #D92D4A !important; }
+
+/* Topbar in light */
+html.light header.sticky { background-color: rgba(248,251,255,0.92) !important; }
+
+/* Sidebar in light */
+html.light aside { background-color: #FFFFFF !important; }
+
+/* Status select in kanban cards */
+html.light .bg-cream\/50 { background-color: rgba(240,246,255,0.8) !important; }
+html.light .border-ink\/10 { border-color: #D8E6F7 !important; }
+
+/* Chart tokens */
+html.light {
+  --chart-track:   rgba(16,32,51,0.06);
+  --chart-bar-bg:  rgba(44,110,150,0.22);
+  --chart-paid-bg: rgba(21,154,91,0.55);
+  --chart-text:    #102033;
+}
+
+/* Badge overrides — slate/dark bg tokens need light equivalents */
+html.light .bg-\[\#334155\]      { background-color: rgba(16,32,51,0.08) !important; }
+html.light .bg-\[\#475569\]\/25  { background-color: rgba(16,32,51,0.08) !important; }
+html.light .bg-\[\#1E3A5F\]\/60  { background-color: rgba(44,110,150,0.12) !important; }
+html.light .text-\[\#94A3B8\]    { color: #49627A !important; }
+html.light .text-\[\#CBD5E1\]    { color: #49627A !important; }
+html.light .text-\[\#64748B\]    { color: #6C8298 !important; }
+html.light .text-\[\#93C5FD\]    { color: #2C6E96 !important; }
+html.light .border-\[\#475569\]\/30 { border-color: rgba(16,32,51,0.15) !important; }
+html.light .border-\[\#64748B\]\/40  { border-color: rgba(16,32,51,0.18) !important; }
+html.light .border-\[\#3B82F6\]\/30  { border-color: rgba(44,110,150,0.25) !important; }
+
+/* New Areen-blue palette cards/surfaces in light */
+html.light .bg-\[\#0D2D47\]      { background-color: #FFFFFF !important; }
+html.light .bg-\[\#071B2C\]      { background-color: #F5F9FF !important; }
+html.light .bg-\[\#123A5A\]      { background-color: #F0F6FF !important; }
+html.light .bg-\[\#1A3E5C\]      { background-color: #E8F2FF !important; }
+html.light .border-\[\#22506F\]   { border-color: #D8E6F7 !important; }
+html.light .divide-\[\#22506F\] > * + * { border-color: #D8E6F7 !important; }
+html.light .bg-\[\#22506F\]      { background-color: rgba(44,110,150,0.10) !important; }
+html.light .hover\:bg-\[\#1A3E5C\]:hover { background-color: rgba(44,110,150,0.08) !important; }
+html.light .bg-\[\#071B2C\]\/60  { background-color: rgba(245,249,255,0.8) !important; }
+html.light .bg-\[\#071B2C\]\/90  { background-color: rgba(248,251,255,0.92) !important; }
 
 /* =========================================================================
-   FEATURED CARD — Employee-of-the-Month surface
-   Single class so both the compact (overview) and hero (team/featured)
-   cards share the same lighting + texture.
+   FEATURED CARD
    ========================================================================= */
 
 .featured-card {
   background-image:
-    radial-gradient(circle at 8% 12%, rgba(255, 158, 31, 0.55), transparent 45%),
-    radial-gradient(circle at 95% 18%, rgba(255, 184, 77, 0.4), transparent 42%),
-    radial-gradient(circle at 0% 100%, rgba(59, 139, 186, 0.45), transparent 55%),
-    radial-gradient(circle at 100% 100%, rgba(122, 185, 217, 0.32), transparent 50%),
-    linear-gradient(135deg, #1c1322 0%, #161a26 55%, #102230 100%);
+    radial-gradient(circle at 8% 12%,  rgba(255,158,31,0.55), transparent 45%),
+    radial-gradient(circle at 95% 18%, rgba(255,184,77,0.4),  transparent 42%),
+    radial-gradient(circle at 0% 100%, rgba(44,110,150,0.45), transparent 55%),
+    radial-gradient(circle at 100% 100%, rgba(34,184,214,0.32), transparent 50%),
+    linear-gradient(135deg, #051525 0%, #0D2D47 55%, #071B2C 100%);
   position: relative;
 }
 .featured-card::after {
@@ -574,19 +566,17 @@ html.light {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background-image:
-    radial-gradient(circle at 50% 50%, rgba(255, 217, 163, 0.05), transparent 70%);
+  background-image: radial-gradient(circle at 50% 50%, rgba(255,217,163,0.05), transparent 70%);
   border-radius: inherit;
 }
 
 html.light .featured-card {
   background-image:
-    radial-gradient(circle at 12% 14%, rgba(255, 158, 31, 0.45), transparent 55%),
-    radial-gradient(circle at 92% 22%, rgba(255, 158, 31, 0.32), transparent 50%),
-    radial-gradient(circle at 6% 92%, rgba(59, 139, 186, 0.22), transparent 55%),
-    linear-gradient(135deg, rgba(255, 248, 240, 0.85) 0%, rgba(255, 255, 255, 0.92) 60%);
+    radial-gradient(circle at 12% 14%, rgba(255,158,31,0.45), transparent 55%),
+    radial-gradient(circle at 92% 22%, rgba(255,158,31,0.32), transparent 50%),
+    radial-gradient(circle at 6% 92%,  rgba(44,110,150,0.22), transparent 55%),
+    linear-gradient(135deg, rgba(255,248,240,0.85) 0%, rgba(255,255,255,0.92) 60%);
 }
 html.light .featured-card::after {
-  background-image:
-    radial-gradient(circle at 80% 80%, rgba(255, 158, 31, 0.12), transparent 60%);
+  background-image: radial-gradient(circle at 80% 80%, rgba(255,158,31,0.12), transparent 60%);
 }

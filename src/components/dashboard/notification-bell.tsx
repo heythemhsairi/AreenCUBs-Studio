@@ -180,7 +180,7 @@ export function NotificationBell({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="relative flex h-9 w-9 items-center justify-center rounded-full border border-[#263244] bg-[#111827] text-[#94A3B8] transition-colors hover:border-[#22D3EE]/40 hover:bg-[#1E2A3A] hover:text-[#F8FAFC]"
+        className="relative flex h-9 w-9 items-center justify-center rounded-full border border-[#22506F] bg-[#0D2D47] text-[#94A3B8] transition-colors hover:border-[#22D3EE]/40 hover:bg-[#1A3E5C] hover:text-[#F8FAFC]"
         aria-label="Notifications"
       >
         <svg
@@ -204,8 +204,8 @@ export function NotificationBell({
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-30 mt-2 w-[340px] overflow-hidden rounded-2xl border border-[#263244] bg-[#111827] shadow-[0_8px_32px_rgba(0,0,0,0.6)]">
-          <div className="flex items-center justify-between border-b border-[#263244] bg-[#18212F] px-4 py-2.5">
+        <div className="absolute right-0 top-full z-30 mt-2 w-[340px] overflow-hidden rounded-2xl border border-[#22506F] bg-[#0D2D47] shadow-[0_8px_32px_rgba(0,0,0,0.6)]">
+          <div className="flex items-center justify-between border-b border-[#22506F] bg-[#123A5A] px-4 py-2.5">
             <p className="text-sm font-semibold text-[#F8FAFC]">
               {t.notifications.title}
             </p>
@@ -265,7 +265,7 @@ export function NotificationBell({
                         onClick={() =>
                           setExpanded((m) => ({ ...m, [key]: !m[key] }))
                         }
-                        className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-[#1E2A3A]"
+                        className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-[#1A3E5C]"
                       >
                         <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#22D3EE]/10 text-base">
                           {iconFor(seg.kind)}
@@ -308,7 +308,7 @@ export function NotificationBell({
                         </svg>
                       </button>
                       {isExpanded && (
-                        <ul className="divide-y divide-[#1E293B] border-t border-[#263244] bg-[#0B0F14]/40">
+                        <ul className="divide-y divide-[#1E293B] border-t border-[#22506F] bg-[#071B2C]/60">
                           {seg.items.map((n) => (
                             <li
                               key={n.id}

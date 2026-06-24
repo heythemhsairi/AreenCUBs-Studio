@@ -82,7 +82,7 @@ function LoadBar({ active, max }: { active: number; max: number }) {
         ? "bg-[#F59E0B]"
         : "bg-[#22C55E]";
   return (
-    <div className="h-1.5 w-full rounded-full bg-[#263244]">
+    <div className="h-1.5 w-full rounded-full bg-[#22506F]">
       <div
         className={cn("h-1.5 rounded-full transition-all", color)}
         style={{ width: `${pct}%` }}
@@ -134,13 +134,13 @@ export function WorkloadView({
       </div>
 
       {/* Team grid */}
-      <div className="overflow-hidden rounded-2xl border border-[#263244] bg-[#111827]">
-        <div className="border-b border-[#263244] bg-[#18212F] px-4 py-2.5">
+      <div className="overflow-hidden rounded-2xl border border-[#22506F] bg-[#0D2D47]">
+        <div className="border-b border-[#22506F] bg-[#123A5A] px-4 py-2.5">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-[#94A3B8]">
             Membres de l&apos;équipe — {today}
           </p>
         </div>
-        <div className="divide-y divide-[#1E2A3A]">
+        <div className="divide-y divide-[#1A3E5C]">
           {members.map((m) => {
             const isOverloaded = m.active >= OVERLOAD_THRESHOLD;
             const isExpanded = expandedId === m.id;
@@ -148,7 +148,7 @@ export function WorkloadView({
             return (
               <div key={m.id}>
                 <div
-                  className="flex cursor-pointer items-start gap-3 px-4 py-3 transition-colors hover:bg-[#1E2A3A]"
+                  className="flex cursor-pointer items-start gap-3 px-4 py-3 transition-colors hover:bg-[#1A3E5C]"
                   onClick={() => setExpandedId(isExpanded ? null : m.id)}
                 >
                   <Avatar member={m} />
@@ -245,7 +245,7 @@ export function WorkloadView({
 
                 {/* Expanded: overdue tasks detail */}
                 {isExpanded && (
-                  <div className="border-t border-[#1E2A3A] bg-[#0D1117] px-4 pb-4 pt-3">
+                  <div className="border-t border-[#1A3E5C] bg-[#0D1117] px-4 pb-4 pt-3">
                     {m.active === 0 ? (
                       <p className="text-sm text-[#64748B]">
                         Aucune tâche active — membre disponible pour nouvelles missions.
@@ -313,8 +313,8 @@ export function WorkloadView({
 
       {/* Overdue late review section */}
       {summary.withOverdue.length > 0 && (
-        <div className="overflow-hidden rounded-2xl border border-[#263244] bg-[#111827]">
-          <div className="border-b border-[#263244] bg-[#18212F] px-4 py-2.5">
+        <div className="overflow-hidden rounded-2xl border border-[#22506F] bg-[#0D2D47]">
+          <div className="border-b border-[#22506F] bg-[#123A5A] px-4 py-2.5">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-[#F43F5E]">
               Revue retards du jour
             </p>
@@ -323,7 +323,7 @@ export function WorkloadView({
             <div className="overflow-x-auto">
               <table className="w-full min-w-[600px] text-sm">
                 <thead>
-                  <tr className="border-b border-[#263244] text-left">
+                  <tr className="border-b border-[#22506F] text-left">
                     <Th>Tâche</Th>
                     <Th>Responsable</Th>
                     <Th>Projet</Th>
@@ -340,7 +340,7 @@ export function WorkloadView({
                     .map((row) => (
                       <tr
                         key={row.id}
-                        className="border-b border-[#1E2A3A] last:border-0 hover:bg-[#1E2A3A]"
+                        className="border-b border-[#1A3E5C] last:border-0 hover:bg-[#1A3E5C]"
                       >
                         <Td>
                           <Link
@@ -396,8 +396,8 @@ function SummaryTile({
     red:     { card: "border-[#F43F5E]/20 bg-[#F43F5E]/8",  val: "text-[#F43F5E]" },
     amber:   { card: "border-[#F59E0B]/20 bg-[#F59E0B]/8",  val: "text-[#F59E0B]" },
     green:   { card: "border-[#22C55E]/20 bg-[#22C55E]/8",  val: "text-[#22C55E]" },
-    slate:   { card: "border-[#263244] bg-[#18212F]",        val: "text-[#94A3B8]" },
-    neutral: { card: "border-[#263244] bg-[#111827]",        val: "text-[#F8FAFC]" },
+    slate:   { card: "border-[#22506F] bg-[#123A5A]",        val: "text-[#94A3B8]" },
+    neutral: { card: "border-[#22506F] bg-[#0D2D47]",        val: "text-[#F8FAFC]" },
   }[tone];
 
   return (
