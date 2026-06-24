@@ -800,10 +800,11 @@ function UpcomingDeadlinesList({
   rows: UpcomingTask[];
   today: Date;
 }) {
+  const { t } = useI18n();
   if (rows.length === 0) {
     return (
       <p className="py-8 text-center text-sm text-[#64748B]">
-        Aucune échéance à venir.
+        {t.overview.noUpcoming}
       </p>
     );
   }

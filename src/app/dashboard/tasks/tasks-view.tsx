@@ -73,7 +73,7 @@ export function TasksView({
 
   const QUICK_FILTERS = QUICK_FILTER_IDS.map((id) => ({
     id,
-    label: t.tasksUi.quickFilters[id],
+    label: t.tasksUi.quickFilters[id as keyof typeof t.tasksUi.quickFilters] ?? id,
   }));
 
   const qCounts = useMemo(
