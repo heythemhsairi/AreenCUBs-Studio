@@ -16,6 +16,7 @@ export type TeamMember = {
   avatar_url: string | null;
   job_title: string | null;
   schedule: Record<string, "office" | "home">;
+  workload?: { active: number; overdue: number; due_today: number };
 };
 
 function ymd(d: Date): string {
@@ -45,7 +46,7 @@ function key(userId: string, date: string): CellKey {
   return `${userId}|${date}`;
 }
 
-export function TeamPlanningClient({ members }: { members: TeamMember[] }) {
+export function TeamPlanningClient({ members, today }: { members: TeamMember[]; today?: string }) {
   const { t } = useI18n();
   const [viewedMonth, setViewedMonth] = useState(() => {
     const d = new Date();
@@ -142,6 +143,31 @@ export function TeamPlanningClient({ members }: { members: TeamMember[] }) {
             {t.planning.todayHome}
           </span>
         </span>
+        {/* Workload context */}
+        {(() => {
+          const withOverdue = members.filter((m) => (m.workload?.overdue ?? 0) > 0);
+          const withDueToday = members.filter((m) => (m.workload?.due_today ?? 0) > 0);
+          const available = members.filter((m) => (m.workload?.active ?? 0) === 0);
+          return (
+            <>
+              {withOverdue.length > 0 && (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-red-400/30 bg-red-500/15 px-3 py-1.5 text-xs font-semibold text-red-400">
+                  ⚠ {withOverdue.length} en retard
+                </span>
+              )}
+              {withDueToday.length > 0 && (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-500/15 px-3 py-1.5 text-xs font-semibold text-amber-300">
+                  📅 {withDueToday.length} échéance ce jour
+                </span>
+              )}
+              {available.length > 0 && (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-500/15 px-3 py-1.5 text-xs font-semibold text-emerald-400">
+                  ✓ {available.length} disponible{available.length > 1 ? "s" : ""}
+                </span>
+              )}
+            </>
+          );
+        })()}
       </div>
 
       <Card>
@@ -234,6 +260,25 @@ export function TeamPlanningClient({ members }: { members: TeamMember[] }) {
                               <p className="truncate text-[11px] text-ink/45">
                                 {m.job_title}
                               </p>
+                            )}
+                            {m.workload && (
+                              <div className="mt-0.5 flex flex-wrap gap-1">
+                                {m.workload.overdue > 0 && (
+                                  <span className="rounded-full bg-red-500/20 px-1.5 py-0 text-[9px] font-bold text-red-400">
+                                    ⚠{m.workload.overdue}
+                                  </span>
+                                )}
+                                {m.workload.due_today > 0 && (
+                                  <span className="rounded-full bg-amber-500/20 px-1.5 py-0 text-[9px] font-bold text-amber-300">
+                                    📅{m.workload.due_today}
+                                  </span>
+                                )}
+                                {m.workload.active > 0 && m.workload.overdue === 0 && m.workload.due_today === 0 && (
+                                  <span className="rounded-full bg-white/8 px-1.5 py-0 text-[9px] text-ink/35">
+                                    {m.workload.active} tâches
+                                  </span>
+                                )}
+                              </div>
                             )}
                           </div>
                         </Link>

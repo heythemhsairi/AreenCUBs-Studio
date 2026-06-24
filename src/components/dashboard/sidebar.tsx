@@ -28,6 +28,7 @@ const ICONS: Record<string, string> = {
   factures:
     "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z M14 2v6h6 M9 12l2 2 4-4",
   finance: "M3 3v18h18 M7 14l4-4 4 4 5-5",
+  workload: "M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z M2 9h4v12H2z M4 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4z",
   services: "M20 7l-9 9-5-5",
   team: "M17 21v-2a4 4 0 0 0-3-3.87 M9 21v-2a4 4 0 0 1 3-3.87 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M23 21v-2a4 4 0 0 0-3-3.87",
   planning:
@@ -117,6 +118,13 @@ function buildNav(
       href: "/dashboard/team",
       label: t.nav.team,
       icon: ICONS.team,
+      rolesAllowed: ["admin"],
+      group: "team",
+    },
+    {
+      href: "/dashboard/team/workload",
+      label: "Charge équipe",
+      icon: ICONS.workload,
       rolesAllowed: ["admin"],
       group: "team",
     },

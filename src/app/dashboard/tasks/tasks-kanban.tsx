@@ -23,6 +23,7 @@ export type TaskCard = {
   project: { id: string; name: string };
   client?: { id: string; name: string };
   tags?: string[];
+  estimated_minutes?: number | null;
 };
 
 const COLUMN_ORDER: Status[] = ["todo", "in_progress", "review", "done"];
@@ -286,21 +287,31 @@ function KanbanCard({
             <em className="text-ink/40">{t.tasks.form.unassigned}</em>
           )}
         </span>
-        {task.deadline && (
-          <span
-            className={cn(
-              "shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-medium",
-              isOverdue
-                ? "bg-red-50 text-red-700"
-                : "bg-ink/5 text-ink/55",
-            )}
-          >
-            {new Date(task.deadline).toLocaleDateString("fr-FR", {
-              month: "short",
-              day: "numeric",
-            })}
-          </span>
-        )}
+        <div className="flex shrink-0 items-center gap-1">
+          {task.estimated_minutes != null && (
+            <span className="rounded-md bg-ink/5 px-1.5 py-0.5 text-[10px] font-medium text-ink/50">
+              ~{task.estimated_minutes >= 60
+                ? `${Math.round(task.estimated_minutes / 60)}h`
+                : `${task.estimated_minutes}m`}
+            </span>
+          )}
+          {task.deadline && (
+            <span
+              className={cn(
+                "rounded-md px-1.5 py-0.5 text-[10px] font-medium",
+                isOverdue
+                  ? "bg-red-50 text-red-700"
+                  : "bg-ink/5 text-ink/55",
+              )}
+            >
+              {isOverdue && "⚠ "}
+              {new Date(task.deadline).toLocaleDateString("fr-FR", {
+                month: "short",
+                day: "numeric",
+              })}
+            </span>
+          )}
+        </div>
       </div>
 
       <select

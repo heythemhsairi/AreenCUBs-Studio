@@ -9,7 +9,7 @@ import { Donut, DonutLegend } from "@/components/charts/donut";
 import { getDonutPalette } from "@/components/charts/palette";
 import { MonthlyBars } from "@/components/charts/bars";
 import { TopServicesList } from "./top-services";
-import { OutstandingTable } from "./outstanding-table";
+import { OutstandingTable, type OutstandingRow } from "./outstanding-table";
 
 export default async function FinancePage() {
   await requireAdmin();
@@ -61,7 +61,7 @@ export default async function FinancePage() {
     supabase
       .from("devis")
       .select(
-        "id, kind, devis_number, date, due_date, total_dt, payment_status, status, client_id, clients:client_id(id, name)",
+        "id, kind, devis_number, date, due_date, total_dt, payment_status, status, client_id, last_followup_at, next_followup_at, contacted, clients:client_id(id, name)",
       )
       .neq("payment_status", "paid")
       .neq("status", "rejected")
@@ -172,7 +172,7 @@ export default async function FinancePage() {
   }
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const outstanding = (outstandingRows ?? [])
+  const outstanding: OutstandingRow[] = (outstandingRows ?? [])
     .map((d) => {
       const client = Array.isArray(d.clients) ? d.clients[0] : d.clients;
       const paid = paidPerDevis.get(d.id) ?? 0;
@@ -191,6 +191,9 @@ export default async function FinancePage() {
         outstanding_dt: outstandingDt,
         due_date: d.due_date,
         days_overdue: daysOverdue,
+        last_followup_at: d.last_followup_at ?? null,
+        next_followup_at: d.next_followup_at ?? null,
+        contacted: d.contacted ?? false,
       };
     })
     .filter((r) => r.outstanding_dt > 0.01)

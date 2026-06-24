@@ -4,6 +4,8 @@ import { Sidebar, MobileNav } from "@/components/dashboard/sidebar";
 import { Topbar } from "@/components/dashboard/topbar";
 import { CommandPalette } from "@/components/command-palette";
 import type { NotificationRow } from "@/components/dashboard/notification-bell";
+import { WhatsNewBanner } from "@/components/dashboard/whats-new-banner";
+import { getUnseenUpdate } from "@/lib/updates";
 
 export default async function DashboardLayout({
   children,
@@ -26,6 +28,14 @@ export default async function DashboardLayout({
     notifications = (data ?? []) as NotificationRow[];
   } catch (err) {
     console.error("[layout:notifications]", err);
+  }
+
+  // Check for unseen update — silently skip if tables don't exist yet
+  let unseenUpdate = null;
+  try {
+    unseenUpdate = await getUnseenUpdate(session.id, session.role);
+  } catch {
+    // tables not yet migrated
   }
 
   return (
@@ -58,7 +68,8 @@ export default async function DashboardLayout({
       <div className="mx-auto flex w-full max-w-[1440px] gap-0">
         <Sidebar role={session.role} />
         <main className="reveal min-w-0 flex-1 px-4 py-6 md:px-8 md:py-10 lg:px-10">
-          <div className="mx-auto w-full max-w-[1180px] space-y-8">
+          <div className="mx-auto w-full max-w-[1180px] space-y-6">
+            {unseenUpdate && <WhatsNewBanner update={unseenUpdate} />}
             {children}
           </div>
         </main>

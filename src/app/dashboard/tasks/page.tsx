@@ -16,7 +16,7 @@ export default async function TasksPage() {
     supabase
       .from("tasks")
       .select(
-        "id, title, status, priority, deadline, assignee_id, tags, profiles:assignee_id(username, full_name), projects:project_id(id, name, clients:client_id(id, name))",
+        "id, title, status, priority, deadline, assignee_id, tags, estimated_minutes, profiles:assignee_id(username, full_name), projects:project_id(id, name, clients:client_id(id, name))",
       )
       .is("parent_task_id", null)
       .order("created_at", { ascending: false }),
@@ -59,6 +59,7 @@ export default async function TasksPage() {
         : { id: "", name: "—" },
       client: client ? { id: client.id, name: client.name } : undefined,
       tags: (tk.tags as string[] | null) ?? [],
+      estimated_minutes: tk.estimated_minutes ?? null,
     };
   });
 

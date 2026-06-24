@@ -13,8 +13,30 @@ import {
   type TasksFilters,
   type View,
 } from "./tasks-toolbar";
+import { cn } from "@/lib/utils";
 
 type Option = { value: string; label: string };
+
+type QuickFilter =
+  | "active"
+  | "today"
+  | "overdue"
+  | "this_week"
+  | "in_progress"
+  | "review"
+  | "my_tasks"
+  | "done";
+
+const QUICK_FILTERS: { id: QuickFilter; label: string; icon: string }[] = [
+  { id: "active",      label: "Actives",       icon: "⚡" },
+  { id: "my_tasks",   label: "Mes tâches",     icon: "👤" },
+  { id: "overdue",    label: "En retard",      icon: "🔴" },
+  { id: "today",      label: "Aujourd'hui",    icon: "📅" },
+  { id: "this_week",  label: "Cette semaine",  icon: "📆" },
+  { id: "in_progress",label: "En cours",       icon: "🔄" },
+  { id: "review",     label: "À valider",      icon: "👀" },
+  { id: "done",       label: "Terminées",      icon: "✅" },
+];
 
 export function TasksView({
   tasks,
@@ -36,14 +58,27 @@ export function TasksView({
   const { t } = useI18n();
   const [filters, setFilters] = useState<TasksFilters>(DEFAULT_FILTERS);
   const [view, setView] = useState<View>("kanban");
+  const [quickFilter, setQuickFilter] = useState<QuickFilter>("active");
 
-  const filtered = useMemo(
-    () => applyFilters(tasks, filters, currentUserAssigneeId),
-    [tasks, filters, currentUserAssigneeId],
+  // Counts per quick filter for badges
+  const qCounts = useMemo(
+    () => computeQuickCounts(tasks, currentUserAssigneeId),
+    [tasks, currentUserAssigneeId],
   );
 
+  const filtered = useMemo(() => {
+    const afterQuick = applyQuickFilter(tasks, quickFilter, currentUserAssigneeId);
+    return applyFilters(afterQuick, filters, currentUserAssigneeId);
+  }, [tasks, filters, quickFilter, currentUserAssigneeId]);
+
+  function selectQuick(qf: QuickFilter) {
+    setQuickFilter(qf);
+    // Reset the advanced toolbar filters when switching quick filters
+    setFilters(DEFAULT_FILTERS);
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
         title={isFreelancer ? t.tasks.myTitle : t.tasks.title}
         description={
@@ -57,6 +92,48 @@ export function TasksView({
           ) : null
         }
       />
+
+      {/* Quick filter strip */}
+      <div className="flex flex-wrap gap-1.5">
+        {QUICK_FILTERS.map((qf) => {
+          const count = qCounts[qf.id];
+          const isActive = quickFilter === qf.id;
+          return (
+            <button
+              key={qf.id}
+              type="button"
+              onClick={() => selectQuick(qf.id)}
+              className={cn(
+                "inline-flex h-8 items-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition-all",
+                isActive
+                  ? "border-brand/40 bg-brand text-white shadow-sm"
+                  : "border-ink/10 bg-white/70 text-ink/70 hover:border-brand/20 hover:bg-white hover:text-ink",
+                qf.id === "overdue" && !isActive && count > 0
+                  ? "border-red-200 bg-red-50/60 text-red-700"
+                  : "",
+              )}
+            >
+              <span>{qf.icon}</span>
+              <span>{qf.label}</span>
+              {count > 0 && (
+                <span
+                  className={cn(
+                    "rounded-full px-1.5 py-0 text-[10px] font-semibold",
+                    isActive
+                      ? "bg-white/25 text-white"
+                      : qf.id === "overdue"
+                        ? "bg-red-100 text-red-700"
+                        : "bg-ink/8 text-ink/60",
+                  )}
+                >
+                  {count}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
       <TasksToolbar
         filters={filters}
         onChange={setFilters}
@@ -76,6 +153,99 @@ export function TasksView({
       )}
     </div>
   );
+}
+
+function applyQuickFilter(
+  tasks: TaskCard[],
+  qf: QuickFilter,
+  meId: string,
+): TaskCard[] {
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  const endOfToday = new Date(now);
+  endOfToday.setHours(23, 59, 59, 999);
+  const endOfWeek = new Date(now);
+  endOfWeek.setDate(endOfWeek.getDate() + 6);
+
+  switch (qf) {
+    case "active":
+      return tasks.filter((t) => t.status !== "done" && t.status !== "cancelled");
+    case "my_tasks":
+      return tasks.filter(
+        (t) => t.assigneeId === meId && t.status !== "done" && t.status !== "cancelled",
+      );
+    case "overdue": {
+      return tasks.filter((t) => {
+        if (!t.deadline || t.status === "done" || t.status === "cancelled") return false;
+        const d = new Date(t.deadline);
+        d.setHours(0, 0, 0, 0);
+        return d.getTime() < now.getTime();
+      });
+    }
+    case "today": {
+      return tasks.filter((t) => {
+        if (!t.deadline || t.status === "done") return false;
+        const d = new Date(t.deadline);
+        d.setHours(0, 0, 0, 0);
+        return d.getTime() === now.getTime();
+      });
+    }
+    case "this_week": {
+      return tasks.filter((t) => {
+        if (!t.deadline || t.status === "done") return false;
+        const d = new Date(t.deadline);
+        d.setHours(0, 0, 0, 0);
+        return d.getTime() >= now.getTime() && d.getTime() <= endOfWeek.getTime();
+      });
+    }
+    case "in_progress":
+      return tasks.filter((t) => t.status === "in_progress");
+    case "review":
+      return tasks.filter((t) => t.status === "review");
+    case "done":
+      return tasks.filter((t) => t.status === "done");
+    default:
+      return tasks;
+  }
+}
+
+function computeQuickCounts(
+  tasks: TaskCard[],
+  meId: string,
+): Record<QuickFilter, number> {
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  const endOfWeek = new Date(now);
+  endOfWeek.setDate(endOfWeek.getDate() + 6);
+
+  const counts: Record<QuickFilter, number> = {
+    active: 0,
+    my_tasks: 0,
+    overdue: 0,
+    today: 0,
+    this_week: 0,
+    in_progress: 0,
+    review: 0,
+    done: 0,
+  };
+
+  for (const t of tasks) {
+    const isDone = t.status === "done";
+    const isCancelled = t.status === "cancelled";
+    if (!isDone && !isCancelled) counts.active++;
+    if (t.assigneeId === meId && !isDone && !isCancelled) counts.my_tasks++;
+    if (t.status === "in_progress") counts.in_progress++;
+    if (t.status === "review") counts.review++;
+    if (isDone) counts.done++;
+    if (t.deadline && !isDone && !isCancelled) {
+      const d = new Date(t.deadline);
+      d.setHours(0, 0, 0, 0);
+      if (d.getTime() < now.getTime()) counts.overdue++;
+      else if (d.getTime() === now.getTime()) counts.today++;
+      else if (d.getTime() <= endOfWeek.getTime()) counts.this_week++;
+    }
+  }
+  return counts;
 }
 
 function EmptyState() {

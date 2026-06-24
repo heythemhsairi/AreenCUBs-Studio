@@ -44,6 +44,7 @@ export function TasksList({
               <Th>Assigné</Th>
               <Th>Priorité</Th>
               <Th>Statut</Th>
+              <Th>Estimé</Th>
               <Th>Échéance</Th>
             </tr>
           </thead>
@@ -125,21 +126,39 @@ export function TasksList({
                     </Badge>
                   </Td>
                   <Td>
-                    {task.deadline ? (
-                      <span
-                        className={cn(
-                          "rounded-md px-2 py-0.5 text-xs font-medium",
-                          isOverdue
-                            ? "bg-red-50 text-red-700"
-                            : "bg-ink/5 text-ink/65",
-                        )}
-                      >
-                        {new Date(task.deadline).toLocaleDateString("fr-FR", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                        })}
+                    {task.estimated_minutes != null ? (
+                      <span className="text-xs text-ink/55">
+                        {task.estimated_minutes >= 60
+                          ? `${Math.round(task.estimated_minutes / 60)}h`
+                          : `${task.estimated_minutes}m`}
                       </span>
+                    ) : (
+                      <span className="text-ink/25">—</span>
+                    )}
+                  </Td>
+                  <Td>
+                    {task.deadline ? (
+                      <div className="flex flex-col gap-0.5">
+                        <span
+                          className={cn(
+                            "rounded-md px-2 py-0.5 text-xs font-medium",
+                            isOverdue
+                              ? "bg-red-50 text-red-700"
+                              : "bg-ink/5 text-ink/65",
+                          )}
+                        >
+                          {new Date(task.deadline).toLocaleDateString("fr-FR", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </span>
+                        {isOverdue && (
+                          <span className="text-[10px] font-semibold text-red-600">
+                            ⚠ +{overdueDays}j de retard
+                          </span>
+                        )}
+                      </div>
                     ) : (
                       <span className="text-ink/35">—</span>
                     )}

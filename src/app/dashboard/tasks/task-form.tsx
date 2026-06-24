@@ -35,6 +35,9 @@ type TaskRow = {
   deliverable_url: string | null;
   tags?: string[] | null;
   recurrence?: "daily" | "weekly" | "biweekly" | "monthly" | null;
+  estimated_minutes?: number | null;
+  late_reason?: string | null;
+  completion_note?: string | null;
 };
 
 export type TaskTemplateOption = {
@@ -306,6 +309,42 @@ export function TaskForm(props: Props) {
                 defaultValue={tk?.deliverable_url ?? ""}
               />
             </Field>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Field label="Temps estimé (minutes)">
+                <Input
+                  name="estimated_minutes"
+                  type="number"
+                  min="0"
+                  step="15"
+                  placeholder="ex: 90"
+                  defaultValue={tk?.estimated_minutes ?? ""}
+                />
+                <p className="text-[11px] text-ink/45">
+                  Ex : 30 = 30 min, 120 = 2h
+                </p>
+              </Field>
+              {tk?.deadline && new Date(tk.deadline) < new Date() && tk.status !== "done" && (
+                <Field label="Raison du retard">
+                  <Input
+                    name="late_reason"
+                    placeholder="Blocage, attente client…"
+                    defaultValue={tk?.late_reason ?? ""}
+                  />
+                </Field>
+              )}
+            </div>
+
+            {(tk?.status === "done" || tk?.status === "review") && (
+              <Field label="Note de livraison / commentaire final">
+                <Textarea
+                  name="completion_note"
+                  rows={2}
+                  placeholder="Ce qui a été livré, changements notables…"
+                  defaultValue={tk?.completion_note ?? ""}
+                />
+              </Field>
+            )}
 
             {error && <p className="text-sm text-red-600">{error}</p>}
             {saved && <p className="text-sm text-green-600">{t.common.saved}</p>}

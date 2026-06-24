@@ -55,6 +55,12 @@ function pickTaskFields(formData: FormData) {
     assigneeIds.unshift(legacySingle);
   }
 
+  const rawEstimated = formData.get("estimated_minutes");
+  const estimated_minutes =
+    rawEstimated !== null && String(rawEstimated).trim() !== ""
+      ? Math.max(0, parseInt(String(rawEstimated), 10) || 0) || null
+      : null;
+
   return {
     project_id: String(formData.get("project_id") ?? ""),
     title: String(formData.get("title") ?? "").trim(),
@@ -70,6 +76,9 @@ function pickTaskFields(formData: FormData) {
     parent_task_id: stringOrNull(formData.get("parent_task_id")),
     tags,
     recurrence,
+    estimated_minutes,
+    late_reason: stringOrNull(formData.get("late_reason")),
+    completion_note: stringOrNull(formData.get("completion_note")),
   };
 }
 
@@ -177,7 +186,7 @@ export async function createTaskAction(
   if (!fields.title) return { ok: false, error: "Le titre est requis." };
 
   const supabase = await createClient();
-  const { assignee_ids, ...taskCols } = fields;
+  const { assignee_ids, late_reason, completion_note, ...taskCols } = fields;
   const { data, error } = await supabase
     .from("tasks")
     .insert({ ...taskCols, created_by: session.id })
@@ -227,10 +236,15 @@ export async function updateTaskAction(
   const { data: before } = await supabase
     .from("tasks")
     .select(
-      "status, priority, assignee_id, deadline, project_id, parent_task_id, title, description, deliverable_url, tags, recurrence, created_by",
+      "status, priority, assignee_id, deadline, project_id, parent_task_id, title, description, deliverable_url, tags, recurrence, created_by, started_at",
     )
     .eq("id", id)
     .single();
+
+  const now = new Date().toISOString();
+  const goingDone = fields.status === "done" && before?.status !== "done";
+  const goingActive =
+    fields.status === "in_progress" && before?.status === "todo";
 
   const { data, error } = await supabase
     .from("tasks")
@@ -244,6 +258,11 @@ export async function updateTaskAction(
       deliverable_url: fields.deliverable_url,
       tags: fields.tags,
       recurrence: fields.recurrence,
+      estimated_minutes: fields.estimated_minutes,
+      late_reason: fields.late_reason,
+      completion_note: fields.completion_note,
+      ...(goingActive && !before?.started_at ? { started_at: now } : {}),
+      ...(goingDone ? { completed_at: now } : {}),
     })
     .eq("id", id)
     .select("project_id")
@@ -371,13 +390,22 @@ export async function changeTaskStatusAction(
   const { data: before } = await supabase
     .from("tasks")
     .select(
-      "status, project_id, parent_task_id, title, description, priority, assignee_id, deadline, deliverable_url, tags, recurrence, created_by",
+      "status, project_id, parent_task_id, title, description, priority, assignee_id, deadline, deliverable_url, tags, recurrence, created_by, started_at",
     )
     .eq("id", taskId)
     .single();
+  const now = new Date().toISOString();
   const { data, error } = await supabase
     .from("tasks")
-    .update({ status })
+    .update({
+      status,
+      ...(status === "done" && before?.status !== "done"
+        ? { completed_at: now }
+        : {}),
+      ...(status === "in_progress" && before?.status === "todo" && !before?.started_at
+        ? { started_at: now }
+        : {}),
+    })
     .eq("id", taskId)
     .select("project_id")
     .single();
