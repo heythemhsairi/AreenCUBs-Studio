@@ -11,11 +11,11 @@ type CardProps = HTMLAttributes<HTMLDivElement> & {
 };
 
 const variantClass: Record<CardVariant, string> = {
-  default:  "bg-[#0D2D47] border border-[#22506F] rounded-2xl",
-  elevated: "bg-[#123A5A] border border-[#22506F] rounded-2xl",
-  glass:    "bg-[#0D2D47]/80 backdrop-blur-xl border border-[#22506F]/80 rounded-2xl",
-  ghost:    "bg-transparent border border-[#22506F]/50 rounded-2xl",
-  ring:     "bg-[#0D2D47] border-2 border-[#22D3EE]/40 rounded-2xl shadow-[0_0_16px_rgba(34,211,238,0.12)]",
+  default:  "bg-[var(--c-card)] border border-[var(--c-border)] rounded-2xl",
+  elevated: "bg-[var(--c-elevated)] border border-[var(--c-border)] rounded-2xl",
+  glass:    "bg-[var(--c-card)]/80 backdrop-blur-xl border border-[var(--c-border)]/80 rounded-2xl",
+  ghost:    "bg-transparent border border-[var(--c-border)]/50 rounded-2xl",
+  ring:     "bg-[var(--c-card)] border-2 border-[#22D3EE]/40 rounded-2xl shadow-[0_0_16px_rgba(34,211,238,0.12)]",
 };
 
 const interactiveClass =
@@ -61,7 +61,7 @@ export function CardTitle({
   return (
     <h3
       className={cn(
-        "text-[15px] font-semibold tracking-tight text-[#F8FAFC] leading-tight",
+        "text-[15px] font-semibold tracking-tight text-[var(--c-text-1)] leading-tight",
         className,
       )}
       {...rest}
@@ -75,7 +75,7 @@ export function CardDescription({
 }: HTMLAttributes<HTMLParagraphElement>) {
   return (
     <p
-      className={cn("text-xs leading-relaxed text-[#94A3B8]", className)}
+      className={cn("text-xs leading-relaxed text-[var(--c-text-2)]", className)}
       {...rest}
     />
   );
@@ -97,7 +97,7 @@ export function CardFooter({
   return (
     <div
       className={cn(
-        "flex items-center gap-2 border-t border-[#22506F] px-5 py-3 md:px-6",
+        "flex items-center gap-2 border-t border-[var(--c-border)] px-5 py-3 md:px-6",
         className,
       )}
       {...rest}

@@ -13,9 +13,9 @@ const variantClass: Record<Variant, string> = {
   primary:
     "bg-[#22D3EE] text-[#071B2C] font-semibold hover:bg-[#22D3EE]/90 active:translate-y-[1px] focus-visible:ring-[#22D3EE] disabled:opacity-50 disabled:hover:bg-[#22D3EE]",
   outline:
-    "border border-[#22506F] text-[#94A3B8] bg-transparent hover:bg-[#123A5A] hover:text-[#F8FAFC] hover:border-[#22D3EE]/40 focus-visible:ring-[#22506F] disabled:opacity-50",
+    "border border-[var(--c-border)] text-[var(--c-text-2)] bg-transparent hover:bg-[var(--c-elevated)] hover:text-[var(--c-text-1)] hover:border-[#22D3EE]/40 focus-visible:ring-[var(--c-border)] disabled:opacity-50",
   ghost:
-    "bg-transparent text-[#94A3B8] hover:bg-[#123A5A] hover:text-[#F8FAFC] focus-visible:ring-[#22506F]/40 disabled:opacity-50",
+    "bg-transparent text-[var(--c-text-2)] hover:bg-[var(--c-elevated)] hover:text-[var(--c-text-1)] focus-visible:ring-[var(--c-border)]/40 disabled:opacity-50",
   danger:
     "bg-[#F43F5E]/10 text-[#F43F5E] border border-[#F43F5E]/20 hover:bg-[#F43F5E]/20 focus-visible:ring-[#F43F5E]/40 disabled:opacity-50",
   accent:
@@ -38,7 +38,7 @@ export const Button = forwardRef<HTMLButtonElement, Props>(function Button(
     <button
       ref={ref}
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-md font-medium tracking-tight transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#071B2C] disabled:cursor-not-allowed",
+        "inline-flex items-center justify-center gap-2 rounded-md font-medium tracking-tight transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--c-bg)] disabled:cursor-not-allowed",
         variantClass[variant],
         sizeClass[size],
         className,

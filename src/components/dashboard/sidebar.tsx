@@ -117,7 +117,7 @@ function buildNav(
     },
     {
       href: "/dashboard/team/workload",
-      label: "Charge équipe",
+      label: t.nav.workload,
       icon: Gauge,
       rolesAllowed: ["admin"],
       group: "team",
@@ -172,9 +172,9 @@ export function Sidebar({ role }: { role: UserRole }) {
   if (!mounted || !isDesktop) return null;
 
   return (
-    <aside className="flex w-60 shrink-0 flex-col h-screen sticky top-0 bg-[#0D2D47] border-r border-[#22506F] overflow-y-auto">
+    <aside className="flex w-60 shrink-0 flex-col h-screen sticky top-0 bg-[var(--c-card)] border-r border-[var(--c-border)] overflow-y-auto">
       {/* Logo lockup */}
-      <div className="flex items-center gap-2.5 h-16 px-5 border-b border-[#22506F] shrink-0">
+      <div className="flex items-center gap-2.5 h-16 px-5 border-b border-[var(--c-border)] shrink-0">
         <Link href="/dashboard" className="flex items-center">
           <BrandLogo width={110} className="text-[#22D3EE]" />
         </Link>

@@ -78,11 +78,15 @@ let keyCounter = 0;
 const nextKey = () => `row-${++keyCounter}`;
 
 export function DevisBuilder(props: Props) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const db = t.devisBuilder;
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  const docLabel = props.kind === "facture" ? "Facture" : "Devis";
+  const docLabel =
+    props.kind === "facture"
+      ? locale === "en" ? "Invoice" : "Facture"
+      : locale === "en" ? "Quote" : "Devis";
 
   const [clientId, setClientId] = useState(
     props.mode === "edit"
@@ -228,12 +232,12 @@ export function DevisBuilder(props: Props) {
       <PageHeader
         title={
           props.mode === "create"
-            ? `Nouveau ${docLabel.toLowerCase()}`
-            : `Modifier ${docLabel.toLowerCase()}`
+            ? db.newDoc(docLabel.toLowerCase())
+            : db.editDoc(docLabel.toLowerCase())
         }
         subtitle={
           <Link href={baseListUrl} className="hover:underline">
-            ← {props.kind === "facture" ? "Factures" : "Devis"}
+            ← {props.kind === "facture" ? t.factures.title : t.devis.title}
           </Link>
         }
       />
@@ -241,17 +245,17 @@ export function DevisBuilder(props: Props) {
       <form onSubmit={onSubmit} className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Informations</CardTitle>
+            <CardTitle>{db.infoCard}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <Field label="Client">
+              <Field label={db.labelClient}>
                 <Select
                   required
                   value={clientId}
                   onChange={(e) => setClientId(e.target.value)}
                 >
-                  <option value="">— Choisir —</option>
+                  <option value="">{db.chooseClient}</option>
                   {props.clients.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name}
@@ -259,15 +263,15 @@ export function DevisBuilder(props: Props) {
                   ))}
                 </Select>
               </Field>
-              <Field label="Objet">
+              <Field label={db.labelObject}>
                 <Input
                   value={object}
                   onChange={(e) => setObject(e.target.value)}
                 />
               </Field>
               <Field
-                label={`Numéro ${docLabel}${
-                  props.mode === "create" ? " (auto si vide)" : ""
+                label={`${db.labelNumber(docLabel)}${
+                  props.mode === "create" ? db.labelNumberAuto : ""
                 }`}
               >
                 <Input
@@ -275,12 +279,12 @@ export function DevisBuilder(props: Props) {
                   min="1"
                   step="1"
                   inputMode="numeric"
-                  placeholder={props.mode === "create" ? "Automatique" : ""}
+                  placeholder={props.mode === "create" ? db.autoNumber : ""}
                   value={docNumber}
                   onChange={(e) => setDocNumber(e.target.value)}
                 />
               </Field>
-              <Field label="Date">
+              <Field label={db.labelDate}>
                 <Input
                   type="date"
                   required
@@ -288,7 +292,7 @@ export function DevisBuilder(props: Props) {
                   onChange={(e) => setDate(e.target.value)}
                 />
               </Field>
-              <Field label="Échéance">
+              <Field label={db.labelDueDate}>
                 <Input
                   type="date"
                   required
@@ -302,15 +306,15 @@ export function DevisBuilder(props: Props) {
 
         <Card>
           <CardHeader>
-            <CardTitle>Lignes</CardTitle>
+            <CardTitle>{db.linesCard}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="hidden grid-cols-12 gap-2 text-xs font-medium uppercase tracking-wide text-ink/50 md:grid">
-              <div className="col-span-5">Description</div>
-              <div className="col-span-2">P.U. (DT)</div>
-              <div className="col-span-1">Qté</div>
-              <div className="col-span-2 text-right">Total ligne</div>
-              <div className="col-span-1 text-center">Bonus</div>
+              <div className="col-span-5">{db.colDescription}</div>
+              <div className="col-span-2">{db.colUnit}</div>
+              <div className="col-span-1">{db.colQty}</div>
+              <div className="col-span-2 text-right">{db.colTotal}</div>
+              <div className="col-span-1 text-center">{db.colBonus}</div>
               <div className="col-span-1" />
             </div>
 
@@ -331,7 +335,7 @@ export function DevisBuilder(props: Props) {
                       }
                     }}
                   >
-                    <option value="">— Service catalogue —</option>
+                    <option value="">{db.servicePlaceholder}</option>
                     {props.services.map((s) => (
                       <option key={s.id} value={s.id}>
                         {s.name_fr} ({s.default_price_dt} DT)
@@ -339,7 +343,7 @@ export function DevisBuilder(props: Props) {
                     ))}
                   </Select>
                   <Input
-                    placeholder="Description"
+                    placeholder={db.descriptionPlaceholder}
                     value={item.description}
                     onChange={(e) =>
                       updateRow(item.key, { description: e.target.value })
@@ -375,7 +379,7 @@ export function DevisBuilder(props: Props) {
                 </div>
                 <div className="font-medium text-ink md:col-span-2 md:text-right">
                   {item.is_bonus
-                    ? "Bonus"
+                    ? db.bonus
                     : formatDt(item.quantity * (item.unit_price_dt || 0))}
                 </div>
                 <label className="flex items-center justify-center gap-1.5 text-xs text-ink/60 md:col-span-1">
@@ -391,16 +395,16 @@ export function DevisBuilder(props: Props) {
                       })
                     }
                   />
-                  Bonus
+                  {db.bonus}
                 </label>
                 <div className="md:col-span-1 md:text-right">
                   <button
                     type="button"
                     onClick={() => removeRow(item.key)}
                     className="text-xs text-red-600 hover:underline"
-                    title="Supprimer la ligne"
+                    title={db.deleteLineTitle}
                   >
-                    × Supprimer
+                    {db.deleteLine}
                   </button>
                 </div>
               </div>
@@ -412,22 +416,22 @@ export function DevisBuilder(props: Props) {
               size="sm"
               onClick={addRow}
             >
-              + Ajouter une ligne
+              {db.addLine}
             </Button>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Totaux</CardTitle>
+            <CardTitle>{db.totalsCard}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3 text-sm">
-              <Row label="Sous total" value={formatDt(totals.subtotal)} />
+              <Row label={db.subtotal} value={formatDt(totals.subtotal)} />
 
               <div className="grid grid-cols-1 gap-2 rounded-lg bg-cream-dark/40 p-3 sm:grid-cols-[1fr_120px_100px] sm:items-center">
                 <label className="text-xs font-semibold uppercase tracking-wider text-ink/60">
-                  Remise
+                  {db.discount}
                 </label>
                 <Input
                   type="number"
@@ -440,20 +444,20 @@ export function DevisBuilder(props: Props) {
                 <span className="text-right text-xs text-ink/55">
                   {totals.discount > 0
                     ? `−${discountPct.toFixed(1)}%`
-                    : "DT (montant)"}
+                    : db.discountUnit}
                 </span>
               </div>
 
               {totals.discount > 0 && (
                 <Row
-                  label="Après remise"
+                  label={db.afterDiscount}
                   value={formatDt(totals.subtotal - totals.discount)}
                 />
               )}
-              <Row label="TVA (19%)" value={formatDt(totals.tva)} />
+              <Row label={db.tva} value={formatDt(totals.tva)} />
               <div className="border-t border-ink/10 pt-2">
                 <Row
-                  label="Total TTC"
+                  label={db.totalTtc}
                   value={formatDt(totals.total)}
                   bold
                 />
@@ -464,7 +468,7 @@ export function DevisBuilder(props: Props) {
 
         <Card>
           <CardHeader>
-            <CardTitle>Notes (internes — non imprimées)</CardTitle>
+            <CardTitle>{db.notesCard}</CardTitle>
           </CardHeader>
           <CardContent>
             <Textarea
@@ -482,7 +486,9 @@ export function DevisBuilder(props: Props) {
             {pending
               ? t.common.saving
               : props.mode === "create"
-                ? `Créer ${props.kind === "facture" ? "la facture" : "le devis"}`
+                ? props.kind === "facture"
+                  ? db.createFacture
+                  : db.createDevis
                 : t.common.save}
           </Button>
           <Link

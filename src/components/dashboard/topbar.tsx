@@ -30,7 +30,7 @@ type Props = {
 function LanguageSwitcher({ className }: { className?: string }) {
   const { locale, setLocale } = useI18n();
   return (
-    <div className={cn("flex gap-0.5 rounded-md border border-[#22506F]/60 bg-[#0D2D47] p-0.5", className)}>
+    <div className={cn("flex gap-0.5 rounded-md border border-[var(--c-border)]/60 bg-[var(--c-card)] p-0.5", className)}>
       {(["fr", "en"] as Locale[]).map((l) => (
         <button
           key={l}
@@ -96,13 +96,13 @@ function QuickCreateButton({ role }: { role: UserRole }) {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-48 rounded-xl bg-[#0D2D47] border border-[#22506F] shadow-2xl shadow-black/40 py-1 z-50">
+        <div className="absolute right-0 top-full mt-2 w-48 rounded-xl bg-[var(--c-card)] border border-[var(--c-border)] shadow-2xl shadow-black/40 py-1 z-50">
           {quickCreateItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               onClick={() => setOpen(false)}
-              className="flex items-center gap-2.5 px-3 py-2 text-sm text-[#94A3B8] hover:text-white hover:bg-[#1A3E5C] transition-colors"
+              className="flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--c-text-2)] hover:text-[var(--c-text-1)] hover:bg-[var(--c-elevated)] transition-colors"
             >
               <Plus size={13} className="text-[#22D3EE] shrink-0" />
               {item.label}
@@ -165,11 +165,11 @@ function ProfileMenu({
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-52 rounded-xl bg-[#0D2D47] border border-[#22506F] shadow-2xl shadow-black/40 py-1 z-50">
+        <div className="absolute right-0 top-full mt-2 w-52 rounded-xl bg-[var(--c-card)] border border-[var(--c-border)] shadow-2xl shadow-black/40 py-1 z-50">
           {/* User info header */}
-          <div className="px-3 py-2.5 border-b border-[#22506F]">
-            <p className="text-sm font-semibold text-white">@{username}</p>
-            <p className="text-xs text-[#64748B] mt-0.5">{roleLabel}</p>
+          <div className="px-3 py-2.5 border-b border-[var(--c-border)]">
+            <p className="text-sm font-semibold text-[var(--c-text-1)]">@{username}</p>
+            <p className="text-xs text-[var(--c-text-3)] mt-0.5">{roleLabel}</p>
           </div>
 
           {/* Menu items */}
@@ -177,26 +177,26 @@ function ProfileMenu({
             <Link
               href="/dashboard/profile"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-2.5 px-3 py-2 text-sm text-[#94A3B8] hover:text-white hover:bg-[#1A3E5C] transition-colors"
+              className="flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--c-text-2)] hover:text-[var(--c-text-1)] hover:bg-[var(--c-elevated)] transition-colors"
             >
               {t.nav.profile}
             </Link>
           </div>
 
           {/* Theme toggle row */}
-          <div className="px-3 py-2.5 border-t border-[#22506F]">
-            <p className="mb-2 text-xs text-[#64748B]">{locale === "en" ? "Appearance" : "Apparence"}</p>
+          <div className="px-3 py-2.5 border-t border-[var(--c-border)]">
+            <p className="mb-2 text-xs text-[var(--c-text-3)]">{locale === "en" ? "Appearance" : "Apparence"}</p>
             <ThemeToggle className="w-full" />
           </div>
 
           {/* Language switcher row */}
-          <div className="px-3 py-2.5 border-t border-[#22506F]">
-            <p className="mb-2 text-xs text-[#64748B]">Langue / Language</p>
+          <div className="px-3 py-2.5 border-t border-[var(--c-border)]">
+            <p className="mb-2 text-xs text-[var(--c-text-3)]">Langue / Language</p>
             <LanguageSwitcher className="w-full justify-center" />
           </div>
 
           {/* Sign out */}
-          <div className="border-t border-[#22506F] py-1">
+          <div className="border-t border-[var(--c-border)] py-1">
             <button
               type="button"
               onClick={() => {
@@ -204,7 +204,7 @@ function ProfileMenu({
                 onSignOut();
               }}
               disabled={signingOut}
-              className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-[#F87171] hover:bg-[#1A3E5C] transition-colors disabled:opacity-50"
+              className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-[#F87171] hover:bg-[var(--c-elevated)] transition-colors disabled:opacity-50"
             >
               <LogOut size={14} />
               {signingOut ? t.common.loading : t.nav.logout}
@@ -224,6 +224,7 @@ export function Topbar({
   avatarUrl,
   notifications,
 }: Props) {
+  const { t } = useI18n();
   const router = useRouter();
   const [signingOut, startSignOut] = useTransition();
 
@@ -249,7 +250,7 @@ export function Topbar({
   }
 
   return (
-    <header className="sticky top-0 z-40 h-16 bg-[#071B2C]/90 backdrop-blur-xl border-b border-[#22506F] flex items-center">
+    <header className="sticky top-0 z-40 h-16 bg-[var(--c-bg)]/90 backdrop-blur-xl border-b border-[var(--c-border)] flex items-center">
       <div className="flex-1 flex items-center justify-between px-4 md:px-6">
 
         {/* Mobile: logo on left */}
@@ -262,11 +263,11 @@ export function Topbar({
           <button
             type="button"
             onClick={openSearch}
-            className="flex-1 flex items-center gap-2 h-9 px-3 rounded-lg bg-[#0D2D47] border border-[#22506F] text-[#64748B] text-sm hover:border-[#22D3EE]/40 transition-colors"
+            className="flex-1 flex items-center gap-2 h-9 px-3 rounded-lg bg-[var(--c-card)] border border-[var(--c-border)] text-[var(--c-text-3)] text-sm hover:border-[#22D3EE]/40 transition-colors"
           >
             <Search size={14} />
-            <span>Rechercher...</span>
-            <span className="ml-auto text-[10px] bg-[#22506F] px-1.5 py-0.5 rounded font-mono leading-none">
+            <span>{t.common.search}...</span>
+            <span className="ml-auto text-[10px] bg-[var(--c-border)] px-1.5 py-0.5 rounded font-mono leading-none">
               ⌘K
             </span>
           </button>

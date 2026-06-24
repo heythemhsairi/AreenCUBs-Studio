@@ -3,7 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { WorkloadView } from "./workload-view";
 
-export const metadata = { title: "Charge équipe — Areen CUBs" };
+export const metadata = { title: "Team Workload — Areen CUBs" };
 
 export default async function WorkloadPage() {
   await requireAdmin();
@@ -132,8 +132,8 @@ export default async function WorkloadPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Charge équipe"
-        subtitle="Répartition des tâches actives, retards et surcharges"
+        title="Team Workload"
+        subtitle="Active tasks, delays and overloads per member"
       />
       <WorkloadView members={members} summary={summary} today={today} />
     </div>

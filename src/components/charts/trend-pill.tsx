@@ -8,32 +8,35 @@ type Props = {
   invert?: boolean;
   /**
    * Pass true when the previous value was 0 and current > 0.
-   * Renders a "Nouveau" badge instead of a misleading percentage.
+   * Renders a "New" badge instead of a misleading percentage.
    */
   isNew?: boolean;
   /**
    * Pass true when both current and previous are 0.
-   * Renders an "Aucune donnée" badge instead of a percentage.
+   * Renders a "No data" badge instead of a percentage.
    */
   noData?: boolean;
+  /** Labels override — pass translated strings */
+  labelNoData?: string;
+  labelNew?: string;
 };
 
-export function TrendPill({ pct, className, invert, isNew, noData }: Props) {
-  // "Aucune donnée" — both values are 0, no comparison meaningful
+export function TrendPill({ pct, className, invert, isNew, noData, labelNoData = "No data", labelNew = "New" }: Props) {
+  // "No data" — both values are 0, no comparison meaningful
   if (noData) {
     return (
       <span
         className={cn(
-          "inline-flex items-center gap-0.5 rounded-full bg-[#22506F] px-2 py-0.5 text-[11px] font-semibold text-[#64748B]",
+          "inline-flex items-center gap-0.5 rounded-full bg-[var(--c-border)] px-2 py-0.5 text-[11px] font-semibold text-[var(--c-text-3)]",
           className,
         )}
       >
-        Aucune donnée
+        {labelNoData}
       </span>
     );
   }
 
-  // "Nouveau" badge takes priority — previous was 0, current > 0
+  // "New" badge takes priority — previous was 0, current > 0
   if (isNew) {
     return (
       <span
@@ -42,31 +45,17 @@ export function TrendPill({ pct, className, invert, isNew, noData }: Props) {
           className,
         )}
       >
-        Nouveau
+        {labelNew}
       </span>
     );
   }
 
   // Null / non-finite → neutral dash
-  if (pct === null) {
+  if (pct === null || !Number.isFinite(pct)) {
     return (
       <span
         className={cn(
-          "inline-flex items-center gap-0.5 rounded-full bg-[#22506F] px-2 py-0.5 text-[11px] font-semibold text-[#64748B]",
-          className,
-        )}
-      >
-        —
-      </span>
-    );
-  }
-
-  // Non-finite number → neutral dash
-  if (!Number.isFinite(pct)) {
-    return (
-      <span
-        className={cn(
-          "inline-flex items-center gap-0.5 rounded-full bg-[#22506F] px-2 py-0.5 text-[11px] font-semibold text-[#64748B]",
+          "inline-flex items-center gap-0.5 rounded-full bg-[var(--c-border)] px-2 py-0.5 text-[11px] font-semibold text-[var(--c-text-3)]",
           className,
         )}
       >
@@ -80,7 +69,7 @@ export function TrendPill({ pct, className, invert, isNew, noData }: Props) {
     return (
       <span
         className={cn(
-          "inline-flex items-center gap-0.5 rounded-full bg-[#22506F] px-2 py-0.5 text-[11px] font-semibold text-[#64748B]",
+          "inline-flex items-center gap-0.5 rounded-full bg-[var(--c-border)] px-2 py-0.5 text-[11px] font-semibold text-[var(--c-text-3)]",
           className,
         )}
       >

@@ -77,9 +77,9 @@ export function TasksKanban({
         });
         toast.error(res.error);
       } else if (to === "done") {
-        toast.success("Tâche terminée");
+        toast.success(t.tasksUi.taskCompleted);
       } else {
-        toast.success("Statut mis à jour");
+        toast.success(t.tasksUi.statusUpdated);
       }
     });
   }
@@ -168,7 +168,7 @@ export function TasksKanban({
                       : "border-ink/12 bg-white/30 text-ink/35",
                   )}
                 >
-                  {isOver ? "Déposez ici" : "—"}
+                  {isOver ? t.tasksUi.dropHere : "—"}
                 </div>
               )}
             </div>
@@ -196,7 +196,7 @@ function KanbanCard({
   onMove: (id: string, to: Status) => void;
   tagColors?: Record<string, string>;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [dragging, setDragging] = useState(false);
 
   function onChangeStatus(e: React.ChangeEvent<HTMLSelectElement>) {
@@ -306,7 +306,7 @@ function KanbanCard({
               )}
             >
               {isOverdue && "⚠ "}
-              {new Date(task.deadline).toLocaleDateString("fr-FR", {
+              {new Date(task.deadline).toLocaleDateString(locale === "en" ? "en-US" : "fr-FR", {
                 month: "short",
                 day: "numeric",
               })}

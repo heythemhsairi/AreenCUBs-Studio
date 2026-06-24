@@ -4,6 +4,7 @@ import { type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { CountUp } from "@/components/charts/count-up";
 import { TrendPill } from "@/components/charts/trend-pill";
+import { useI18n } from "@/lib/i18n/provider";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -101,7 +102,7 @@ function KpiSkeleton({ size = "md", className }: { size?: KpiSize; className?: s
     <div
       aria-hidden
       className={cn(
-        "bg-[#0D2D47] border border-[#22506F] rounded-xl overflow-hidden",
+        "bg-[var(--c-card)] border border-[var(--c-border)] rounded-xl overflow-hidden",
         className,
       )}
     >
@@ -139,6 +140,10 @@ export function KpiCard({
   loading = false,
   className,
 }: KpiCardProps) {
+  const { locale } = useI18n();
+  const labelNoData = locale === "en" ? "No data" : "Aucune donnée";
+  const labelNew = locale === "en" ? "New" : "Nouveau";
+
   if (loading) {
     return <KpiSkeleton size={size} className={className} />;
   }
@@ -152,7 +157,7 @@ export function KpiCard({
   return (
     <div
       className={cn(
-        "bg-[#0D2D47] border border-[#22506F] rounded-xl overflow-hidden",
+        "bg-[var(--c-card)] border border-[var(--c-border)] rounded-xl overflow-hidden",
         "flex flex-col",
         className,
       )}
@@ -209,6 +214,8 @@ export function KpiCard({
               pct={trendIsNew ? null : trend}
               isNew={trendIsNew}
               noData={trendNoData}
+              labelNoData={labelNoData}
+              labelNew={labelNew}
             />
             {trendLabel && (
               <span className="text-[11px] text-[#64748B] leading-none">
