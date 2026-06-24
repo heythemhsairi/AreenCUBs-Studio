@@ -545,8 +545,38 @@ html.light .border-\[\#22506F\]   { border-color: #D8E6F7 !important; }
 html.light .divide-\[\#22506F\] > * + * { border-color: #D8E6F7 !important; }
 html.light .bg-\[\#22506F\]      { background-color: rgba(44,110,150,0.10) !important; }
 html.light .hover\:bg-\[\#1A3E5C\]:hover { background-color: rgba(44,110,150,0.08) !important; }
+html.light .bg-\[\#071B2C\]\/50  { background-color: rgba(220,234,250,0.55) !important; }
 html.light .bg-\[\#071B2C\]\/60  { background-color: rgba(245,249,255,0.8) !important; }
+html.light .bg-\[\#071B2C\]\/70  { background-color: #EEF5FF !important; }
+html.light .bg-\[\#071B2C\]\/80  { background-color: #E8F2FF !important; }
 html.light .bg-\[\#071B2C\]\/90  { background-color: rgba(248,251,255,0.92) !important; }
+
+/* Kanban column drop-zone hover in light */
+html.light .border-\[\#22D3EE\]\/40 { border-color: rgba(26,157,191,0.4) !important; }
+html.light .bg-\[\#22D3EE\]\/5   { background-color: rgba(26,157,191,0.06) !important; }
+html.light .ring-\[\#22D3EE\]\/20 { --tw-ring-color: rgba(26,157,191,0.2) !important; }
+
+/* Kanban card: overdue left bar + border */
+html.light .bg-\[\#F43F5E\]\/50  { background-color: rgba(217,45,74,0.4) !important; }
+html.light .border-\[\#F43F5E\]\/30 { border-color: rgba(217,45,74,0.3) !important; }
+
+/* Kanban card hover border */
+html.light .hover\:border-\[\#22D3EE\]\/30:hover { border-color: rgba(26,157,191,0.3) !important; }
+
+/* Kanban card title & project text */
+html.light .text-\[\#F8FAFC\]    { color: #102033 !important; }
+html.light .text-\[\#3D5068\]    { color: #6C8298 !important; }
+
+/* Kanban status select */
+html.light select.bg-\[\#071B2C\]\/70,
+html.light .bg-\[\#071B2C\]\/70 select { background-color: #F0F6FF !important; }
+
+/* Kanban column header status text */
+html.light .text-\[\#64748B\]    { color: #6C8298 !important; }
+
+/* Kanban empty drop zone */
+html.light .border-\[\#22506F\].border-dashed { border-color: #B8D0E4 !important; }
+html.light .text-\[\#374151\]    { color: #6C8298 !important; }
 
 /* =========================================================================
    SLATE COLOR OVERRIDES — slate-* are near-black, invisible in dark mode
