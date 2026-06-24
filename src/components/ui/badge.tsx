@@ -194,9 +194,11 @@ export interface StatusBadgeProps {
   status: string;
   type: "finance" | "task" | "priority" | "risk" | "devis";
   className?: string;
+  /** Override the displayed label (use for i18n). Falls back to the built-in map label. */
+  label?: string;
 }
 
-export function StatusBadge({ status, type, className }: StatusBadgeProps) {
+export function StatusBadge({ status, type, className, label }: StatusBadgeProps) {
   const map = domainMaps[type] ?? {};
   const key = status?.toLowerCase().trim().replace(/[\s-]/g, "_");
   const def = map[key];
@@ -221,7 +223,7 @@ export function StatusBadge({ status, type, className }: StatusBadgeProps) {
           )}
         </span>
       )}
-      {def ? def.label : status}
+      {label ?? (def ? def.label : status)}
     </span>
   );
 }

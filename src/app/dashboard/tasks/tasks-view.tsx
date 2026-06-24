@@ -658,7 +658,7 @@ function DarkList({
                 >
                   {task.title}
                 </Link>
-                <StatusBadge status={task.status} type="task" />
+                <StatusBadge status={task.status} type="task" label={t.tasks.status[task.status as keyof typeof t.tasks.status] ?? task.status} />
               </div>
               <div className="flex flex-wrap items-center gap-2 text-xs">
                 <span className="text-[#64748B]">
@@ -778,7 +778,7 @@ function DarkList({
 
                     {/* Status */}
                     <td className="px-4 py-2 align-middle">
-                      <StatusBadge status={task.status} type="task" />
+                      <StatusBadge status={task.status} type="task" label={t.tasks.status[task.status as keyof typeof t.tasks.status] ?? task.status} />
                     </td>
 
                     {/* Priority */}

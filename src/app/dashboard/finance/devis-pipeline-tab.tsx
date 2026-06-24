@@ -5,11 +5,9 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { formatDt, formatDate } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useI18n } from "@/lib/i18n/provider";
 import type { DevisRow } from "./finance-client";
 
-const STATUS_LABELS: Record<string, string> = {
-  draft: "Brouillon", sent: "Envoyé", accepted: "Accepté", rejected: "Refusé",
-};
 const STATUS_COLORS: Record<string, string> = {
   draft: "bg-[#22506F] text-[#94A3B8]",
   sent: "bg-blue-900/50 text-blue-300",
@@ -25,6 +23,13 @@ export function DevisPipelineTab({
   totalSent: number; totalAccepted: number; totalRejected: number;
   conversionRate: number; expectedRevenue: number; lostRevenue: number; avgDealSize: number;
 }) {
+  const { t } = useI18n();
+  const STATUS_LABELS: Record<string, string> = {
+    draft: t.devis.status.draft,
+    sent: t.devis.status.sent,
+    accepted: t.devis.status.accepted,
+    rejected: t.devis.status.rejected,
+  };
   const [filter, setFilter] = useState<string>("all");
 
   const filtered = filter === "all" ? rows : rows.filter((d) => d.status === filter);
@@ -79,7 +84,7 @@ export function DevisPipelineTab({
                     filter === s ? "bg-brand text-white" : "bg-[#22506F] text-[#F8FAFC]/60 hover:bg-[#1A3E5C]",
                   )}
                 >
-                  {s === "all" ? "Tous" : STATUS_LABELS[s] ?? s}
+                  {s === "all" ? t.common.all : STATUS_LABELS[s] ?? s}
                 </button>
               ))}
             </div>

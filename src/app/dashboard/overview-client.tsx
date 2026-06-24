@@ -229,9 +229,9 @@ export function OverviewClient({
                       </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
-                      <StatusBadge status={task.priority} type="priority" />
+                      <StatusBadge status={task.priority} type="priority" label={t.tasks.priority[task.priority as keyof typeof t.tasks.priority] ?? task.priority} />
                       <span className="rounded-md bg-[#F43F5E]/15 px-2 py-0.5 text-[11px] font-semibold text-[#F43F5E]">
-                        {daysLate}j retard
+                        {t.overview.relativeOverdue(daysLate)}
                       </span>
                     </div>
                   </Link>
@@ -396,12 +396,12 @@ export function OverviewClient({
             href="/dashboard/tasks"
             className="text-[11px] font-semibold text-[#38BDF8] hover:text-[#7DD3FC] transition-colors"
           >
-            Kanban →
+            {t.tasksUi.kanbanLabel} →
           </Link>
         </div>
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <ActiveWorkColumn
-            label="À faire"
+            label={t.tasks.status.todo}
             count={statusGroups.todo}
             total={totalTasks}
             color="#64748B"
@@ -409,7 +409,7 @@ export function OverviewClient({
             gradientTo="to-[#94A3B8]"
           />
           <ActiveWorkColumn
-            label="En cours"
+            label={t.tasks.status.in_progress}
             count={statusGroups.in_progress}
             total={totalTasks}
             color="#22D3EE"
@@ -418,7 +418,7 @@ export function OverviewClient({
             pulse
           />
           <ActiveWorkColumn
-            label="À valider"
+            label={t.tasks.status.review}
             count={statusGroups.review}
             total={totalTasks}
             color="#A78BFA"
@@ -426,7 +426,7 @@ export function OverviewClient({
             gradientTo="to-[#A78BFA]"
           />
           <ActiveWorkColumn
-            label="Terminé"
+            label={t.tasks.status.done}
             count={statusGroups.done}
             total={totalTasks}
             color="#22C55E"
@@ -868,10 +868,10 @@ function UpcomingDeadlinesList({
                 }`}
               >
                 {isOverdue
-                  ? `${Math.abs(days)}j retard`
+                  ? t.overview.relativeOverdue(days)
                   : isToday
-                    ? "Aujourd'hui"
-                    : `J+${days}`}
+                    ? t.overview.relativeTodayLong
+                    : t.overview.relativeIn(days)}
               </span>
             </Link>
           </li>

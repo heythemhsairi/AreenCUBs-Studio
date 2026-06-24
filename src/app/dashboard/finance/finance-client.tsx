@@ -11,6 +11,7 @@ import { DevisPipelineTab } from "./devis-pipeline-tab";
 import { FacturesTab } from "./factures-tab";
 import { ClientProfilesTab, type ClientProfile } from "./client-profiles-tab";
 import { AuditTab, type AuditData } from "./audit-tab";
+import { useI18n } from "@/lib/i18n/provider";
 import {
   AreaChart,
   Area,
@@ -390,6 +391,7 @@ export function RiskBadge({ risk }: { risk: "good" | "late" | "risky" }) {
 // ---------------------------------------------------------------------------
 
 function DashboardTab(props: Props) {
+  const { t } = useI18n();
   // Service donut
   const topSlices = props.topServices.slice(0, 6);
   const restTotal = props.topServices.slice(6).reduce((s, t) => s + t.total_dt, 0);
@@ -421,36 +423,36 @@ function DashboardTab(props: Props) {
       {/* ── 8 KPI CARDS ─────────────────────────────────────────── */}
       <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <KpiCard
-          label="Encaissé ce mois"
+          label={t.kpis.revenueMtd}
           value={props.mtdPaid}
           suffix=" DT"
           trend={pct(props.mtdPaid, props.prevPaid)}
           trendIsNew={isNew(props.mtdPaid, props.prevPaid)}
           trendNoData={noData(props.mtdPaid, props.prevPaid)}
-          trendLabel="vs mois dernier"
+          trendLabel={t.kpis.vsLastMonth}
           tone="green"
           tooltip="Paiements réellement reçus sur factures uniquement"
         />
         <KpiCard
-          label="Facturé ce mois"
+          label={t.kpis.invoicedMonth}
           value={props.mtdInvoiced}
           suffix=" DT"
           trend={pct(props.mtdInvoiced, props.prevInvoiced)}
           trendIsNew={isNew(props.mtdInvoiced, props.prevInvoiced)}
           trendNoData={noData(props.mtdInvoiced, props.prevInvoiced)}
-          trendLabel="vs mois dernier"
+          trendLabel={t.kpis.vsLastMonth}
           tone="cyan"
           tooltip="Total des factures émises ce mois"
         />
         <KpiCard
-          label="Impayés total"
+          label={t.kpis.outstanding}
           value={props.totalOutstanding}
           suffix=" DT"
           tone={props.totalOverdue > 0 ? "red" : props.totalOutstanding > 0 ? "amber" : "neutral"}
           tooltip="Balance impayée sur toutes les factures actives"
         />
         <KpiCard
-          label="En retard"
+          label={t.kpis.overdue}
           value={props.totalOverdue}
           suffix=" DT"
           tone={props.totalOverdue > 0 ? "red" : "neutral"}

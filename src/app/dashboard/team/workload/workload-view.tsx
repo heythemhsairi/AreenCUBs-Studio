@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { useI18n } from "@/lib/i18n/provider";
 
 type OverdueTask = {
   id: string;
@@ -100,6 +101,7 @@ export function WorkloadView({
   summary: Summary;
   today: string;
 }) {
+  const { t } = useI18n();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const maxActive = Math.max(...members.map((m) => m.active), 1);
 
@@ -114,13 +116,13 @@ export function WorkloadView({
           tone={(summary.mostLoaded?.active ?? 0) >= OVERLOAD_THRESHOLD ? "red" : "neutral"}
         />
         <SummaryTile
-          label="En retard"
+          label={t.filters.overdue}
           value={`${summary.withOverdue.length} membres`}
           sub={`${summary.withOverdue.reduce((s, m) => s + m.overdue, 0)} tâches`}
           tone={summary.withOverdue.length > 0 ? "red" : "green"}
         />
         <SummaryTile
-          label="À valider"
+          label={t.tasks.status.review}
           value={`${summary.needsReview.length} membres`}
           sub={`${summary.needsReview.reduce((s, m) => s + m.review, 0)} tâches`}
           tone={summary.needsReview.length > 0 ? "amber" : "green"}

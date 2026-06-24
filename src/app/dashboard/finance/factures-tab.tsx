@@ -5,16 +5,8 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { formatDt, formatDate } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useI18n } from "@/lib/i18n/provider";
 import type { FactureWithBalance } from "./finance-client";
-
-const STATUS_META: Record<string, { label: string; cls: string }> = {
-  draft:     { label: "Brouillon",        cls: "bg-[#22506F] text-[#94A3B8]" },
-  sent:      { label: "Envoyée",          cls: "bg-blue-900/40 text-blue-300" },
-  partial:   { label: "Partiel. payée",   cls: "bg-amber-900/40 text-amber-300" },
-  paid:      { label: "Payée",            cls: "bg-emerald-900/40 text-emerald-300" },
-  overdue:   { label: "En retard",        cls: "bg-red-900/40 text-red-400" },
-  cancelled: { label: "Annulée",          cls: "bg-[#22506F] text-[#94A3B8] line-through" },
-};
 
 export function FacturesTab({
   rows, clients, today,
@@ -23,6 +15,15 @@ export function FacturesTab({
   clients: { id: string; name: string }[];
   today: string;
 }) {
+  const { t } = useI18n();
+  const STATUS_META: Record<string, { label: string; cls: string }> = {
+    draft:     { label: t.devis.status.draft,    cls: "bg-[#22506F] text-[#94A3B8]" },
+    sent:      { label: t.devis.status.sent,     cls: "bg-blue-900/40 text-blue-300" },
+    partial:   { label: t.devis.payment.partial, cls: "bg-amber-900/40 text-amber-300" },
+    paid:      { label: t.devis.payment.paid,    cls: "bg-emerald-900/40 text-emerald-300" },
+    overdue:   { label: t.filters.overdue,       cls: "bg-red-900/40 text-red-400" },
+    cancelled: { label: t.devis.status.rejected, cls: "bg-[#22506F] text-[#94A3B8] line-through" },
+  };
   const [filter, setFilter] = useState<string>("all");
   const [clientFilter, setClientFilter] = useState<string>("all");
 
@@ -67,7 +68,7 @@ export function FacturesTab({
           {/* Status filter pills */}
           <div className="flex flex-wrap gap-1.5">
             <FilterPill active={filter === "all"} onClick={() => setFilter("all")}>
-              Tout ({rows.length})
+              {t.common.all} ({rows.length})
             </FilterPill>
             {(["overdue","sent","partial","paid","draft","cancelled"] as const).map((s) => (
               counts[s] ? (
@@ -85,7 +86,7 @@ export function FacturesTab({
               onChange={(e) => setClientFilter(e.target.value)}
               className="rounded-lg border border-[#22506F] bg-[#0D2D47] px-3 py-1.5 text-xs text-[#F8FAFC] focus:border-brand focus:outline-none"
             >
-              <option value="all">Tous les clients</option>
+              <option value="all">{t.filters.allClients}</option>
               {clients.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           )}
