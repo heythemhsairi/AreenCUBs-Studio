@@ -67,7 +67,7 @@ function Avatar({ member }: { member: Pick<MemberStats, "avatar_url" | "full_nam
   }
 
   return (
-    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand/15 text-xs font-bold text-brand-dark">
+    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#22D3EE]/15 text-xs font-bold text-[#22D3EE]">
       {initials}
     </div>
   );
@@ -77,12 +77,12 @@ function LoadBar({ active, max }: { active: number; max: number }) {
   const pct = max === 0 ? 0 : Math.min((active / max) * 100, 100);
   const color =
     active >= OVERLOAD_THRESHOLD
-      ? "bg-red-500"
+      ? "bg-[#F43F5E]"
       : active >= OVERLOAD_THRESHOLD * 0.7
-        ? "bg-amber-400"
-        : "bg-emerald-500";
+        ? "bg-[#F59E0B]"
+        : "bg-[#22C55E]";
   return (
-    <div className="h-1.5 w-full rounded-full bg-ink/8">
+    <div className="h-1.5 w-full rounded-full bg-[#263244]">
       <div
         className={cn("h-1.5 rounded-full transition-all", color)}
         style={{ width: `${pct}%` }}
@@ -111,11 +111,7 @@ export function WorkloadView({
           label="Plus chargé"
           value={summary.mostLoaded?.full_name ?? "—"}
           sub={`${summary.mostLoaded?.active ?? 0} tâches actives`}
-          tone={
-            (summary.mostLoaded?.active ?? 0) >= OVERLOAD_THRESHOLD
-              ? "red"
-              : "neutral"
-          }
+          tone={(summary.mostLoaded?.active ?? 0) >= OVERLOAD_THRESHOLD ? "red" : "neutral"}
         />
         <SummaryTile
           label="En retard"
@@ -138,13 +134,13 @@ export function WorkloadView({
       </div>
 
       {/* Team grid */}
-      <div className="glass overflow-hidden rounded-2xl">
-        <div className="border-b border-ink/8 bg-white/40 px-4 py-2.5">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-ink/50">
+      <div className="overflow-hidden rounded-2xl border border-[#263244] bg-[#111827]">
+        <div className="border-b border-[#263244] bg-[#18212F] px-4 py-2.5">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-[#94A3B8]">
             Membres de l&apos;équipe — {today}
           </p>
         </div>
-        <div className="divide-y divide-ink/5">
+        <div className="divide-y divide-[#1E2A3A]">
           {members.map((m) => {
             const isOverloaded = m.active >= OVERLOAD_THRESHOLD;
             const isExpanded = expandedId === m.id;
@@ -152,7 +148,7 @@ export function WorkloadView({
             return (
               <div key={m.id}>
                 <div
-                  className="flex cursor-pointer items-start gap-3 px-4 py-3 transition-colors hover:bg-white/40"
+                  className="flex cursor-pointer items-start gap-3 px-4 py-3 transition-colors hover:bg-[#1E2A3A]"
                   onClick={() => setExpandedId(isExpanded ? null : m.id)}
                 >
                   <Avatar member={m} />
@@ -161,21 +157,21 @@ export function WorkloadView({
                     <div className="flex flex-wrap items-center gap-2">
                       <Link
                         href={`/dashboard/team/${m.id}`}
-                        className="text-sm font-semibold text-ink hover:text-brand"
+                        className="text-sm font-semibold text-[#F8FAFC] hover:text-[#22D3EE]"
                         onClick={(e) => e.stopPropagation()}
                       >
                         {m.full_name ?? `@${m.username}`}
                       </Link>
                       {m.job_title && (
-                        <span className="text-xs text-ink/45">{m.job_title}</span>
+                        <span className="text-xs text-[#64748B]">{m.job_title}</span>
                       )}
                       {isOverloaded && (
-                        <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-semibold text-red-700">
+                        <span className="rounded-full bg-[#F43F5E]/15 px-2 py-0.5 text-[10px] font-semibold text-[#F43F5E]">
                           ⚠ Surchargé
                         </span>
                       )}
                       {m.active === 0 && (
-                        <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                        <span className="rounded-full bg-[#22C55E]/15 px-2 py-0.5 text-[10px] font-semibold text-[#22C55E]">
                           Disponible
                         </span>
                       )}
@@ -183,27 +179,27 @@ export function WorkloadView({
 
                     <LoadBar active={m.active} max={maxActive} />
 
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink/55">
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[#94A3B8]">
                       <span>
-                        <strong className="text-ink">{m.active}</strong> actives
+                        <strong className="text-[#F8FAFC]">{m.active}</strong> actives
                       </span>
                       {m.in_progress > 0 && (
                         <span>
-                          <strong className="text-brand">{m.in_progress}</strong> en cours
+                          <strong className="text-[#22D3EE]">{m.in_progress}</strong> en cours
                         </span>
                       )}
                       {m.review > 0 && (
                         <span>
-                          <strong className="text-amber-600">{m.review}</strong> à valider
+                          <strong className="text-[#F59E0B]">{m.review}</strong> à valider
                         </span>
                       )}
                       {m.overdue > 0 && (
                         <span>
-                          <strong className="text-red-600">{m.overdue}</strong> en retard
+                          <strong className="text-[#F43F5E]">{m.overdue}</strong> en retard
                         </span>
                       )}
                       <span>
-                        <strong className="text-emerald-600">{m.done_month}</strong> terminées ce mois
+                        <strong className="text-[#22C55E]">{m.done_month}</strong> terminées ce mois
                       </span>
                       {m.total_tracked_seconds > 0 && (
                         <span>{fmtTime(m.total_tracked_seconds)} trackées ce mois</span>
@@ -215,13 +211,13 @@ export function WorkloadView({
                         {m.projects.slice(0, 5).map((p) => (
                           <span
                             key={p}
-                            className="rounded-md bg-brand/8 px-1.5 py-0.5 text-[10px] font-medium text-brand-dark"
+                            className="rounded-md bg-[#22D3EE]/10 px-1.5 py-0.5 text-[10px] font-medium text-[#22D3EE]"
                           >
                             {p}
                           </span>
                         ))}
                         {m.projects.length > 5 && (
-                          <span className="text-[10px] text-ink/40">
+                          <span className="text-[10px] text-[#64748B]">
                             +{m.projects.length - 5}
                           </span>
                         )}
@@ -232,7 +228,7 @@ export function WorkloadView({
                   <div className="flex shrink-0 items-center gap-2">
                     <svg
                       className={cn(
-                        "h-4 w-4 text-ink/30 transition-transform",
+                        "h-4 w-4 text-[#64748B] transition-transform",
                         isExpanded && "rotate-180",
                       )}
                       viewBox="0 0 24 24"
@@ -249,41 +245,39 @@ export function WorkloadView({
 
                 {/* Expanded: overdue tasks detail */}
                 {isExpanded && (
-                  <div className="border-t border-ink/5 bg-white/20 px-4 pb-4 pt-3">
+                  <div className="border-t border-[#1E2A3A] bg-[#0D1117] px-4 pb-4 pt-3">
                     {m.active === 0 ? (
-                      <p className="text-sm text-ink/40">
-                        Aucune tâche active — membre disponible pour nouvelles
-                        missions.
+                      <p className="text-sm text-[#64748B]">
+                        Aucune tâche active — membre disponible pour nouvelles missions.
                       </p>
                     ) : (
                       <div className="space-y-3">
                         {isOverloaded && (
-                          <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+                          <div className="rounded-lg border border-[#F43F5E]/20 bg-[#F43F5E]/10 px-3 py-2 text-xs text-[#F43F5E]">
                             ⚠ Ce membre a {m.active} tâches actives (seuil :{" "}
-                            {OVERLOAD_THRESHOLD}). Envisagez de redistribuer
-                            certaines tâches.
+                            {OVERLOAD_THRESHOLD}). Envisagez de redistribuer certaines tâches.
                           </div>
                         )}
 
                         {m.overdue_tasks.length > 0 && (
                           <div>
-                            <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-red-600">
+                            <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-[#F43F5E]">
                               Tâches en retard
                             </p>
                             <div className="space-y-1">
                               {m.overdue_tasks.map((t) => (
                                 <div
                                   key={t.id}
-                                  className="flex items-center justify-between gap-2 rounded-lg bg-red-50/60 px-3 py-2"
+                                  className="flex items-center justify-between gap-2 rounded-lg border border-[#F43F5E]/15 bg-[#F43F5E]/8 px-3 py-2"
                                 >
                                   <div className="min-w-0">
                                     <Link
                                       href={`/dashboard/tasks/${t.id}`}
-                                      className="text-sm font-medium text-ink hover:text-brand"
+                                      className="text-sm font-medium text-[#F8FAFC] hover:text-[#22D3EE]"
                                     >
                                       {t.title}
                                     </Link>
-                                    <p className="text-[11px] text-ink/45">
+                                    <p className="text-[11px] text-[#64748B]">
                                       {t.project}
                                     </p>
                                   </div>
@@ -291,7 +285,7 @@ export function WorkloadView({
                                     <Badge tone="red">+{t.days_late}j</Badge>
                                     <Link
                                       href={`/dashboard/tasks/${t.id}`}
-                                      className="rounded-md bg-brand/10 px-2 py-1 text-xs font-medium text-brand hover:bg-brand/20"
+                                      className="rounded-md bg-[#22D3EE]/10 px-2 py-1 text-xs font-medium text-[#22D3EE] hover:bg-[#22D3EE]/20"
                                     >
                                       Voir →
                                     </Link>
@@ -303,7 +297,7 @@ export function WorkloadView({
                         )}
 
                         {m.overdue_tasks.length === 0 && m.active > 0 && (
-                          <p className="text-xs text-ink/40">
+                          <p className="text-xs text-[#64748B]">
                             Aucun retard — {m.active} tâches en cours.
                           </p>
                         )}
@@ -319,9 +313,9 @@ export function WorkloadView({
 
       {/* Overdue late review section */}
       {summary.withOverdue.length > 0 && (
-        <div className="glass rounded-2xl">
-          <div className="border-b border-ink/8 bg-white/40 px-4 py-2.5">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-red-600">
+        <div className="overflow-hidden rounded-2xl border border-[#263244] bg-[#111827]">
+          <div className="border-b border-[#263244] bg-[#18212F] px-4 py-2.5">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-[#F43F5E]">
               Revue retards du jour
             </p>
           </div>
@@ -329,7 +323,7 @@ export function WorkloadView({
             <div className="overflow-x-auto">
               <table className="w-full min-w-[600px] text-sm">
                 <thead>
-                  <tr className="border-b border-ink/8 text-left">
+                  <tr className="border-b border-[#263244] text-left">
                     <Th>Tâche</Th>
                     <Th>Responsable</Th>
                     <Th>Projet</Th>
@@ -346,23 +340,23 @@ export function WorkloadView({
                     .map((row) => (
                       <tr
                         key={row.id}
-                        className="border-b border-ink/5 last:border-0 hover:bg-white/40"
+                        className="border-b border-[#1E2A3A] last:border-0 hover:bg-[#1E2A3A]"
                       >
                         <Td>
                           <Link
                             href={`/dashboard/tasks/${row.id}`}
-                            className="font-medium text-ink hover:text-brand"
+                            className="font-medium text-[#F8FAFC] hover:text-[#22D3EE]"
                           >
                             {row.title}
                           </Link>
                         </Td>
                         <Td>
-                          <span className="text-ink/70">
+                          <span className="text-[#94A3B8]">
                             {row.member.full_name ?? `@${row.member.username}`}
                           </span>
                         </Td>
                         <Td>
-                          <span className="text-ink/55">{row.project}</span>
+                          <span className="text-[#64748B]">{row.project}</span>
                         </Td>
                         <Td>
                           <Badge tone="red">+{row.days_late}j</Badge>
@@ -370,7 +364,7 @@ export function WorkloadView({
                         <Td>
                           <Link
                             href={`/dashboard/tasks/${row.id}`}
-                            className="rounded-md bg-brand/10 px-2 py-1 text-xs font-medium text-brand hover:bg-brand/20"
+                            className="rounded-md bg-[#22D3EE]/10 px-2 py-1 text-xs font-medium text-[#22D3EE] hover:bg-[#22D3EE]/20"
                           >
                             Ouvrir →
                           </Link>
@@ -398,38 +392,28 @@ function SummaryTile({
   sub: string;
   tone: "red" | "amber" | "green" | "neutral" | "slate";
 }) {
-  const border =
-    tone === "red"
-      ? "border-red-300 bg-red-50"
-      : tone === "amber"
-        ? "border-amber-300 bg-amber-50"
-        : tone === "green"
-          ? "border-emerald-300 bg-emerald-50"
-          : "border-ink/10 bg-white/70";
-
-  const valColor =
-    tone === "red"
-      ? "text-red-700"
-      : tone === "amber"
-        ? "text-amber-700"
-        : tone === "green"
-          ? "text-emerald-700"
-          : "text-ink";
+  const styles = {
+    red:     { card: "border-[#F43F5E]/20 bg-[#F43F5E]/8",  val: "text-[#F43F5E]" },
+    amber:   { card: "border-[#F59E0B]/20 bg-[#F59E0B]/8",  val: "text-[#F59E0B]" },
+    green:   { card: "border-[#22C55E]/20 bg-[#22C55E]/8",  val: "text-[#22C55E]" },
+    slate:   { card: "border-[#263244] bg-[#18212F]",        val: "text-[#94A3B8]" },
+    neutral: { card: "border-[#263244] bg-[#111827]",        val: "text-[#F8FAFC]" },
+  }[tone];
 
   return (
-    <div className={cn("rounded-xl border p-3.5", border)}>
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-ink/45">
+    <div className={cn("rounded-xl border p-3.5", styles.card)}>
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">
         {label}
       </p>
-      <p className={cn("mt-1.5 text-lg font-bold", valColor)}>{value}</p>
-      <p className="text-[11px] text-ink/50">{sub}</p>
+      <p className={cn("mt-1.5 text-lg font-bold", styles.val)}>{value}</p>
+      <p className="text-[11px] text-[#64748B]">{sub}</p>
     </div>
   );
 }
 
 function Th({ children }: { children?: React.ReactNode }) {
   return (
-    <th className="px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.06em] text-ink/50">
+    <th className="px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#94A3B8]">
       {children}
     </th>
   );

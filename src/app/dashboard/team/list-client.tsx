@@ -87,10 +87,11 @@ export function TeamListClient({
         <EmptyState>{t.team.empty}</EmptyState>
       ) : (
         <>
-          <div className="glass flex flex-wrap items-center gap-2 rounded-2xl px-4 py-3 md:px-5">
+          {/* Toolbar */}
+          <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-[#263244] bg-[#111827] px-4 py-3 md:px-5">
             <div className="relative min-w-[220px] flex-1">
               <svg
-                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink/40"
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]"
                 width="14"
                 height="14"
                 viewBox="0 0 24 24"
@@ -108,10 +109,11 @@ export function TeamListClient({
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={t.filters.searchMember}
-                className="w-full rounded-lg border border-ink/10 bg-white/70 py-2 pl-9 pr-3 text-sm text-ink placeholder:text-ink/40 transition-colors focus:border-brand focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20"
+                className="w-full rounded-lg border border-[#263244] bg-[#18212F] py-2 pl-9 pr-3 text-sm text-[#F8FAFC] placeholder:text-[#64748B] transition-colors focus:border-[#22D3EE] focus:outline-none focus:ring-2 focus:ring-[#22D3EE]/20"
               />
             </div>
-            <div className="inline-flex items-center rounded-lg border border-ink/10 bg-white/60 p-0.5">
+            {/* Role filter tabs */}
+            <div className="inline-flex items-center rounded-lg border border-[#263244] bg-[#18212F] p-0.5">
               {(["all", "admin", "worker", "freelancer"] as RoleFilter[]).map(
                 (r) => (
                   <button
@@ -122,8 +124,8 @@ export function TeamListClient({
                     className={cn(
                       "h-7 rounded-md px-3 text-xs font-medium transition-all",
                       roleFilter === r
-                        ? "bg-brand text-white shadow-sm"
-                        : "text-ink/60 hover:bg-white/80 hover:text-ink",
+                        ? "bg-[#22D3EE] text-[#0B0F14] shadow-sm"
+                        : "text-[#94A3B8] hover:bg-[#263244] hover:text-[#F8FAFC]",
                     )}
                   >
                     {r === "all" ? t.common.all : t.roles[r as UserRole]}
@@ -134,62 +136,114 @@ export function TeamListClient({
                 ),
               )}
             </div>
-            <span className="ml-auto rounded-md bg-ink/5 px-2 py-1 text-xs font-medium text-ink/65">
+            <span className="ml-auto rounded-md bg-[#263244] px-2 py-1 text-xs font-medium text-[#94A3B8]">
               {t.teamUi.members(filtered.length)}
             </span>
           </div>
 
-          <Table>
-            <THead>
-              <TR>
-                <TH>{t.team.columns.name}</TH>
-                <TH>{t.team.columns.username}</TH>
-                <TH>{t.team.columns.email}</TH>
-                <TH>{t.team.columns.role}</TH>
-                <TH className="text-right">{t.team.columns.actions}</TH>
-              </TR>
-            </THead>
-            <TBody>
-              {filtered.map((m) => (
-                <TR key={m.id}>
-                  <TD>
-                    <div className="flex items-center gap-3">
+          {/* Desktop table */}
+          <div className="hidden md:block">
+            <Table>
+              <THead>
+                <TR>
+                  <TH>{t.team.columns.name}</TH>
+                  <TH>{t.team.columns.username}</TH>
+                  <TH>{t.team.columns.email}</TH>
+                  <TH>{t.team.columns.role}</TH>
+                  <TH className="text-right">{t.team.columns.actions}</TH>
+                </TR>
+              </THead>
+              <TBody>
+                {filtered.map((m) => (
+                  <TR key={m.id}>
+                    <TD>
+                      <div className="flex items-center gap-3">
+                        <Avatar
+                          src={m.avatar_url}
+                          name={m.full_name ?? m.username}
+                        />
+                        <div>
+                          <p className="font-medium text-[#F8FAFC]">
+                            {m.full_name ?? m.username}
+                          </p>
+                          {m.job_title && (
+                            <p className="text-xs text-[#64748B]">{m.job_title}</p>
+                          )}
+                          {m.id === currentUserId && (
+                            <p className="text-xs text-[#22D3EE]/70">
+                              {t.dashboard.welcome}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </TD>
+                    <TD className="text-[#94A3B8]">@{m.username}</TD>
+                    <TD className="text-[#94A3B8]">{m.email}</TD>
+                    <TD>
+                      <Badge tone={roleTone[m.role]}>{t.roles[m.role]}</Badge>
+                    </TD>
+                    <TD className="text-right">
+                      <Link
+                        href={`/dashboard/team/${m.id}`}
+                        className="text-sm font-medium text-[#22D3EE] hover:text-[#06B6D4]"
+                      >
+                        {t.common.edit}
+                      </Link>
+                    </TD>
+                  </TR>
+                ))}
+              </TBody>
+            </Table>
+          </div>
+
+          {/* Mobile cards */}
+          <div className="md:hidden space-y-3">
+            {filtered.length === 0 ? (
+              <EmptyState>{t.team.empty}</EmptyState>
+            ) : (
+              filtered.map((m) => (
+                <div
+                  key={m.id}
+                  className="rounded-xl border border-[#263244] bg-[#111827] p-4"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
                       <Avatar
                         src={m.avatar_url}
                         name={m.full_name ?? m.username}
                       />
-                      <div>
-                        <p className="font-medium text-ink">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-[#F8FAFC] truncate">
                           {m.full_name ?? m.username}
                         </p>
                         {m.job_title && (
-                          <p className="text-xs text-ink/55">{m.job_title}</p>
+                          <p className="text-xs text-[#64748B] truncate">{m.job_title}</p>
                         )}
                         {m.id === currentUserId && (
-                          <p className="text-xs text-ink/40">
-                            {t.dashboard.welcome}
-                          </p>
+                          <p className="text-xs text-[#22D3EE]/70">Vous</p>
                         )}
                       </div>
                     </div>
-                  </TD>
-                  <TD className="text-ink/60">@{m.username}</TD>
-                  <TD className="text-ink/60">{m.email}</TD>
-                  <TD>
                     <Badge tone={roleTone[m.role]}>{t.roles[m.role]}</Badge>
-                  </TD>
-                  <TD className="text-right">
+                  </div>
+                  <div className="mt-3 space-y-1 border-t border-[#1E2A3A] pt-3">
+                    <p className="text-xs text-[#94A3B8]">
+                      <span className="text-[#64748B]">@</span>{m.username}
+                    </p>
+                    <p className="text-xs text-[#94A3B8] truncate">{m.email}</p>
+                  </div>
+                  <div className="mt-3">
                     <Link
                       href={`/dashboard/team/${m.id}`}
-                      className="text-sm font-medium text-brand hover:text-brand-dark"
+                      className="inline-flex h-8 items-center rounded-lg border border-[#22D3EE]/30 bg-[#22D3EE]/10 px-3 text-xs font-semibold text-[#22D3EE] hover:bg-[#22D3EE]/20 transition-colors"
                     >
                       {t.common.edit}
                     </Link>
-                  </TD>
-                </TR>
-              ))}
-            </TBody>
-          </Table>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </>
       )}
     </div>

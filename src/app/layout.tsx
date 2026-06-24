@@ -27,6 +27,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr" className={franklin.variable}>
+      <head>
+        {/* Inline script: apply theme before first paint to prevent flash */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var m=localStorage.getItem('areencubs.theme');var dark=(m==='dark')||(m!=='light'&&(m!=='system'?true:window.matchMedia('(prefers-color-scheme: dark)').matches));if(!dark)document.documentElement.classList.add('light')}catch(e){}})()`,
+          }}
+        />
+      </head>
       <body>
         <I18nProvider>
           <ToastProvider>{children}</ToastProvider>

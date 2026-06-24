@@ -149,10 +149,10 @@ function ProfileMenu({
             </Link>
           </div>
 
-          {/* Theme toggle row */}
-          <div className="px-3 py-2 border-t border-[#263244] flex items-center justify-between">
-            <span className="text-xs text-[#64748B]">Apparence</span>
-            <ThemeToggle />
+          {/* Theme toggle row — full 3-way toggle, hidden on sm+ where topbar shows it */}
+          <div className="px-3 py-2.5 border-t border-[#263244]">
+            <p className="mb-2 text-xs text-[#64748B]">Apparence</p>
+            <ThemeToggle className="w-full" />
           </div>
 
           {/* Sign out */}
@@ -234,6 +234,9 @@ export function Topbar({
 
         {/* Right side actions */}
         <div className="flex items-center gap-1.5 sm:gap-2">
+          <div className="hidden sm:block">
+            <ThemeToggle />
+          </div>
           <QuickCreateButton role={role} />
           <NotificationBell initial={notifications} />
           <ProfileMenu

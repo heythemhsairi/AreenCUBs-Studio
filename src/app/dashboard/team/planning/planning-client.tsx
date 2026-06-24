@@ -129,17 +129,17 @@ export function TeamPlanningClient({ members, today }: { members: TeamMember[]; 
       {/* Today summary chips */}
       <div className="flex flex-wrap items-center gap-3">
         <span className="section-label">{t.planning.today}</span>
-        <span className="inline-flex items-center gap-2 rounded-full border border-brand/30 bg-brand/12 px-3 py-1.5 text-xs font-semibold text-brand">
+        <span className="inline-flex items-center gap-2 rounded-full border border-[#22D3EE]/30 bg-[#22D3EE]/10 px-3 py-1.5 text-xs font-semibold text-[#22D3EE]">
           <span className="text-base leading-none">🏢</span>
-          <span className="text-cream/95">{todayBreakdown.office}</span>
-          <span className="text-cream/55 font-normal">
+          <span className="text-[#F8FAFC]">{todayBreakdown.office}</span>
+          <span className="text-[#94A3B8] font-normal">
             {t.planning.todayHere}
           </span>
         </span>
         <span className="inline-flex items-center gap-2 rounded-full border border-[#7c4dff]/30 bg-[#7c4dff]/15 px-3 py-1.5 text-xs font-semibold text-[#bfa6ff]">
           <span className="text-base leading-none">🏠</span>
-          <span className="text-cream/95">{todayBreakdown.home}</span>
-          <span className="text-cream/55 font-normal">
+          <span className="text-[#F8FAFC]">{todayBreakdown.home}</span>
+          <span className="text-[#94A3B8] font-normal">
             {t.planning.todayHome}
           </span>
         </span>
@@ -175,18 +175,18 @@ export function TeamPlanningClient({ members, today }: { members: TeamMember[]; 
           {/* Month toolbar */}
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-lg font-semibold tracking-tight text-ink">
+              <p className="text-lg font-semibold tracking-tight text-[#F8FAFC]">
                 {t.overview.months[viewedMonth.getMonth()]}{" "}
                 {viewedMonth.getFullYear()}
               </p>
-              <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-ink/55">
+              <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-[#94A3B8]">
                 <span>{t.planning.hint}</span>
-                <Swatch color="bg-brand" />
+                <Swatch color="bg-[#22D3EE]" />
                 <span>{t.planning.office}</span>
-                <span className="text-ink/35">→</span>
+                <span className="text-[#64748B]">→</span>
                 <Swatch color="bg-[#7c4dff]" />
                 <span>{t.planning.home}</span>
-                <span className="text-ink/35">→</span>
+                <span className="text-[#64748B]">→</span>
                 <span>{t.planning.empty}</span>
               </p>
             </div>
@@ -195,7 +195,7 @@ export function TeamPlanningClient({ members, today }: { members: TeamMember[]; 
               <button
                 type="button"
                 onClick={thisMonth}
-                className="rounded-md px-2.5 py-1 text-xs font-semibold text-ink/70 transition-colors hover:bg-white/10 hover:text-ink"
+                className="rounded-md px-2.5 py-1 text-xs font-semibold text-[#94A3B8] transition-colors hover:bg-[#263244] hover:text-[#F8FAFC]"
               >
                 {t.planning.today}
               </button>
@@ -207,8 +207,8 @@ export function TeamPlanningClient({ members, today }: { members: TeamMember[]; 
           <div className="overflow-x-auto">
             <table className="w-full min-w-[900px] border-separate border-spacing-y-1.5">
               <thead>
-                <tr className="text-[10px] font-semibold uppercase tracking-[0.08em] text-ink/45">
-                  <th className="sticky left-0 z-10 bg-[#121a2e] pl-1 pr-3 text-left">
+                <tr className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#64748B]">
+                  <th className="sticky left-0 z-10 bg-[#0B0F14] pl-1 pr-3 text-left">
                     {t.planning.member}
                   </th>
                   {days.map((d) => {
@@ -218,7 +218,7 @@ export function TeamPlanningClient({ members, today }: { members: TeamMember[]; 
                         key={d.date}
                         className={cn(
                           "px-0.5 text-center transition-colors",
-                          d.isWeekend && "text-ink/25",
+                          d.isWeekend && "text-[#3F4C59]",
                           isToday &&
                             "rounded-md bg-brand/15 text-brand ring-1 ring-brand/30",
                         )}
@@ -242,10 +242,10 @@ export function TeamPlanningClient({ members, today }: { members: TeamMember[]; 
                   const totalsRow = totals.find((x) => x.id === m.id)!;
                   return (
                     <tr key={m.id} className="group">
-                      <td className="sticky left-0 z-10 bg-[#121a2e] py-1.5 pl-1 pr-3">
+                      <td className="sticky left-0 z-10 bg-[#0B0F14] py-1.5 pl-1 pr-3">
                         <Link
                           href={`/dashboard/team/planning/${m.id}`}
-                          className="flex items-center gap-2.5 rounded-lg px-1.5 py-1 transition-colors hover:bg-white/8"
+                          className="flex items-center gap-2.5 rounded-lg px-1.5 py-1 transition-colors hover:bg-[#1E2A3A]"
                         >
                           <Avatar
                             src={m.avatar_url}
@@ -253,11 +253,11 @@ export function TeamPlanningClient({ members, today }: { members: TeamMember[]; 
                             size="sm"
                           />
                           <div className="min-w-0">
-                            <p className="truncate text-sm font-medium text-ink">
+                            <p className="truncate text-sm font-medium text-[#F8FAFC]">
                               {m.full_name ?? m.username}
                             </p>
                             {m.job_title && (
-                              <p className="truncate text-[11px] text-ink/45">
+                              <p className="truncate text-[11px] text-[#64748B]">
                                 {m.job_title}
                               </p>
                             )}
@@ -274,7 +274,7 @@ export function TeamPlanningClient({ members, today }: { members: TeamMember[]; 
                                   </span>
                                 )}
                                 {m.workload.active > 0 && m.workload.overdue === 0 && m.workload.due_today === 0 && (
-                                  <span className="rounded-full bg-white/8 px-1.5 py-0 text-[9px] text-ink/35">
+                                  <span className="rounded-full bg-[#263244] px-1.5 py-0 text-[9px] text-[#64748B]">
                                     {m.workload.active} tâches
                                   </span>
                                 )}
@@ -312,7 +312,7 @@ export function TeamPlanningClient({ members, today }: { members: TeamMember[]; 
                                   ? "bg-gradient-to-br from-brand to-brand-dark text-white shadow-brand-glow"
                                   : loc === "home"
                                     ? "bg-gradient-to-br from-[#7c4dff] to-[#5b3df0] text-white shadow-[0_4px_12px_-4px_rgba(124,77,255,0.55)]"
-                                    : "bg-white/8 text-ink/30 hover:bg-white/15 hover:text-ink/65",
+                                    : "bg-[#263244]/60 text-[#3F4C59] hover:bg-[#263244] hover:text-[#94A3B8]",
                                 isToday &&
                                   loc === null &&
                                   "ring-1 ring-inset ring-brand/40",
@@ -328,9 +328,9 @@ export function TeamPlanningClient({ members, today }: { members: TeamMember[]; 
                           </td>
                         );
                       })}
-                      <td className="px-3 text-right text-xs font-semibold text-ink/70">
-                        <span className="text-brand">{totalsRow.office}</span>
-                        <span className="mx-1 text-ink/30">/</span>
+                      <td className="px-3 text-right text-xs font-semibold">
+                        <span className="text-[#22D3EE]">{totalsRow.office}</span>
+                        <span className="mx-1 text-[#3F4C59]">/</span>
                         <span className="text-[#bfa6ff]">
                           {totalsRow.home}
                         </span>
@@ -358,7 +358,7 @@ function NavButton({
     <button
       type="button"
       onClick={onClick}
-      className="flex h-8 w-8 items-center justify-center rounded-md text-base font-semibold text-ink/60 transition-colors hover:bg-white/10 hover:text-ink"
+      className="flex h-8 w-8 items-center justify-center rounded-md text-base font-semibold text-[#94A3B8] transition-colors hover:bg-[#263244] hover:text-[#F8FAFC]"
     >
       {label}
     </button>

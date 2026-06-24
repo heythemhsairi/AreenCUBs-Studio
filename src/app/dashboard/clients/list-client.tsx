@@ -59,10 +59,11 @@ export function ClientsListClient({ clients }: { clients: ClientRow[] }) {
         <EmptyState>{t.clients.empty}</EmptyState>
       ) : (
         <>
-          <div className="glass flex flex-wrap items-center gap-2 rounded-2xl px-4 py-3 md:px-5">
+          {/* Toolbar */}
+          <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-[#263244] bg-[#111827] px-4 py-3 md:px-5">
             <div className="relative min-w-[220px] flex-1">
               <svg
-                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink/40"
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]"
                 width="14"
                 height="14"
                 viewBox="0 0 24 24"
@@ -80,53 +81,96 @@ export function ClientsListClient({ clients }: { clients: ClientRow[] }) {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={t.filters.searchClient}
-                className="w-full rounded-lg border border-ink/10 bg-white/70 py-2 pl-9 pr-3 text-sm text-ink placeholder:text-ink/40 transition-colors focus:border-brand focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20"
+                className="w-full rounded-lg border border-[#263244] bg-[#18212F] py-2 pl-9 pr-3 text-sm text-[#F8FAFC] placeholder:text-[#64748B] transition-colors focus:border-[#22D3EE] focus:outline-none focus:ring-2 focus:ring-[#22D3EE]/20"
               />
             </div>
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value as Sort)}
-              className="h-9 rounded-lg border border-ink/10 bg-white/70 px-3 text-xs font-medium text-ink/70 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+              className="h-9 rounded-lg border border-[#263244] bg-[#18212F] px-3 text-xs font-medium text-[#94A3B8] focus:border-[#22D3EE] focus:outline-none focus:ring-2 focus:ring-[#22D3EE]/20"
             >
               <option value="newest">{t.common.newest}</option>
               <option value="name">{t.common.nameAZ}</option>
               <option value="projects">{t.common.mostProjects}</option>
             </select>
-            <span className="ml-auto rounded-md bg-ink/5 px-2 py-1 text-xs font-medium text-ink/65">
+            <span className="ml-auto rounded-md bg-[#263244] px-2 py-1 text-xs font-medium text-[#94A3B8]">
               {t.clientsUi.clients(filtered.length)}
             </span>
           </div>
-          <Table>
-            <THead>
-              <TR>
-                <TH>{t.clients.columns.name}</TH>
-                <TH>{t.clients.columns.email}</TH>
-                <TH>{t.clients.columns.phone}</TH>
-                <TH>{t.clients.columns.projects}</TH>
-                <TH>{t.clients.columns.createdAt}</TH>
-              </TR>
-            </THead>
-            <TBody>
-              {filtered.map((c) => (
-                <TR key={c.id}>
-                  <TD className="font-medium text-slate-900">
-                    <Link
-                      href={`/dashboard/clients/${c.id}`}
-                      className="hover:text-brand"
-                    >
-                      {c.name}
-                    </Link>
-                  </TD>
-                  <TD className="text-slate-600">{c.email ?? "—"}</TD>
-                  <TD className="text-slate-600">{c.phone ?? "—"}</TD>
-                  <TD className="text-slate-600">{c.projects_count}</TD>
-                  <TD className="text-slate-500">
-                    {new Date(c.created_at).toLocaleDateString()}
-                  </TD>
+
+          {/* Desktop table */}
+          <div className="hidden md:block">
+            <Table>
+              <THead>
+                <TR>
+                  <TH>{t.clients.columns.name}</TH>
+                  <TH>{t.clients.columns.email}</TH>
+                  <TH>{t.clients.columns.phone}</TH>
+                  <TH>{t.clients.columns.projects}</TH>
+                  <TH>{t.clients.columns.createdAt}</TH>
                 </TR>
-              ))}
-            </TBody>
-          </Table>
+              </THead>
+              <TBody>
+                {filtered.map((c) => (
+                  <TR key={c.id}>
+                    <TD className="font-medium">
+                      <Link
+                        href={`/dashboard/clients/${c.id}`}
+                        className="text-[#F8FAFC] hover:text-[#22D3EE] transition-colors"
+                      >
+                        {c.name}
+                      </Link>
+                    </TD>
+                    <TD className="text-[#94A3B8]">{c.email ?? "—"}</TD>
+                    <TD className="text-[#94A3B8]">{c.phone ?? "—"}</TD>
+                    <TD className="text-[#94A3B8]">{c.projects_count}</TD>
+                    <TD className="text-[#64748B]">
+                      {new Date(c.created_at).toLocaleDateString("fr-FR")}
+                    </TD>
+                  </TR>
+                ))}
+              </TBody>
+            </Table>
+          </div>
+
+          {/* Mobile cards */}
+          <div className="md:hidden space-y-3">
+            {filtered.length === 0 ? (
+              <EmptyState>{t.clients.empty}</EmptyState>
+            ) : (
+              filtered.map((c) => (
+                <Link
+                  key={c.id}
+                  href={`/dashboard/clients/${c.id}`}
+                  className="block rounded-xl border border-[#263244] bg-[#111827] p-4 hover:border-[#22D3EE]/30 hover:bg-[#1E2A3A] transition-colors"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-semibold text-[#F8FAFC] truncate">{c.name}</p>
+                      {c.email && (
+                        <p className="text-xs text-[#94A3B8] truncate mt-0.5">{c.email}</p>
+                      )}
+                    </div>
+                    {c.projects_count > 0 && (
+                      <span className="shrink-0 rounded-full bg-[#22D3EE]/10 px-2 py-0.5 text-[11px] font-semibold text-[#22D3EE]">
+                        {c.projects_count} projet{c.projects_count !== 1 ? "s" : ""}
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-3 flex items-center justify-between border-t border-[#1E2A3A] pt-3">
+                    {c.phone ? (
+                      <p className="text-xs text-[#64748B]">{c.phone}</p>
+                    ) : (
+                      <span />
+                    )}
+                    <p className="text-xs text-[#64748B]">
+                      {new Date(c.created_at).toLocaleDateString("fr-FR")}
+                    </p>
+                  </div>
+                </Link>
+              ))
+            )}
+          </div>
         </>
       )}
     </div>
