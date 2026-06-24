@@ -1,17 +1,39 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { cn } from "@/lib/utils";
 import { markUpdateSeenAction } from "@/lib/update-actions";
 import type { AppUpdate } from "@/lib/updates";
 
+function localStorageKey(version: string) {
+  return `whats-new-dismissed-${version}`;
+}
+
 export function WhatsNewBanner({ update }: { update: AppUpdate }) {
+  // null = unknown (pre-mount), true = dismissed, false = visible
+  const [dismissed, setDismissed] = useState<boolean | null>(null);
   const [open, setOpen] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
   const [, startTransition] = useTransition();
 
+  // On mount, check localStorage before rendering anything
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(localStorageKey(update.version));
+      setDismissed(stored === "true");
+    } catch {
+      // localStorage unavailable (SSR guard, private mode, etc.)
+      setDismissed(false);
+    }
+  }, [update.version]);
+
   function dismiss() {
+    try {
+      localStorage.setItem(localStorageKey(update.version), "true");
+    } catch {
+      // ignore
+    }
     setDismissed(true);
+    // Also persist to DB as a best-effort background call
     startTransition(async () => {
       await markUpdateSeenAction(update.id, null);
     });
@@ -26,46 +48,56 @@ export function WhatsNewBanner({ update }: { update: AppUpdate }) {
     dismiss();
   }
 
-  if (dismissed) return null;
+  // Don't render until we've checked localStorage (avoids flash)
+  if (dismissed === null || dismissed === true) return null;
 
   return (
     <>
-      {/* Banner strip */}
-      <div className="flex items-center gap-3 rounded-xl border border-brand/25 bg-brand/8 px-4 py-2.5">
-        <span className="text-lg">🚀</span>
+      {/* Banner — dark themed */}
+      <div className="relative flex items-center gap-3 rounded-xl border border-[#22D3EE]/20 bg-[#18212F] px-4 py-3 border-l-4 border-l-[#22D3EE]">
+        {/* Heading + summary */}
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold text-ink">
-            Nouveautés — v{update.version}
+          <p className="text-xs font-semibold text-[#22D3EE]">
+            Nouveautés disponibles — v{update.version}
           </p>
-          <p className="truncate text-[11px] text-ink/55">
+          <p className="mt-0.5 truncate text-[11px] text-[#94A3B8]">
             {update.summary ?? update.title}
           </p>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <button
-            type="button"
-            onClick={openModal}
-            className="rounded-md bg-brand px-3 py-1 text-xs font-semibold text-white transition-colors hover:bg-brand-dark"
+
+        {/* "Voir les détails" link */}
+        <button
+          type="button"
+          onClick={openModal}
+          className="shrink-0 text-xs text-[#22D3EE] underline underline-offset-2 transition-opacity hover:opacity-75"
+        >
+          Voir les détails
+        </button>
+
+        {/* Dismiss X */}
+        <button
+          type="button"
+          onClick={dismiss}
+          aria-label="Fermer"
+          className="shrink-0 rounded-md p-1 text-[#64748B] transition-colors hover:text-[#F8FAFC]"
+        >
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           >
-            Voir les nouveautés
-          </button>
-          <button
-            type="button"
-            onClick={dismiss}
-            aria-label="Fermer"
-            className="rounded-md p-1 text-ink/40 transition-colors hover:bg-white/50 hover:text-ink"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M18 6 6 18M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
+            <path d="M18 6 6 18M6 6l12 12" />
+          </svg>
+        </button>
       </div>
 
       {/* What's New modal */}
-      {open && (
-        <WhatsNewModal update={update} onClose={closeModal} />
-      )}
+      {open && <WhatsNewModal update={update} onClose={closeModal} />}
     </>
   );
 }
@@ -118,7 +150,16 @@ function WhatsNewModal({
               onClick={onClose}
               className="rounded-lg p-2 text-ink/40 transition-colors hover:bg-white/50 hover:text-ink"
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <path d="M18 6 6 18M6 6l12 12" />
               </svg>
             </button>
@@ -126,8 +167,10 @@ function WhatsNewModal({
         </div>
 
         {/* Body */}
-        <div className="overflow-y-auto p-6 space-y-5" style={{ maxHeight: "calc(85vh - 140px)" }}>
-          {/* Global items */}
+        <div
+          className="space-y-5 overflow-y-auto p-6"
+          style={{ maxHeight: "calc(85vh - 140px)" }}
+        >
           {globalItems.length > 0 && (
             <div className="space-y-3">
               {globalItems.map((item) => (
@@ -136,7 +179,6 @@ function WhatsNewModal({
             </div>
           )}
 
-          {/* Section-specific items */}
           {Object.entries(sectionGroups).map(([section, items]) => (
             <div key={section}>
               <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-ink/40">
