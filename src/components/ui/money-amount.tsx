@@ -1,47 +1,59 @@
 import * as React from "react";
 
+import { formatDt } from "@/lib/format";
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
 /**
- * Format a monetary amount using the French convention:
- * - Space as thousands separator
- * - Comma as decimal separator
- * - `decimals` decimal places (default 3 for Tunisian Dinar)
- *
- * @example formatMoney(12345.678) → "12 345,678"
+ * Format a number with fr-FR locale, 2 decimal places, no currency suffix.
+ * e.g. 1190 → "1 190,00"
  */
-export function formatMoney(amount: number, decimals = 3): string {
-  const fixed = Math.abs(amount).toFixed(decimals);
-  const [intPart, decPart] = fixed.split(".");
-
-  // Insert non-breaking spaces every 3 digits from the right
-  const intFormatted = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-
-  return decimals > 0 ? `${intFormatted},${decPart}` : intFormatted;
+function formatNumber(value: number): string {
+  return Math.abs(value).toLocaleString("fr-FR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 }
 
 /**
- * Convenience wrapper that always formats with 3 decimal places (DT convention).
+ * Compact abbreviation for tight spaces.
+ * Uses the same 2-decimal, fr-FR style for the abbreviated number.
  *
- * @example formatDtAmount(12345.678) → "12 345,678"
+ * @example
+ *   compact(1190)        → "1,19k"
+ *   compact(1_500_000)   → "1,50M"
+ *   compact(500)         → "500,00"
  */
-export function formatDtAmount(amount: number): string {
-  return formatMoney(amount, 3);
+function formatCompact(value: number): string {
+  const abs = Math.abs(value);
+  if (abs >= 1_000_000) {
+    const n = (abs / 1_000_000).toLocaleString("fr-FR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+    return `${n}M`;
+  }
+  if (abs >= 1_000) {
+    const n = (abs / 1_000).toLocaleString("fr-FR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+    return `${n}k`;
+  }
+  return formatNumber(abs);
 }
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
-type Size = "xs" | "sm" | "md" | "lg" | "xl";
+type Size = "sm" | "md" | "lg" | "xl";
 type Tone = "positive" | "negative" | "neutral" | "muted";
 
 export interface MoneyAmountProps {
   amount: number;
-  /** Currency label shown as a suffix. @default "DT" */
-  currency?: string;
   /** Controls the text size of the numeric part. @default "md" */
   size?: Size;
   /** Controls the colour of the numeric part. @default "neutral" */
@@ -52,6 +64,12 @@ export interface MoneyAmountProps {
   mono?: boolean;
   /** When true, renders the number in a bold weight. @default true */
   bold?: boolean;
+  /**
+   * When true, abbreviates large numbers for tight spaces.
+   * 1 190,00 DT → 1,19k DT  |  1 500 000,00 DT → 1,50M DT
+   * @default false
+   */
+  compact?: boolean;
   /** Optional extra className forwarded to the root element. */
   className?: string;
 }
@@ -61,18 +79,18 @@ export interface MoneyAmountProps {
 // ---------------------------------------------------------------------------
 
 const sizeClasses: Record<Size, { number: string; currency: string }> = {
-  xs: { number: "text-xs",   currency: "text-[10px]" },
-  sm: { number: "text-sm",   currency: "text-xs"     },
-  md: { number: "text-base", currency: "text-sm"     },
-  lg: { number: "text-xl",   currency: "text-base"   },
-  xl: { number: "text-2xl",  currency: "text-lg"     },
+  sm: { number: "text-sm",   currency: "text-xs"   },
+  md: { number: "text-base", currency: "text-sm"   },
+  lg: { number: "text-xl",   currency: "text-base" },
+  xl: { number: "text-2xl",  currency: "text-lg"   },
 };
 
+/** Dark-first palette — white/light text on dark surfaces. */
 const toneClasses: Record<Tone, string> = {
   positive: "text-[#22C55E]",
   negative: "text-[#F43F5E]",
-  neutral:  "text-[#F8FAFC]",
-  muted:    "text-[#64748B]",
+  neutral:  "text-[#F8FAFC]",   // near-white
+  muted:    "text-[#94A3B8]",   // slate-400
 };
 
 // ---------------------------------------------------------------------------
@@ -81,25 +99,27 @@ const toneClasses: Record<Tone, string> = {
 
 export function MoneyAmount({
   amount,
-  currency = "DT",
   size = "md",
   tone = "neutral",
   showSign = false,
   mono = true,
   bold = true,
+  compact = false,
   className,
 }: MoneyAmountProps) {
   const isNegative = amount < 0;
   const sign = showSign && amount > 0 ? "+" : isNegative ? "-" : "";
 
-  const formatted = formatMoney(Math.abs(amount));
+  // Formatted numeric string (no currency suffix)
+  const formattedNumber = compact
+    ? formatCompact(Math.abs(amount))
+    : formatNumber(Math.abs(amount));
 
   const { number: numberSizeClass, currency: currencySizeClass } =
     sizeClasses[size];
 
-  const toneClass = toneClasses[tone];
-
-  const fontClass = mono ? "font-mono" : "font-sans";
+  const toneClass  = toneClasses[tone];
+  const fontClass  = mono ? "font-mono" : "font-sans";
   const weightClass = bold ? "font-bold" : "font-normal";
 
   return (
@@ -121,19 +141,23 @@ export function MoneyAmount({
         ].join(" ")}
       >
         {sign}
-        {formatted}
+        {formattedNumber}
       </span>
 
-      {currency && (
-        <span
-          className={[
-            currencySizeClass,
-            "font-normal text-[#94A3B8]",
-          ].join(" ")}
-        >
-          {currency}
-        </span>
-      )}
+      <span
+        className={[
+          currencySizeClass,
+          "font-normal text-[#94A3B8]",
+        ].join(" ")}
+      >
+        DT
+      </span>
     </span>
   );
 }
+
+// ---------------------------------------------------------------------------
+// Re-export formatDt so callers that previously imported formatMoney /
+// formatDtAmount from this file can migrate to the shared utility.
+// ---------------------------------------------------------------------------
+export { formatDt };

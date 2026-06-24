@@ -107,15 +107,15 @@ export function AuditTab({ data }: { data: AuditData }) {
       <Card>
         <CardHeader><CardTitle>Contrôles d&apos;intégrité</CardTitle></CardHeader>
         <CardContent>
-          <ul className="divide-y divide-ink/8">
+          <ul className="divide-y divide-[#263244]">
             {checks.map((c, i) => (
               <li key={i} className="flex items-start gap-3 py-3">
                 <span className={cn("mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold", c.ok ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-600")}>
                   {c.ok ? "✓" : "!"}
                 </span>
                 <div>
-                  <p className={cn("text-sm font-semibold", c.ok ? "text-ink" : "text-red-700")}>{c.label}</p>
-                  <p className="text-xs text-ink/55">{c.detail}</p>
+                  <p className={cn("text-sm font-semibold", c.ok ? "text-[#22C55E]" : "text-[#F43F5E]")}>{c.label}</p>
+                  <p className="text-xs text-[#F8FAFC]/55">{c.detail}</p>
                 </div>
               </li>
             ))}
@@ -133,7 +133,7 @@ export function AuditTab({ data }: { data: AuditData }) {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-ink/8 text-left text-xs font-semibold uppercase tracking-wider text-ink/40">
+                  <tr className="border-b border-[#263244] text-left text-xs font-semibold uppercase tracking-wider text-[#F8FAFC]/40">
                     <th className="pb-2">N°</th>
                     <th className="pb-2">Client</th>
                     <th className="pb-2 text-right">Montant</th>
@@ -141,16 +141,16 @@ export function AuditTab({ data }: { data: AuditData }) {
                 </thead>
                 <tbody>
                   {noPay.map((f) => (
-                    <tr key={f.id} className="border-b border-ink/5 last:border-0">
-                      <td className="py-2 font-mono text-xs text-ink/70">FACT-{String(f.devis_number).padStart(7, "0")}</td>
-                      <td className="py-2 text-ink">{f.client_name}</td>
+                    <tr key={f.id} className="border-b border-[#263244]/50 last:border-0">
+                      <td className="py-2 font-mono text-xs text-[#F8FAFC]/70">FACT-{String(f.devis_number).padStart(7, "0")}</td>
+                      <td className="py-2 text-[#F8FAFC]">{f.client_name}</td>
                       <td className="py-2 text-right font-semibold text-red-600">{formatDt(f.total_dt)}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            <p className="mt-3 text-xs text-ink/50">
+            <p className="mt-3 text-xs text-[#F8FAFC]/50">
               Ces factures ont le statut &quot;payé&quot; mais aucun enregistrement dans la table payments. La migration a peut-être raté ou les paiements ont été supprimés. Utilisez l&apos;action &quot;Marquer payé&quot; pour les corriger.
             </p>
           </CardContent>
@@ -167,7 +167,7 @@ export function AuditTab({ data }: { data: AuditData }) {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-ink/8 text-left text-xs font-semibold uppercase tracking-wider text-ink/40">
+                  <tr className="border-b border-[#263244] text-left text-xs font-semibold uppercase tracking-wider text-[#F8FAFC]/40">
                     <th className="pb-2">Devis</th>
                     <th className="pb-2">Client</th>
                     <th className="pb-2 text-right">Paiements migrés</th>
@@ -176,17 +176,17 @@ export function AuditTab({ data }: { data: AuditData }) {
                 </thead>
                 <tbody>
                   {migrated.map((d) => (
-                    <tr key={d.devis_id} className="border-b border-ink/5 last:border-0">
-                      <td className="py-2 font-mono text-xs text-ink/70">EST-{String(d.devis_number).padStart(7, "0")}</td>
-                      <td className="py-2 text-ink">{d.client_name}</td>
-                      <td className="py-2 text-right text-ink/70">{d.migrated_count}</td>
+                    <tr key={d.devis_id} className="border-b border-[#263244]/50 last:border-0">
+                      <td className="py-2 font-mono text-xs text-[#F8FAFC]/70">EST-{String(d.devis_number).padStart(7, "0")}</td>
+                      <td className="py-2 text-[#F8FAFC]">{d.client_name}</td>
+                      <td className="py-2 text-right text-[#F8FAFC]/70">{d.migrated_count}</td>
                       <td className="py-2 text-right font-semibold text-emerald-700">{formatDt(d.migrated_amount)}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            <p className="mt-3 text-xs text-ink/50">Ces devis avaient des paiements au moment de la conversion. Les paiements ont été copiés sur la facture correspondante.</p>
+            <p className="mt-3 text-xs text-[#F8FAFC]/50">Ces devis avaient des paiements au moment de la conversion. Les paiements ont été copiés sur la facture correspondante.</p>
           </CardContent>
         </Card>
       )}
@@ -196,9 +196,9 @@ export function AuditTab({ data }: { data: AuditData }) {
 
 function SummaryTile({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-xl border border-ink/8 bg-white/50 p-4">
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-ink/45">{label}</p>
-      <p className="mt-2 text-2xl font-bold text-ink">{value}</p>
+    <div className="rounded-xl border border-[#263244] bg-[#18212F] p-4">
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-[#F8FAFC]/45">{label}</p>
+      <p className="mt-2 text-2xl font-bold text-[#22D3EE]">{value}</p>
     </div>
   );
 }

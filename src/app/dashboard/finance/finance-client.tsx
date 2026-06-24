@@ -64,7 +64,7 @@ type Props = {
   mtdInvoiced: number; prevInvoiced: number;
   qtdPaid: number;
   totalOutstanding: number; totalOverdue: number; expectedNext30: number;
-  mtdExpenses: number; netProfit: number; profitMargin: number;
+  mtdExpenses: number; netProfit: number; profitMargin: number | null;
   monthlySeries: MonthlySeries[];
   expByCategory: Record<string, number>;
   topServices: ServiceTally[];
@@ -101,9 +101,18 @@ type TabKey = (typeof TABS)[number]["key"];
 // Helpers
 // ---------------------------------------------------------------------------
 
+/** Returns the % change between current and previous.
+ *  Returns null when both are 0 (no meaningful change).
+ *  Returns null when prev is 0 but current > 0 — use `isNew()` instead to show a "Nouveau" badge.
+ */
 function pct(c: number, p: number): number | null {
-  if (p === 0) return c > 0 ? 100 : null;
+  if (p === 0) return null;
   return ((c - p) / p) * 100;
+}
+
+/** True when the previous period had 0 and current period has a positive value — "first activity". */
+function isNew(c: number, p: number): boolean {
+  return p === 0 && c > 0;
 }
 
 // ---------------------------------------------------------------------------
@@ -411,6 +420,7 @@ function DashboardTab(props: Props) {
           value={props.mtdPaid}
           suffix=" DT"
           trend={pct(props.mtdPaid, props.prevPaid)}
+          trendIsNew={isNew(props.mtdPaid, props.prevPaid)}
           trendLabel="vs mois dernier"
           tone="green"
           tooltip="Paiements réellement reçus sur factures uniquement"
@@ -420,6 +430,7 @@ function DashboardTab(props: Props) {
           value={props.mtdInvoiced}
           suffix=" DT"
           trend={pct(props.mtdInvoiced, props.prevInvoiced)}
+          trendIsNew={isNew(props.mtdInvoiced, props.prevInvoiced)}
           trendLabel="vs mois dernier"
           tone="cyan"
           tooltip="Total des factures émises ce mois"
@@ -453,12 +464,16 @@ function DashboardTab(props: Props) {
           tooltip="Encaissé moins dépenses sur le mois en cours"
         />
         <KpiCard
-          label="Marge"
-          value={props.profitMargin}
-          suffix="%"
+          label={props.profitMargin === null ? "Marge (dép. non saisies)" : "Marge"}
+          value={props.profitMargin === null ? "N/A" : props.profitMargin}
+          suffix={props.profitMargin === null ? "" : "%"}
           decimals={1}
           tone="violet"
-          tooltip="Profit net / Encaissé × 100"
+          tooltip={
+            props.profitMargin === null
+              ? "Aucune dépense saisie ce mois — la marge ne peut pas être calculée"
+              : "Profit net / Encaissé × 100"
+          }
         />
         <KpiCard
           label="Attendu 30j"

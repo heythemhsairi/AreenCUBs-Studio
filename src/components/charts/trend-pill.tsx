@@ -6,14 +6,34 @@ type Props = {
   className?: string;
   /** Reverse the green/red mapping (e.g. for "outstanding" where lower is better). */
   invert?: boolean;
+  /**
+   * Pass true when the previous value was 0 and current > 0.
+   * Renders a "Nouveau" badge instead of a misleading percentage.
+   */
+  isNew?: boolean;
 };
 
-export function TrendPill({ pct, className, invert }: Props) {
-  if (pct === null || !Number.isFinite(pct)) {
+export function TrendPill({ pct, className, invert, isNew }: Props) {
+  // "Nouveau" badge takes priority — previous was 0, current > 0
+  if (isNew) {
     return (
       <span
         className={cn(
-          "inline-flex items-center gap-0.5 rounded-full bg-ink/5 px-2 py-0.5 text-[11px] font-semibold text-ink/40",
+          "inline-flex items-center gap-0.5 rounded-full bg-[#06B6D4]/15 px-2 py-0.5 text-[11px] font-semibold text-[#06B6D4]",
+          className,
+        )}
+      >
+        Nouveau
+      </span>
+    );
+  }
+
+  // Null / non-finite → neutral dash
+  if (pct === null) {
+    return (
+      <span
+        className={cn(
+          "inline-flex items-center gap-0.5 rounded-full bg-[#263244] px-2 py-0.5 text-[11px] font-semibold text-[#64748B]",
           className,
         )}
       >
@@ -22,11 +42,40 @@ export function TrendPill({ pct, className, invert }: Props) {
     );
   }
 
+  // Non-finite number → neutral dash
+  if (!Number.isFinite(pct)) {
+    return (
+      <span
+        className={cn(
+          "inline-flex items-center gap-0.5 rounded-full bg-[#263244] px-2 py-0.5 text-[11px] font-semibold text-[#64748B]",
+          className,
+        )}
+      >
+        —
+      </span>
+    );
+  }
+
+  // Zero → neutral "=" badge
+  if (pct === 0) {
+    return (
+      <span
+        className={cn(
+          "inline-flex items-center gap-0.5 rounded-full bg-[#263244] px-2 py-0.5 text-[11px] font-semibold text-[#64748B]",
+          className,
+        )}
+      >
+        =
+      </span>
+    );
+  }
+
   const up = pct > 0;
   const isGood = invert ? !up : up;
+
   const tone = isGood
-    ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200/60"
-    : "bg-red-50 text-red-700 ring-1 ring-red-200/60";
+    ? "bg-[#22C55E]/15 text-[#22C55E]"
+    : "bg-[#F43F5E]/15 text-[#F43F5E]";
 
   return (
     <span

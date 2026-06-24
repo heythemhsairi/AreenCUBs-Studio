@@ -128,7 +128,8 @@ export default async function FinancePage() {
     .reduce((s, e) => s + Number(e.amount_dt ?? 0), 0);
 
   const netProfit = mtdPaid - mtdExpenses;
-  const profitMargin = mtdPaid > 0 ? (netProfit / mtdPaid) * 100 : 0;
+  // Margin is only meaningful when expenses are recorded; otherwise it's 100% by definition
+  const profitMargin = (mtdPaid > 0 && mtdExpenses > 0) ? (netProfit / mtdPaid) * 100 : null;
 
   // ── OUTSTANDING ────────────────────────────────────────────────
   const outstandingRows = (unpaidFactures ?? [])

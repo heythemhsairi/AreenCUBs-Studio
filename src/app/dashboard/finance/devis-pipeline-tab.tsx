@@ -11,10 +11,10 @@ const STATUS_LABELS: Record<string, string> = {
   draft: "Brouillon", sent: "Envoyé", accepted: "Accepté", rejected: "Refusé",
 };
 const STATUS_COLORS: Record<string, string> = {
-  draft: "bg-ink/8 text-ink/55",
-  sent: "bg-blue-100 text-blue-700",
-  accepted: "bg-emerald-100 text-emerald-700",
-  rejected: "bg-red-100 text-red-600",
+  draft: "bg-[#263244] text-[#94A3B8]",
+  sent: "bg-blue-900/50 text-blue-300",
+  accepted: "bg-emerald-900/50 text-emerald-300",
+  rejected: "bg-red-900/50 text-red-400",
 };
 
 export function DevisPipelineTab({
@@ -50,11 +50,11 @@ export function DevisPipelineTab({
               { label: "CA espéré", count: null, color: "bg-brand", pct: null, value: formatDt(expectedRevenue) },
             ].map((row) => (
               <div key={row.label} className="flex items-center gap-3">
-                <span className="w-24 shrink-0 text-xs font-medium text-ink/60">{row.label}</span>
-                <div className="flex-1 overflow-hidden rounded-full bg-ink/8 h-2.5">
+                <span className="w-24 shrink-0 text-xs font-medium text-[#F8FAFC]/60">{row.label}</span>
+                <div className="flex-1 overflow-hidden rounded-full bg-[#263244] h-2.5">
                   <div className={cn("h-full rounded-full transition-all", row.color)} style={{ width: `${row.pct ?? 100}%` }} />
                 </div>
-                <span className="w-20 shrink-0 text-right text-xs font-semibold text-ink">
+                <span className="w-20 shrink-0 text-right text-xs font-semibold text-[#F8FAFC]">
                   {row.value ?? row.count}
                 </span>
               </div>
@@ -76,7 +76,7 @@ export function DevisPipelineTab({
                   onClick={() => setFilter(s)}
                   className={cn(
                     "rounded-full px-2.5 py-1 text-xs font-medium transition-colors",
-                    filter === s ? "bg-brand text-white" : "bg-ink/6 text-ink/60 hover:bg-ink/10",
+                    filter === s ? "bg-brand text-white" : "bg-[#263244] text-[#F8FAFC]/60 hover:bg-[#1E2A3A]",
                   )}
                 >
                   {s === "all" ? "Tous" : STATUS_LABELS[s] ?? s}
@@ -87,12 +87,12 @@ export function DevisPipelineTab({
         </CardHeader>
         <CardContent>
           {filtered.length === 0 ? (
-            <p className="py-8 text-center text-sm text-ink/40">Aucun devis pour ce filtre.</p>
+            <p className="py-8 text-center text-sm text-[#F8FAFC]/40">Aucun devis pour ce filtre.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-ink/8 text-left text-xs font-semibold uppercase tracking-wider text-ink/40">
+                  <tr className="border-b border-[#263244] text-left text-xs font-semibold uppercase tracking-wider text-[#F8FAFC]/40">
                     <th className="pb-2">N°</th>
                     <th className="pb-2">Client</th>
                     <th className="pb-2">Date</th>
@@ -103,28 +103,28 @@ export function DevisPipelineTab({
                 </thead>
                 <tbody>
                   {filtered.map((d) => (
-                    <tr key={d.id} className="border-b border-ink/5 last:border-0 hover:bg-white/40">
+                    <tr key={d.id} className="border-b border-[#263244] last:border-0 hover:bg-[#1E2A3A]">
                       <td className="py-2.5">
                         <Link href={`/dashboard/devis/${d.id}`} className="font-mono text-xs text-brand hover:underline">
                           #{d.devis_number}
                         </Link>
                       </td>
-                      <td className="py-2.5 font-medium text-ink">{d.client_name}</td>
-                      <td className="py-2.5 text-ink/55">{formatDate(d.date)}</td>
-                      <td className="py-2.5 text-ink/55">{formatDate(d.due_date)}</td>
+                      <td className="py-2.5 font-medium text-[#F8FAFC]">{d.client_name}</td>
+                      <td className="py-2.5 text-[#F8FAFC]/55">{formatDate(d.date)}</td>
+                      <td className="py-2.5 text-[#F8FAFC]/55">{formatDate(d.due_date)}</td>
                       <td className="py-2.5">
-                        <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-semibold", STATUS_COLORS[d.status] ?? "bg-ink/8 text-ink/55")}>
+                        <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-semibold", STATUS_COLORS[d.status] ?? "bg-[#263244] text-[#94A3B8]")}>
                           {STATUS_LABELS[d.status] ?? d.status}
                         </span>
                       </td>
-                      <td className="py-2.5 text-right font-semibold text-ink">{formatDt(d.total_dt)}</td>
+                      <td className="py-2.5 text-right font-semibold text-[#F8FAFC]">{formatDt(d.total_dt)}</td>
                     </tr>
                   ))}
                 </tbody>
                 <tfoot>
-                  <tr className="border-t border-ink/15">
-                    <td colSpan={5} className="pt-2.5 text-xs font-semibold uppercase tracking-wider text-ink/50">Total</td>
-                    <td className="pt-2.5 text-right font-bold text-ink">{formatDt(filtered.reduce((s,d)=>s+d.total_dt,0))}</td>
+                  <tr className="border-t border-[#263244]">
+                    <td colSpan={5} className="pt-2.5 text-xs font-semibold uppercase tracking-wider text-[#F8FAFC]/50">Total</td>
+                    <td className="pt-2.5 text-right font-bold text-[#22D3EE]">{formatDt(filtered.reduce((s,d)=>s+d.total_dt,0))}</td>
                   </tr>
                 </tfoot>
               </table>
@@ -138,13 +138,13 @@ export function DevisPipelineTab({
 
 function PipelineStat({ label, value, sub, highlight }: { label: string; value: string; sub: string; highlight?: "green" | "red" }) {
   return (
-    <div className="rounded-xl border border-ink/8 bg-white/50 p-4">
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-ink/45">{label}</p>
+    <div className="rounded-xl border border-[#263244] bg-[#111827] p-4">
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-[#F8FAFC]/45">{label}</p>
       <p className={cn(
         "mt-2 text-2xl font-bold",
-        highlight === "green" ? "text-emerald-700" : highlight === "red" ? "text-red-600" : "text-ink",
+        highlight === "green" ? "text-emerald-400" : highlight === "red" ? "text-red-400" : "text-[#F8FAFC]",
       )}>{value}</p>
-      <p className="mt-0.5 text-[11px] text-ink/45">{sub}</p>
+      <p className="mt-0.5 text-[11px] text-[#F8FAFC]/45">{sub}</p>
     </div>
   );
 }

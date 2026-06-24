@@ -36,6 +36,8 @@ type Revenue = {
   invoicedTrend: number | null;
   paidTrend: number | null;
   outstandingTrend: number | null;
+  paidIsNew?: boolean;
+  invoicedIsNew?: boolean;
 };
 
 type Featured = {
@@ -167,8 +169,7 @@ export function OverviewClient({
     statusGroups.review +
     statusGroups.done;
 
-  // Net profit (admin only): paid - expenses (no expenses field on revenue, show as paid - outstanding)
-  const netProfit = revenue.mtdPaid - revenue.outstanding;
+  // Net profit: not calculable here without expenses data — show paid amount only
 
   return (
     <div className="space-y-8">
@@ -295,6 +296,7 @@ export function OverviewClient({
               mtdPaid={revenue.mtdPaid}
               mtdInvoiced={revenue.mtdInvoiced}
               paidTrend={revenue.paidTrend}
+              paidIsNew={revenue.paidIsNew}
             />
 
             {/* Facturé mois */}
@@ -304,6 +306,7 @@ export function OverviewClient({
               suffix=" DT"
               tone="cyan"
               trend={revenue.invoicedTrend}
+              trendIsNew={revenue.invoicedIsNew}
               trendLabel={t.kpis.vsLastMonth}
               icon={<FileText className="h-4 w-4" />}
             />
@@ -314,8 +317,7 @@ export function OverviewClient({
               value={revenue.outstanding}
               suffix=" DT"
               tone={revenue.outstanding > 0 ? "amber" : "neutral"}
-              trend={revenue.outstandingTrend}
-              trendLabel={t.kpis.vsLastMonth}
+              trend={null}
               icon={<AlertTriangle className="h-4 w-4" />}
               tooltip={
                 revenue.outstanding > 0
@@ -324,15 +326,23 @@ export function OverviewClient({
               }
             />
 
-            {/* Profit net */}
-            <KpiCard
-              label="Profit net (estimé)"
-              value={netProfit}
-              suffix=" DT"
-              tone={netProfit >= 0 ? "green" : "red"}
-              icon={<TrendingUp className="h-4 w-4" />}
-              tooltip="Encaissé − impayés"
-            />
+            {/* Voir Finance OS */}
+            <div className="flex flex-col items-start justify-between rounded-xl bg-[#111827] border border-[#263244] p-5 gap-3">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-[#22D3EE]" />
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">Analyse complète</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-[#F8FAFC]">Finance OS</p>
+                <p className="mt-0.5 text-xs text-[#64748B]">Dépenses, marges, impayés et audit</p>
+              </div>
+              <Link
+                href="/dashboard/finance"
+                className="mt-auto inline-flex items-center gap-1.5 rounded-lg bg-[#22D3EE]/10 border border-[#22D3EE]/25 px-3 py-1.5 text-xs font-semibold text-[#22D3EE] hover:bg-[#22D3EE]/20 transition-colors"
+              >
+                Voir Finance OS →
+              </Link>
+            </div>
           </div>
         </section>
       )}
@@ -642,10 +652,10 @@ function Greeting({
             ? t.greeting.spaceTeam
             : t.greeting.spaceFreelance}
       </p>
-      <h1 className="text-3xl font-semibold tracking-tight text-ink md:text-4xl">
+      <h1 className="text-3xl font-semibold tracking-tight text-[#F8FAFC] md:text-4xl">
         {time}, {fullName.split(" ")[0]} 👋
       </h1>
-      <p className="text-sm text-ink/55">{subtitle}</p>
+      <p className="text-sm text-[#94A3B8]">{subtitle}</p>
     </section>
   );
 }
@@ -658,16 +668,17 @@ function HeroRevenueCard({
   mtdPaid,
   mtdInvoiced,
   paidTrend,
+  paidIsNew,
 }: {
   mtdPaid: number;
   mtdInvoiced: number;
   paidTrend: number | null;
+  paidIsNew?: boolean;
 }) {
   const { t } = useI18n();
-  const rawRate = mtdInvoiced > 0 ? (mtdPaid / mtdInvoiced) * 100 : 0;
-  // Never cap at 100 — show true rate; if >100% client paid more than we invoiced this month
-  const collectionRate = rawRate;
-  const barWidth = Math.min(100, collectionRate); // bar can't overflow visually
+  const hasInvoiced = mtdInvoiced > 0;
+  const collectionRate = hasInvoiced ? (mtdPaid / mtdInvoiced) * 100 : null;
+  const barWidth = collectionRate !== null ? Math.min(100, collectionRate) : 0;
 
   return (
     <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-brand via-brand-dark to-[#0a1326] shadow-brand-glow surface-grain">
@@ -679,36 +690,42 @@ function HeroRevenueCard({
           <p className="text-[11px] font-semibold uppercase tracking-wider text-cream/70">
             {t.kpis.revenueMtd}
           </p>
-          <TrendPill pct={paidTrend} className="!bg-white/15 !text-white !ring-0" />
+          <TrendPill pct={paidTrend} isNew={paidIsNew} className="!bg-white/15 !text-white !ring-0" />
         </div>
 
         <p className="mt-3 text-3xl font-semibold tracking-tight text-cream md:text-[34px]">
           <CountUp to={mtdPaid} decimals={0} suffix=" DT" />
         </p>
-        <p className="mt-1 text-xs text-cream/60">
-          {t.kpis.sumInvoiced(formatDt(mtdInvoiced))}
-        </p>
+        {hasInvoiced ? (
+          <p className="mt-1 text-xs text-cream/60">
+            {t.kpis.sumInvoiced(formatDt(mtdInvoiced))}
+          </p>
+        ) : (
+          <p className="mt-1 text-xs text-cream/60">Aucune facture ce mois</p>
+        )}
 
-        <div className="mt-5">
-          <div className="flex items-center justify-between text-[11px] font-semibold text-cream/80">
-            <span>{t.kpis.collectionRate}</span>
-            <span>
-              {collectionRate > 100
-                ? `${collectionRate.toFixed(0)}% ✓`
-                : `${collectionRate.toFixed(0)}%`}
-            </span>
+        {collectionRate !== null && (
+          <div className="mt-5">
+            <div className="flex items-center justify-between text-[11px] font-semibold text-cream/80">
+              <span>{t.kpis.collectionRate}</span>
+              <span>
+                {collectionRate > 100
+                  ? `${collectionRate.toFixed(0)}% ✓`
+                  : `${collectionRate.toFixed(0)}%`}
+              </span>
+            </div>
+            <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/15">
+              <div
+                className={`h-full bg-gradient-to-r transition-all duration-700 ${
+                  collectionRate >= 100
+                    ? "from-emerald-300 via-emerald-200 to-white"
+                    : "from-cyan-300 via-[#a0d2eb] to-white"
+                }`}
+                style={{ width: `${barWidth}%` }}
+              />
+            </div>
           </div>
-          <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/15">
-            <div
-              className={`h-full bg-gradient-to-r transition-all duration-700 ${
-                collectionRate >= 100
-                  ? "from-emerald-300 via-emerald-200 to-white"
-                  : "from-cyan-300 via-[#a0d2eb] to-white"
-              }`}
-              style={{ width: `${barWidth}%` }}
-            />
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

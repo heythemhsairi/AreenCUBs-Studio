@@ -40,6 +40,9 @@ const CATEGORY_COLORS: Record<string, string> = {
   other: "bg-ink/8 text-ink/55",
 };
 
+const INPUT_CLS =
+  "mt-1 w-full rounded-lg border border-[#263244] bg-[#111827] px-3 py-2 text-sm text-[#F8FAFC] placeholder:text-[#64748B] focus:border-[#22D3EE] focus:outline-none focus:ring-2 focus:ring-[#22D3EE]/20";
+
 export function ExpensesTab({
   rows, projects, clients, expByCategory, mtdExpenses,
 }: {
@@ -111,55 +114,55 @@ export function ExpensesTab({
             <form
               ref={formRef}
               action={handleAdd}
-              className="rounded-xl border border-ink/10 bg-white/60 p-4 space-y-3"
+              className="rounded-xl border border-[#263244] bg-[#18212F] p-4 space-y-3"
             >
-              <p className="text-xs font-semibold uppercase tracking-wider text-ink/50">Nouvelle dépense</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-[#64748B]">Nouvelle dépense</p>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-wider text-ink/45">Titre *</label>
-                  <input name="title" required placeholder="Ex: Abonnement Figma" className="mt-1 w-full rounded-lg border border-ink/10 bg-white px-3 py-2 text-sm text-ink placeholder:text-ink/35 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" />
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">Titre *</label>
+                  <input name="title" required placeholder="Ex: Abonnement Figma" className={INPUT_CLS} />
                 </div>
                 <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-wider text-ink/45">Montant (DT) *</label>
-                  <input name="amount_dt" type="number" step="0.01" min="0" required placeholder="0.00" className="mt-1 w-full rounded-lg border border-ink/10 bg-white px-3 py-2 text-sm text-ink placeholder:text-ink/35 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" />
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">Montant (DT) *</label>
+                  <input name="amount_dt" type="number" step="0.01" min="0" required placeholder="0.00" className={INPUT_CLS} />
                 </div>
                 <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-wider text-ink/45">Catégorie</label>
-                  <select name="category" defaultValue="other" className="mt-1 w-full rounded-lg border border-ink/10 bg-white px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20">
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">Catégorie</label>
+                  <select name="category" defaultValue="other" className={INPUT_CLS}>
                     {EXPENSE_CATEGORIES.map((c) => (
                       <option key={c.value} value={c.value}>{c.label}</option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-wider text-ink/45">Date</label>
-                  <input name="expense_date" type="date" defaultValue={new Date().toISOString().slice(0,10)} className="mt-1 w-full rounded-lg border border-ink/10 bg-white px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" />
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">Date</label>
+                  <input name="expense_date" type="date" defaultValue={new Date().toISOString().slice(0,10)} className={INPUT_CLS} />
                 </div>
                 <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-wider text-ink/45">Fournisseur</label>
-                  <input name="vendor" placeholder="Ex: Adobe" className="mt-1 w-full rounded-lg border border-ink/10 bg-white px-3 py-2 text-sm text-ink placeholder:text-ink/35 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" />
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">Fournisseur</label>
+                  <input name="vendor" placeholder="Ex: Adobe" className={INPUT_CLS} />
                 </div>
                 <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-wider text-ink/45">Méthode de paiement</label>
-                  <input name="payment_method" placeholder="Virement, carte…" className="mt-1 w-full rounded-lg border border-ink/10 bg-white px-3 py-2 text-sm text-ink placeholder:text-ink/35 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" />
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">Méthode de paiement</label>
+                  <input name="payment_method" placeholder="Virement, carte…" className={INPUT_CLS} />
                 </div>
                 <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-wider text-ink/45">Projet (optionnel)</label>
-                  <select name="project_id" className="mt-1 w-full rounded-lg border border-ink/10 bg-white px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20">
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">Projet (optionnel)</label>
+                  <select name="project_id" className={INPUT_CLS}>
                     <option value="">— Aucun —</option>
                     {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-wider text-ink/45">Client (optionnel)</label>
-                  <select name="client_id" className="mt-1 w-full rounded-lg border border-ink/10 bg-white px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20">
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">Client (optionnel)</label>
+                  <select name="client_id" className={INPUT_CLS}>
                     <option value="">— Aucun —</option>
                     {clients.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="text-[11px] font-semibold uppercase tracking-wider text-ink/45">Notes</label>
-                  <input name="notes" placeholder="Notes optionnelles" className="mt-1 w-full rounded-lg border border-ink/10 bg-white px-3 py-2 text-sm text-ink placeholder:text-ink/35 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" />
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">Notes</label>
+                  <input name="notes" placeholder="Notes optionnelles" className={INPUT_CLS} />
                 </div>
               </div>
               <button type="submit" className="rounded-lg bg-brand px-4 py-2 text-xs font-semibold text-white hover:bg-brand-dark">
@@ -196,7 +199,7 @@ export function ExpensesTab({
                 </thead>
                 <tbody>
                   {filtered.map((e) => (
-                    <tr key={e.id} className="border-b border-ink/5 last:border-0 hover:bg-white/40">
+                    <tr key={e.id} className="border-b border-ink/5 last:border-0 hover:bg-[#1E2A3A]">
                       <td className="py-2.5 text-ink/55">{formatDate(e.expense_date)}</td>
                       <td className="py-2.5">
                         <p className="font-medium text-ink">{e.title}</p>
@@ -217,7 +220,7 @@ export function ExpensesTab({
                         <button
                           type="button"
                           onClick={() => handleDelete(e.id)}
-                          className="rounded p-1 text-ink/30 hover:bg-red-50 hover:text-red-500"
+                          className="rounded p-1 text-ink/30 hover:bg-red-50/10 hover:text-red-500"
                           aria-label="Supprimer"
                         >
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -246,8 +249,8 @@ export function ExpensesTab({
 
 function StatTile({ label, value, color }: { label: string; value: number; color: string }) {
   return (
-    <div className="rounded-xl border border-ink/8 bg-white/50 p-4">
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-ink/45">{label}</p>
+    <div className="rounded-xl border border-[#263244] bg-[#18212F] p-4">
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">{label}</p>
       <p className={cn("mt-2 text-xl font-bold", color)}>{formatDt(value)}</p>
     </div>
   );

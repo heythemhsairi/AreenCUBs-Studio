@@ -19,10 +19,13 @@ export interface KpiCardProps {
   value: number | string;
   /** Unit appended after the value, e.g. " DT" or "%" */
   suffix?: string;
-  /** Decimal places for numeric values (default: 0) */
+  /** Decimal places for numeric values.
+   *  Defaults to 2 when suffix contains "DT" (money), otherwise 0. */
   decimals?: number;
   /** Percentage change; positive = up, negative = down. null hides the pill. */
   trend?: number | null;
+  /** When true, renders a "Nouveau" badge instead of a percentage (prev was 0, current > 0). */
+  trendIsNew?: boolean;
   /** Caption next to the trend pill, e.g. "vs mois dernier" */
   trendLabel?: string;
   /** Colour theme (default: neutral) */
@@ -122,8 +125,9 @@ export function KpiCard({
   label,
   value,
   suffix = "",
-  decimals = 0,
+  decimals,
   trend = null,
+  trendIsNew = false,
   trendLabel,
   tone = "neutral",
   size = "md",
@@ -135,6 +139,10 @@ export function KpiCard({
   if (loading) {
     return <KpiSkeleton size={size} className={className} />;
   }
+
+  // Auto-default decimals: money (suffix contains "DT") → 2, everything else → 0.
+  const isMoney = suffix.trim().toUpperCase().includes("DT");
+  const effectiveDecimals = decimals !== undefined ? decimals : isMoney ? 2 : 0;
 
   const isNumeric = typeof value === "number";
 
@@ -174,7 +182,7 @@ export function KpiCard({
           {isNumeric ? (
             <CountUp
               to={value as number}
-              decimals={decimals}
+              decimals={effectiveDecimals}
               suffix={suffix}
               duration={900}
             />
@@ -192,9 +200,9 @@ export function KpiCard({
         )}
 
         {/* Trend row */}
-        {(trend !== null && trend !== undefined) && (
+        {(trendIsNew || (trend !== null && trend !== undefined)) && (
           <div className="flex items-center gap-1.5 flex-wrap">
-            <TrendPill pct={trend} />
+            <TrendPill pct={trendIsNew ? null : trend} isNew={trendIsNew} />
             {trendLabel && (
               <span className="text-[11px] text-[#64748B] leading-none">
                 {trendLabel}

@@ -8,12 +8,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { FactureWithBalance } from "./finance-client";
 
 const STATUS_META: Record<string, { label: string; cls: string }> = {
-  draft:     { label: "Brouillon",        cls: "bg-ink/8 text-ink/55" },
-  sent:      { label: "Envoyée",          cls: "bg-blue-100 text-blue-700" },
-  partial:   { label: "Partiel. payée",   cls: "bg-amber-100 text-amber-700" },
-  paid:      { label: "Payée",            cls: "bg-emerald-100 text-emerald-700" },
-  overdue:   { label: "En retard",        cls: "bg-red-100 text-red-600" },
-  cancelled: { label: "Annulée",          cls: "bg-ink/8 text-ink/40 line-through" },
+  draft:     { label: "Brouillon",        cls: "bg-[#263244] text-[#94A3B8]" },
+  sent:      { label: "Envoyée",          cls: "bg-blue-900/40 text-blue-300" },
+  partial:   { label: "Partiel. payée",   cls: "bg-amber-900/40 text-amber-300" },
+  paid:      { label: "Payée",            cls: "bg-emerald-900/40 text-emerald-300" },
+  overdue:   { label: "En retard",        cls: "bg-red-900/40 text-red-400" },
+  cancelled: { label: "Annulée",          cls: "bg-[#263244] text-[#94A3B8] line-through" },
 };
 
 export function FacturesTab({
@@ -46,9 +46,9 @@ export function FacturesTab({
       {/* KPI strip */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <FactureStat label="Total facturé" value={rows.reduce((s,f)=>s+f.total_dt,0)} />
-        <FactureStat label="Encaissé (factures)" value={totalPaid} color="text-emerald-700" />
-        <FactureStat label="Solde impayé" value={totalUnpaid} color={totalUnpaid > 0 ? "text-amber-700" : "text-ink"} />
-        <FactureStat label="En retard" value={totalOverdue} color={totalOverdue > 0 ? "text-red-600" : "text-ink"} />
+        <FactureStat label="Encaissé (factures)" value={totalPaid} color="text-emerald-400" />
+        <FactureStat label="Solde impayé" value={totalUnpaid} color={totalUnpaid > 0 ? "text-amber-400" : "text-[#F8FAFC]"} />
+        <FactureStat label="En retard" value={totalOverdue} color={totalOverdue > 0 ? "text-red-400" : "text-[#F8FAFC]"} />
       </div>
 
       <Card>
@@ -83,7 +83,7 @@ export function FacturesTab({
             <select
               value={clientFilter}
               onChange={(e) => setClientFilter(e.target.value)}
-              className="rounded-lg border border-ink/10 bg-white px-3 py-1.5 text-xs text-ink focus:border-brand focus:outline-none"
+              className="rounded-lg border border-[#263244] bg-[#111827] px-3 py-1.5 text-xs text-[#F8FAFC] focus:border-brand focus:outline-none"
             >
               <option value="all">Tous les clients</option>
               {clients.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -91,12 +91,12 @@ export function FacturesTab({
           )}
 
           {filtered.length === 0 ? (
-            <p className="py-8 text-center text-sm text-ink/40">Aucune facture pour ce filtre.</p>
+            <p className="py-8 text-center text-sm text-[#94A3B8]">Aucune facture pour ce filtre.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-ink/8 text-left text-xs font-semibold uppercase tracking-wider text-ink/40">
+                  <tr className="border-b border-[#263244] text-left text-xs font-semibold uppercase tracking-wider text-[#94A3B8]">
                     <th className="pb-2">N°</th>
                     <th className="pb-2">Client</th>
                     <th className="pb-2">Date</th>
@@ -113,44 +113,44 @@ export function FacturesTab({
                     const meta = STATUS_META[f.computed_status] ?? STATUS_META.sent;
                     const client = clients.find((c) => c.id === f.client_id);
                     return (
-                      <tr key={f.id} className="border-b border-ink/5 last:border-0 hover:bg-white/40">
+                      <tr key={f.id} className="border-b border-[#263244] last:border-0 hover:bg-[#1E2A3A]">
                         <td className="py-2.5">
                           <Link href={`/dashboard/factures/${f.id}`} className="font-mono text-xs text-brand hover:underline">
                             #{f.devis_number}
                           </Link>
                         </td>
-                        <td className="py-2.5 font-medium text-ink">
+                        <td className="py-2.5 font-medium text-[#F8FAFC]">
                           {client
                             ? <Link href={`/dashboard/clients/${client.id}`} className="hover:text-brand">{client.name}</Link>
                             : "—"}
                         </td>
-                        <td className="py-2.5 text-ink/55">{formatDate(f.date)}</td>
-                        <td className="py-2.5 text-ink/55">{formatDate(f.due_date)}</td>
+                        <td className="py-2.5 text-[#94A3B8]">{formatDate(f.date)}</td>
+                        <td className="py-2.5 text-[#94A3B8]">{formatDate(f.due_date)}</td>
                         <td className="py-2.5">
                           <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-semibold", meta.cls)}>
                             {meta.label}
                           </span>
                         </td>
-                        <td className="py-2.5 text-right text-ink/70">{formatDt(f.total_dt)}</td>
-                        <td className="py-2.5 text-right font-medium text-emerald-700">{f.paid_dt > 0 ? formatDt(f.paid_dt) : "—"}</td>
+                        <td className="py-2.5 text-right text-[#CBD5E1]">{formatDt(f.total_dt)}</td>
+                        <td className="py-2.5 text-right font-medium text-emerald-400">{f.paid_dt > 0 ? formatDt(f.paid_dt) : "—"}</td>
                         <td className="py-2.5 text-right font-semibold">
                           {f.balance_dt > 0.01
-                            ? <span className={f.computed_status === "overdue" ? "text-red-600" : "text-amber-700"}>{formatDt(f.balance_dt)}</span>
-                            : <span className="text-emerald-600">Soldée</span>}
+                            ? <span className={f.computed_status === "overdue" ? "text-red-400" : "text-amber-400"}>{formatDt(f.balance_dt)}</span>
+                            : <span className="text-emerald-400">Soldée</span>}
                         </td>
                         <td className="py-2.5 pl-2">
-                          <Link href={`/dashboard/factures/${f.id}`} className="rounded p-1 text-ink/30 hover:text-brand text-xs">→</Link>
+                          <Link href={`/dashboard/factures/${f.id}`} className="rounded p-1 text-[#94A3B8] hover:text-brand text-xs">→</Link>
                         </td>
                       </tr>
                     );
                   })}
                 </tbody>
                 <tfoot>
-                  <tr className="border-t border-ink/15">
-                    <td colSpan={5} className="pt-2.5 text-xs font-semibold uppercase tracking-wider text-ink/50">Total affiché</td>
-                    <td className="pt-2.5 text-right font-bold text-ink">{formatDt(filtered.reduce((s,f)=>s+f.total_dt,0))}</td>
-                    <td className="pt-2.5 text-right font-bold text-emerald-700">{formatDt(filtered.reduce((s,f)=>s+f.paid_dt,0))}</td>
-                    <td className="pt-2.5 text-right font-bold text-red-600">{formatDt(filtered.reduce((s,f)=>s+Math.max(0,f.balance_dt),0))}</td>
+                  <tr className="border-t border-[#263244]">
+                    <td colSpan={5} className="pt-2.5 text-xs font-semibold uppercase tracking-wider text-[#94A3B8]">Total affiché</td>
+                    <td className="pt-2.5 text-right font-bold text-[#F8FAFC]">{formatDt(filtered.reduce((s,f)=>s+f.total_dt,0))}</td>
+                    <td className="pt-2.5 text-right font-bold text-emerald-400">{formatDt(filtered.reduce((s,f)=>s+f.paid_dt,0))}</td>
+                    <td className="pt-2.5 text-right font-bold text-red-400">{formatDt(filtered.reduce((s,f)=>s+Math.max(0,f.balance_dt),0))}</td>
                     <td></td>
                   </tr>
                 </tfoot>
@@ -163,10 +163,10 @@ export function FacturesTab({
   );
 }
 
-function FactureStat({ label, value, color = "text-ink" }: { label: string; value: number; color?: string }) {
+function FactureStat({ label, value, color = "text-[#F8FAFC]" }: { label: string; value: number; color?: string }) {
   return (
-    <div className="rounded-xl border border-ink/8 bg-white/50 p-4">
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-ink/45">{label}</p>
+    <div className="rounded-xl border border-[#263244] bg-[#111827] p-4">
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-[#94A3B8]">{label}</p>
       <p className={cn("mt-2 text-xl font-bold", color)}>{formatDt(value)}</p>
     </div>
   );
@@ -179,7 +179,7 @@ function FilterPill({ active, onClick, children }: { active: boolean; onClick: (
       onClick={onClick}
       className={cn(
         "rounded-full px-2.5 py-1 text-xs font-medium transition-colors",
-        active ? "bg-brand text-white" : "bg-ink/6 text-ink/60 hover:bg-ink/10",
+        active ? "bg-brand text-white" : "bg-[#1E2A3A] text-[#94A3B8] hover:bg-[#263244]",
       )}
     >
       {children}

@@ -275,7 +275,7 @@ export default async function DashboardPage() {
   }
 
   function pctTrend(c: number, p: number): number | null {
-    if (p === 0) return c > 0 ? 100 : null;
+    if (p === 0) return null; // Can't compute % change from 0 — use isNew flag instead
     return ((c - p) / p) * 100;
   }
 
@@ -636,6 +636,8 @@ export default async function DashboardPage() {
           invoicedTrend: pctTrend(mtdInvoiced, prevInvoiced),
           paidTrend: pctTrend(mtdPaid, prevPaid),
           outstandingTrend: pctTrend(totalOutstanding, outstandingPrev),
+          paidIsNew: prevPaid === 0 && mtdPaid > 0,
+          invoicedIsNew: prevInvoiced === 0 && mtdInvoiced > 0,
         }}
         monthlySeries={monthlySeries}
         donutData={donutData}
