@@ -59,9 +59,7 @@ export function ThemeToggle({ className }: { className?: string }) {
 
   if (!mounted) {
     return (
-      <div className={cn("flex h-8 rounded-lg border border-[#22506F] bg-[#123A5A]", className)}>
-        <div className="h-8 w-[88px] rounded-lg animate-pulse bg-[#22506F]/50" />
-      </div>
+      <div className={cn("flex h-7 w-[60px] rounded-md border border-[#22506F] bg-[#123A5A] animate-pulse", className)} />
     );
   }
 
@@ -70,7 +68,7 @@ export function ThemeToggle({ className }: { className?: string }) {
       value: "light",
       label: "Clair",
       icon: (
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="4" />
           <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
         </svg>
@@ -80,7 +78,7 @@ export function ThemeToggle({ className }: { className?: string }) {
       value: "dark",
       label: "Sombre",
       icon: (
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
         </svg>
       ),
@@ -89,7 +87,7 @@ export function ThemeToggle({ className }: { className?: string }) {
       value: "system",
       label: "Auto",
       icon: (
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <rect x="2" y="3" width="20" height="14" rx="2" />
           <path d="M8 21h8M12 17v4" />
         </svg>
@@ -100,7 +98,7 @@ export function ThemeToggle({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "flex items-center rounded-lg border border-[#22506F] bg-[#123A5A] p-0.5 gap-0.5",
+        "flex items-center rounded-md border border-[#22506F]/60 bg-[#0D2D47] p-0.5 gap-0.5",
         className,
       )}
       role="group"
@@ -114,14 +112,13 @@ export function ThemeToggle({ className }: { className?: string }) {
           aria-pressed={mode === opt.value}
           title={opt.label}
           className={cn(
-            "flex flex-1 h-7 items-center justify-center gap-1.5 rounded-md px-2 text-[11px] font-medium transition-all",
+            "flex h-6 w-6 items-center justify-center rounded transition-all",
             mode === opt.value
-              ? "bg-[#22D3EE] text-[#071B2C] shadow-sm"
-              : "text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-[#22506F]",
+              ? "bg-[#22B8D6] text-[#071B2C] shadow-sm"
+              : "text-[#86A8C2] hover:text-[#F4FAFF]",
           )}
         >
           {opt.icon}
-          <span>{opt.label}</span>
         </button>
       ))}
     </div>
