@@ -783,7 +783,7 @@ function ActiveWorkColumn({
         />
       </div>
       <p className="text-[11px] text-[#64748B]">
-        {total > 0 ? `${Math.round((count / total) * 100)}% du total` : "—"}
+        {total > 0 && count > 0 ? `${Math.round((count / total) * 100)}% du total` : total > 0 ? "0%" : "—"}
       </p>
     </div>
   );

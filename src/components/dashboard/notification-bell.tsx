@@ -180,7 +180,7 @@ export function NotificationBell({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="relative flex h-9 w-9 items-center justify-center rounded-full border border-white/60 bg-white/70 text-ink/70 backdrop-blur transition-colors hover:border-brand/30 hover:bg-white/90 hover:text-ink"
+        className="relative flex h-9 w-9 items-center justify-center rounded-full border border-[#263244] bg-[#111827] text-[#94A3B8] transition-colors hover:border-[#22D3EE]/40 hover:bg-[#1E2A3A] hover:text-[#F8FAFC]"
         aria-label="Notifications"
       >
         <svg
@@ -197,16 +197,16 @@ export function NotificationBell({
           <path d="M13.73 21a2 2 0 0 1-3.46 0" />
         </svg>
         {unread > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-ink">
+          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#F43F5E] px-1 text-[10px] font-bold text-white">
             {unread > 9 ? "9+" : unread}
           </span>
         )}
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-30 mt-2 w-[340px] overflow-hidden rounded-2xl border border-ink/10 bg-white shadow-lift">
-          <div className="flex items-center justify-between border-b border-ink/8 bg-cream-dark/40 px-4 py-2.5">
-            <p className="text-sm font-semibold text-ink">
+        <div className="absolute right-0 top-full z-30 mt-2 w-[340px] overflow-hidden rounded-2xl border border-[#263244] bg-[#111827] shadow-[0_8px_32px_rgba(0,0,0,0.6)]">
+          <div className="flex items-center justify-between border-b border-[#263244] bg-[#18212F] px-4 py-2.5">
+            <p className="text-sm font-semibold text-[#F8FAFC]">
               {t.notifications.title}
             </p>
             {unread > 0 && (
@@ -214,7 +214,7 @@ export function NotificationBell({
                 type="button"
                 onClick={onMarkAll}
                 disabled={pending}
-                className="text-xs font-semibold text-brand hover:text-brand-dark"
+                className="text-xs font-semibold text-[#22D3EE] hover:text-[#06B6D4]"
               >
                 {t.common.markAllRead}
               </button>
@@ -223,11 +223,11 @@ export function NotificationBell({
 
           <div className="max-h-[420px] overflow-y-auto">
             {items.length === 0 ? (
-              <p className="px-4 py-10 text-center text-sm text-ink/45">
+              <p className="px-4 py-10 text-center text-sm text-[#64748B]">
                 {t.notifications.empty}
               </p>
             ) : (
-              <ul className="divide-y divide-ink/5">
+              <ul className="divide-y divide-[#1E293B]">
                 {segments.map((seg, idx) => {
                   if (seg.type === "single") {
                     const n = seg.item;
@@ -236,7 +236,7 @@ export function NotificationBell({
                         key={n.id}
                         className={cn(
                           "group relative",
-                          !n.read_at && "bg-brand/5",
+                          !n.read_at && "bg-[#22D3EE]/5",
                         )}
                       >
                         <NotificationItem
@@ -257,7 +257,7 @@ export function NotificationBell({
                       key={key}
                       className={cn(
                         "relative",
-                        unreadInGroup > 0 && "bg-brand/5",
+                        unreadInGroup > 0 && "bg-[#22D3EE]/5",
                       )}
                     >
                       <button
@@ -265,25 +265,25 @@ export function NotificationBell({
                         onClick={() =>
                           setExpanded((m) => ({ ...m, [key]: !m[key] }))
                         }
-                        className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-cream/60"
+                        className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-[#1E2A3A]"
                       >
-                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand/10 text-base text-brand">
+                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#22D3EE]/10 text-base">
                           {iconFor(seg.kind)}
                         </span>
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium text-ink">
+                          <p className="text-sm font-medium text-[#F8FAFC]">
                             {pluralFor(
                               t.notifications.groupPlural,
                               seg.kind,
                               seg.items.length,
                             )}
                           </p>
-                          <p className="mt-0.5 text-[11px] text-ink/45">
+                          <p className="mt-0.5 text-[11px] text-[#64748B]">
                             {relativeTime(seg.items[0].created_at)}
                             {unreadInGroup > 0 && (
                               <>
                                 {" · "}
-                                <span className="font-semibold text-brand">
+                                <span className="font-semibold text-[#22D3EE]">
                                   {t.notifications.unread(unreadInGroup)}
                                 </span>
                               </>
@@ -300,7 +300,7 @@ export function NotificationBell({
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           className={cn(
-                            "shrink-0 text-ink/40 transition-transform",
+                            "shrink-0 text-[#64748B] transition-transform",
                             isExpanded && "rotate-180",
                           )}
                         >
@@ -308,13 +308,13 @@ export function NotificationBell({
                         </svg>
                       </button>
                       {isExpanded && (
-                        <ul className="divide-y divide-ink/5 border-t border-ink/8 bg-cream/30">
+                        <ul className="divide-y divide-[#1E293B] border-t border-[#263244] bg-[#0B0F14]/40">
                           {seg.items.map((n) => (
                             <li
                               key={n.id}
                               className={cn(
                                 "group relative pl-6",
-                                !n.read_at && "bg-brand/5",
+                                !n.read_at && "bg-[#22D3EE]/5",
                               )}
                             >
                               <NotificationItem
@@ -360,17 +360,17 @@ function NotificationItem({
           className={cn(
             compact ? "text-[13px]" : "text-sm",
             "leading-snug",
-            n.read_at ? "text-ink/70" : "font-medium text-ink",
+            n.read_at ? "text-[#94A3B8]" : "font-medium text-[#F8FAFC]",
           )}
         >
           {n.body}
         </p>
-        <p className="mt-0.5 text-[11px] text-ink/45">
+        <p className="mt-0.5 text-[11px] text-[#64748B]">
           {relativeTime(n.created_at)}
         </p>
       </div>
       {!n.read_at && (
-        <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-brand" />
+        <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-[#22D3EE]" />
       )}
     </>
   );
@@ -397,7 +397,7 @@ function NotificationItem({
       <button
         type="button"
         onClick={onDelete}
-        className="shrink-0 text-xs text-ink/30 opacity-0 transition-opacity hover:text-red-600 group-hover:opacity-100"
+        className="shrink-0 text-xs text-[#3F4C59] opacity-0 transition-opacity hover:text-[#F43F5E] group-hover:opacity-100"
         aria-label="Supprimer"
       >
         ×
