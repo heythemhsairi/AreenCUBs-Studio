@@ -124,12 +124,12 @@ export function OverviewClient({
   fullName,
   counts,
   revenue,
-  monthlySeries,
-  donutData,
-  recentDevis,
-  upcomingTasks,
+  monthlySeries = [],
+  donutData = [],
+  recentDevis = [],
+  upcomingTasks = [],
   featuredEmployee,
-  workSchedule,
+  workSchedule = {},
 }: Props) {
   const { t } = useI18n();
   const isAdmin = role === "admin";

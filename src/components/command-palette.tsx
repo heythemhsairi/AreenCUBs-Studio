@@ -139,13 +139,13 @@ export function CommandPalette() {
 
   return (
     <div
-      className="fixed inset-0 z-[80] flex items-start justify-center bg-ink/40 px-4 pt-20 backdrop-blur-sm"
+      className="fixed inset-0 z-[80] flex items-start justify-center bg-[#071B2C]/60 px-4 pt-20 backdrop-blur-sm"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) setOpen(false);
       }}
     >
-      <div className="w-full max-w-xl overflow-hidden rounded-2xl border border-white/40 bg-white/95 shadow-lift backdrop-blur dark:border-white/10 dark:bg-ink/95">
-        <div className="flex items-center gap-3 border-b border-ink/8 px-4 py-3 dark:border-white/10">
+      <div className="w-full max-w-xl overflow-hidden rounded-2xl border border-[#22506F] bg-[#0D2D47] shadow-lift backdrop-blur">
+        <div className="flex items-center gap-3 border-b border-[#22506F] px-4 py-3">
           <svg
             width="18"
             height="18"
@@ -155,7 +155,7 @@ export function CommandPalette() {
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="text-ink/40 dark:text-cream/40"
+            className="text-[#86A8C2]"
           >
             <circle cx="11" cy="11" r="8" />
             <path d="m21 21-4.3-4.3" />
@@ -166,27 +166,27 @@ export function CommandPalette() {
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={onInputKey}
             placeholder={t.common.searchPlaceholder}
-            className="flex-1 bg-transparent text-sm text-ink placeholder:text-ink/40 focus:outline-none dark:text-cream dark:placeholder:text-cream/40"
+            className="flex-1 bg-transparent text-sm text-[#F4FAFF] placeholder:text-[#86A8C2] focus:outline-none"
             autoFocus
           />
-          <kbd className="hidden rounded border border-ink/15 bg-cream-dark/50 px-1.5 py-0.5 text-[10px] font-semibold text-ink/55 sm:inline dark:border-white/15 dark:bg-ink/40 dark:text-cream/55">
+          <kbd className="hidden rounded border border-[#22506F] bg-[#071B2C] px-1.5 py-0.5 text-[10px] font-semibold text-[#86A8C2] sm:inline">
             Esc
           </kbd>
         </div>
 
         <div className="max-h-[60vh] overflow-y-auto">
           {pending && hits.length === 0 && query.length >= 2 && (
-            <p className="px-4 py-8 text-center text-sm text-ink/45">
+            <p className="px-4 py-8 text-center text-sm text-[#86A8C2]">
               {t.commandPalette.searching}
             </p>
           )}
           {!pending && query.length >= 2 && hits.length === 0 && (
-            <p className="px-4 py-8 text-center text-sm text-ink/45">
+            <p className="px-4 py-8 text-center text-sm text-[#86A8C2]">
               {t.commandPalette.noResults(query)}
             </p>
           )}
           {query.length < 2 && (
-            <div className="px-4 py-8 text-center text-xs text-ink/45">
+            <div className="px-4 py-8 text-center text-xs text-[#86A8C2]">
               {t.commandPalette.minChars}
               <div className="mt-3 flex justify-center gap-1.5">
                 <Tip k="↑↓" v={t.commandPalette.navigate} />
@@ -205,24 +205,24 @@ export function CommandPalette() {
                   className={cn(
                     "flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors",
                     i === activeIdx
-                      ? "bg-brand/10"
-                      : "hover:bg-cream-dark/40 dark:hover:bg-white/5",
+                      ? "bg-[#22D3EE]/10"
+                      : "hover:bg-[#1A3E5C]",
                   )}
                 >
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand dark:bg-brand/20">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#22D3EE]/15 text-[#22D3EE]">
                     <KindIcon kind={hit.kind} />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-ink dark:text-cream">
+                    <p className="truncate text-sm font-medium text-[#F4FAFF]">
                       {hit.label}
                     </p>
                     {hit.sublabel && (
-                      <p className="truncate text-xs text-ink/50 dark:text-cream/50">
+                      <p className="truncate text-xs text-[#86A8C2]">
                         {hit.sublabel}
                       </p>
                     )}
                   </div>
-                  <span className="shrink-0 rounded-full bg-ink/5 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-ink/55 dark:bg-white/10 dark:text-cream/60">
+                  <span className="shrink-0 rounded-full bg-[#22506F]/50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[#B8D0E4]">
                     {kindLabel(hit.kind, locale)}
                   </span>
                 </button>
@@ -249,8 +249,8 @@ function kindLabel(kind: SearchHit["kind"], locale: "fr" | "en"): string {
 
 function Tip({ k, v }: { k: string; v: string }) {
   return (
-    <span className="inline-flex items-center gap-1 text-ink/45">
-      <kbd className="rounded border border-ink/15 bg-cream-dark/50 px-1.5 py-0.5 text-[10px] font-semibold text-ink/55">
+    <span className="inline-flex items-center gap-1 text-[#86A8C2]">
+      <kbd className="rounded border border-[#22506F] bg-[#071B2C] px-1.5 py-0.5 text-[10px] font-semibold text-[#B8D0E4]">
         {k}
       </kbd>
       {v}

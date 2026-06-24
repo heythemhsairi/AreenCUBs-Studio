@@ -549,6 +549,34 @@ html.light .bg-\[\#071B2C\]\/60  { background-color: rgba(245,249,255,0.8) !impo
 html.light .bg-\[\#071B2C\]\/90  { background-color: rgba(248,251,255,0.92) !important; }
 
 /* =========================================================================
+   SLATE COLOR OVERRIDES — slate-* are near-black, invisible in dark mode
+   ========================================================================= */
+
+html:not(.light) .text-slate-900 { color: #F4FAFF !important; }
+html:not(.light) .text-slate-800 { color: #E2EFF9 !important; }
+html:not(.light) .text-slate-700 { color: #B8D0E4 !important; }
+html:not(.light) .text-slate-600 { color: #B8D0E4 !important; }
+html:not(.light) .text-slate-500 { color: #86A8C2 !important; }
+html:not(.light) .text-slate-400 { color: #86A8C2 !important; }
+html:not(.light) .bg-slate-900    { background-color: #071B2C !important; }
+html:not(.light) .bg-slate-800    { background-color: #0D2D47 !important; }
+html:not(.light) .bg-slate-700    { background-color: #123A5A !important; }
+html:not(.light) .border-slate-700 { border-color: #22506F !important; }
+html:not(.light) .border-slate-600 { border-color: #22506F !important; }
+
+/* Light mode: slate colors behave naturally (they're dark on white) */
+html.light .text-slate-900 { color: #102033 !important; }
+html.light .text-slate-800 { color: #1E3A55 !important; }
+html.light .text-slate-600 { color: #49627A !important; }
+html.light .text-slate-500 { color: #6C8298 !important; }
+
+/* =========================================================================
+   COMMAND PALETTE — light mode override
+   ========================================================================= */
+
+html.light .command-palette-modal { background-color: #FFFFFF !important; border-color: #D8E6F7 !important; }
+
+/* =========================================================================
    FEATURED CARD
    ========================================================================= */
 

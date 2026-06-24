@@ -68,7 +68,7 @@ export default async function ClientDetailPage({
 
         <div className="space-y-3 lg:col-span-2">
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-semibold text-slate-900">Projets</h2>
+            <h2 className="text-base font-semibold text-[#F4FAFF]">Projets</h2>
             <Link href={`/dashboard/projects/new?clientId=${client.id}`}>
               <Button size="sm">+ Nouveau projet</Button>
             </Link>
@@ -109,12 +109,12 @@ function Info({
 }) {
   return (
     <div>
-      <p className="text-xs uppercase tracking-wide text-slate-500">{label}</p>
+      <p className="text-xs uppercase tracking-wide text-[#86A8C2]">{label}</p>
       <p
         className={
           multiline
-            ? "mt-0.5 whitespace-pre-wrap text-slate-800"
-            : "mt-0.5 text-slate-800"
+            ? "mt-0.5 whitespace-pre-wrap text-[#F4FAFF]"
+            : "mt-0.5 text-[#F4FAFF]"
         }
       >
         {value ?? "—"}
