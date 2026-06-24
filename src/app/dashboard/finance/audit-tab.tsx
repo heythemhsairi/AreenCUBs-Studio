@@ -30,32 +30,38 @@ type AuditItem = {
 };
 
 export function AuditTab({ data }: { data: AuditData }) {
+  // Defensive: ensure all arrays are arrays even if server passed null/undefined
+  const noPay  = data?.facturePaidNoPaymentRecord ?? [];
+  const migrated = data?.devisWithMigratedPayments ?? [];
+  const dupes  = data?.duplicateRisk ?? [];
+  const still  = data?.convertedDevisStillCountedOnDevis ?? [];
+
   const checks: AuditItem[] = [
     {
-      ok: data.facturePaidNoPaymentRecord.length === 0,
+      ok: noPay.length === 0,
       label: "Factures payées avec enregistrement de paiement",
-      detail: data.facturePaidNoPaymentRecord.length === 0
+      detail: noPay.length === 0
         ? "Toutes les factures payées ont au moins un paiement enregistré."
-        : `${data.facturePaidNoPaymentRecord.length} facture(s) marquée(s) payée(s) sans aucun paiement.`,
+        : `${noPay.length} facture(s) marquée(s) payée(s) sans aucun paiement.`,
     },
     {
-      ok: data.duplicateRisk.length === 0,
+      ok: dupes.length === 0,
       label: "Aucun doublon de paiement détecté",
-      detail: data.duplicateRisk.length === 0
+      detail: dupes.length === 0
         ? "Aucun doublon détecté sur les factures."
-        : `${data.duplicateRisk.length} facture(s) avec des paiements potentiellement dupliqués.`,
+        : `${dupes.length} facture(s) avec des paiements potentiellement dupliqués.`,
     },
     {
-      ok: data.convertedDevisStillCountedOnDevis.length === 0,
+      ok: still.length === 0,
       label: "Paiements devis convertis exclus du CA",
-      detail: data.convertedDevisStillCountedOnDevis.length === 0
+      detail: still.length === 0
         ? "Aucun devis converti ne double-compte ses paiements."
-        : `${data.convertedDevisStillCountedOnDevis.length} devis converti(s) avec des paiements non marqués comme superseded.`,
+        : `${still.length} devis converti(s) avec des paiements non marqués comme superseded.`,
     },
     {
-      ok: data.migrationCoverage >= 100,
+      ok: (data?.migrationCoverage ?? 100) >= 100,
       label: "Migration paiements devis → factures",
-      detail: `${data.migrationCoverage.toFixed(0)}% des devis convertis ont leurs paiements transférés sur la facture.`,
+      detail: `${(data?.migrationCoverage ?? 100).toFixed(0)}% des devis convertis ont leurs paiements transférés sur la facture.`,
     },
   ];
 
@@ -118,7 +124,7 @@ export function AuditTab({ data }: { data: AuditData }) {
       </Card>
 
       {/* Factures paid but no payment record */}
-      {data.facturePaidNoPaymentRecord.length > 0 && (
+      {noPay.length > 0 && (
         <Card className="border-red-200">
           <CardHeader>
             <CardTitle className="text-red-700">Factures payées sans paiement enregistré</CardTitle>
@@ -134,7 +140,7 @@ export function AuditTab({ data }: { data: AuditData }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {data.facturePaidNoPaymentRecord.map((f) => (
+                  {noPay.map((f) => (
                     <tr key={f.id} className="border-b border-ink/5 last:border-0">
                       <td className="py-2 font-mono text-xs text-ink/70">FACT-{String(f.devis_number).padStart(7, "0")}</td>
                       <td className="py-2 text-ink">{f.client_name}</td>
@@ -152,7 +158,7 @@ export function AuditTab({ data }: { data: AuditData }) {
       )}
 
       {/* Devis with migrated payments */}
-      {data.devisWithMigratedPayments.length > 0 && (
+      {migrated.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>Devis convertis avec paiements migrés</CardTitle>
@@ -169,7 +175,7 @@ export function AuditTab({ data }: { data: AuditData }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {data.devisWithMigratedPayments.map((d) => (
+                  {migrated.map((d) => (
                     <tr key={d.devis_id} className="border-b border-ink/5 last:border-0">
                       <td className="py-2 font-mono text-xs text-ink/70">EST-{String(d.devis_number).padStart(7, "0")}</td>
                       <td className="py-2 text-ink">{d.client_name}</td>

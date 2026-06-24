@@ -308,6 +308,13 @@ export default async function FinancePage() {
     .slice(0, 6);
 
   // ── ADMIN AUDIT DATA ───────────────────────────────────────────
+  const emptyAudit = {
+    totalPaymentRecords: 0, totalFactures: 0, totalDevis: 0, convertedDevisCount: 0,
+    facturePaidNoPaymentRecord: [], devisWithMigratedPayments: [], duplicateRisk: [],
+    convertedDevisStillCountedOnDevis: [], totalCollectedFromFactures: 0,
+    totalCollectedFromDevis: 0, migrationCoverage: 100,
+  };
+
   // Fetch converted devis IDs (devis that have a linked facture)
   const { data: convertedLinks } = await supabase
     .from("devis")
@@ -369,18 +376,26 @@ export default async function FinancePage() {
       };
     });
 
-  // Devis converted but their payments not yet marked (source_devis_id still null on original devis row)
-  // We approximate this from what we know client-side:
-  // A converted devis that has payments in paymentRows but no migrated copy on its facture
-  const { data: allFacturePayments } = await supabase
-    .from("payments")
-    .select("devis_id, amount_dt, migrated_from_devis, source_devis_id");
-  const migratedSources = new Set(
-    (allFacturePayments ?? [])
-      .filter((p) => p.migrated_from_devis === true)
-      .map((p) => p.source_devis_id as string)
-      .filter(Boolean)
-  );
+  // Devis converted but their payments not yet marked.
+  // We detect this by checking which converted devis have payments on the
+  // facture side (migrated_from_devis=true). These columns may not exist
+  // yet if the migration hasn't been run — safe fallback to empty set.
+  let migratedSources = new Set<string>();
+  try {
+    const { data: allFacturePayments, error: fpErr } = await supabase
+      .from("payments")
+      .select("devis_id, source_devis_id, migrated_from_devis");
+    if (!fpErr && allFacturePayments) {
+      migratedSources = new Set(
+        allFacturePayments
+          .filter((p) => (p as { migrated_from_devis?: boolean }).migrated_from_devis === true)
+          .map((p) => (p as { source_devis_id?: string }).source_devis_id as string)
+          .filter(Boolean)
+      );
+    }
+  } catch {
+    // Migration not yet applied — columns don't exist, skip
+  }
   const convertedDevisStillCountedOnDevis = Array.from(convertedDevisIds)
     .filter((devisId) => {
       const hasPayments = allPaymentsAll.some((p) => p.devis_id === devisId);

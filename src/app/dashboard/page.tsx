@@ -222,21 +222,27 @@ export default async function DashboardPage() {
   const factureIdSet = new Set(factureRows.map((f) => f.id));
 
   // Unpaid facture balances (need all-time payments to compute balance correctly)
-  const { data: unpaidFacturesFull } = isAdmin
-    ? await supabase
+  type UnpaidRow = { id: string; total_dt: number; payment_status: string; status: string };
+  type AllPayRow = { devis_id: string; amount_dt: number };
+  let unpaidFacturesFull: UnpaidRow[] = [];
+  let allPaymentsFull: AllPayRow[] = [];
+
+  if (isAdmin) {
+    const [upRes, apRes] = await Promise.all([
+      supabase
         .from("devis")
         .select("id, total_dt, payment_status, status")
         .eq("kind", "facture")
         .in("payment_status", ["unpaid", "partial"])
-        .neq("status", "rejected")
-    : { data: [] };
-
-  const { data: allPaymentsFull } = isAdmin
-    ? await supabase.from("payments").select("devis_id, amount_dt")
-    : { data: [] };
+        .neq("status", "rejected"),
+      supabase.from("payments").select("devis_id, amount_dt"),
+    ]);
+    unpaidFacturesFull = (upRes.data ?? []) as UnpaidRow[];
+    allPaymentsFull = (apRes.data ?? []) as AllPayRow[];
+  }
 
   const paidPerDoc = new Map<string, number>();
-  for (const p of allPaymentsFull ?? []) {
+  for (const p of allPaymentsFull) {
     paidPerDoc.set(p.devis_id, (paidPerDoc.get(p.devis_id) ?? 0) + Number(p.amount_dt ?? 0));
   }
 
@@ -260,7 +266,7 @@ export default async function DashboardPage() {
     if (dt >= startOfMonth) mtdPaid += Number(p.amount_dt ?? 0);
     else if (dt >= startOfPrevMonth) prevPaid += Number(p.amount_dt ?? 0);
   }
-  for (const f of unpaidFacturesFull ?? []) {
+  for (const f of unpaidFacturesFull) {
     const paid = paidPerDoc.get(f.id) ?? 0;
     const balance = Math.max(0, Number(f.total_dt) - paid);
     if (balance <= 0.01) continue;
