@@ -5,7 +5,8 @@ import { cn } from "@/lib/utils";
 import { formatDt, formatDate } from "@/lib/format";
 import { toast } from "@/components/toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { addExpenseAction, deleteExpenseAction, EXPENSE_CATEGORIES } from "./expense-actions";
+import { addExpenseAction, deleteExpenseAction } from "./expense-actions";
+import { EXPENSE_CATEGORIES } from "./expense-constants";
 
 export type ExpenseRow = {
   id: string;

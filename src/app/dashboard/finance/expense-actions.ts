@@ -3,22 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { EXPENSE_CATEGORIES } from "./expense-constants";
 
 export type ExpenseResult = { ok: true } | { ok: false; error: string };
-
-export const EXPENSE_CATEGORIES = [
-  { value: "salaries",    label: "Salaires" },
-  { value: "freelancers", label: "Freelances" },
-  { value: "ads",         label: "Publicité" },
-  { value: "software",    label: "Logiciels" },
-  { value: "hosting",     label: "Hébergement" },
-  { value: "transport",   label: "Transport" },
-  { value: "office",      label: "Bureau" },
-  { value: "production",  label: "Production client" },
-  { value: "other",       label: "Autre" },
-] as const;
-
-export type ExpenseCategory = (typeof EXPENSE_CATEGORIES)[number]["value"];
+export type { ExpenseCategory } from "./expense-constants";
 
 export async function addExpenseAction(
   formData: FormData,
