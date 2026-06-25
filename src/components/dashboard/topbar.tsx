@@ -88,6 +88,7 @@ function QuickCreateButton({ role }: { role: UserRole }) {
         type="button"
         aria-label={t.topbar.quickCreate}
         aria-expanded={open}
+        aria-haspopup="menu"
         onClick={() => setOpen((v) => !v)}
         className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#22D3EE]/10 border border-[#22D3EE]/25 text-[#22D3EE] hover:bg-[#22D3EE]/20 hover:border-[#22D3EE]/50 transition-colors"
         title={t.topbar.quickCreate}
@@ -96,11 +97,12 @@ function QuickCreateButton({ role }: { role: UserRole }) {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-48 rounded-xl bg-[var(--c-card)] border border-[var(--c-border)] shadow-2xl shadow-black/40 py-1 z-50">
+        <div role="menu" className="absolute right-0 top-full mt-2 w-48 rounded-xl bg-[var(--c-card)] border border-[var(--c-border)] shadow-2xl shadow-black/40 py-1 z-50">
           {quickCreateItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
+              role="menuitem"
               onClick={() => setOpen(false)}
               className="flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--c-text-2)] hover:text-[var(--c-text-1)] hover:bg-[var(--c-elevated)] transition-colors"
             >
@@ -148,7 +150,9 @@ function ProfileMenu({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
+        aria-label={t.topbar.profile}
         aria-expanded={open}
+        aria-haspopup="menu"
         className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-[var(--c-elevated)] transition-colors group"
       >
         <Avatar src={avatarUrl} name={username} size="sm" />
@@ -165,9 +169,9 @@ function ProfileMenu({
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-52 rounded-xl bg-[var(--c-card)] border border-[var(--c-border)] shadow-2xl shadow-black/40 py-1 z-50">
+        <div role="menu" className="absolute right-0 top-full mt-2 w-52 rounded-xl bg-[var(--c-card)] border border-[var(--c-border)] shadow-2xl shadow-black/40 py-1 z-50">
           {/* User info header */}
-          <div className="px-3 py-2.5 border-b border-[var(--c-border)]">
+          <div className="px-3 py-2.5 border-b border-[var(--c-border)]" aria-hidden="true">
             <p className="text-sm font-semibold text-[var(--c-text-1)]">@{username}</p>
             <p className="text-xs text-[var(--c-text-3)] mt-0.5">{roleLabel}</p>
           </div>
@@ -176,6 +180,7 @@ function ProfileMenu({
           <div className="py-1">
             <Link
               href="/dashboard/profile"
+              role="menuitem"
               onClick={() => setOpen(false)}
               className="flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--c-text-2)] hover:text-[var(--c-text-1)] hover:bg-[var(--c-elevated)] transition-colors"
             >
@@ -199,6 +204,7 @@ function ProfileMenu({
           <div className="border-t border-[var(--c-border)] py-1">
             <button
               type="button"
+              role="menuitem"
               onClick={() => {
                 setOpen(false);
                 onSignOut();
@@ -250,7 +256,7 @@ export function Topbar({
   }
 
   return (
-    <header className="sticky top-0 z-40 h-16 bg-[var(--c-bg)]/90 backdrop-blur-xl border-b border-[var(--c-border)] flex items-center">
+    <header aria-label="Top navigation" className="sticky top-0 z-40 h-16 bg-[var(--c-bg)]/90 backdrop-blur-xl border-b border-[var(--c-border)] flex items-center">
       <div className="flex-1 flex items-center justify-between px-4 md:px-6">
 
         {/* Mobile: logo on left */}
@@ -263,6 +269,7 @@ export function Topbar({
           <button
             type="button"
             onClick={openSearch}
+            aria-label={t.common.search}
             className="flex-1 flex items-center gap-2 h-9 px-3 rounded-lg bg-[var(--c-card)] border border-[var(--c-border)] text-[var(--c-text-3)] text-sm hover:border-[#22D3EE]/40 transition-colors"
           >
             <Search size={14} />

@@ -1007,6 +1007,7 @@ export const dict = {
       quickCreate: "Créer…",
       appearance: "Apparence",
       language: "Langue / Language",
+      profile: "Menu profil",
     },
     socialMedia: {
       title: "Social Media",
@@ -2047,6 +2048,7 @@ export const dict = {
       quickCreate: "Create…",
       appearance: "Appearance",
       language: "Language / Langue",
+      profile: "Profile menu",
     },
     socialMedia: {
       title: "Social Media",
