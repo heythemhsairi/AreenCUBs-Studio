@@ -11,7 +11,6 @@ import {
   LayoutDashboard,
   CheckSquare,
   Calendar,
-  Share2,
   Users,
   FolderOpen,
   FileText,
@@ -58,13 +57,6 @@ function buildNav(
       label: t.nav.calendar,
       icon: Calendar,
       rolesAllowed: ["admin", "worker", "freelancer"],
-      group: "workspace",
-    },
-    {
-      href: "/dashboard/social-media",
-      label: t.nav.socialMedia,
-      icon: Share2,
-      rolesAllowed: ["admin", "worker"],
       group: "workspace",
     },
     {

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/utils";
-import { ChevronLeft, BarChart2, CheckCircle2, Clock, Layers, ExternalLink } from "lucide-react";
+import { ChevronLeft, BarChart2, CheckCircle2, Clock, Layers, ExternalLink, Share2 } from "lucide-react";
 
 type ContentItem = {
   id: string;
@@ -26,7 +26,14 @@ type Plan = {
   content_items: ContentItem[];
 };
 
-type Props = { plans: Plan[] };
+type SocialStats = {
+  total: number;
+  scheduled: number;
+  published: number;
+  draft: number;
+};
+
+type Props = { plans: Plan[]; socialStats?: SocialStats };
 
 const STATUS_BG: Record<string, string> = {
   draft: "bg-[var(--c-border)] text-[var(--c-text-3)]",
@@ -34,13 +41,12 @@ const STATUS_BG: Record<string, string> = {
   archived: "bg-[var(--c-border)] text-[var(--c-text-3)]",
 };
 
-export function ContentReportsClient({ plans }: Props) {
+export function ContentReportsClient({ plans, socialStats }: Props) {
   const { t } = useI18n();
   const c = t.contentOS;
   const monthNames = c.months;
   const [clientFilter, setClientFilter] = useState<string>("all");
 
-  // Build unique client list
   const clientMap = new Map<string, string>();
   for (const p of plans) {
     if (p.clients) clientMap.set(p.clients.id, p.clients.name);
@@ -51,7 +57,6 @@ export function ContentReportsClient({ plans }: Props) {
     ? plans
     : plans.filter((p) => p.client_id === clientFilter);
 
-  // Global stats
   const totalPlans = filteredPlans.length;
   const approvedPlans = filteredPlans.filter((p) => p.status === "approved").length;
   const totalItems = filteredPlans.reduce((s, p) => s + p.content_items.length, 0);
@@ -64,7 +69,6 @@ export function ContentReportsClient({ plans }: Props) {
     0,
   );
 
-  // Platform breakdown
   const platformCounts = new Map<string, number>();
   for (const plan of filteredPlans) {
     for (const item of plan.content_items) {
@@ -72,7 +76,6 @@ export function ContentReportsClient({ plans }: Props) {
     }
   }
 
-  // Content type breakdown
   const typeCounts = new Map<string, number>();
   for (const plan of filteredPlans) {
     for (const item of plan.content_items) {
@@ -124,6 +127,39 @@ export function ContentReportsClient({ plans }: Props) {
           </div>
         ))}
       </div>
+
+      {/* Publishing (social posts) stats */}
+      {socialStats && (
+        <div className="rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Share2 size={14} className="text-[#22D3EE]" />
+              <h3 className="text-sm font-semibold text-[var(--c-text-1)]">
+                {c.publishingTitle}
+              </h3>
+            </div>
+            <Link
+              href="/dashboard/content/publishing"
+              className="text-xs text-[#22D3EE] hover:underline"
+            >
+              {c.showAll} →
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {[
+              { label: c.totalPosts, value: socialStats.total, accent: "#22D3EE" },
+              { label: c.scheduledPosts, value: socialStats.scheduled, accent: "#22D3EE" },
+              { label: c.publishedPosts, value: socialStats.published, accent: "#22C55E" },
+              { label: c.draftPosts, value: socialStats.draft, accent: "#64748B" },
+            ].map((s) => (
+              <div key={s.label} className="rounded-lg bg-[var(--c-elevated)] p-3">
+                <p className="text-xs text-[var(--c-text-3)]">{s.label}</p>
+                <p className="mt-1 text-xl font-bold" style={{ color: s.accent }}>{s.value}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Breakdowns */}
       <div className="grid gap-4 sm:grid-cols-2">

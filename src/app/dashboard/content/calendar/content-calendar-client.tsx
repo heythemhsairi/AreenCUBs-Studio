@@ -22,6 +22,13 @@ type ContentItem = {
   clients: ClientRef;
 };
 type Client = { id: string; name: string };
+type SocialPostCalendarItem = {
+  id: string;
+  title: string;
+  platforms: string[];
+  status: string;
+  scheduled_at: string;
+};
 
 type Props = {
   items: ContentItem[];
@@ -29,6 +36,7 @@ type Props = {
   month: number;
   year: number;
   clientFilter: string | null;
+  socialPosts?: SocialPostCalendarItem[];
 };
 
 const ITEM_STATUS_BG: Record<string, string> = {
@@ -51,17 +59,19 @@ const PLATFORM_ICON: Record<string, string> = {
   tiktok: "🎵",
   youtube: "▶️",
   threads: "🧵",
+  pinterest: "📌",
+  snapchat: "👻",
+  telegram: "✈️",
 };
 
-export function ContentCalendarClient({ items, clients, month, year, clientFilter }: Props) {
+export function ContentCalendarClient({ items, clients, month, year, clientFilter, socialPosts = [] }: Props) {
   const { t } = useI18n();
   const c = t.contentOS;
   const router = useRouter();
   const monthNames = c.months;
 
   const daysInMonth = new Date(year, month, 0).getDate();
-  const firstDayOfWeek = new Date(year, month - 1, 1).getDay(); // 0=Sun
-  // Offset so Monday = 0
+  const firstDayOfWeek = new Date(year, month - 1, 1).getDay();
   const offset = (firstDayOfWeek + 6) % 7;
 
   const itemsByDay = new Map<number, ContentItem[]>();
@@ -71,6 +81,14 @@ export function ContentCalendarClient({ items, clients, month, year, clientFilte
     const arr = itemsByDay.get(day) ?? [];
     arr.push(item);
     itemsByDay.set(day, arr);
+  }
+
+  const socialByDay = new Map<number, SocialPostCalendarItem[]>();
+  for (const post of socialPosts) {
+    const day = new Date(post.scheduled_at).getDate();
+    const arr = socialByDay.get(day) ?? [];
+    arr.push(post);
+    socialByDay.set(day, arr);
   }
 
   function navigate(delta: number) {
@@ -115,7 +133,6 @@ export function ContentCalendarClient({ items, clients, month, year, clientFilte
           <h1 className="text-xl font-bold text-[var(--c-text-1)]">{c.calendarTitle}</h1>
         </div>
 
-        {/* Controls */}
         <div className="flex items-center gap-3 flex-wrap">
           <select
             value={clientFilter ?? ""}
@@ -158,6 +175,10 @@ export function ContentCalendarClient({ items, clients, month, year, clientFilte
             {c.itemStatus[status as keyof typeof c.itemStatus]}
           </span>
         ))}
+        <span className="flex items-center gap-1 text-[10px] text-[var(--c-text-3)]">
+          <span className="h-2 w-2 rounded-full bg-[#22D3EE]/80" />
+          {c.publishing}
+        </span>
       </div>
 
       {/* Calendar grid */}
@@ -173,17 +194,20 @@ export function ContentCalendarClient({ items, clients, month, year, clientFilte
 
         {/* Day cells */}
         <div className="grid grid-cols-7">
-          {/* Empty offset cells */}
           {Array.from({ length: offset }).map((_, i) => (
             <div key={`empty-${i}`} className="min-h-[100px] border-b border-r border-[var(--c-border)] bg-[var(--c-elevated)]/30" />
           ))}
 
-          {/* Actual day cells */}
           {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((day) => {
             const dayItems = itemsByDay.get(day) ?? [];
+            const daySocial = socialByDay.get(day) ?? [];
             const isToday = day === todayDay;
             const col = (offset + day - 1) % 7;
             const isLastCol = col === 6;
+            const totalCount = dayItems.length + daySocial.length;
+            const showItems = dayItems.slice(0, daySocial.length > 0 ? 2 : 3);
+            const showSocial = daySocial.slice(0, Math.max(1, 3 - showItems.length));
+            const overflow = totalCount - showItems.length - showSocial.length;
 
             return (
               <div
@@ -204,15 +228,14 @@ export function ContentCalendarClient({ items, clients, month, year, clientFilte
                   >
                     {day}
                   </span>
-                  {dayItems.length > 0 && (
+                  {totalCount > 0 && (
                     <span className="text-[9px] font-semibold text-[var(--c-text-3)]">
-                      {dayItems.length}
+                      {totalCount}
                     </span>
                   )}
                 </div>
 
-                {/* Items for this day (max 3 shown) */}
-                {dayItems.slice(0, 3).map((item) => (
+                {showItems.map((item) => (
                   <Link
                     key={item.id}
                     href={`/dashboard/content/items/${item.id}`}
@@ -225,16 +248,27 @@ export function ContentCalendarClient({ items, clients, month, year, clientFilte
                     <span className="truncate flex-1">{item.title}</span>
                   </Link>
                 ))}
-                {dayItems.length > 3 && (
+
+                {showSocial.map((post) => (
+                  <Link
+                    key={post.id}
+                    href="/dashboard/content/publishing"
+                    className="flex items-center gap-1 rounded px-1.5 py-1 text-[10px] leading-tight text-white bg-[#22D3EE]/80 transition-opacity hover:opacity-80"
+                  >
+                    <span className="shrink-0">{PLATFORM_ICON[post.platforms[0] ?? ""] ?? "📤"}</span>
+                    <span className="truncate flex-1">{post.title}</span>
+                  </Link>
+                ))}
+
+                {overflow > 0 && (
                   <span className="text-[9px] text-[var(--c-text-3)] pl-1">
-                    +{dayItems.length - 3}
+                    +{overflow}
                   </span>
                 )}
               </div>
             );
           })}
 
-          {/* Trailing empty cells to complete the last row */}
           {(() => {
             const totalCells = offset + daysInMonth;
             const remainder = totalCells % 7;
@@ -247,8 +281,7 @@ export function ContentCalendarClient({ items, clients, month, year, clientFilte
         </div>
       </div>
 
-      {/* No content message */}
-      {items.length === 0 && (
+      {items.length === 0 && socialPosts.length === 0 && (
         <p className="text-center text-sm text-[var(--c-text-3)]">{c.calendarEmpty}</p>
       )}
     </div>

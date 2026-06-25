@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/utils";
-import { Layers, Users, CalendarDays, BarChart2, ChevronRight, CheckCircle2, Clock, PenTool } from "lucide-react";
+import { Layers, Users, CalendarDays, BarChart2, ChevronRight, CheckCircle2, Clock, PenTool, Share2 } from "lucide-react";
 
 type Client = { id: string; name: string; email: string | null };
 type ContentItem = { id: string; status: string };
@@ -72,6 +72,13 @@ export function ContentHubClient({ clients, plans, profiles }: Props) {
           >
             <CalendarDays size={14} />
             {t.calendar.title}
+          </Link>
+          <Link
+            href="/dashboard/content/publishing"
+            className="flex items-center gap-1.5 rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-3 py-2 text-sm text-[var(--c-text-2)] hover:text-[var(--c-text-1)] hover:bg-[var(--c-elevated)] transition-colors"
+          >
+            <Share2 size={14} />
+            {c.publishingLink}
           </Link>
           <Link
             href="/dashboard/content/reports"

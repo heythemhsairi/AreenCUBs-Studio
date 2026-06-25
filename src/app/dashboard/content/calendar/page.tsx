@@ -18,7 +18,6 @@ export default async function ContentCalendarPage({
   const monthParam = params.month ? parseInt(params.month, 10) : now.getMonth() + 1;
   const yearParam = params.year ? parseInt(params.year, 10) : now.getFullYear();
 
-  // Fetch content items for the selected month
   const startDate = `${yearParam}-${String(monthParam).padStart(2, "0")}-01`;
   const endDate = new Date(yearParam, monthParam, 0);
   const endDateStr = `${yearParam}-${String(monthParam).padStart(2, "0")}-${String(endDate.getDate()).padStart(2, "0")}`;
@@ -40,12 +39,20 @@ export default async function ContentCalendarPage({
     query = query.eq("client_id", params.client);
   }
 
-  const { data: items } = await query;
+  // Fetch social posts scheduled in this month
+  const socialQuery = supabase
+    .from("social_posts")
+    .select("id, title, platforms, status, scheduled_at")
+    .gte("scheduled_at", `${startDate}T00:00:00`)
+    .lte("scheduled_at", `${endDateStr}T23:59:59`)
+    .in("status", ["scheduled", "published"])
+    .order("scheduled_at", { ascending: true });
 
-  const { data: clients } = await supabase
-    .from("clients")
-    .select("id, name")
-    .order("name", { ascending: true });
+  const [{ data: items }, { data: clients }, { data: socialPosts }] = await Promise.all([
+    query,
+    supabase.from("clients").select("id, name").order("name", { ascending: true }),
+    socialQuery,
+  ]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (
@@ -55,6 +62,13 @@ export default async function ContentCalendarPage({
       month={monthParam}
       year={yearParam}
       clientFilter={params.client ?? null}
+      socialPosts={(socialPosts ?? []).map((p) => ({
+        id: p.id,
+        title: p.title,
+        platforms: (p.platforms as string[] | null) ?? [],
+        status: p.status as string,
+        scheduled_at: p.scheduled_at as string,
+      }))}
     />
   );
 }
