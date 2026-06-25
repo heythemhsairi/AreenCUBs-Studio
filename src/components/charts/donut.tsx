@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils";
 
 export type DonutSlice = {
   label: string;
+  /** Optional English label; caller picks based on locale before passing to Donut. */
+  labelEn?: string;
   value: number;
   color: string;
 };

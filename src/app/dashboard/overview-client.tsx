@@ -131,8 +131,13 @@ export function OverviewClient({
   featuredEmployee,
   workSchedule = {},
 }: Props) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const isAdmin = role === "admin";
+
+  const localizedDonutData = donutData.map((s) => ({
+    ...s,
+    label: locale === "en" && s.labelEn ? s.labelEn : s.label,
+  }));
 
   const subtitle =
     role === "admin"
@@ -443,7 +448,7 @@ export function OverviewClient({
             </div>
 
             <div className="divide-y divide-[var(--c-border)]">
-              {overdueTasks.slice(0, 3).map((task) => {
+              {overdueTasks.map((task) => {
                 const due = new Date(task.deadline);
                 const daysLate = Math.floor(
                   (today.getTime() - due.getTime()) / (1000 * 60 * 60 * 24),
@@ -473,7 +478,7 @@ export function OverviewClient({
                 );
               })}
 
-              {overdueInvoices.slice(0, 2).map((doc) => (
+              {overdueInvoices.map((doc) => (
                 <Link
                   key={doc.id}
                   href={`/dashboard/${doc.kind === "facture" ? "factures" : "devis"}/${doc.id}`}
@@ -732,10 +737,10 @@ export function OverviewClient({
               <p className="mb-4 text-[11px] text-[var(--c-text-3)]">
                 {t.overview.serviceMixHint}
               </p>
-              {donutData.length > 0 ? (
+              {localizedDonutData.length > 0 ? (
                 <div className="space-y-4">
-                  <Donut data={donutData} size={160} thickness={18} />
-                  <DonutLegend data={donutData.slice(0, 5)} />
+                  <Donut data={localizedDonutData} size={160} thickness={18} />
+                  <DonutLegend data={localizedDonutData.slice(0, 5)} />
                 </div>
               ) : (
                 <p className="py-6 text-center text-sm text-[var(--c-text-3)]">

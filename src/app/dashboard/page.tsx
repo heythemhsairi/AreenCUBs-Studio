@@ -296,8 +296,9 @@ export default async function DashboardPage() {
       (invoicedByMonth.get(k) ?? 0) + Number(f.total_dt ?? 0),
     );
   }
-  const monthlySeries = months.map((m) => ({
+  const monthlySeries = months.map((m, idx) => ({
     label: m.label,
+    monthIndex: (now.getMonth() - 11 + idx + 12) % 12,
     paid: paidByMonth.get(m.key) ?? 0,
     invoiced: invoicedByMonth.get(m.key) ?? 0,
   }));
@@ -306,7 +307,7 @@ export default async function DashboardPage() {
   type ServiceLine = {
     line_total_dt: number;
     is_bonus: boolean;
-    services: { name_fr?: string } | { name_fr?: string }[] | null;
+    services: { name_fr?: string; name_en?: string } | { name_fr?: string; name_en?: string }[] | null;
     devis: { status?: string; kind?: string } | { status?: string; kind?: string }[] | null;
   };
   const serviceLines: ServiceLine[] = isAdmin
@@ -315,7 +316,7 @@ export default async function DashboardPage() {
           const { data } = await supabase
             .from("devis_items")
             .select(
-              "line_total_dt, is_bonus, services:service_id(name_fr), devis:devis_id(status, kind)",
+              "line_total_dt, is_bonus, services:service_id(name_fr, name_en), devis:devis_id(status, kind)",
             );
           return (data ?? []) as ServiceLine[];
         },
@@ -323,7 +324,7 @@ export default async function DashboardPage() {
         "serviceLines",
       )
     : [];
-  const serviceTally = new Map<string, { name: string; total_dt: number }>();
+  const serviceTally = new Map<string, { name: string; nameEn: string; total_dt: number }>();
   for (const line of serviceLines) {
     if (line.is_bonus) continue;
     const parent = Array.isArray(line.devis) ? line.devis[0] : line.devis;
@@ -332,24 +333,26 @@ export default async function DashboardPage() {
     if ((parent as { status?: string } | null)?.status === "rejected") continue;
     const svc = Array.isArray(line.services) ? line.services[0] : line.services;
     const name = (svc as { name_fr?: string } | null)?.name_fr ?? "Autre";
-    const t = serviceTally.get(name) ?? { name, total_dt: 0 };
-    t.total_dt += Number(line.line_total_dt ?? 0);
-    serviceTally.set(name, t);
+    const nameEn = (svc as { name_en?: string } | null)?.name_en ?? "Other";
+    const entry = serviceTally.get(name) ?? { name, nameEn, total_dt: 0 };
+    entry.total_dt += Number(line.line_total_dt ?? 0);
+    serviceTally.set(name, entry);
   }
   const allServices = Array.from(serviceTally.values()).sort(
     (a, b) => b.total_dt - a.total_dt,
   );
   const palette = getDonutPalette();
   const topSlices = allServices.slice(0, 6);
-  const restTotal = allServices.slice(6).reduce((s, t) => s + t.total_dt, 0);
+  const restTotal = allServices.slice(6).reduce((s, entry) => s + entry.total_dt, 0);
   const donutData = [
     ...topSlices.map((s, i) => ({
       label: s.name,
+      labelEn: s.nameEn,
       value: s.total_dt,
       color: palette[i % palette.length],
     })),
     ...(restTotal > 0
-      ? [{ label: "Autres", value: restTotal, color: palette[6 % palette.length] }]
+      ? [{ label: "Autres", labelEn: "Other", value: restTotal, color: palette[6 % palette.length] }]
       : []),
   ];
 

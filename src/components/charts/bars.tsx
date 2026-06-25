@@ -7,6 +7,8 @@ import { useI18n } from "@/lib/i18n/provider";
 
 export type BarPoint = {
   label: string;
+  /** 0-based month index (0=Jan…11=Dec). When provided, bars.tsx uses the i18n month name instead of label. */
+  monthIndex?: number;
   paid: number;
   invoiced: number;
   expenses?: number;
@@ -23,6 +25,14 @@ export function MonthlyBars({ series, className, height = 200 }: Props) {
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
   const { t } = useI18n();
   const hasExpenses = series.some((p) => (p.expenses ?? 0) > 0);
+
+  function resolveLabel(p: BarPoint): string {
+    if (p.monthIndex !== undefined) {
+      const name = t.overview.months[p.monthIndex] ?? p.label;
+      return name.slice(0, 3);
+    }
+    return p.label;
+  }
 
   const max = Math.max(
     1,
@@ -87,7 +97,7 @@ export function MonthlyBars({ series, className, height = 200 }: Props) {
       >
         {series.map((p, i) => (
           <span key={i} className={cn("text-center transition-colors", hoverIdx === i && "font-semibold text-ink")}>
-            {p.label}
+            {resolveLabel(p)}
           </span>
         ))}
       </div>
@@ -96,7 +106,7 @@ export function MonthlyBars({ series, className, height = 200 }: Props) {
       <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-cream/60 px-3 py-2 text-xs text-ink/70 ring-1 ring-ink/5">
         {hoverIdx !== null ? (
           <div className="flex flex-wrap items-center gap-3">
-            <strong className="text-ink">{series[hoverIdx].label}</strong>
+            <strong className="text-ink">{resolveLabel(series[hoverIdx])}</strong>
             <span className="inline-flex items-center gap-1">
               <span className="h-2 w-2 rounded-sm bg-brand" /> {t.finance?.chartInvoiced}{" "}
               <strong className="text-ink">{formatDt(series[hoverIdx].invoiced)}</strong>
