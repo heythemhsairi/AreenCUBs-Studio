@@ -628,6 +628,45 @@ html.light .text-slate-500 { color: #6C8298 !important; }
 html.light .command-palette-modal { background-color: #FFFFFF !important; border-color: #D8E6F7 !important; }
 
 /* =========================================================================
+   DUE TODAY SUMMARY CARD (TodaySummary component — admin/freelancer dashboard)
+   ========================================================================= */
+
+.due-today-summary {
+  background: linear-gradient(135deg, rgba(34,211,238,0.13) 0%, #0D2D47 100%);
+  border: 1px solid rgba(34,211,238,0.28);
+}
+.due-today-summary:hover {
+  background: linear-gradient(135deg, rgba(34,211,238,0.18) 0%, #0D2D47 100%);
+}
+html.light .due-today-summary {
+  background: linear-gradient(135deg, rgba(34,211,238,0.10) 0%, #EBF7FC 100%);
+  border: 1px solid rgba(34,211,238,0.32);
+}
+html.light .due-today-summary:hover {
+  background: linear-gradient(135deg, rgba(34,211,238,0.16) 0%, #D6F1FA 100%);
+}
+
+.due-today-summary-icon {
+  background: rgba(34,211,238,0.18);
+  color: #22D3EE;
+  box-shadow: 0 0 0 1px rgba(34,211,238,0.30);
+}
+html.light .due-today-summary-icon {
+  background: rgba(34,211,238,0.12);
+  color: #0D7FA3;
+  box-shadow: 0 0 0 1px rgba(34,211,238,0.28);
+}
+
+.due-today-summary-label { color: rgba(34,211,238,0.90); }
+html.light .due-today-summary-label { color: #0D5C75; }
+
+.due-today-summary-count { color: #F4FAFF; }
+html.light .due-today-summary-count { color: #102033; }
+
+.due-today-summary-link { color: #22D3EE; }
+html.light .due-today-summary-link { color: #0D7FA3; }
+
+/* =========================================================================
    DUE TODAY CARD (worker dashboard)
    ========================================================================= */
 
