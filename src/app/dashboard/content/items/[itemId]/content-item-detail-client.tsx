@@ -82,7 +82,7 @@ export function ContentItemDetailClient({ item, members }: Props) {
     startTransition(async () => {
       const res = await updateContentItemAction(formData);
       if (res.ok) {
-        toast.success(locale === "en" ? "Saved" : "Enregistré");
+        toast.success(c.itemSaved);
         setEditing(false);
       } else {
         toast.error(res.error);
@@ -139,7 +139,7 @@ export function ContentItemDetailClient({ item, members }: Props) {
             className="flex items-center gap-1 rounded-md bg-[#22D3EE]/10 px-2 py-0.5 text-[11px] text-[#22D3EE] hover:bg-[#22D3EE]/20 transition-colors"
           >
             <ExternalLink size={10} />
-            {locale === "en" ? "Linked task" : "Tâche liée"}
+            {c.linkedTask}
           </Link>
         )}
       </div>
@@ -331,7 +331,7 @@ export function ContentItemDetailClient({ item, members }: Props) {
                 )}
                 {!item.caption && !item.visual_direction && !item.client_feedback && !item.final_asset_url && (
                   <p className="text-sm text-[var(--c-text-3)]">
-                    {locale === "en" ? "No content yet. Click 'Edit' to fill in the details." : "Pas encore de contenu. Cliquez sur 'Modifier' pour remplir les détails."}
+                    {c.noContentYet}
                   </p>
                 )}
               </div>
@@ -344,7 +344,7 @@ export function ContentItemDetailClient({ item, members }: Props) {
           {/* Meta */}
           <div className="rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] p-4 flex flex-col gap-3">
             <h3 className="text-xs font-semibold text-[var(--c-text-3)] uppercase tracking-wider">
-              {locale === "en" ? "Details" : "Détails"}
+              {c.details}
             </h3>
             <MetaRow label={c.itemFields.status}>
               <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-semibold", ITEM_STATUS_BG[item.status] ?? "bg-[var(--c-border)] text-[var(--c-text-3)]")}>
@@ -416,7 +416,7 @@ export function ContentItemDetailClient({ item, members }: Props) {
           {plan && (
             <div className="rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] p-4">
               <h3 className="text-xs font-semibold text-[var(--c-text-3)] uppercase tracking-wider mb-3">
-                {locale === "en" ? "Plan" : "Plan"}
+                {c.plan}
               </h3>
               <Link
                 href={`/dashboard/content/plans/${plan.id}`}

@@ -35,7 +35,7 @@ const STATUS_BG: Record<string, string> = {
 };
 
 export function ContentReportsClient({ plans }: Props) {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const c = t.contentOS;
   const monthNames = c.months;
   const [clientFilter, setClientFilter] = useState<string>("all");
@@ -109,11 +109,11 @@ export function ContentReportsClient({ plans }: Props) {
       {/* Global KPI strip */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
         {[
-          { icon: Layers, label: locale === "en" ? "Plans" : "Plans", value: totalPlans, accent: "#22D3EE" },
-          { icon: CheckCircle2, label: locale === "en" ? "Approved plans" : "Plans approuvés", value: approvedPlans, accent: "#22C55E" },
-          { icon: BarChart2, label: locale === "en" ? "Total content" : "Contenu total", value: totalItems, accent: "#A78BFA" },
-          { icon: CheckCircle2, label: locale === "en" ? "Published" : "Publiés", value: publishedItems, accent: "#F59E0B" },
-          { icon: CheckCircle2, label: locale === "en" ? "Client approved" : "Approuvé client", value: clientApproved, accent: "#EC4899" },
+          { icon: Layers, label: c.kpiTotalPlans, value: totalPlans, accent: "#22D3EE" },
+          { icon: CheckCircle2, label: c.kpiApprovedPlans, value: approvedPlans, accent: "#22C55E" },
+          { icon: BarChart2, label: c.kpiTotalContent, value: totalItems, accent: "#A78BFA" },
+          { icon: CheckCircle2, label: c.kpiPublished, value: publishedItems, accent: "#F59E0B" },
+          { icon: CheckCircle2, label: c.kpiClientApproved, value: clientApproved, accent: "#EC4899" },
         ].map(({ icon: Icon, label, value, accent }) => (
           <div key={label} className="rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] p-4 flex flex-col gap-2">
             <div className="flex items-center gap-2">
@@ -130,7 +130,7 @@ export function ContentReportsClient({ plans }: Props) {
         {/* By platform */}
         <div className="rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] p-4">
           <h3 className="mb-3 text-sm font-semibold text-[var(--c-text-1)]">
-            {locale === "en" ? "By platform" : "Par plateforme"}
+            {c.byPlatform}
           </h3>
           {platformCounts.size === 0 ? (
             <p className="text-xs text-[var(--c-text-3)]">—</p>
@@ -160,7 +160,7 @@ export function ContentReportsClient({ plans }: Props) {
         {/* By content type */}
         <div className="rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] p-4">
           <h3 className="mb-3 text-sm font-semibold text-[var(--c-text-1)]">
-            {locale === "en" ? "By content type" : "Par type de contenu"}
+            {c.byContentType}
           </h3>
           {typeCounts.size === 0 ? (
             <p className="text-xs text-[var(--c-text-3)]">—</p>
@@ -194,25 +194,25 @@ export function ContentReportsClient({ plans }: Props) {
       <div className="rounded-xl border border-[var(--c-border)] bg-[var(--c-card)]">
         <div className="border-b border-[var(--c-border)] px-5 py-4">
           <h3 className="text-sm font-semibold text-[var(--c-text-1)]">
-            {locale === "en" ? "Plan breakdown" : "Détail par plan"}
+            {c.planBreakdown}
           </h3>
         </div>
         {filteredPlans.length === 0 ? (
           <div className="py-10 text-center text-sm text-[var(--c-text-3)]">
-            {locale === "en" ? "No plans found." : "Aucun plan trouvé."}
+            {c.noPlansFound}
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[var(--c-border)] text-xs text-[var(--c-text-3)] bg-[var(--c-elevated)]">
-                  <th className="px-4 py-3 text-left font-semibold">{locale === "en" ? "Client" : "Client"}</th>
-                  <th className="px-4 py-3 text-left font-semibold">{locale === "en" ? "Period" : "Période"}</th>
-                  <th className="px-4 py-3 text-left font-semibold">{locale === "en" ? "Status" : "Statut"}</th>
+                  <th className="px-4 py-3 text-left font-semibold">{c.colClient}</th>
+                  <th className="px-4 py-3 text-left font-semibold">{c.colPeriod}</th>
+                  <th className="px-4 py-3 text-left font-semibold">{c.colStatus}</th>
                   <th className="px-4 py-3 text-right font-semibold">{c.reportStats.total}</th>
                   <th className="px-4 py-3 text-right font-semibold">{c.reportStats.approved}</th>
                   <th className="px-4 py-3 text-right font-semibold">{c.reportStats.published}</th>
-                  <th className="px-4 py-3 text-right font-semibold">{locale === "en" ? "Progress" : "Avancement"}</th>
+                  <th className="px-4 py-3 text-right font-semibold">{c.colProgress}</th>
                   <th className="px-4 py-3"></th>
                 </tr>
               </thead>

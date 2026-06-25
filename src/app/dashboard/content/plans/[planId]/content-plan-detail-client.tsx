@@ -108,7 +108,7 @@ export function ContentPlanDetailClient({ plan, items, members }: Props) {
         toast.success(
           tasksCreated > 0
             ? c.autoTasksCreated(tasksCreated)
-            : locale === "en" ? "Plan approved" : "Plan approuvé",
+            : c.planApproved,
         );
       } else {
         toast.error(res.error);
@@ -120,7 +120,7 @@ export function ContentPlanDetailClient({ plan, items, members }: Props) {
     startTransition(async () => {
       const res = await archiveContentPlanAction(plan.id);
       if (res.ok) {
-        toast.success(locale === "en" ? "Plan archived" : "Plan archivé");
+        toast.success(c.planArchived);
       } else {
         toast.error(res.error);
       }
@@ -135,7 +135,7 @@ export function ContentPlanDetailClient({ plan, items, members }: Props) {
     startTransition(async () => {
       const res = await createContentItemAction(formData);
       if (res.ok) {
-        toast.success(locale === "en" ? "Item created" : "Contenu créé");
+        toast.success(c.itemCreated);
         setShowNewItem(false);
         (e.target as HTMLFormElement).reset();
       } else {
@@ -149,7 +149,7 @@ export function ContentPlanDetailClient({ plan, items, members }: Props) {
     startTransition(async () => {
       const res = await deleteContentItemAction(itemId);
       if (res.ok) {
-        toast.success(locale === "en" ? "Item deleted" : "Contenu supprimé");
+        toast.success(c.itemDeleted);
       } else {
         toast.error(res.error);
       }
@@ -239,7 +239,7 @@ export function ContentPlanDetailClient({ plan, items, members }: Props) {
               className="flex items-center gap-1.5 rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-3 py-2 text-sm text-[var(--c-text-2)] hover:text-[var(--c-text-1)] hover:bg-[var(--c-elevated)] transition-colors"
             >
               <ExternalLink size={13} />
-              {locale === "en" ? "Calendar" : "Calendrier"}
+              {c.calendar}
             </Link>
           </div>
         </div>
@@ -276,14 +276,14 @@ export function ContentPlanDetailClient({ plan, items, members }: Props) {
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <h2 className="font-semibold text-[var(--c-text-1)]">
-            {locale === "en" ? "Content items" : "Contenus"}
+            {c.contentItems}
             {filterStatus !== "all" && (
               <button
                 type="button"
                 onClick={() => setFilterStatus("all")}
                 className="ml-2 text-xs text-[#22D3EE] hover:underline"
               >
-                {locale === "en" ? "Show all" : "Tout afficher"}
+                {c.showAll}
               </button>
             )}
           </h2>

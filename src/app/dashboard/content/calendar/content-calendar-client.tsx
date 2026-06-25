@@ -54,7 +54,7 @@ const PLATFORM_ICON: Record<string, string> = {
 };
 
 export function ContentCalendarClient({ items, clients, month, year, clientFilter }: Props) {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const c = t.contentOS;
   const router = useRouter();
   const monthNames = c.months;
@@ -93,9 +93,7 @@ export function ContentCalendarClient({ items, clients, month, year, clientFilte
     router.push(`/dashboard/content/calendar?${params.toString()}`);
   }
 
-  const weekdays = locale === "en"
-    ? ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-    : ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
+  const weekdays = c.weekdaysShort;
 
   const today = new Date();
   const todayDay = today.getFullYear() === year && today.getMonth() + 1 === month

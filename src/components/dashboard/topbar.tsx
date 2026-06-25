@@ -86,11 +86,11 @@ function QuickCreateButton({ role }: { role: UserRole }) {
     >
       <button
         type="button"
-        aria-label="Nouveau..."
+        aria-label={t.topbar.quickCreate}
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
         className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#22D3EE]/10 border border-[#22D3EE]/25 text-[#22D3EE] hover:bg-[#22D3EE]/20 hover:border-[#22D3EE]/50 transition-colors"
-        title="Nouveau..."
+        title={t.topbar.quickCreate}
       >
         <Plus size={16} strokeWidth={2.2} />
       </button>
@@ -131,7 +131,7 @@ function ProfileMenu({
   onSignOut,
   signingOut,
 }: ProfileMenuProps) {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -149,16 +149,16 @@ function ProfileMenu({
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-[#1A3E5C] transition-colors group"
+        className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-[var(--c-elevated)] transition-colors group"
       >
         <Avatar src={avatarUrl} name={username} size="sm" />
-        <span className="hidden sm:block text-sm font-medium text-[#CBD5E1] group-hover:text-white transition-colors">
+        <span className="hidden sm:block text-sm font-medium text-[var(--c-text-2)] group-hover:text-[var(--c-text-1)] transition-colors">
           @{username}
         </span>
         <ChevronDown
           size={14}
           className={cn(
-            "hidden sm:block text-[#64748B] transition-transform duration-150",
+            "hidden sm:block text-[var(--c-text-3)] transition-transform duration-150",
             open && "rotate-180"
           )}
         />
@@ -185,13 +185,13 @@ function ProfileMenu({
 
           {/* Theme toggle row */}
           <div className="px-3 py-2.5 border-t border-[var(--c-border)]">
-            <p className="mb-2 text-xs text-[var(--c-text-3)]">{locale === "en" ? "Appearance" : "Apparence"}</p>
+            <p className="mb-2 text-xs text-[var(--c-text-3)]">{t.topbar.appearance}</p>
             <ThemeToggle className="w-full" />
           </div>
 
           {/* Language switcher row */}
           <div className="px-3 py-2.5 border-t border-[var(--c-border)]">
-            <p className="mb-2 text-xs text-[var(--c-text-3)]">Langue / Language</p>
+            <p className="mb-2 text-xs text-[var(--c-text-3)]">{t.topbar.language}</p>
             <LanguageSwitcher className="w-full justify-center" />
           </div>
 

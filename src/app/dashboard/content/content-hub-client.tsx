@@ -37,7 +37,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export function ContentHubClient({ clients, plans, profiles }: Props) {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const c = t.contentOS;
   const monthNames = c.months;
 
@@ -86,10 +86,10 @@ export function ContentHubClient({ clients, plans, profiles }: Props) {
       {/* KPI strip */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
-          { icon: Layers, label: locale === "en" ? "Total plans" : "Plans total", value: totalPlans, accent: "#22D3EE" },
-          { icon: CheckCircle2, label: locale === "en" ? "Approved plans" : "Plans approuvés", value: approvedPlans, accent: "#22C55E" },
-          { icon: PenTool, label: locale === "en" ? "Total content" : "Contenu total", value: totalItems, accent: "#A78BFA" },
-          { icon: CheckCircle2, label: locale === "en" ? "Published" : "Publiés", value: publishedItems, accent: "#F59E0B" },
+          { icon: Layers, label: c.kpiTotalPlans, value: totalPlans, accent: "#22D3EE" },
+          { icon: CheckCircle2, label: c.kpiApprovedPlans, value: approvedPlans, accent: "#22C55E" },
+          { icon: PenTool, label: c.kpiTotalContent, value: totalItems, accent: "#A78BFA" },
+          { icon: CheckCircle2, label: c.kpiPublished, value: publishedItems, accent: "#F59E0B" },
         ].map(({ icon: Icon, label, value, accent }) => (
           <div
             key={label}
@@ -176,15 +176,15 @@ export function ContentHubClient({ clients, plans, profiles }: Props) {
                 <div className="flex items-center gap-3 text-xs text-[var(--c-text-3)]">
                   <span className="flex items-center gap-1">
                     <Layers size={11} />
-                    {clientPlans.length} {locale === "en" ? "plans" : "plans"}
+                    {c.statsPlans(clientPlans.length)}
                   </span>
                   <span className="flex items-center gap-1">
                     <PenTool size={11} />
-                    {itemCount} {locale === "en" ? "items" : "contenus"}
+                    {c.statsItems(itemCount)}
                   </span>
                   <span className="flex items-center gap-1">
                     <Clock size={11} />
-                    {publishedCount} {locale === "en" ? "published" : "publiés"}
+                    {c.statsPublished(publishedCount)}
                   </span>
                 </div>
               </Link>

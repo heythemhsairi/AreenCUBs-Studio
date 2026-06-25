@@ -56,7 +56,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export function ClientContentProfileClient({ client, profile, plans, members: _members }: Props) {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const c = t.contentOS;
   const monthNames = c.months;
 
@@ -83,7 +83,7 @@ export function ClientContentProfileClient({ client, profile, plans, members: _m
     startTransition(async () => {
       const res = await upsertContentProfileAction(formData);
       if (res.ok) {
-        toast.success(locale === "en" ? "Profile saved" : "Profil enregistré");
+        toast.success(c.profileSaved);
         setEditingProfile(false);
       } else {
         toast.error(res.error);
@@ -101,7 +101,7 @@ export function ClientContentProfileClient({ client, profile, plans, members: _m
     startTransition(async () => {
       const res = await createContentPlanAction(formData);
       if (res.ok) {
-        toast.success(locale === "en" ? "Plan created" : "Plan créé");
+        toast.success(c.planCreated);
         setShowNewPlan(false);
       } else {
         toast.error(res.error);
@@ -133,7 +133,7 @@ export function ClientContentProfileClient({ client, profile, plans, members: _m
             className="flex items-center gap-1.5 rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-3 py-2 text-sm text-[var(--c-text-2)] hover:text-[var(--c-text-1)] hover:bg-[var(--c-elevated)] transition-colors"
           >
             <ExternalLink size={13} />
-            {locale === "en" ? "Calendar" : "Calendrier"}
+            {c.calendar}
           </Link>
         </div>
       </div>
@@ -152,7 +152,7 @@ export function ClientContentProfileClient({ client, profile, plans, members: _m
                 : "border-transparent text-[var(--c-text-3)] hover:text-[var(--c-text-1)]",
             )}
           >
-            {tabKey === "profile" ? c.clientProfile : locale === "en" ? "Plans" : "Plans"}
+            {tabKey === "profile" ? c.clientProfile : c.monthlyPlans}
           </button>
         ))}
       </div>
@@ -346,7 +346,7 @@ export function ClientContentProfileClient({ client, profile, plans, members: _m
             </div>
           ) : (
             <div className="p-8 text-center text-sm text-[var(--c-text-3)]">
-              {locale === "en" ? "No profile yet. Click 'Edit profile' to get started." : "Pas encore de profil. Cliquez sur 'Modifier le profil' pour commencer."}
+              {c.noProfileYet}
             </div>
           )}
         </div>
@@ -357,7 +357,7 @@ export function ClientContentProfileClient({ client, profile, plans, members: _m
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold text-[var(--c-text-1)]">
-              {locale === "en" ? "Monthly plans" : "Plans mensuels"}
+              {c.monthlyPlans}
             </h2>
             <button
               type="button"
@@ -376,7 +376,7 @@ export function ClientContentProfileClient({ client, profile, plans, members: _m
               className="rounded-xl border border-[#22D3EE]/30 bg-[var(--c-card)] p-4 flex flex-col gap-4"
             >
               <h3 className="font-semibold text-sm text-[var(--c-text-1)]">
-                {locale === "en" ? "New monthly plan" : "Nouveau plan mensuel"}
+                {c.newPlan}
               </h3>
               <div className="grid gap-3 sm:grid-cols-3">
                 <Field label={c.planFields.month}>
@@ -428,7 +428,7 @@ export function ClientContentProfileClient({ client, profile, plans, members: _m
             </form>
           )}
 
-          {plans.length === 0 ? (
+          {plans.length === 0 && !showNewPlan ? (
             <div className="rounded-xl border border-dashed border-[var(--c-border)] bg-[var(--c-card)] py-12 text-center">
               <p className="text-sm text-[var(--c-text-3)]">{c.noPlans}</p>
               <button
@@ -472,11 +472,11 @@ export function ClientContentProfileClient({ client, profile, plans, members: _m
                     <div className="flex items-center gap-4 text-xs text-[var(--c-text-3)] shrink-0">
                       <span className="flex items-center gap-1">
                         <Layers size={11} />
-                        {total} {locale === "en" ? "items" : "contenus"}
+                        {c.statsItems(total)}
                       </span>
                       <span className="flex items-center gap-1">
                         <CheckCircle2 size={11} className="text-emerald-400" />
-                        {approved} {locale === "en" ? "approved" : "approuvés"}
+                        {c.statsApproved(approved)}
                       </span>
                       <span className="flex items-center gap-1">
                         <Clock size={11} />

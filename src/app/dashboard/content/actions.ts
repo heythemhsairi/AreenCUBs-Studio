@@ -158,7 +158,7 @@ export async function updateContentPlanAction(
   return { ok: true };
 }
 
-export async function approveContentPlanAction(planId: string): Promise<ActionResult> {
+export async function approveContentPlanAction(planId: string): Promise<ActionResult & { tasksCreated?: number }> {
   const session = await requireAdmin();
   const supabase = await createClient();
 
@@ -168,8 +168,28 @@ export async function approveContentPlanAction(planId: string): Promise<ActionRe
     .eq("id", planId)
     .single();
 
-  if (fetchErr || !plan) return { ok: false, error: "Plan introuvable." };
+  if (fetchErr || !plan) return { ok: false, error: "Plan not found." };
   if (plan.status === "approved") return { ok: true };
+
+  // Validation: ensure all content items have required fields before approving
+  const { data: allItems } = await supabase
+    .from("content_items")
+    .select("id, title, platform, content_type, publish_date, deadline, assigned_to")
+    .eq("plan_id", planId);
+
+  if (allItems && allItems.length > 0) {
+    const missingFields = new Set<string>();
+    for (const item of allItems) {
+      if (!item.title) missingFields.add("title");
+      if (!item.platform) missingFields.add("platform");
+      if (!item.content_type) missingFields.add("content type");
+      if (!item.publish_date && !item.deadline) missingFields.add("publish date or deadline");
+      if (!item.assigned_to) missingFields.add("assignee");
+    }
+    if (missingFields.size > 0) {
+      return { ok: false, error: `Incomplete items: ${Array.from(missingFields).join(", ")}. Fill all required fields before approving.` };
+    }
+  }
 
   const { error } = await supabase
     .from("monthly_content_plans")
@@ -182,7 +202,7 @@ export async function approveContentPlanAction(planId: string): Promise<ActionRe
 
   if (error) return { ok: false, error: error.message };
 
-  // Automatically create tasks for all content items in this plan
+  // Automatically create tasks for all content items in this plan (idempotent — only items without tasks)
   const { data: items } = await supabase
     .from("content_items")
     .select("id, title, content_type, caption, deadline, assigned_to, platform, client_id")
@@ -217,7 +237,7 @@ export async function approveContentPlanAction(planId: string): Promise<ActionRe
       const taskTitle = `[Content] ${item.title} — ${item.platform}`;
 
       // Determine priority and task type
-      let taskDescription = `Contenu pour ${clientData?.name ?? "client"}.\nType: ${item.content_type}\nPlateforme: ${item.platform}`;
+      let taskDescription = `[Content OS] ${clientData?.name ?? "client"}\nType: ${item.content_type}\nPlatform: ${item.platform}`;
       if (item.caption) taskDescription += `\n\nCaption: ${item.caption}`;
 
       const { data: task } = await supabase

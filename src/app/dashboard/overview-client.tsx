@@ -325,8 +325,8 @@ export function OverviewClient({
               icon={<AlertTriangle className="h-4 w-4" />}
               tooltip={
                 revenue.outstanding > 0
-                  ? "Factures envoyées non réglées"
-                  : "Aucun impayé"
+                  ? t.overview.unpaidTooltip
+                  : t.overview.noUnpaid
               }
             />
 
@@ -758,6 +758,7 @@ function ActiveWorkColumn({
   gradientTo: string;
   pulse?: boolean;
 }) {
+  const { t } = useI18n();
   const pct = total > 0 ? Math.max(2, (count / total) * 100) : 0;
 
   return (
@@ -783,7 +784,7 @@ function ActiveWorkColumn({
         />
       </div>
       <p className="text-[11px] text-[#64748B]">
-        {total > 0 && count > 0 ? `${Math.round((count / total) * 100)}% du total` : total > 0 ? "0%" : "—"}
+        {total > 0 && count > 0 ? `${Math.round((count / total) * 100)}% ${t.overview.ofTotal}` : total > 0 ? "0%" : "—"}
       </p>
     </div>
   );
@@ -887,10 +888,11 @@ function UpcomingDeadlinesList({
 // ---------------------------------------------------------------------------
 
 function RecentDocsFeed({ rows }: { rows: RecentDevis[] }) {
+  const { t } = useI18n();
   if (rows.length === 0) {
     return (
       <p className="py-8 text-center text-sm text-[#64748B]">
-        Aucun document récent.
+        {t.overview.noRecentDocs}
       </p>
     );
   }
