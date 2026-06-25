@@ -435,7 +435,7 @@ export function OverviewClient({
                 )}
               </div>
               <Link
-                href="/dashboard/tasks"
+                href="/dashboard/finance"
                 className="text-[11px] font-semibold text-[#38BDF8] hover:text-[#7DD3FC] transition-colors"
               >
                 {t.overview.seeAllLink}
@@ -833,7 +833,7 @@ export function OverviewClient({
             )}
             <div className="ml-auto">
               <Link
-                href="/dashboard/planning"
+                href="/dashboard/team/planning"
                 className="inline-flex items-center gap-1.5 rounded-lg bg-white/5 px-3 py-1.5 text-[11px] font-semibold text-[var(--c-text-2)] ring-1 ring-[var(--c-border)] transition-all hover:bg-white/10 hover:text-[var(--c-text-1)]"
               >
                 <span>{t.overview.teamPlanning}</span>

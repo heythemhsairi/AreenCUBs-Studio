@@ -1,5 +1,6 @@
 import { type HTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n/provider";
 
 // ---------------------------------------------------------------------------
 // Tone definitions  (generic Badge)
@@ -199,9 +200,34 @@ export interface StatusBadgeProps {
 }
 
 export function StatusBadge({ status, type, className, label }: StatusBadgeProps) {
+  const { t } = useI18n();
   const map = domainMaps[type] ?? {};
   const key = status?.toLowerCase().trim().replace(/[\s-]/g, "_");
   const def = map[key];
+
+  // Resolve label: explicit prop > i18n lookup > static map fallback > raw status
+  const resolvedLabel = label ?? (() => {
+    if (type === "task") return t.tasks.status[key as keyof typeof t.tasks.status] ?? def?.label ?? status;
+    if (type === "priority") return t.tasks.priority[key as keyof typeof t.tasks.priority] ?? def?.label ?? status;
+    if (type === "finance" || type === "devis") {
+      const financeLabels: Record<string, string> = {
+        paid: t.finance?.paid ?? def?.label ?? status,
+        payé: t.finance?.paid ?? def?.label ?? status,
+        unpaid: t.finance?.unpaid ?? def?.label ?? status,
+        impayé: t.finance?.unpaid ?? def?.label ?? status,
+        partial: t.finance?.partial ?? def?.label ?? status,
+        overdue: t.finance?.overdue ?? def?.label ?? status,
+        sent: t.finance?.sent ?? def?.label ?? status,
+        accepted: t.finance?.accepted ?? def?.label ?? status,
+        converted: t.finance?.converted ?? def?.label ?? status,
+        rejected: t.finance?.rejected ?? def?.label ?? status,
+        cancelled: t.finance?.cancelled ?? def?.label ?? status,
+        draft: t.finance?.draft ?? def?.label ?? status,
+      };
+      return financeLabels[key] ?? def?.label ?? status;
+    }
+    return def?.label ?? status;
+  })();
 
   return (
     <span
@@ -223,7 +249,7 @@ export function StatusBadge({ status, type, className, label }: StatusBadgeProps
           )}
         </span>
       )}
-      {label ?? (def ? def.label : status)}
+      {resolvedLabel}
     </span>
   );
 }

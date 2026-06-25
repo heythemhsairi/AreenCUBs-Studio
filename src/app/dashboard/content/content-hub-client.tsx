@@ -28,6 +28,7 @@ type Props = {
   clients: Client[];
   plans: Plan[];
   profiles: Profile[];
+  publishingCount: number;
 };
 
 const STATUS_COLORS: Record<string, string> = {
@@ -36,7 +37,7 @@ const STATUS_COLORS: Record<string, string> = {
   archived: "bg-[var(--c-border)] text-[var(--c-text-3)]",
 };
 
-export function ContentHubClient({ clients, plans, profiles }: Props) {
+export function ContentHubClient({ clients, plans, profiles, publishingCount }: Props) {
   const { t } = useI18n();
   const c = t.contentOS;
   const monthNames = c.months;
@@ -96,7 +97,7 @@ export function ContentHubClient({ clients, plans, profiles }: Props) {
           { icon: Layers, label: c.kpiTotalPlans, value: totalPlans, accent: "#22D3EE" },
           { icon: CheckCircle2, label: c.kpiApprovedPlans, value: approvedPlans, accent: "#22C55E" },
           { icon: PenTool, label: c.kpiTotalContent, value: totalItems, accent: "#A78BFA" },
-          { icon: CheckCircle2, label: c.kpiPublished, value: publishedItems, accent: "#F59E0B" },
+          { icon: Share2, label: c.totalPosts, value: publishingCount, accent: "#F59E0B" },
         ].map(({ icon: Icon, label, value, accent }) => (
           <div
             key={label}

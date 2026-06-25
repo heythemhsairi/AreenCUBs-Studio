@@ -30,11 +30,17 @@ export default async function ContentOSPage() {
     .from("client_content_profiles")
     .select("client_id, brand_voice, platforms, posting_frequency");
 
+  // Publishing post count (social_posts table)
+  const { count: publishingCount } = await supabase
+    .from("social_posts")
+    .select("id", { count: "exact", head: true });
+
   return (
     <ContentHubClient
       clients={clients ?? []}
       plans={plans ?? []}
       profiles={profiles ?? []}
+      publishingCount={publishingCount ?? 0}
     />
   );
 }

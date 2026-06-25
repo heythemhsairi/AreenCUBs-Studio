@@ -106,8 +106,8 @@ const ALL_NAV_ITEMS: NavItem[] = [
     roles: ["admin"],
   },
   {
-    href: "/dashboard/social-media",
-    label: "Social Media",
+    href: "/dashboard/content/publishing",
+    label: "Publishing",
     icon: Share2,
     roles: ["admin", "worker"],
   },

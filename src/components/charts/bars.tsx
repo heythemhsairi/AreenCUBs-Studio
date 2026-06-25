@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { formatDt } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n/provider";
 
 export type BarPoint = {
   label: string;
@@ -20,6 +21,7 @@ type Props = {
 
 export function MonthlyBars({ series, className, height = 200 }: Props) {
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
+  const { t } = useI18n();
   const hasExpenses = series.some((p) => (p.expenses ?? 0) > 0);
 
   const max = Math.max(
@@ -96,26 +98,26 @@ export function MonthlyBars({ series, className, height = 200 }: Props) {
           <div className="flex flex-wrap items-center gap-3">
             <strong className="text-ink">{series[hoverIdx].label}</strong>
             <span className="inline-flex items-center gap-1">
-              <span className="h-2 w-2 rounded-sm bg-brand" /> Facturé{" "}
+              <span className="h-2 w-2 rounded-sm bg-brand" /> {t.finance?.chartInvoiced}{" "}
               <strong className="text-ink">{formatDt(series[hoverIdx].invoiced)}</strong>
             </span>
             <span className="inline-flex items-center gap-1">
-              <span className="h-2 w-2 rounded-sm bg-emerald-500" /> Encaissé{" "}
+              <span className="h-2 w-2 rounded-sm bg-emerald-500" /> {t.finance?.chartCollected}{" "}
               <strong className="text-ink">{formatDt(series[hoverIdx].paid)}</strong>
             </span>
             {hasExpenses && (
               <span className="inline-flex items-center gap-1">
-                <span className="h-2 w-2 rounded-sm bg-red-400" /> Dépenses{" "}
+                <span className="h-2 w-2 rounded-sm bg-red-400" /> {t.finance?.chartExpenses}{" "}
                 <strong className="text-ink">{formatDt(series[hoverIdx].expenses ?? 0)}</strong>
               </span>
             )}
           </div>
         ) : (
           <div className="flex flex-wrap items-center gap-3">
-            <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-brand" /> Facturé</span>
-            <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-emerald-500" /> Encaissé</span>
-            {hasExpenses && <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-red-400" /> Dépenses</span>}
-            <span className="text-ink/35">Survolez pour le détail</span>
+            <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-brand" /> {t.finance?.chartInvoiced}</span>
+            <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-emerald-500" /> {t.finance?.chartCollected}</span>
+            {hasExpenses && <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-red-400" /> {t.finance?.chartExpenses}</span>}
+            <span className="text-ink/35">{t.finance?.chartHoverHint}</span>
           </div>
         )}
       </div>
