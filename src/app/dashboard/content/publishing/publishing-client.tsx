@@ -38,13 +38,15 @@ export type SocialPost = {
   created_at: string;
 };
 
-type Project = { id: string; name: string };
+type Project = { id: string; name: string; client_id: string | null };
 type Task = { id: string; title: string; project_id: string | null };
+type Client = { id: string; name: string };
 
 type Props = {
   posts: SocialPost[];
   projects: Project[];
   tasks: Task[];
+  clients: Client[];
   preselectedTaskId?: string;
 };
 
@@ -142,7 +144,15 @@ function PlatformPicker({ selected, onChange }: { selected: string[]; onChange: 
 
 // ─── CharCounter ─────────────────────────────────────────────────────────────
 
-function CharCounter({ text, platforms }: { text: string; platforms: string[] }) {
+function CharCounter({
+  text,
+  platforms,
+  lowestLimitLabel,
+}: {
+  text: string;
+  platforms: string[];
+  lowestLimitLabel: string;
+}) {
   if (platforms.length === 0) return null;
   const limits = platforms.map((id) => getPlatform(id).charLimit);
   const minLimit = Math.min(...limits);
@@ -153,7 +163,7 @@ function CharCounter({ text, platforms }: { text: string; platforms: string[] })
     <span className={cn("text-[10px] tabular-nums", color)}>
       {len} / {minLimit}
       {platforms.length > 1 && (
-        <span className="ml-1 text-[var(--c-text-3)]">(lowest limit)</span>
+        <span className="ml-1 text-[var(--c-text-3)]">{lowestLimitLabel}</span>
       )}
     </span>
   );
@@ -201,12 +211,13 @@ function PostChip({ post, onClick }: { post: SocialPost; onClick: () => void }) 
   );
 }
 
-// ─── PostForm ─────────────────────────────────────────────────────────────────
+// ─── PostForm (single scrollable form, no tabs) ───────────────────────────────
 
 function PostForm({
   post,
   projects,
   tasks,
+  projectClientMap,
   defaultDate,
   preselectedTaskId,
   onClose,
@@ -215,13 +226,16 @@ function PostForm({
   post?: SocialPost;
   projects: Project[];
   tasks: Task[];
+  projectClientMap: Map<string, string>;
   defaultDate?: string;
   preselectedTaskId?: string;
   onClose: () => void;
   onSaved: () => void;
 }) {
   const { t } = useI18n();
+  const c = t.contentOS;
   const taskFromId = preselectedTaskId ? tasks.find((tk) => tk.id === preselectedTaskId) : null;
+
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(
     post?.platforms.length ? post.platforms : [],
   );
@@ -231,16 +245,17 @@ function PostForm({
   const [content, setContent] = useState(post?.content ?? "");
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const [tab, setTab] = useState<"main" | "extra">("main");
 
   const filteredTasks = selectedProject
     ? tasks.filter((tk) => tk.project_id === selectedProject)
     : tasks;
 
+  const inferredClient = selectedProject ? projectClientMap.get(selectedProject) : undefined;
+
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (selectedPlatforms.length === 0) {
-      setError(t.common.required + ": platform");
+      setError(c.pub_requiredPlatform);
       return;
     }
     const fd = new FormData(e.currentTarget);
@@ -259,188 +274,185 @@ function PostForm({
     <form onSubmit={handleSubmit} className="flex flex-col gap-0">
       {post && <input type="hidden" name="id" value={post.id} />}
 
-      {/* Tabs */}
-      <div className="mb-4 flex gap-1 rounded-xl bg-[var(--c-elevated)] p-0.5">
-        {(["main", "extra"] as const).map((tb) => (
-          <button
-            key={tb}
-            type="button"
-            onClick={() => setTab(tb)}
-            className={cn(
-              "flex-1 rounded-lg py-1.5 text-xs font-medium transition-all",
-              tab === tb
-                ? "bg-[#22D3EE] text-[#071B2C] shadow-sm"
-                : "text-[var(--c-text-3)] hover:text-[var(--c-text-1)]",
+      <div className="space-y-4">
+        {/* Title */}
+        <div>
+          <label className="mb-1 block text-xs font-medium text-[var(--c-text-3)]">
+            {c.itemFields.title} <span className="text-red-400">*</span>
+          </label>
+          <input
+            name="title"
+            required
+            defaultValue={post?.title}
+            placeholder="E.g. Summer launch"
+            className="w-full rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] placeholder-[var(--c-text-3)] focus:border-[#22D3EE] focus:outline-none"
+          />
+        </div>
+
+        {/* Platforms */}
+        <div>
+          <div className="mb-2 flex items-center justify-between">
+            <label className="text-xs font-medium text-[var(--c-text-3)]">
+              {c.pub_platforms} <span className="text-red-400">*</span>
+            </label>
+            {selectedPlatforms.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setSelectedPlatforms([])}
+                className="text-[10px] text-[var(--c-text-3)] hover:text-[var(--c-text-1)]"
+              >
+                {c.pub_clearAll}
+              </button>
             )}
+          </div>
+          <PlatformPicker selected={selectedPlatforms} onChange={setSelectedPlatforms} />
+        </div>
+
+        {/* Content */}
+        <div>
+          <div className="mb-1 flex items-center justify-between">
+            <label className="text-xs font-medium text-[var(--c-text-3)]">{c.pub_content}</label>
+            <CharCounter text={content} platforms={selectedPlatforms} lowestLimitLabel={c.pub_lowestLimit} />
+          </div>
+          <textarea
+            name="content"
+            rows={5}
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder="Post text, call to action…"
+            className="w-full resize-none rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] placeholder-[var(--c-text-3)] focus:border-[#22D3EE] focus:outline-none"
+          />
+        </div>
+
+        {/* Hashtags */}
+        <div>
+          <label className="mb-1 block text-xs font-medium text-[var(--c-text-3)]">{c.pub_hashtags}</label>
+          <input
+            name="hashtags"
+            defaultValue={post?.hashtags}
+            placeholder="#marketing #branding"
+            className="w-full rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] placeholder-[var(--c-text-3)] focus:border-[#22D3EE] focus:outline-none"
+          />
+        </div>
+
+        {/* Scheduled date & time */}
+        <div>
+          <label className="mb-1 block text-xs font-medium text-[var(--c-text-3)]">
+            {c.pub_scheduledAt}
+          </label>
+          <input
+            name="scheduled_at"
+            type="datetime-local"
+            defaultValue={
+              post?.scheduled_at
+                ? new Date(post.scheduled_at).toISOString().slice(0, 16)
+                : defaultDate ? `${defaultDate}T09:00` : ""
+            }
+            className="w-full rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] focus:border-[#22D3EE] focus:outline-none"
+          />
+        </div>
+
+        {/* Project */}
+        <div>
+          <label className="mb-1 block text-xs font-medium text-[var(--c-text-3)]">{c.pub_project}</label>
+          <select
+            name="project_id"
+            value={selectedProject}
+            onChange={(e) => setSelectedProject(e.target.value)}
+            className="w-full rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] focus:border-[#22D3EE] focus:outline-none"
           >
-            {tb === "main" ? "Publication" : "Advanced"}
-          </button>
-        ))}
+            <option value="">{c.pub_noProject}</option>
+            {projects.map((p) => (
+              <option key={p.id} value={p.id}>{p.name}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Client (inferred — read-only) */}
+        {inferredClient && (
+          <div>
+            <label className="mb-1 block text-xs font-medium text-[var(--c-text-3)]">{c.pub_client}</label>
+            <div className="flex items-center gap-2 rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-3 py-2">
+              <span className="text-[10px] text-[var(--c-text-3)]">{c.pub_clientFromProject}:</span>
+              <span className="rounded-full bg-[#22D3EE]/15 px-2 py-0.5 text-xs font-medium text-[#22D3EE]">
+                {inferredClient}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Linked task */}
+        <div>
+          <label className="mb-1 block text-xs font-medium text-[var(--c-text-3)]">{c.pub_task}</label>
+          <select
+            name="task_id"
+            defaultValue={post?.task_id ?? preselectedTaskId ?? ""}
+            className="w-full rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] focus:border-[#22D3EE] focus:outline-none"
+          >
+            <option value="">{c.pub_noTask}</option>
+            {filteredTasks.map((tk) => (
+              <option key={tk.id} value={tk.id}>{tk.title}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Media URL */}
+        <div>
+          <label className="mb-1 block text-xs font-medium text-[var(--c-text-3)]">{c.pub_mediaUrl}</label>
+          <input
+            name="media_url"
+            type="url"
+            defaultValue={post?.media_url ?? ""}
+            placeholder="https://drive.google.com/…"
+            className="w-full rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] placeholder-[var(--c-text-3)] focus:border-[#22D3EE] focus:outline-none"
+          />
+        </div>
+
+        {/* First comment */}
+        <div>
+          <label className="mb-1 block text-xs font-medium text-[var(--c-text-3)]">
+            {c.pub_firstComment}{" "}
+            <span className="ml-1 text-[10px] font-normal text-[var(--c-text-3)]">{c.pub_firstCommentHint}</span>
+          </label>
+          <textarea
+            name="first_comment"
+            rows={2}
+            defaultValue={post?.first_comment}
+            placeholder="Hashtags or CTA as first comment…"
+            className="w-full resize-none rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] placeholder-[var(--c-text-3)] focus:border-[#22D3EE] focus:outline-none"
+          />
+        </div>
+
+        {/* Notes */}
+        <div>
+          <label className="mb-1 block text-xs font-medium text-[var(--c-text-3)]">{c.pub_notes}</label>
+          <textarea
+            name="notes"
+            rows={3}
+            defaultValue={post?.notes}
+            placeholder="Team instructions, reminders, context…"
+            className="w-full resize-none rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] placeholder-[var(--c-text-3)] focus:border-[#22D3EE] focus:outline-none"
+          />
+        </div>
       </div>
-
-      {tab === "main" && (
-        <div className="space-y-4">
-          <div>
-            <label className="mb-1 block text-xs font-medium text-[var(--c-text-3)]">
-              {t.contentOS.itemFields.title} <span className="text-red-400">*</span>
-            </label>
-            <input
-              name="title"
-              required
-              defaultValue={post?.title}
-              placeholder="E.g. Summer launch"
-              className="w-full rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] placeholder-[var(--c-text-3)] focus:border-[#22D3EE] focus:outline-none"
-            />
-          </div>
-
-          <div>
-            <div className="mb-2 flex items-center justify-between">
-              <label className="text-xs font-medium text-[var(--c-text-3)]">
-                Platforms <span className="text-red-400">*</span>
-              </label>
-              {selectedPlatforms.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setSelectedPlatforms([])}
-                  className="text-[10px] text-[var(--c-text-3)] hover:text-[var(--c-text-1)]"
-                >
-                  Clear all
-                </button>
-              )}
-            </div>
-            <PlatformPicker selected={selectedPlatforms} onChange={setSelectedPlatforms} />
-          </div>
-
-          <div>
-            <div className="mb-1 flex items-center justify-between">
-              <label className="text-xs font-medium text-[var(--c-text-3)]">Content</label>
-              <CharCounter text={content} platforms={selectedPlatforms} />
-            </div>
-            <textarea
-              name="content"
-              rows={5}
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="Post text, call to action…"
-              className="w-full rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] placeholder-[var(--c-text-3)] focus:border-[#22D3EE] focus:outline-none resize-none"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-xs font-medium text-[var(--c-text-3)]">Hashtags</label>
-            <input
-              name="hashtags"
-              defaultValue={post?.hashtags}
-              placeholder="#marketing #branding"
-              className="w-full rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] placeholder-[var(--c-text-3)] focus:border-[#22D3EE] focus:outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-xs font-medium text-[var(--c-text-3)]">
-              Scheduled date & time
-            </label>
-            <input
-              name="scheduled_at"
-              type="datetime-local"
-              defaultValue={
-                post?.scheduled_at
-                  ? new Date(post.scheduled_at).toISOString().slice(0, 16)
-                  : defaultDate ? `${defaultDate}T09:00` : ""
-              }
-              className="w-full rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] focus:border-[#22D3EE] focus:outline-none"
-            />
-          </div>
-        </div>
-      )}
-
-      {tab === "extra" && (
-        <div className="space-y-4">
-          <div>
-            <label className="mb-1 block text-xs font-medium text-[var(--c-text-3)]">Media URL</label>
-            <input
-              name="media_url"
-              type="url"
-              defaultValue={post?.media_url ?? ""}
-              placeholder="https://drive.google.com/…"
-              className="w-full rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] placeholder-[var(--c-text-3)] focus:border-[#22D3EE] focus:outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-xs font-medium text-[var(--c-text-3)]">
-              First comment <span className="ml-1 text-[10px] font-normal text-[var(--c-text-3)]">(Instagram, Facebook)</span>
-            </label>
-            <textarea
-              name="first_comment"
-              rows={2}
-              defaultValue={post?.first_comment}
-              placeholder="Hashtags or CTA as first comment…"
-              className="w-full rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] placeholder-[var(--c-text-3)] focus:border-[#22D3EE] focus:outline-none resize-none"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-xs font-medium text-[var(--c-text-3)]">Project</label>
-            <select
-              name="project_id"
-              value={selectedProject}
-              onChange={(e) => setSelectedProject(e.target.value)}
-              className="w-full rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] focus:border-[#22D3EE] focus:outline-none"
-            >
-              <option value="">— No project —</option>
-              {projects.map((p) => (
-                <option key={p.id} value={p.id}>{p.name}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="mb-1 block text-xs font-medium text-[var(--c-text-3)]">
-              {t.contentOS.linkedTask}
-            </label>
-            <select
-              name="task_id"
-              defaultValue={post?.task_id ?? preselectedTaskId ?? ""}
-              className="w-full rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] focus:border-[#22D3EE] focus:outline-none"
-            >
-              <option value="">— No task —</option>
-              {filteredTasks.map((tk) => (
-                <option key={tk.id} value={tk.id}>{tk.title}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="mb-1 block text-xs font-medium text-[var(--c-text-3)]">Internal notes</label>
-            <textarea
-              name="notes"
-              rows={3}
-              defaultValue={post?.notes}
-              placeholder="Team instructions, reminders, context…"
-              className="w-full rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] placeholder-[var(--c-text-3)] focus:border-[#22D3EE] focus:outline-none resize-none"
-            />
-          </div>
-        </div>
-      )}
 
       {error && (
         <p className="mt-3 rounded-lg bg-red-500/10 px-3 py-2 text-xs text-red-500">{error}</p>
       )}
 
-      <div className="mt-5 flex justify-end gap-2">
+      <div className="mt-5 flex justify-end gap-2 border-t border-[var(--c-border)] pt-4">
         <button
           type="button"
           onClick={onClose}
           disabled={isPending}
-          className="rounded-lg border border-[var(--c-border)] px-3 py-1.5 text-sm text-[var(--c-text-2)] hover:bg-[var(--c-elevated)] transition-colors disabled:opacity-50"
+          className="rounded-lg border border-[var(--c-border)] px-4 py-2 text-sm text-[var(--c-text-2)] hover:bg-[var(--c-elevated)] transition-colors disabled:opacity-50"
         >
           {t.common.cancel}
         </button>
         <button
           type="submit"
           disabled={isPending}
-          className="rounded-lg bg-[#22D3EE] px-3 py-1.5 text-sm font-medium text-[#071B2C] hover:bg-[#22D3EE]/90 transition-colors disabled:opacity-50"
+          className="rounded-lg bg-[#22D3EE] px-4 py-2 text-sm font-medium text-[#071B2C] hover:bg-[#22D3EE]/90 transition-colors disabled:opacity-50"
         >
           {isPending ? t.common.saving : t.common.save}
         </button>
@@ -453,27 +465,33 @@ function PostForm({
 
 function PostDetail({
   post,
+  projectClientMap,
   onEdit,
   onClose,
   onSaved,
 }: {
   post: SocialPost;
+  projectClientMap: Map<string, string>;
   onEdit: () => void;
   onClose: () => void;
   onSaved: () => void;
 }) {
+  const { t } = useI18n();
+  const c = t.contentOS;
   const [isPending, startTransition] = useTransition();
   const [copied, setCopied] = useState(false);
 
+  const inferredClient = post.project_id ? projectClientMap.get(post.project_id) : undefined;
+
   const statusLabel: Record<SocialPostStatus, string> = {
-    draft: "Draft",
-    scheduled: "Scheduled",
-    published: "Published",
-    cancelled: "Cancelled",
+    draft: t.socialMedia.status.draft,
+    scheduled: t.socialMedia.status.scheduled,
+    published: t.socialMedia.status.published,
+    cancelled: t.socialMedia.status.cancelled,
   };
 
   function handleStatusChange(status: SocialPostStatus) {
-    if (status === "published" && !confirm("Mark this post as published?")) return;
+    if (status === "published" && !confirm(t.socialMedia.publishConfirm)) return;
     startTransition(async () => {
       await changeSocialPostStatusAction(post.id, status);
       onSaved(); onClose();
@@ -481,7 +499,7 @@ function PostDetail({
   }
 
   function handleDelete() {
-    if (!confirm("Delete this post?")) return;
+    if (!confirm(t.socialMedia.deleteConfirm)) return;
     const fd = new FormData();
     fd.set("id", post.id);
     startTransition(async () => {
@@ -519,7 +537,9 @@ function PostDetail({
           <span>📅</span>
           <span className="font-medium">{fmtDate(post.scheduled_at)}</span>
           {post.published_at && (
-            <span className="ml-auto text-emerald-400">✓ published {fmtDateShort(post.published_at)}</span>
+            <span className="ml-auto text-emerald-400">
+              ✓ {c.pub_publishedAt} {fmtDateShort(post.published_at)}
+            </span>
           )}
         </div>
       )}
@@ -532,7 +552,7 @@ function PostDetail({
             onClick={copyContent}
             className="absolute right-2 top-2 rounded-md px-2 py-0.5 text-[10px] text-[var(--c-text-3)] opacity-0 transition-all group-hover:opacity-100 hover:bg-[var(--c-card)] hover:text-[var(--c-text-1)]"
           >
-            {copied ? "✓ Copied" : "Copy"}
+            {copied ? c.pub_copied : c.pub_copy}
           </button>
         </div>
       )}
@@ -543,8 +563,10 @@ function PostDetail({
 
       {post.first_comment && (
         <div className="rounded-xl border border-[var(--c-border)] px-3 py-2">
-          <p className="mb-0.5 text-[10px] font-medium uppercase tracking-wider text-[var(--c-text-3)]">First comment</p>
-          <p className="text-xs text-[var(--c-text-2)] whitespace-pre-wrap">{post.first_comment}</p>
+          <p className="mb-0.5 text-[10px] font-medium uppercase tracking-wider text-[var(--c-text-3)]">
+            {c.pub_firstCommentLabel}
+          </p>
+          <p className="whitespace-pre-wrap text-xs text-[var(--c-text-2)]">{post.first_comment}</p>
         </div>
       )}
 
@@ -559,17 +581,28 @@ function PostDetail({
         </a>
       )}
 
-      {(post.project_name || post.task_title) && (
-        <p className="text-xs text-[var(--c-text-3)]">
-          {post.project_name && <>📁 {post.project_name}</>}
-          {post.task_title && <> › ✓ {post.task_title}</>}
-        </p>
+      {(post.project_name || post.task_title || inferredClient) && (
+        <div className="space-y-1">
+          {inferredClient && (
+            <p className="text-xs text-[var(--c-text-3)]">
+              👥 <span className="font-medium text-[var(--c-text-2)]">{inferredClient}</span>
+            </p>
+          )}
+          {post.project_name && (
+            <p className="text-xs text-[var(--c-text-3)]">
+              📁 {post.project_name}
+              {post.task_title && <> › ✓ {post.task_title}</>}
+            </p>
+          )}
+        </div>
       )}
 
       {post.notes && (
         <div className="rounded-xl border border-dashed border-[var(--c-border)] px-3 py-2">
-          <p className="mb-0.5 text-[10px] font-medium uppercase tracking-wider text-[var(--c-text-3)]">Internal notes</p>
-          <p className="text-xs text-[var(--c-text-2)] whitespace-pre-wrap">{post.notes}</p>
+          <p className="mb-0.5 text-[10px] font-medium uppercase tracking-wider text-[var(--c-text-3)]">
+            {c.pub_internalNotes}
+          </p>
+          <p className="whitespace-pre-wrap text-xs text-[var(--c-text-2)]">{post.notes}</p>
         </div>
       )}
 
@@ -585,21 +618,21 @@ function PostDetail({
               disabled={isPending}
               className="rounded-lg bg-emerald-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-600 disabled:opacity-50"
             >
-              ✓ Mark published
+              ✓ {c.pub_markPublished}
             </button>
             <button
               onClick={() => handleStatusChange("scheduled")}
               disabled={isPending || post.status === "scheduled"}
               className="rounded-lg border border-[var(--c-border)] px-3 py-1.5 text-sm text-[var(--c-text-2)] hover:bg-[var(--c-elevated)] disabled:opacity-50"
             >
-              📅 Schedule
+              📅 {c.pub_schedule}
             </button>
             <button
               onClick={() => handleStatusChange("cancelled")}
               disabled={isPending}
               className="rounded-lg border border-[var(--c-border)] px-3 py-1.5 text-sm text-[var(--c-text-2)] hover:bg-[var(--c-elevated)] disabled:opacity-50"
             >
-              Cancel
+              {t.common.cancel}
             </button>
           </>
         )}
@@ -609,7 +642,7 @@ function PostDetail({
             disabled={isPending}
             className="rounded-lg border border-[var(--c-border)] px-3 py-1.5 text-sm text-[var(--c-text-2)] hover:bg-[var(--c-elevated)] disabled:opacity-50"
           >
-            ↩ Back to draft
+            ↩ {c.pub_backToDraft}
           </button>
         )}
         <div className="ml-auto flex gap-2">
@@ -618,21 +651,21 @@ function PostDetail({
             disabled={isPending}
             className="rounded-lg px-2 py-1 text-xs text-[var(--c-text-3)] hover:bg-[var(--c-elevated)] hover:text-[var(--c-text-1)]"
           >
-            ⧉ Duplicate
+            ⧉ {c.pub_duplicate}
           </button>
           <button
             onClick={onEdit}
             disabled={isPending}
             className="rounded-lg px-2 py-1 text-xs text-[var(--c-text-3)] hover:bg-[var(--c-elevated)] hover:text-[var(--c-text-1)]"
           >
-            ✏ Edit
+            ✏ {t.common.edit}
           </button>
           <button
             onClick={handleDelete}
             disabled={isPending}
             className="rounded-lg px-2 py-1 text-xs text-red-500 hover:bg-red-500/10"
           >
-            Delete
+            {t.common.delete}
           </button>
         </div>
       </div>
@@ -689,16 +722,27 @@ function Modal({
 
 // ─── Main view ────────────────────────────────────────────────────────────────
 
-export function PublishingClient({ posts, projects, tasks, preselectedTaskId }: Props) {
+export function PublishingClient({ posts, projects, tasks, clients, preselectedTaskId }: Props) {
   const { t } = useI18n();
   const c = t.contentOS;
+
+  // Build project → client name map
+  const projectClientMap = new Map<string, string>();
+  for (const proj of projects) {
+    if (proj.client_id) {
+      const client = clients.find((cl) => cl.id === proj.client_id);
+      if (client) projectClientMap.set(proj.id, client.name);
+    }
+  }
 
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());
-  const [view, setView] = useState<"calendar" | "list">("calendar");
+  // Default to "list" — safe on mobile, no hydration mismatch, user can switch to calendar
+  const [view, setView] = useState<"calendar" | "list">("list");
   const [filterPlatform, setFP] = useState("");
   const [filterStatus, setFS] = useState("");
+  const [filterClient, setFC] = useState("");
   const [search, setSearch] = useState("");
   const [modal, setModal] = useState<"create" | "edit" | "view" | null>(null);
   const [selectedPost, setPost] = useState<SocialPost | null>(null);
@@ -727,9 +771,20 @@ export function PublishingClient({ posts, projects, tasks, preselectedTaskId }: 
     (postsByDate[key] ??= []).push(p);
   }
 
+  const statusLabel: Record<SocialPostStatus, string> = {
+    draft: t.socialMedia.status.draft,
+    scheduled: t.socialMedia.status.scheduled,
+    published: t.socialMedia.status.published,
+    cancelled: t.socialMedia.status.cancelled,
+  };
+
   const filtered = posts.filter((p) => {
     if (filterPlatform && !p.platforms.includes(filterPlatform)) return false;
     if (filterStatus && p.status !== filterStatus) return false;
+    if (filterClient) {
+      const clientName = p.project_id ? projectClientMap.get(p.project_id) : undefined;
+      if (clientName !== filterClient) return false;
+    }
     if (search) {
       const q = search.toLowerCase();
       if (!p.title.toLowerCase().includes(q) && !p.content.toLowerCase().includes(q)) return false;
@@ -739,17 +794,12 @@ export function PublishingClient({ posts, projects, tasks, preselectedTaskId }: 
 
   const unscheduledDrafts = filtered.filter((p) => p.status === "draft" && !p.scheduled_at);
 
-  const statusLabel: Record<SocialPostStatus, string> = {
-    draft: "Draft",
-    scheduled: "Scheduled",
-    published: "Published",
-    cancelled: "Cancelled",
-  };
-
   const total = posts.length;
   const scheduled = posts.filter((p) => p.status === "scheduled").length;
   const published = posts.filter((p) => p.status === "published").length;
   const drafts = posts.filter((p) => p.status === "draft").length;
+
+  const hasActiveFilters = !!(filterPlatform || filterStatus || filterClient || search);
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6">
@@ -790,21 +840,30 @@ export function PublishingClient({ posts, projects, tasks, preselectedTaskId }: 
 
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-2">
+        {/* View toggle */}
         <div className="flex rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] p-0.5">
-          {(["calendar", "list"] as const).map((v) => (
-            <button
-              key={v}
-              onClick={() => setView(v)}
-              className={cn(
-                "rounded-lg px-4 py-1.5 text-xs font-medium transition-all",
-                view === v
-                  ? "bg-[#22D3EE] text-[#071B2C] shadow-sm"
-                  : "text-[var(--c-text-3)] hover:text-[var(--c-text-1)]",
-              )}
-            >
-              {v === "calendar" ? c.calendar : "List"}
-            </button>
-          ))}
+          <button
+            onClick={() => setView("list")}
+            className={cn(
+              "rounded-lg px-4 py-1.5 text-xs font-medium transition-all",
+              view === "list"
+                ? "bg-[#22D3EE] text-[#071B2C] shadow-sm"
+                : "text-[var(--c-text-3)] hover:text-[var(--c-text-1)]",
+            )}
+          >
+            {c.pub_listView}
+          </button>
+          <button
+            onClick={() => setView("calendar")}
+            className={cn(
+              "rounded-lg px-4 py-1.5 text-xs font-medium transition-all",
+              view === "calendar"
+                ? "bg-[#22D3EE] text-[#071B2C] shadow-sm"
+                : "text-[var(--c-text-3)] hover:text-[var(--c-text-1)]",
+            )}
+          >
+            {c.calendar}
+          </button>
         </div>
 
         <input
@@ -819,7 +878,7 @@ export function PublishingClient({ posts, projects, tasks, preselectedTaskId }: 
           onChange={(e) => setFP(e.target.value)}
           className="h-8 rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-2 text-xs text-[var(--c-text-1)] focus:border-[#22D3EE] focus:outline-none"
         >
-          <option value="">All platforms</option>
+          <option value="">{t.socialMedia.allPlatforms}</option>
           {ALL_PLATFORMS.map((p) => (
             <option key={p.id} value={p.id}>{p.icon} {p.label}</option>
           ))}
@@ -830,15 +889,28 @@ export function PublishingClient({ posts, projects, tasks, preselectedTaskId }: 
           onChange={(e) => setFS(e.target.value)}
           className="h-8 rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-2 text-xs text-[var(--c-text-1)] focus:border-[#22D3EE] focus:outline-none"
         >
-          <option value="">All statuses</option>
+          <option value="">{t.socialMedia.allStatuses}</option>
           {(["draft", "scheduled", "published", "cancelled"] as SocialPostStatus[]).map((s) => (
             <option key={s} value={s}>{statusLabel[s]}</option>
           ))}
         </select>
 
-        {(filterPlatform || filterStatus || search) && (
+        {clients.length > 0 && (
+          <select
+            value={filterClient}
+            onChange={(e) => setFC(e.target.value)}
+            className="h-8 rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-2 text-xs text-[var(--c-text-1)] focus:border-[#22D3EE] focus:outline-none"
+          >
+            <option value="">{c.pub_allClients}</option>
+            {clients.map((cl) => (
+              <option key={cl.id} value={cl.name}>{cl.name}</option>
+            ))}
+          </select>
+        )}
+
+        {hasActiveFilters && (
           <button
-            onClick={() => { setFP(""); setFS(""); setSearch(""); }}
+            onClick={() => { setFP(""); setFS(""); setFC(""); setSearch(""); }}
             className="text-xs text-[var(--c-text-3)] hover:text-[var(--c-text-1)]"
           >
             ✕ {t.common.clear}
@@ -885,10 +957,11 @@ export function PublishingClient({ posts, projects, tasks, preselectedTaskId }: 
                 (p) =>
                   (!filterPlatform || p.platforms.includes(filterPlatform)) &&
                   (!filterStatus || p.status === filterStatus) &&
+                  (!filterClient || (p.project_id ? projectClientMap.get(p.project_id) === filterClient : false)) &&
                   (!search || p.title.toLowerCase().includes(search.toLowerCase())),
               );
               const isToday = key === todayKey;
-              const col = (i) % 7;
+              const col = i % 7;
               const isLastCol = col === 6;
               return (
                 <div
@@ -947,48 +1020,57 @@ export function PublishingClient({ posts, projects, tasks, preselectedTaskId }: 
               <p className="text-sm text-[var(--c-text-3)]">{c.noPostsMonth}</p>
             </div>
           )}
-          {filtered.map((p) => (
-            <div
-              key={p.id}
-              className="group rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] px-4 py-3 transition-all hover:border-[#22D3EE]/30"
-            >
-              <div className="flex items-start gap-3">
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="truncate text-sm font-medium text-[var(--c-text-1)]">{p.title}</span>
-                    <span className={cn("shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium", STATUS_COLORS[p.status])}>
-                      {statusLabel[p.status]}
-                    </span>
+          {filtered.map((p) => {
+            const clientName = p.project_id ? projectClientMap.get(p.project_id) : undefined;
+            return (
+              <div
+                key={p.id}
+                className="group rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] px-4 py-3 transition-all hover:border-[#22D3EE]/30"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="truncate text-sm font-medium text-[var(--c-text-1)]">{p.title}</span>
+                      <span className={cn("shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium", STATUS_COLORS[p.status])}>
+                        {statusLabel[p.status]}
+                      </span>
+                    </div>
+                    <div className="mt-1.5">
+                      <PlatformChips platforms={p.platforms} size="xs" />
+                    </div>
+                    {p.content && (
+                      <p className="mt-1.5 line-clamp-2 text-xs text-[var(--c-text-3)]">{p.content}</p>
+                    )}
+                    <div className="mt-1.5 flex flex-wrap items-center gap-3 text-[11px] text-[var(--c-text-3)]">
+                      {p.scheduled_at && <span>📅 {fmtDateShort(p.scheduled_at)}</span>}
+                      {clientName && (
+                        <span className="rounded-full bg-[#22D3EE]/10 px-1.5 py-0.5 text-[#22D3EE]">
+                          👥 {clientName}
+                        </span>
+                      )}
+                      {p.project_name && <span>📁 {p.project_name}</span>}
+                      {p.task_title && <span>✓ {p.task_title}</span>}
+                    </div>
                   </div>
-                  <div className="mt-1.5">
-                    <PlatformChips platforms={p.platforms} size="xs" />
+                  {/* Actions: always visible on mobile, hover-reveal on sm+ */}
+                  <div className="flex shrink-0 items-center gap-1 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100">
+                    <button
+                      onClick={() => openEdit(p)}
+                      className="rounded-lg border border-[var(--c-border)] px-2.5 py-1 text-xs text-[var(--c-text-2)] hover:bg-[var(--c-elevated)] hover:text-[var(--c-text-1)] transition-colors"
+                    >
+                      {t.common.edit}
+                    </button>
+                    <button
+                      onClick={() => openView(p)}
+                      className="rounded-lg border border-[var(--c-border)] px-2.5 py-1 text-xs text-[var(--c-text-2)] hover:bg-[var(--c-elevated)] hover:text-[var(--c-text-1)] transition-colors"
+                    >
+                      View
+                    </button>
                   </div>
-                  {p.content && (
-                    <p className="mt-1.5 line-clamp-2 text-xs text-[var(--c-text-3)]">{p.content}</p>
-                  )}
-                  <div className="mt-1.5 flex flex-wrap items-center gap-3 text-[11px] text-[var(--c-text-3)]">
-                    {p.scheduled_at && <span>📅 {fmtDateShort(p.scheduled_at)}</span>}
-                    {p.project_name && <span>📁 {p.project_name}</span>}
-                    {p.task_title && <span>✓ {p.task_title}</span>}
-                  </div>
-                </div>
-                <div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                  <button
-                    onClick={() => openEdit(p)}
-                    className="rounded-lg px-2 py-1 text-xs text-[var(--c-text-3)] hover:bg-[var(--c-elevated)] hover:text-[var(--c-text-1)]"
-                  >
-                    ✏
-                  </button>
-                  <button
-                    onClick={() => openView(p)}
-                    className="rounded-lg px-2 py-1 text-xs text-[var(--c-text-3)] hover:bg-[var(--c-elevated)] hover:text-[var(--c-text-1)]"
-                  >
-                    →
-                  </button>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -996,26 +1078,32 @@ export function PublishingClient({ posts, projects, tasks, preselectedTaskId }: 
       {unscheduledDrafts.length > 0 && (
         <div className="rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] p-4">
           <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-[var(--c-text-3)]">
-            Unscheduled drafts ({unscheduledDrafts.length})
+            {c.pub_unscheduledDrafts} ({unscheduledDrafts.length})
           </h4>
           <div className="space-y-1.5">
-            {unscheduledDrafts.map((p) => (
-              <div key={p.id} className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-[var(--c-elevated)]">
-                <div className="flex-1 min-w-0">
-                  <span className="truncate text-sm text-[var(--c-text-2)]">{p.title}</span>
-                  {p.platforms.length > 0 && (
-                    <div className="mt-0.5"><PlatformChips platforms={p.platforms} size="xs" /></div>
-                  )}
+            {unscheduledDrafts.map((p) => {
+              const clientName = p.project_id ? projectClientMap.get(p.project_id) : undefined;
+              return (
+                <div key={p.id} className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-[var(--c-elevated)]">
+                  <div className="min-w-0 flex-1">
+                    <span className="truncate text-sm text-[var(--c-text-2)]">{p.title}</span>
+                    {p.platforms.length > 0 && (
+                      <div className="mt-0.5"><PlatformChips platforms={p.platforms} size="xs" /></div>
+                    )}
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2 text-xs text-[var(--c-text-3)]">
+                    {clientName && <span>{clientName}</span>}
+                    {p.project_name && <span>{p.project_name}</span>}
+                  </div>
+                  <button
+                    onClick={() => openEdit(p)}
+                    className="shrink-0 rounded-md px-2 py-0.5 text-xs text-[#22D3EE] hover:bg-[#22D3EE]/10"
+                  >
+                    {c.pub_schedule}
+                  </button>
                 </div>
-                <span className="shrink-0 text-xs text-[var(--c-text-3)]">{p.project_name}</span>
-                <button
-                  onClick={() => openEdit(p)}
-                  className="shrink-0 rounded-md px-2 py-0.5 text-xs text-[#22D3EE] hover:bg-[#22D3EE]/10"
-                >
-                  Schedule
-                </button>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -1026,6 +1114,7 @@ export function PublishingClient({ posts, projects, tasks, preselectedTaskId }: 
           <PostForm
             projects={projects}
             tasks={tasks}
+            projectClientMap={projectClientMap}
             defaultDate={defaultDate}
             preselectedTaskId={preselectedTaskId}
             onClose={closeModal}
@@ -1034,11 +1123,12 @@ export function PublishingClient({ posts, projects, tasks, preselectedTaskId }: 
         </Modal>
       )}
       {modal === "edit" && selectedPost && (
-        <Modal title={t.common.edit} onClose={closeModal} wide>
+        <Modal title={c.pub_editPost} onClose={closeModal} wide>
           <PostForm
             post={selectedPost}
             projects={projects}
             tasks={tasks}
+            projectClientMap={projectClientMap}
             onClose={closeModal}
             onSaved={handleSaved}
           />
@@ -1048,6 +1138,7 @@ export function PublishingClient({ posts, projects, tasks, preselectedTaskId }: 
         <Modal title={selectedPost.title} onClose={closeModal}>
           <PostDetail
             post={selectedPost}
+            projectClientMap={projectClientMap}
             onEdit={() => setModal("edit")}
             onClose={closeModal}
             onSaved={handleSaved}

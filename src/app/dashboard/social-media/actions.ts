@@ -60,6 +60,7 @@ export async function createSocialPostAction(formData: FormData) {
   if (error) return { ok: false, error: error.message };
 
   revalidatePath("/dashboard/social-media");
+  revalidatePath("/dashboard/content/publishing");
   return { ok: true };
 }
 
@@ -94,6 +95,7 @@ export async function updateSocialPostAction(formData: FormData) {
   if (error) return { ok: false, error: error.message };
 
   revalidatePath("/dashboard/social-media");
+  revalidatePath("/dashboard/content/publishing");
   return { ok: true };
 }
 
@@ -121,6 +123,7 @@ export async function duplicateSocialPostAction(id: string) {
   if (error) return { ok: false, error: error.message };
 
   revalidatePath("/dashboard/social-media");
+  revalidatePath("/dashboard/content/publishing");
   return { ok: true };
 }
 
@@ -142,6 +145,7 @@ export async function changeSocialPostStatusAction(
   if (error) return { ok: false, error: error.message };
 
   revalidatePath("/dashboard/social-media");
+  revalidatePath("/dashboard/content/publishing");
   return { ok: true };
 }
 
@@ -157,5 +161,6 @@ export async function deleteSocialPostAction(formData: FormData) {
   if (error) return { ok: false, error: error.message };
 
   revalidatePath("/dashboard/social-media");
+  revalidatePath("/dashboard/content/publishing");
   return { ok: true };
 }

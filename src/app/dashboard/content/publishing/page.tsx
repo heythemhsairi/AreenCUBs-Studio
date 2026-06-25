@@ -11,7 +11,7 @@ export default async function PublishingPage({
   const supabase = await createClient();
   const { task_id: preselectedTaskId } = await searchParams;
 
-  const [{ data: postsRaw }, { data: projectsRaw }, { data: tasksRaw }] =
+  const [{ data: postsRaw }, { data: projectsRaw }, { data: tasksRaw }, { data: clientsRaw }] =
     await Promise.all([
       supabase
         .from("social_posts")
@@ -21,13 +21,17 @@ export default async function PublishingPage({
         .order("created_at", { ascending: false }),
       supabase
         .from("projects")
-        .select("id, name")
+        .select("id, name, client_id")
         .order("name", { ascending: true }),
       supabase
         .from("tasks")
         .select("id, title, project_id")
         .is("parent_task_id", null)
         .order("title", { ascending: true }),
+      supabase
+        .from("clients")
+        .select("id, name")
+        .order("name", { ascending: true }),
     ]);
 
   const posts: SocialPost[] = (postsRaw ?? []).map((p) => {
@@ -61,6 +65,7 @@ export default async function PublishingPage({
   const projects = (projectsRaw ?? []).map((p) => ({
     id: p.id,
     name: p.name,
+    client_id: (p.client_id as string | null) ?? null,
   }));
 
   const tasks = (tasksRaw ?? []).map((tk) => ({
@@ -69,11 +74,17 @@ export default async function PublishingPage({
     project_id: tk.project_id,
   }));
 
+  const clients = (clientsRaw ?? []).map((c) => ({
+    id: c.id,
+    name: c.name,
+  }));
+
   return (
     <PublishingClient
       posts={posts}
       projects={projects}
       tasks={tasks}
+      clients={clients}
       preselectedTaskId={preselectedTaskId}
     />
   );
