@@ -628,11 +628,43 @@ html.light .text-slate-500 { color: #6C8298 !important; }
 html.light .command-palette-modal { background-color: #FFFFFF !important; border-color: #D8E6F7 !important; }
 
 /* =========================================================================
+   DUE TODAY CARD (worker dashboard)
+   ========================================================================= */
+
+/* Active state — tasks exist */
+.due-today-active {
+  background: linear-gradient(135deg, rgba(34,211,238,0.13) 0%, rgba(13,45,71,0.96) 100%);
+  border: 1px solid rgba(34,211,238,0.28);
+}
+.due-today-active:hover {
+  background: linear-gradient(135deg, rgba(34,211,238,0.18) 0%, rgba(13,45,71,0.96) 100%);
+}
+html.light .due-today-active {
+  background: linear-gradient(135deg, rgba(34,211,238,0.10) 0%, rgba(230,248,252,0.85) 100%);
+  border: 1px solid rgba(34,211,238,0.32);
+}
+html.light .due-today-active:hover {
+  background: linear-gradient(135deg, rgba(34,211,238,0.16) 0%, rgba(210,244,252,0.90) 100%);
+}
+
+/* Empty state — no tasks */
+.due-today-empty {
+  background: var(--c-card);
+  border: 1px solid var(--c-border);
+}
+
+/* Icon + number colors */
+.due-today-icon  { color: #22D3EE; }
+.due-today-number { color: #22D3EE; }
+html.light .due-today-icon   { color: #1A9DBF; }
+html.light .due-today-number { color: #1A9DBF; }
+
+/* =========================================================================
    FEATURED CARD
    ========================================================================= */
 
 .featured-card {
-  background-image:
+  background:
     radial-gradient(circle at 6% 12%,  rgba(44,110,150,0.55),  transparent 45%),
     radial-gradient(circle at 95% 18%, rgba(34,184,214,0.32),  transparent 42%),
     radial-gradient(circle at 0% 100%, rgba(44,110,150,0.40),  transparent 55%),
@@ -645,37 +677,48 @@ html.light .command-palette-modal { background-color: #FFFFFF !important; border
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background-image: radial-gradient(circle at 50% 50%, rgba(34,184,214,0.06), transparent 70%);
+  background: radial-gradient(circle at 50% 50%, rgba(34,184,214,0.06), transparent 70%);
   border-radius: inherit;
 }
 
 html.light .featured-card {
-  background-image:
-    radial-gradient(circle at 8% 14%,  rgba(44,110,150,0.12),  transparent 55%),
-    radial-gradient(circle at 92% 20%, rgba(34,184,214,0.10),  transparent 50%),
-    radial-gradient(circle at 5% 90%,  rgba(34,184,214,0.08),  transparent 55%),
-    linear-gradient(135deg, rgba(230,248,252,0.70) 0%, rgba(255,255,255,0.95) 60%);
+  background:
+    radial-gradient(circle at 8% 14%,  rgba(44,110,150,0.10),  transparent 55%),
+    radial-gradient(circle at 92% 20%, rgba(34,184,214,0.08),  transparent 50%),
+    radial-gradient(circle at 5% 90%,  rgba(34,184,214,0.06),  transparent 55%),
+    linear-gradient(135deg, #EBF6FC 0%, #FFFFFF 60%);
 }
 html.light .featured-card::after {
-  background-image: radial-gradient(circle at 80% 80%, rgba(34,184,214,0.06), transparent 60%);
+  background: none;
+}
+/* Hide dark glow blobs in light mode */
+html.light .featured-card > [aria-hidden].blur-3xl {
+  display: none;
 }
 
-/* Badge inside featured card */
+/* Badge */
 .featured-badge {
   background: rgba(34,211,238,0.14);
   color: #A5F3FC;
-  ring-color: rgba(34,211,238,0.35);
-  --tw-ring-color: rgba(34,211,238,0.35);
+  box-shadow: 0 0 0 1px rgba(34,211,238,0.35);
 }
 html.light .featured-badge {
-  background: #E6F8FC;
+  background: #D6F1FA;
   color: #0D5C75;
-  --tw-ring-color: rgba(34,211,238,0.35);
+  box-shadow: 0 0 0 1px rgba(34,211,238,0.40);
 }
 
 /* Employee name */
 .featured-name { color: #F4FAFF; }
 html.light .featured-name { color: #102033; }
+
+/* Month label */
+.featured-month { color: rgba(244,250,255,0.55); }
+html.light .featured-month { color: #49627A; }
+
+/* Quote */
+.featured-quote { color: rgba(244,250,255,0.70); font-style: italic; }
+html.light .featured-quote { color: #49627A; font-style: italic; }
 
 /* Edit button */
 .featured-edit-btn {
