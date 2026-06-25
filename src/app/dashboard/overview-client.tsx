@@ -227,13 +227,13 @@ export function OverviewClient({
             {/* Due today */}
             <Link
               href="/dashboard/tasks"
-              className={`flex flex-col gap-1.5 rounded-xl p-4 transition-all hover:-translate-y-px ${todayTasks.length > 0 ? "bg-[#F59E0B]/10 border border-[#F59E0B]/25 hover:bg-[#F59E0B]/15" : "bg-[var(--c-card)] border border-[var(--c-border)]"}`}
+              className={`flex flex-col gap-1.5 rounded-xl p-4 transition-all hover:-translate-y-px ${todayTasks.length > 0 ? "bg-[#22D3EE]/10 border border-[#22D3EE]/28 hover:bg-[#22D3EE]/15" : "bg-[var(--c-card)] border border-[var(--c-border)]"}`}
             >
               <div className="flex items-center gap-1.5">
-                <Clock className={`h-3.5 w-3.5 ${todayTasks.length > 0 ? "text-[#F59E0B]" : "text-[var(--c-text-3)]"}`} />
+                <Clock className={`h-3.5 w-3.5 ${todayTasks.length > 0 ? "text-[#22D3EE]" : "text-[var(--c-text-3)]"}`} />
                 <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--c-text-3)]">{t.overview.workerDueToday}</span>
               </div>
-              <p className={`text-3xl font-bold leading-none ${todayTasks.length > 0 ? "text-[#F59E0B]" : "text-[var(--c-text-3)]"}`}>
+              <p className={`text-3xl font-bold leading-none ${todayTasks.length > 0 ? "text-[#22D3EE]" : "text-[var(--c-text-3)]"}`}>
                 {todayTasks.length}
               </p>
             </Link>
@@ -1276,38 +1276,35 @@ function FeaturedCard({
   const name = featured.full_name ?? featured.username;
   const { t } = useI18n();
   return (
-    <Card interactive className="relative overflow-hidden border-0 p-0">
+    <div className="featured-card relative overflow-hidden rounded-2xl border border-[var(--c-border)]">
+      {/* Glow blobs — dark only, hidden in light */}
       <div
         aria-hidden
-        className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#1a2a4a] via-[#0f1830] to-[#0a1326] ring-1 ring-inset ring-white/12"
+        className="pointer-events-none absolute -left-20 -top-20 h-72 w-72 rounded-full bg-[#2C6E96]/35 blur-3xl html-dark-only"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute -left-20 -top-20 h-72 w-72 rounded-full bg-brand/40 blur-3xl"
+        className="pointer-events-none absolute -bottom-24 right-1/4 h-64 w-64 rounded-full bg-[#7c4dff]/25 blur-3xl html-dark-only"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute -bottom-24 right-1/4 h-64 w-64 rounded-full bg-[#7c4dff]/30 blur-3xl"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -right-12 top-1/3 h-48 w-48 rounded-full bg-cyan-400/22 blur-3xl"
+        className="pointer-events-none absolute -right-12 top-1/3 h-48 w-48 rounded-full bg-[#22D3EE]/18 blur-3xl html-dark-only"
       />
 
-      <CardContent className="relative flex min-h-[140px] flex-col items-center gap-6 px-8 py-8 text-center sm:flex-row sm:items-center sm:gap-8 sm:text-left">
+      <div className="relative flex min-h-[140px] flex-col items-center gap-6 px-8 py-8 text-center sm:flex-row sm:items-center sm:gap-8 sm:text-left">
         <div className="relative shrink-0">
           <div
             aria-hidden
-            className="absolute inset-0 -m-2.5 animate-pulse rounded-full bg-gradient-to-br from-brand via-[#7c4dff] to-cyan-400 opacity-70 blur-xl"
+            className="absolute inset-0 -m-2.5 animate-pulse rounded-full bg-gradient-to-br from-[#2C6E96] via-[#7c4dff] to-[#22D3EE] opacity-60 blur-xl"
           />
-          <div className="absolute inset-0 -m-1 rounded-full bg-gradient-to-br from-brand via-[#7c4dff] to-cyan-400 p-[2px]">
-            <div className="h-full w-full rounded-full bg-[#0a1326]" />
+          <div className="absolute inset-0 -m-1 rounded-full bg-gradient-to-br from-[#2C6E96] via-[#7c4dff] to-[#22D3EE] p-[2px]">
+            <div className="h-full w-full rounded-full bg-[var(--c-card)]" />
           </div>
           <Avatar
             src={featured.avatar_url}
             name={name}
             size="xl"
-            className="relative ring-2 ring-brand/70 ring-offset-2 ring-offset-[#0a1326]"
+            className="relative ring-2 ring-[#2C6E96]/70 ring-offset-2 ring-offset-[var(--c-card)]"
           />
           <span
             className="absolute -top-3 left-1/2 -translate-x-1/2 -rotate-12 text-2xl drop-shadow-md"
@@ -1319,18 +1316,19 @@ function FeaturedCard({
 
         <div className="min-w-0 flex-1 space-y-2.5 sm:pt-3">
           <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-300/15 px-3 py-1 text-[10.5px] font-bold uppercase leading-none tracking-[0.20em] text-cyan-100 ring-1 ring-cyan-300/40">
+            {/* Badge — dark: cyan glass; light: solid cyan tint */}
+            <span className="featured-badge inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10.5px] font-bold uppercase leading-none tracking-[0.20em] ring-1">
               ✦ {t.featured.title}
             </span>
-            <span className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-cream/55">
+            <span className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-[var(--c-text-3)]">
               {formatMonth(featured.month, t.overview.months)}
             </span>
           </div>
-          <h3 className="text-[28px] font-semibold leading-snug tracking-[-0.01em] text-white md:text-[32px]">
+          <h3 className="featured-name text-[28px] font-semibold leading-snug tracking-[-0.01em] md:text-[32px]">
             {name}
           </h3>
           {featured.reason && (
-            <p className="text-sm italic leading-relaxed text-cream/75">
+            <p className="text-sm italic leading-relaxed text-[var(--c-text-2)]">
               « {featured.reason} »
             </p>
           )}
@@ -1340,14 +1338,14 @@ function FeaturedCard({
           <div className="flex shrink-0 items-center">
             <Link
               href="/dashboard/team/featured"
-              className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/10 px-4 py-1.5 text-xs font-semibold text-cream/95 backdrop-blur transition-all hover:border-brand/60 hover:bg-brand/30 hover:text-white"
+              className="featured-edit-btn inline-flex items-center gap-1 rounded-full px-4 py-1.5 text-xs font-semibold backdrop-blur transition-all"
             >
               {t.featured.edit}
             </Link>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 

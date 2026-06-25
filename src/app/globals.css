@@ -633,10 +633,10 @@ html.light .command-palette-modal { background-color: #FFFFFF !important; border
 
 .featured-card {
   background-image:
-    radial-gradient(circle at 8% 12%,  rgba(255,158,31,0.55), transparent 45%),
-    radial-gradient(circle at 95% 18%, rgba(255,184,77,0.4),  transparent 42%),
-    radial-gradient(circle at 0% 100%, rgba(44,110,150,0.45), transparent 55%),
-    radial-gradient(circle at 100% 100%, rgba(34,184,214,0.32), transparent 50%),
+    radial-gradient(circle at 6% 12%,  rgba(44,110,150,0.55),  transparent 45%),
+    radial-gradient(circle at 95% 18%, rgba(34,184,214,0.32),  transparent 42%),
+    radial-gradient(circle at 0% 100%, rgba(44,110,150,0.40),  transparent 55%),
+    radial-gradient(circle at 100% 100%, rgba(34,184,214,0.25), transparent 50%),
     linear-gradient(135deg, #051525 0%, #0D2D47 55%, #071B2C 100%);
   position: relative;
 }
@@ -645,17 +645,56 @@ html.light .command-palette-modal { background-color: #FFFFFF !important; border
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background-image: radial-gradient(circle at 50% 50%, rgba(255,217,163,0.05), transparent 70%);
+  background-image: radial-gradient(circle at 50% 50%, rgba(34,184,214,0.06), transparent 70%);
   border-radius: inherit;
 }
 
 html.light .featured-card {
   background-image:
-    radial-gradient(circle at 12% 14%, rgba(255,158,31,0.45), transparent 55%),
-    radial-gradient(circle at 92% 22%, rgba(255,158,31,0.32), transparent 50%),
-    radial-gradient(circle at 6% 92%,  rgba(44,110,150,0.22), transparent 55%),
-    linear-gradient(135deg, rgba(255,248,240,0.85) 0%, rgba(255,255,255,0.92) 60%);
+    radial-gradient(circle at 8% 14%,  rgba(44,110,150,0.12),  transparent 55%),
+    radial-gradient(circle at 92% 20%, rgba(34,184,214,0.10),  transparent 50%),
+    radial-gradient(circle at 5% 90%,  rgba(34,184,214,0.08),  transparent 55%),
+    linear-gradient(135deg, rgba(230,248,252,0.70) 0%, rgba(255,255,255,0.95) 60%);
 }
 html.light .featured-card::after {
-  background-image: radial-gradient(circle at 80% 80%, rgba(255,158,31,0.12), transparent 60%);
+  background-image: radial-gradient(circle at 80% 80%, rgba(34,184,214,0.06), transparent 60%);
+}
+
+/* Badge inside featured card */
+.featured-badge {
+  background: rgba(34,211,238,0.14);
+  color: #A5F3FC;
+  ring-color: rgba(34,211,238,0.35);
+  --tw-ring-color: rgba(34,211,238,0.35);
+}
+html.light .featured-badge {
+  background: #E6F8FC;
+  color: #0D5C75;
+  --tw-ring-color: rgba(34,211,238,0.35);
+}
+
+/* Employee name */
+.featured-name { color: #F4FAFF; }
+html.light .featured-name { color: #102033; }
+
+/* Edit button */
+.featured-edit-btn {
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.10);
+  color: rgba(244,250,255,0.95);
+}
+.featured-edit-btn:hover {
+  border-color: rgba(34,184,214,0.55);
+  background: rgba(34,184,214,0.22);
+  color: #ffffff;
+}
+html.light .featured-edit-btn {
+  border: 1px solid rgba(34,184,214,0.35);
+  background: rgba(34,184,214,0.08);
+  color: #0D5C75;
+}
+html.light .featured-edit-btn:hover {
+  border-color: rgba(34,184,214,0.55);
+  background: rgba(34,184,214,0.16);
+  color: #0D5C75;
 }
