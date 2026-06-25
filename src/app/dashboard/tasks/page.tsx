@@ -82,6 +82,7 @@ export default async function TasksPage() {
       currentUserAssigneeId={session.id}
       tagColors={tagColors}
       isFreelancer={session.role === "freelancer"}
+      isWorker={session.role === "worker"}
       defaultQuickFilter={session.role === "worker" ? "my_tasks" : "active"}
     />
   );

@@ -71,6 +71,7 @@ export default async function CalendarPage() {
       tasks={tasks}
       completed={completed}
       currentUserId={session.id}
+      isWorker={session.role === "worker"}
     />
   );
 }

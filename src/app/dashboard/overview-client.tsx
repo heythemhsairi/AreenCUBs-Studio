@@ -365,6 +365,15 @@ export function OverviewClient({
           </section>
         )}
 
+        {/* Office/Home planning */}
+        <section>
+          <p className={SECTION_LABEL}>{t.overview.myPlanning}</p>
+          <div className="mt-3 rounded-xl bg-[var(--c-card)] ring-1 ring-[var(--c-border)] p-5">
+            <p className="mb-3 text-xs text-[var(--c-text-3)]">{t.overview.myPlanningHint}</p>
+            <WorkCalendar initial={workSchedule} />
+          </div>
+        </section>
+
         {/* My KPI strip */}
         <section>
           <p className={SECTION_LABEL}>{t.overview.myMetrics}</p>
@@ -387,15 +396,6 @@ export function OverviewClient({
               tone="violet"
               icon={<TrendingUp className="h-4 w-4" />}
             />
-          </div>
-        </section>
-
-        {/* Office/Home planning — secondary, lower position */}
-        <section>
-          <p className={SECTION_LABEL}>{t.overview.myPlanning}</p>
-          <div className="mt-3 rounded-xl bg-[var(--c-card)] ring-1 ring-[var(--c-border)] p-5">
-            <p className="mb-3 text-xs text-[var(--c-text-3)]">{t.overview.myPlanningHint}</p>
-            <WorkCalendar initial={workSchedule} />
           </div>
         </section>
 

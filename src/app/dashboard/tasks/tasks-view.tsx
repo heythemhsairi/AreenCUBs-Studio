@@ -56,6 +56,7 @@ export function TasksView({
   currentUserAssigneeId,
   tagColors,
   isFreelancer,
+  isWorker = false,
   defaultQuickFilter = "active",
 }: {
   tasks: TaskCard[];
@@ -65,6 +66,7 @@ export function TasksView({
   currentUserAssigneeId: string;
   tagColors?: Record<string, string>;
   isFreelancer: boolean;
+  isWorker?: boolean;
   defaultQuickFilter?: QuickFilter;
 }) {
   const { t } = useI18n();
@@ -107,7 +109,11 @@ export function TasksView({
       <PageHeader
         title={isFreelancer ? t.tasks.myTitle : t.tasks.title}
         description={
-          isFreelancer ? t.tasksUi.descriptionMine : t.tasksUi.description
+          isFreelancer
+            ? t.tasksUi.descriptionMine
+            : isWorker
+              ? t.tasksUi.descriptionWorker
+              : t.tasksUi.description
         }
         action={
           !isFreelancer ? (
@@ -224,7 +230,7 @@ export function TasksView({
 
       {/* Main content */}
       {filtered.length === 0 ? (
-        <EmptyState />
+        <EmptyState isWorkerDefault={isWorker && quickFilter === "my_tasks" && activeFilterCount === 0} />
       ) : view === "kanban" ? (
         <DarkKanban
           tasks={filtered}
@@ -853,13 +859,17 @@ function CalendarPlaceholder() {
 // Empty state
 // ---------------------------------------------------------------------------
 
-function EmptyState() {
+function EmptyState({ isWorkerDefault = false }: { isWorkerDefault?: boolean }) {
   const { t } = useI18n();
   return (
     <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-[#22506F] bg-[#071B2C]/50 px-6 py-16 text-center">
-      <span className="text-3xl">🔍</span>
-      <p className="text-sm font-medium text-[#94A3B8]">{t.tasksUi.noResults}</p>
-      <p className="max-w-sm text-xs text-[#64748B]">{t.tasksUi.noResultsHint}</p>
+      <span className="text-3xl">{isWorkerDefault ? "✅" : "🔍"}</span>
+      <p className="text-sm font-medium text-[#94A3B8]">
+        {isWorkerDefault ? t.tasksUi.noAssignedTasks : t.tasksUi.noResults}
+      </p>
+      {!isWorkerDefault && (
+        <p className="max-w-sm text-xs text-[#64748B]">{t.tasksUi.noResultsHint}</p>
+      )}
     </div>
   );
 }

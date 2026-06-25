@@ -120,6 +120,7 @@ export const dict = {
       title: "Calendrier",
       description:
         "Visualisez les échéances de l'équipe. Glissez une tâche sur une autre date pour la replanifier.",
+      descriptionWorker: "Vos échéances et le travail assigné à venir.",
       previous: "Précédent",
       next: "Suivant",
       today: "Aujourd'hui",
@@ -183,8 +184,10 @@ export const dict = {
     tasksUi: {
       description: "Vue d'ensemble de toutes les tâches du studio.",
       descriptionMine: "Toutes les tâches qui vous sont assignées.",
+      descriptionWorker: "Vos tâches assignées et le travail à venir.",
       noResults: "Aucune tâche ne correspond",
       noResultsHint: "Essayez d'élargir vos filtres ou videz la recherche.",
+      noAssignedTasks: "Aucune tâche assignée pour l'instant.",
       kanban: "Kanban",
       list: "Liste",
       template: "Modèle (optionnel)",
@@ -1149,6 +1152,7 @@ export const dict = {
       title: "Calendar",
       description:
         "See team deadlines at a glance. Drag a task onto another date to reschedule.",
+      descriptionWorker: "Your deadlines and upcoming assigned work.",
       previous: "Previous",
       next: "Next",
       today: "Today",
@@ -1211,8 +1215,10 @@ export const dict = {
     tasksUi: {
       description: "All tasks across the studio.",
       descriptionMine: "All tasks assigned to you.",
+      descriptionWorker: "Your assigned tasks and upcoming work.",
       noResults: "No matching tasks",
       noResultsHint: "Try loosening your filters or clearing the search.",
+      noAssignedTasks: "No assigned tasks right now.",
       kanban: "Kanban",
       list: "List",
       template: "Template (optional)",

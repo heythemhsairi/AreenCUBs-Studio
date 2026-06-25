@@ -129,10 +129,12 @@ function buildWeekGrid(viewDate: Date): Date[] {
 export function CalendarView({
   tasks,
   completed,
+  isWorker = false,
 }: {
   tasks: CalendarTask[];
   completed: CompletedEntry[];
   currentUserId: string;
+  isWorker?: boolean;
 }) {
   const { t, locale } = useI18n();
   const isEn = locale === "en";
@@ -145,7 +147,7 @@ export function CalendarView({
     tNow.setHours(0, 0, 0, 0);
     return tNow;
   }, []);
-  const [view, setView] = useState<View>("month");
+  const [view, setView] = useState<View>(isWorker ? "agenda" : "month");
   const [viewDate, setViewDate] = useState<Date>(today);
   const [priorityFilter, setPriorityFilter] = useState<"all" | Priority>("all");
   const [pending, startTransition] = useTransition();
@@ -236,7 +238,7 @@ export function CalendarView({
     <div className="space-y-6">
       <PageHeader
         title={t.calendar.title}
-        description={t.calendar.description}
+        description={isWorker ? t.calendar.descriptionWorker : t.calendar.description}
       />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
