@@ -22,6 +22,7 @@ import {
   Gauge,
   CalendarDays,
   Settings,
+  Layers,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -63,6 +64,13 @@ function buildNav(
       href: "/dashboard/social-media",
       label: t.nav.socialMedia,
       icon: Share2,
+      rolesAllowed: ["admin", "worker"],
+      group: "workspace",
+    },
+    {
+      href: "/dashboard/content",
+      label: t.contentOS.nav,
+      icon: Layers,
       rolesAllowed: ["admin", "worker"],
       group: "workspace",
     },

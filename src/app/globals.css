@@ -334,6 +334,27 @@
 
   .neon-text-cyan  { color: #22B8D6; text-shadow: 0 0 20px rgba(34,184,214,0.5); }
   .neon-border-cyan { border-color: #22B8D6; box-shadow: 0 0 12px rgba(34,184,214,0.3); }
+
+  /* Reusable form input style — picks up global dark/light overrides */
+  .input-base {
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid var(--c-border);
+    background: var(--c-card);
+    color: var(--c-text-1);
+    padding: 8px 12px;
+    font-size: 14px;
+    line-height: 1.5;
+    transition: border-color 0.15s ease;
+    appearance: auto;
+  }
+  .input-base:focus {
+    outline: none;
+    border-color: #22D3EE;
+    box-shadow: 0 0 0 3px rgba(34,211,238,0.12);
+  }
+  .input-base::placeholder { color: var(--c-text-3); opacity: 0.7; }
+  .input-base option { background: var(--c-card); color: var(--c-text-1); }
 }
 
 @layer utilities {
