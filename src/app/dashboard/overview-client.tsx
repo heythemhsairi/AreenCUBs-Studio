@@ -73,6 +73,13 @@ type UpcomingTask = {
   assignee: { name: string; avatar: string | null } | null;
 };
 
+type AdminTaskCounts = {
+  overdue: number;
+  dueToday: number;
+  thisWeek: number;
+  waiting: number;
+} | null;
+
 type Props = {
   role: UserRole;
   fullName: string;
@@ -84,6 +91,7 @@ type Props = {
   upcomingTasks: UpcomingTask[];
   featuredEmployee: Featured;
   workSchedule: Record<string, "office" | "home">;
+  adminTaskCounts?: AdminTaskCounts;
 };
 
 // ---------------------------------------------------------------------------
@@ -131,6 +139,7 @@ export function OverviewClient({
   upcomingTasks = [],
   featuredEmployee,
   workSchedule = {},
+  adminTaskCounts = null,
 }: Props) {
   const { t, locale } = useI18n();
   const isAdmin = role === "admin";
@@ -875,6 +884,49 @@ export function OverviewClient({
                 <span aria-hidden>→</span>
               </Link>
             </div>
+          </div>
+        </section>
+      )}
+
+      {/* ================================================================== */}
+      {/* ADMIN TASKS WIDGET (admin only)                                     */}
+      {/* ================================================================== */}
+      {isAdmin && adminTaskCounts && (
+        <section>
+          <div className="flex items-center justify-between">
+            <p className={SECTION_LABEL}>{t.adminTasks.widgetTitle}</p>
+            <Link
+              href="/dashboard/admin-tasks"
+              className="text-[11px] font-semibold text-[#38BDF8] hover:text-[#7DD3FC] transition-colors"
+            >
+              {t.adminTasks.widgetSeeAll}
+            </Link>
+          </div>
+          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <Link href="/dashboard/admin-tasks?f=overdue" className="group rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] p-4 hover:border-[#F43F5E]/50 transition-colors">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B]">{t.adminTasks.widgetOverdue}</p>
+              <p className={`mt-1 text-2xl font-bold ${adminTaskCounts.overdue > 0 ? "text-[#F43F5E]" : "text-[var(--c-text-3)]"}`}>
+                {adminTaskCounts.overdue}
+              </p>
+            </Link>
+            <Link href="/dashboard/admin-tasks?f=today" className="group rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] p-4 hover:border-[#F59E0B]/50 transition-colors">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B]">{t.adminTasks.widgetToday}</p>
+              <p className={`mt-1 text-2xl font-bold ${adminTaskCounts.dueToday > 0 ? "text-[#F59E0B]" : "text-[var(--c-text-3)]"}`}>
+                {adminTaskCounts.dueToday}
+              </p>
+            </Link>
+            <Link href="/dashboard/admin-tasks?f=week" className="group rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] p-4 hover:border-[#22D3EE]/50 transition-colors">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B]">{t.adminTasks.widgetThisWeek}</p>
+              <p className="mt-1 text-2xl font-bold text-[var(--c-text-1)]">
+                {adminTaskCounts.thisWeek}
+              </p>
+            </Link>
+            <Link href="/dashboard/admin-tasks?f=waiting" className="group rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] p-4 hover:border-[#F59E0B]/30 transition-colors">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B]">{t.adminTasks.widgetWaiting}</p>
+              <p className={`mt-1 text-2xl font-bold ${adminTaskCounts.waiting > 0 ? "text-[#F59E0B]" : "text-[var(--c-text-3)]"}`}>
+                {adminTaskCounts.waiting}
+              </p>
+            </Link>
           </div>
         </section>
       )}

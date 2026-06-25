@@ -599,6 +599,31 @@ export default async function DashboardPage() {
     "featured",
   );
 
+  // ---- Admin task counts (admin only) ----
+  const adminTaskCounts = isAdmin
+    ? await safe(
+        async () => {
+          const { data } = await supabase
+            .from("admin_tasks")
+            .select("status, due_date, priority")
+            .not("status", "in", '("done","cancelled")');
+          const rows = data ?? [];
+          const todayStr = todayIso;
+          const in7 = new Date(today);
+          in7.setDate(in7.getDate() + 7);
+          const in7Str = in7.toISOString().slice(0, 10);
+          return {
+            overdue:   rows.filter((r) => r.due_date && r.due_date < todayStr).length,
+            dueToday:  rows.filter((r) => r.due_date === todayStr).length,
+            thisWeek:  rows.filter((r) => r.due_date && r.due_date > todayStr && r.due_date <= in7Str).length,
+            waiting:   rows.filter((r) => r.status === "waiting").length,
+          };
+        },
+        { overdue: 0, dueToday: 0, thisWeek: 0, waiting: 0 },
+        "adminTaskCounts",
+      )
+    : null;
+
   return (
     <div className="space-y-7">
       {isAdmin && staleDevis.length > 0 && (
@@ -653,6 +678,7 @@ export default async function DashboardPage() {
         upcomingTasks={upcomingTasks}
         featuredEmployee={featuredEmployee}
         workSchedule={myWorkSchedule}
+        adminTaskCounts={adminTaskCounts}
       />
     </div>
   );

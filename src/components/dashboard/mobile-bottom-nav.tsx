@@ -21,6 +21,7 @@ import {
   CalendarDays,
   Settings,
   Share2,
+  ClipboardList,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/lib/utils";
@@ -110,6 +111,12 @@ const ALL_NAV_ITEMS: NavItem[] = [
     label: "Publishing",
     icon: Share2,
     roles: ["admin", "worker"],
+  },
+  {
+    href: "/dashboard/admin-tasks",
+    label: "Admin Tasks",
+    icon: ClipboardList,
+    roles: ["admin"],
   },
   {
     href: "/dashboard/settings",

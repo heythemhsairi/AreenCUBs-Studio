@@ -22,6 +22,7 @@ import {
   CalendarDays,
   Settings,
   Layers,
+  ClipboardList,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -128,6 +129,13 @@ function buildNav(
       icon: CalendarDays,
       rolesAllowed: ["admin"],
       group: "team",
+    },
+    {
+      href: "/dashboard/admin-tasks",
+      label: t.nav.adminTasks,
+      icon: ClipboardList,
+      rolesAllowed: ["admin"],
+      group: "system",
     },
     {
       href: "/dashboard/settings",
