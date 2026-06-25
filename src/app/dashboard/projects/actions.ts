@@ -112,6 +112,25 @@ export async function updateProjectAction(
   return { ok: true };
 }
 
+export async function updateProjectStatusAction(
+  projectId: string,
+  status: string,
+): Promise<ActionResult> {
+  await requireWorkerOrAdmin();
+  if (!STATUSES.includes(status as ProjectStatus)) {
+    return { ok: false, error: "Invalid status." };
+  }
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("projects")
+    .update({ status })
+    .eq("id", projectId);
+  if (error) return { ok: false, error: error.message };
+  revalidatePath("/dashboard/projects");
+  revalidatePath(`/dashboard/projects/${projectId}`);
+  return { ok: true };
+}
+
 export async function deleteProjectAction(
   formData: FormData,
 ): Promise<ActionResult> {

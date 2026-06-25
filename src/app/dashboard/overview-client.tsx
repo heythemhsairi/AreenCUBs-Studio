@@ -58,6 +58,7 @@ type RecentDevis = {
   status: string;
   payment_status: string;
   date: string;
+  due_date: string | null;
   client_name: string;
 };
 
@@ -155,13 +156,23 @@ export function OverviewClient({
     return due < today && task.status !== "done";
   });
 
-  const overdueInvoices = recentDevis.filter(
-    (d) =>
-      d.payment_status === "unpaid" &&
-      (d.status === "sent" || d.status === "accepted"),
-  );
+  // Show unpaid docs only when due within 3 days (or already past due).
+  // Sort: overdue first, then due today, then due in 1-3 days.
+  const urgentInvoices = recentDevis
+    .filter((d) => {
+      if (!d.due_date) return true; // no due date → always show if unpaid/sent
+      const due = new Date(d.due_date);
+      due.setHours(0, 0, 0, 0);
+      const daysUntilDue = Math.floor((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      return daysUntilDue <= 3; // overdue (negative) or due today (0) or in 1-3 days
+    })
+    .sort((a, b) => {
+      const dueA = a.due_date ? new Date(a.due_date).getTime() : 0;
+      const dueB = b.due_date ? new Date(b.due_date).getTime() : 0;
+      return dueA - dueB; // ascending: most overdue first
+    });
 
-  const hasPriorities = overdueTasks.length > 0 || overdueInvoices.length > 0;
+  const hasPriorities = overdueTasks.length > 0 || urgentInvoices.length > 0;
 
   // Kanban status distribution
   const statusGroups = {
@@ -433,9 +444,9 @@ export function OverviewClient({
                 <span className="text-sm font-semibold text-[var(--c-text-1)]">
                   {t.overview.attentionRequired}
                 </span>
-                {(overdueTasks.length + overdueInvoices.length) > 0 && (
+                {(overdueTasks.length + urgentInvoices.length) > 0 && (
                   <span className="ml-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#F43F5E] px-1.5 text-[10px] font-bold text-white">
-                    {overdueTasks.length + overdueInvoices.length}
+                    {overdueTasks.length + urgentInvoices.length}
                   </span>
                 )}
               </div>
@@ -478,29 +489,48 @@ export function OverviewClient({
                 );
               })}
 
-              {overdueInvoices.map((doc) => (
-                <Link
-                  key={doc.id}
-                  href={`/dashboard/${doc.kind === "facture" ? "factures" : "devis"}/${doc.id}`}
-                  className="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-white/4"
-                >
-                  <FileText className="h-3.5 w-3.5 shrink-0 text-[#F59E0B]" />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-[var(--c-text-1)]">
-                      {doc.client_name}
-                    </p>
-                    <p className="truncate text-[11px] text-[var(--c-text-3)]">
-                      {formatDevisNumber(doc.devis_number, doc.kind)} · {formatDate(doc.date)}
-                    </p>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-2">
-                    <span className="rounded-md bg-[#F59E0B]/15 px-2 py-0.5 text-[11px] font-semibold text-[#F59E0B]">
-                      {t.overview.unpaid}
-                    </span>
-                    <MoneyAmount amount={doc.total_dt} size="sm" />
-                  </div>
-                </Link>
-              ))}
+              {urgentInvoices.map((doc) => {
+                const due = doc.due_date ? (() => { const d = new Date(doc.due_date!); d.setHours(0,0,0,0); return d; })() : null;
+                const daysUntil = due ? Math.floor((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) : null;
+                const isOverdue = daysUntil !== null && daysUntil < 0;
+                const isDueToday = daysUntil === 0;
+                const urgencyLabel = isOverdue
+                  ? t.overview.relativeOverdueLong(Math.abs(daysUntil!))
+                  : isDueToday
+                    ? t.overview.relativeTodayLong
+                    : daysUntil !== null
+                      ? t.overview.relativeInLong(daysUntil)
+                      : t.overview.unpaid;
+                const urgencyColor = isOverdue
+                  ? "bg-[#F43F5E]/15 text-[#F43F5E]"
+                  : isDueToday
+                    ? "bg-[#F59E0B]/15 text-[#F59E0B]"
+                    : "bg-[#38BDF8]/15 text-[#38BDF8]";
+                const iconColor = isOverdue ? "text-[#F43F5E]" : isDueToday ? "text-[#F59E0B]" : "text-[#38BDF8]";
+                return (
+                  <Link
+                    key={doc.id}
+                    href={`/dashboard/${doc.kind === "facture" ? "factures" : "devis"}/${doc.id}`}
+                    className="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-white/4"
+                  >
+                    <FileText className={`h-3.5 w-3.5 shrink-0 ${iconColor}`} />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium text-[var(--c-text-1)]">
+                        {doc.client_name}
+                      </p>
+                      <p className="truncate text-[11px] text-[var(--c-text-3)]">
+                        {formatDevisNumber(doc.devis_number, doc.kind)} · {due ? formatDate(doc.due_date!) : formatDate(doc.date)}
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <span className={`rounded-md px-2 py-0.5 text-[11px] font-semibold ${urgencyColor}`}>
+                        {urgencyLabel}
+                      </span>
+                      <MoneyAmount amount={doc.total_dt} size="sm" />
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           </div>
         </section>

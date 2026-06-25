@@ -356,7 +356,7 @@ export default async function DashboardPage() {
       : []),
   ];
 
-  // ---- Recent devis (admin) ----
+  // ---- Recent devis (admin) — fetch ALL unpaid sent/accepted docs for attention widget ----
   type RecentDevis = {
     id: string;
     kind: "devis" | "facture";
@@ -365,6 +365,7 @@ export default async function DashboardPage() {
     status: string;
     payment_status: string;
     date: string;
+    due_date: string | null;
     client_name: string;
   };
   const recentDevis: RecentDevis[] = isAdmin
@@ -373,10 +374,11 @@ export default async function DashboardPage() {
           const { data } = await supabase
             .from("devis")
             .select(
-              "id, kind, devis_number, total_dt, status, payment_status, date, clients:client_id(name)",
+              "id, kind, devis_number, total_dt, status, payment_status, date, due_date, clients:client_id(name)",
             )
-            .order("created_at", { ascending: false })
-            .limit(5);
+            .in("payment_status", ["unpaid", "partial"])
+            .in("status", ["sent", "accepted"])
+            .order("due_date", { ascending: true });
           return (data ?? []).map((d) => {
             const c = Array.isArray(d.clients) ? d.clients[0] : d.clients;
             return {
@@ -387,6 +389,7 @@ export default async function DashboardPage() {
               status: d.status,
               payment_status: d.payment_status,
               date: d.date,
+              due_date: d.due_date ?? null,
               client_name: c?.name ?? "—",
             };
           });

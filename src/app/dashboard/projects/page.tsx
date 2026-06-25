@@ -4,7 +4,7 @@ import { ProjectsTable, type ProjectRow } from "./projects-table";
 import { ProjectsPageClient } from "./projects-page-client";
 
 export default async function ProjectsPage() {
-  await requireWorkerOrAdmin();
+  const session = await requireWorkerOrAdmin();
   const supabase = await createClient();
   const { data } = await supabase
     .from("projects")
@@ -31,7 +31,7 @@ export default async function ProjectsPage() {
   return (
     <div className="space-y-6">
       <ProjectsPageClient />
-      <ProjectsTable projects={rows} showClient />
+      <ProjectsTable projects={rows} showClient isAdmin={session.role === "admin"} />
     </div>
   );
 }
