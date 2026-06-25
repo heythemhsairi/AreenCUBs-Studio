@@ -343,6 +343,11 @@ export const dict = {
       relativeTodayLong: "Aujourd'hui",
       relativeIn: (n: number) => `J+${n}`,
       relativeInLong: (n: number) => `Échéance dans ${n}j`,
+      workerTodayWork: "Mon travail",
+      workerOverdue: "En retard",
+      workerDueToday: "Aujourd'hui",
+      workerUrgentTasks: "Tâches urgentes",
+      workerThisWeek: "Cette semaine",
       months: [
         "janvier",
         "février",
@@ -1366,6 +1371,11 @@ export const dict = {
       relativeTodayLong: "Today",
       relativeIn: (n: number) => `+${n}d`,
       relativeInLong: (n: number) => `Due in ${n}d`,
+      workerTodayWork: "My work",
+      workerOverdue: "Overdue",
+      workerDueToday: "Due today",
+      workerUrgentTasks: "Urgent tasks",
+      workerThisWeek: "This week",
       months: [
         "January",
         "February",

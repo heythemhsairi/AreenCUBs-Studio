@@ -56,6 +56,7 @@ export function TasksView({
   currentUserAssigneeId,
   tagColors,
   isFreelancer,
+  defaultQuickFilter = "active",
 }: {
   tasks: TaskCard[];
   projects: Option[];
@@ -64,11 +65,12 @@ export function TasksView({
   currentUserAssigneeId: string;
   tagColors?: Record<string, string>;
   isFreelancer: boolean;
+  defaultQuickFilter?: QuickFilter;
 }) {
   const { t } = useI18n();
   const [filters, setFilters] = useState<TasksFilters>(DEFAULT_FILTERS);
   const [view, setView] = useState<ViewMode>("kanban");
-  const [quickFilter, setQuickFilter] = useState<QuickFilter>("active");
+  const [quickFilter, setQuickFilter] = useState<QuickFilter>(defaultQuickFilter);
   const [showFilters, setShowFilters] = useState(false);
 
   const QUICK_FILTERS = QUICK_FILTER_IDS.map((id) => ({

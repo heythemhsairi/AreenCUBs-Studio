@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { AlertTriangle, CheckCircle2, Clock, TrendingUp, Users, FileText } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Clock, TrendingUp, Users, FileText, CalendarDays } from "lucide-react";
 import { useI18n } from "@/lib/i18n/provider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge, StatusBadge } from "@/components/ui/badge";
@@ -173,6 +173,241 @@ export function OverviewClient({
 
   // Net profit: not calculable here without expenses data — show paid amount only
 
+  // Worker layout — tasks-first, welcoming, no finance noise
+  if (role === "worker") {
+    const todayTasks = upcomingTasks.filter((task) => {
+      const due = new Date(task.deadline);
+      due.setHours(0, 0, 0, 0);
+      return due.getTime() === today.getTime() && task.status !== "done";
+    });
+    const overdueWorkerTasks = upcomingTasks.filter((task) => {
+      const due = new Date(task.deadline);
+      due.setHours(0, 0, 0, 0);
+      return due.getTime() < today.getTime() && task.status !== "done";
+    });
+    const inProgressTasks = upcomingTasks.filter((t) => t.status === "in_progress");
+    const reviewTasks = upcomingTasks.filter((t) => t.status === "review");
+    const endOfWeek = new Date(today);
+    endOfWeek.setDate(endOfWeek.getDate() + 6);
+    const thisWeekTasks = upcomingTasks.filter((task) => {
+      const due = new Date(task.deadline);
+      due.setHours(0, 0, 0, 0);
+      return (
+        due.getTime() > today.getTime() &&
+        due.getTime() <= endOfWeek.getTime() &&
+        task.status !== "done"
+      );
+    });
+
+    const totalUrgent = overdueWorkerTasks.length + todayTasks.length;
+
+    return (
+      <div className="space-y-7">
+        {/* Greeting */}
+        <Greeting fullName={fullName} subtitle={subtitle} role={role} />
+
+        {/* Today's Work hero banner */}
+        <section>
+          <p className={SECTION_LABEL}>{t.overview.workerTodayWork}</p>
+          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {/* Overdue */}
+            <Link
+              href="/dashboard/tasks"
+              className={`flex flex-col gap-1.5 rounded-xl p-4 transition-all hover:-translate-y-px ${overdueWorkerTasks.length > 0 ? "bg-[#F43F5E]/10 border border-[#F43F5E]/25 hover:bg-[#F43F5E]/15" : "bg-[var(--c-card)] border border-[var(--c-border)]"}`}
+            >
+              <div className="flex items-center gap-1.5">
+                <AlertTriangle className={`h-3.5 w-3.5 ${overdueWorkerTasks.length > 0 ? "text-[#F43F5E]" : "text-[var(--c-text-3)]"}`} />
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--c-text-3)]">{t.overview.workerOverdue}</span>
+              </div>
+              <p className={`text-3xl font-bold leading-none ${overdueWorkerTasks.length > 0 ? "text-[#F43F5E]" : "text-[var(--c-text-3)]"}`}>
+                {overdueWorkerTasks.length}
+              </p>
+            </Link>
+
+            {/* Due today */}
+            <Link
+              href="/dashboard/tasks"
+              className={`flex flex-col gap-1.5 rounded-xl p-4 transition-all hover:-translate-y-px ${todayTasks.length > 0 ? "bg-[#F59E0B]/10 border border-[#F59E0B]/25 hover:bg-[#F59E0B]/15" : "bg-[var(--c-card)] border border-[var(--c-border)]"}`}
+            >
+              <div className="flex items-center gap-1.5">
+                <Clock className={`h-3.5 w-3.5 ${todayTasks.length > 0 ? "text-[#F59E0B]" : "text-[var(--c-text-3)]"}`} />
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--c-text-3)]">{t.overview.workerDueToday}</span>
+              </div>
+              <p className={`text-3xl font-bold leading-none ${todayTasks.length > 0 ? "text-[#F59E0B]" : "text-[var(--c-text-3)]"}`}>
+                {todayTasks.length}
+              </p>
+            </Link>
+
+            {/* In progress */}
+            <Link
+              href="/dashboard/tasks"
+              className="flex flex-col gap-1.5 rounded-xl bg-[#22D3EE]/8 border border-[#22D3EE]/20 p-4 transition-all hover:-translate-y-px hover:bg-[#22D3EE]/12"
+            >
+              <div className="flex items-center gap-1.5">
+                <span className="relative flex h-2 w-2 shrink-0">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#22D3EE] opacity-60" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-[#22D3EE]" />
+                </span>
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--c-text-3)]">{t.tasks.status.in_progress}</span>
+              </div>
+              <p className="text-3xl font-bold leading-none text-[#22D3EE]">{inProgressTasks.length}</p>
+            </Link>
+
+            {/* Waiting review */}
+            <Link
+              href="/dashboard/tasks"
+              className={`flex flex-col gap-1.5 rounded-xl p-4 transition-all hover:-translate-y-px ${reviewTasks.length > 0 ? "bg-[#A78BFA]/10 border border-[#A78BFA]/25 hover:bg-[#A78BFA]/15" : "bg-[var(--c-card)] border border-[var(--c-border)]"}`}
+            >
+              <div className="flex items-center gap-1.5">
+                <CheckCircle2 className={`h-3.5 w-3.5 ${reviewTasks.length > 0 ? "text-[#A78BFA]" : "text-[var(--c-text-3)]"}`} />
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--c-text-3)]">{t.tasks.status.review}</span>
+              </div>
+              <p className={`text-3xl font-bold leading-none ${reviewTasks.length > 0 ? "text-[#A78BFA]" : "text-[var(--c-text-3)]"}`}>
+                {reviewTasks.length}
+              </p>
+            </Link>
+          </div>
+        </section>
+
+        {/* Urgent tasks (overdue + due today) */}
+        {totalUrgent > 0 && (
+          <section>
+            <p className={SECTION_LABEL}>{t.overview.workerUrgentTasks}</p>
+            <div className="mt-3 rounded-xl border-l-2 border-[#F43F5E] bg-[var(--c-card)] ring-1 ring-[var(--c-border)] overflow-hidden">
+              <div className="flex items-center justify-between border-b border-[var(--c-border)] px-5 py-3">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-[#F43F5E]" />
+                  <span className="text-sm font-semibold text-[var(--c-text-1)]">{t.overview.attentionRequired}</span>
+                  <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#F43F5E] px-1.5 text-[10px] font-bold text-white">
+                    {totalUrgent}
+                  </span>
+                </div>
+                <Link href="/dashboard/tasks" className="text-[11px] font-semibold text-[#38BDF8] hover:text-[#7DD3FC] transition-colors">
+                  {t.overview.seeAllLink}
+                </Link>
+              </div>
+              <div className="divide-y divide-[var(--c-border)]">
+                {overdueWorkerTasks.slice(0, 3).map((task) => {
+                  const due = new Date(task.deadline);
+                  const daysLate = Math.floor((today.getTime() - due.getTime()) / (1000 * 60 * 60 * 24));
+                  return (
+                    <Link key={task.id} href={`/dashboard/tasks/${task.id}`} className="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-white/4">
+                      <Clock className="h-3.5 w-3.5 shrink-0 text-[#F43F5E]" />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium text-[var(--c-text-1)]">{task.title}</p>
+                        <p className="truncate text-[11px] text-[var(--c-text-3)]">{task.client} · {task.project}</p>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <StatusBadge status={task.priority} type="priority" label={t.tasks.priority[task.priority as keyof typeof t.tasks.priority] ?? task.priority} />
+                        <span className="rounded-md bg-[#F43F5E]/15 px-2 py-0.5 text-[11px] font-semibold text-[#F43F5E]">
+                          {t.overview.relativeOverdue(daysLate)}
+                        </span>
+                      </div>
+                    </Link>
+                  );
+                })}
+                {todayTasks.slice(0, 2).map((task) => (
+                  <Link key={task.id} href={`/dashboard/tasks/${task.id}`} className="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-white/4">
+                    <Clock className="h-3.5 w-3.5 shrink-0 text-[#F59E0B]" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium text-[var(--c-text-1)]">{task.title}</p>
+                      <p className="truncate text-[11px] text-[var(--c-text-3)]">{task.client} · {task.project}</p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <StatusBadge status={task.priority} type="priority" label={t.tasks.priority[task.priority as keyof typeof t.tasks.priority] ?? task.priority} />
+                      <span className="rounded-md bg-[#F59E0B]/15 px-2 py-0.5 text-[11px] font-semibold text-[#F59E0B]">
+                        {t.overview.relativeTodayLong}
+                      </span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {totalUrgent === 0 && (
+          <section>
+            <p className={SECTION_LABEL}>{t.overview.workerUrgentTasks}</p>
+            <div className="mt-3 flex items-center gap-3 rounded-xl border border-[#22C55E]/20 bg-[#22C55E]/5 px-5 py-4">
+              <CheckCircle2 className="h-4 w-4 text-[#22C55E]" />
+              <p className="text-sm font-medium text-[#22C55E]">{t.overview.allClear}</p>
+            </div>
+          </section>
+        )}
+
+        {/* My tasks list */}
+        <section>
+          <div className="flex items-center justify-between">
+            <p className={SECTION_LABEL}>{t.overview.myTasks}</p>
+            <Link href="/dashboard/tasks" className="text-[11px] font-semibold text-[#38BDF8] hover:text-[#7DD3FC] transition-colors">
+              {t.overview.seeAllLink}
+            </Link>
+          </div>
+          <div className="mt-3">
+            <MyTasksList rows={upcomingTasks} />
+          </div>
+        </section>
+
+        {/* This week */}
+        {thisWeekTasks.length > 0 && (
+          <section>
+            <div className="flex items-center justify-between">
+              <p className={SECTION_LABEL}>{t.overview.workerThisWeek}</p>
+              <Link href="/dashboard/calendar" className="text-[11px] font-semibold text-[#38BDF8] hover:text-[#7DD3FC] transition-colors">
+                <CalendarDays className="inline-block h-3.5 w-3.5 mr-1 -mt-0.5" />
+                {t.calendar.title}
+              </Link>
+            </div>
+            <div className="mt-3 rounded-xl bg-[var(--c-card)] ring-1 ring-[var(--c-border)] overflow-hidden">
+              <UpcomingDeadlinesList rows={thisWeekTasks.slice(0, 5)} today={today} />
+            </div>
+          </section>
+        )}
+
+        {/* My KPI strip */}
+        <section>
+          <p className={SECTION_LABEL}>{t.overview.myMetrics}</p>
+          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <KpiCard
+              label={t.kpis.myActiveTasks}
+              value={counts.myActiveTasks}
+              tone="cyan"
+              icon={<CheckCircle2 className="h-4 w-4" />}
+            />
+            <KpiCard
+              label={t.kpis.overdue}
+              value={counts.myOverdueTasks}
+              tone={counts.myOverdueTasks > 0 ? "red" : "neutral"}
+              icon={<AlertTriangle className="h-4 w-4" />}
+            />
+            <KpiCard
+              label={t.kpis.activeProjects}
+              value={counts.activeProjects}
+              tone="violet"
+              icon={<TrendingUp className="h-4 w-4" />}
+            />
+          </div>
+        </section>
+
+        {/* Office/Home planning — secondary, lower position */}
+        <section>
+          <p className={SECTION_LABEL}>{t.overview.myPlanning}</p>
+          <div className="mt-3 rounded-xl bg-[var(--c-card)] ring-1 ring-[var(--c-border)] p-5">
+            <p className="mb-3 text-xs text-[var(--c-text-3)]">{t.overview.myPlanningHint}</p>
+            <WorkCalendar initial={workSchedule} />
+          </div>
+        </section>
+
+        {/* Featured employee */}
+        {featuredEmployee && (
+          <FeaturedCard featured={featuredEmployee} canEdit={false} />
+        )}
+      </div>
+    );
+  }
+
+  // Admin / freelancer layout
   return (
     <div className="space-y-8">
       {/* ------------------------------------------------------------------ */}
@@ -351,8 +586,8 @@ export function OverviewClient({
         </section>
       )}
 
-      {/* Worker/freelancer KPI strip */}
-      {!isAdmin && (
+      {/* Freelancer KPI strip */}
+      {role === "freelancer" && (
         <section>
           <p className={SECTION_LABEL}>{t.overview.myMetrics}</p>
           <div className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -512,10 +747,8 @@ export function OverviewClient({
         </section>
       )}
 
-      {/* ================================================================== */}
-      {/* Worker: My Tasks + Work Calendar                                    */}
-      {/* ================================================================== */}
-      {!isAdmin && (
+      {/* Freelancer: My Tasks + Work Calendar */}
+      {role === "freelancer" && (
         <section>
           <p className={SECTION_LABEL}>{t.overview.myWorkspace}</p>
           <div className="mt-3 grid grid-cols-1 gap-4 lg:grid-cols-5">
