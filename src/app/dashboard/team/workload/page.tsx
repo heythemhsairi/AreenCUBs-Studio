@@ -1,7 +1,7 @@
 import { requireAdmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { PageHeader } from "@/components/dashboard/page-header";
-import { WorkloadView } from "./workload-view";
+import { WorkloadView, type MemberStats } from "./workload-view";
 
 export const metadata = { title: "Team Workload — Areen CUBs" };
 
@@ -14,7 +14,7 @@ export default async function WorkloadPage() {
   startOfMonth.setDate(1);
   const monthStart = startOfMonth.toISOString().slice(0, 10);
 
-  const [{ data: profiles }, { data: tasksRaw }, { data: timeRaw }] =
+  const [{ data: profiles }, { data: tasksRaw }, { data: timeRaw }, { data: adminTasksRaw }] =
     await Promise.all([
       admin
         .from("profiles")
@@ -31,27 +31,16 @@ export default async function WorkloadPage() {
         .from("time_entries")
         .select("user_id, duration_seconds, started_at")
         .gte("started_at", monthStart),
+      // Admin tasks: only active ones (todo, in_progress, waiting) with an assigned admin
+      admin
+        .from("admin_tasks")
+        .select("id, title, status, priority, due_date, assigned_admin_id")
+        .in("status", ["todo", "in_progress", "waiting"])
+        .not("assigned_admin_id", "is", null),
     ]);
 
   const now = new Date();
   now.setHours(0, 0, 0, 0);
-
-  type MemberStats = {
-    id: string;
-    username: string;
-    full_name: string | null;
-    avatar_url: string | null;
-    role: string;
-    job_title: string | null;
-    active: number;
-    overdue: number;
-    done_month: number;
-    in_progress: number;
-    review: number;
-    total_tracked_seconds: number;
-    projects: string[];
-    overdue_tasks: { id: string; title: string; deadline: string; days_late: number; project: string }[];
-  };
 
   const statsMap = new Map<string, MemberStats>();
 
@@ -71,17 +60,17 @@ export default async function WorkloadPage() {
       total_tracked_seconds: 0,
       projects: [],
       overdue_tasks: [],
+      admin_tasks_active: 0,
     });
   }
 
+  // Normal tasks
   for (const task of tasksRaw ?? []) {
     if (!task.assignee_id) continue;
     const m = statsMap.get(task.assignee_id);
     if (!m) continue;
 
-    const project = Array.isArray(task.projects)
-      ? task.projects[0]
-      : task.projects;
+    const project = Array.isArray(task.projects) ? task.projects[0] : task.projects;
     const projectName = project?.name ?? "—";
     if (!m.projects.includes(projectName)) m.projects.push(projectName);
 
@@ -95,32 +84,50 @@ export default async function WorkloadPage() {
       if (task.deadline) {
         const d = new Date(task.deadline);
         d.setHours(0, 0, 0, 0);
-        const daysLate = Math.floor(
-          (now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24),
-        );
+        const daysLate = Math.floor((now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24));
         if (daysLate > 0) {
           m.overdue++;
-          m.overdue_tasks.push({
-            id: task.id,
-            title: task.title,
-            deadline: task.deadline,
-            days_late: daysLate,
-            project: projectName,
-          });
+          m.overdue_tasks.push({ id: task.id, title: task.title, deadline: task.deadline, days_late: daysLate, project: projectName });
         }
       }
     }
   }
 
+  // Admin tasks — count toward assigned admin's workload
+  for (const at of adminTasksRaw ?? []) {
+    if (!at.assigned_admin_id) continue;
+    const m = statsMap.get(at.assigned_admin_id);
+    if (!m) continue;
+
+    m.admin_tasks_active++;
+    m.active++; // counts toward total active load
+
+    if (at.due_date) {
+      const d = new Date(at.due_date);
+      d.setHours(0, 0, 0, 0);
+      const daysLate = Math.floor((now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24));
+      if (daysLate > 0) {
+        m.overdue++;
+        m.overdue_tasks.push({
+          id: at.id,
+          title: at.title,
+          deadline: at.due_date,
+          days_late: daysLate,
+          project: "—",
+          isAdminTask: true,
+        });
+      }
+    }
+  }
+
+  // Time entries
   for (const entry of timeRaw ?? []) {
     const m = statsMap.get(entry.user_id as string);
     if (!m) continue;
     m.total_tracked_seconds += Number(entry.duration_seconds ?? 0);
   }
 
-  const members = Array.from(statsMap.values()).sort(
-    (a, b) => b.active - a.active,
-  );
+  const members = Array.from(statsMap.values()).sort((a, b) => b.active - a.active);
 
   const summary = {
     mostLoaded: members.reduce((best, m) => (m.active > best.active ? m : best), members[0] ?? null),

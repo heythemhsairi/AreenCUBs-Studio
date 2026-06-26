@@ -7,6 +7,7 @@ import { toast } from "@/components/toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { addExpenseAction, deleteExpenseAction } from "./expense-actions";
 import { EXPENSE_CATEGORIES } from "./expense-constants";
+import { useI18n } from "@/lib/i18n/provider";
 
 export type ExpenseRow = {
   id: string;
@@ -23,22 +24,16 @@ export type ExpenseRow = {
   client_name: string | null;
 };
 
-const CATEGORY_LABELS: Record<string, string> = {
-  salaries: "Salaires", freelancers: "Freelances", ads: "Publicité",
-  software: "Logiciels", hosting: "Hébergement", transport: "Transport",
-  office: "Bureau", production: "Production client", other: "Autre",
-};
-
 const CATEGORY_COLORS: Record<string, string> = {
-  salaries: "bg-violet-100 text-violet-700",
+  salaries:    "bg-violet-100 text-violet-700",
   freelancers: "bg-blue-100 text-blue-700",
-  ads: "bg-pink-100 text-pink-700",
-  software: "bg-cyan-100 text-cyan-700",
-  hosting: "bg-teal-100 text-teal-700",
-  transport: "bg-orange-100 text-orange-700",
-  office: "bg-amber-100 text-amber-700",
-  production: "bg-brand/10 text-brand-dark",
-  other: "bg-ink/8 text-ink/55",
+  ads:         "bg-pink-100 text-pink-700",
+  software:    "bg-cyan-100 text-cyan-700",
+  hosting:     "bg-teal-100 text-teal-700",
+  transport:   "bg-orange-100 text-orange-700",
+  office:      "bg-amber-100 text-amber-700",
+  production:  "bg-brand/10 text-brand-dark",
+  other:       "bg-ink/8 text-ink/55",
 };
 
 const INPUT_CLS =
@@ -53,20 +48,40 @@ export function ExpensesTab({
   expByCategory: Record<string, number>;
   mtdExpenses: number;
 }) {
+  const { t } = useI18n();
+  const tf = t.finance;
+
+  const CATEGORY_LABELS: Record<string, string> = {
+    salaries:    tf.catSalaries,
+    freelancers: tf.catFreelancers,
+    ads:         tf.catAds,
+    software:    tf.catSoftware,
+    hosting:     tf.catHosting,
+    transport:   tf.catTransport,
+    office:      tf.catOffice,
+    production:  tf.catProduction,
+    other:       tf.catOther,
+  };
+
+  // Build i18n category list for the form/filter (derive labels from i18n)
+  const I18N_CATEGORIES = EXPENSE_CATEGORIES.map((c) => ({
+    value: c.value,
+    label: CATEGORY_LABELS[c.value] ?? c.label,
+  }));
+
   const [showForm, setShowForm] = useState(false);
   const [filterCat, setFilterCat] = useState("all");
   const [, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
 
   const totalAll = rows.reduce((s, e) => s + e.amount_dt, 0);
-
   const filtered = filterCat === "all" ? rows : rows.filter((e) => e.category === filterCat);
 
   function handleAdd(formData: FormData) {
     startTransition(async () => {
       const res = await addExpenseAction(formData);
       if (res.ok) {
-        toast.success("Dépense ajoutée");
+        toast.success(tf.expensesAdded);
         setShowForm(false);
         formRef.current?.reset();
       } else {
@@ -76,21 +91,24 @@ export function ExpensesTab({
   }
 
   function handleDelete(id: string) {
-    if (!confirm("Supprimer cette dépense ?")) return;
+    if (!confirm(tf.expensesDeleteConfirm)) return;
     startTransition(async () => {
       const res = await deleteExpenseAction(id);
-      if (res.ok) toast.success("Dépense supprimée");
+      if (res.ok) toast.success(tf.expensesDeleted);
       else toast.error(res.error);
     });
   }
+
+  // Top 2 categories for KPI strip
+  const top2Categories = Object.entries(expByCategory).sort((a, b) => b[1] - a[1]).slice(0, 2);
 
   return (
     <div className="space-y-5">
       {/* KPI strip */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <StatTile label="Dépenses (mois)" value={mtdExpenses} color="text-red-600" />
-        <StatTile label="Total dépenses" value={totalAll} color="text-ink" />
-        {Object.entries(expByCategory).sort((a,b)=>b[1]-a[1]).slice(0,2).map(([cat, amt]) => (
+        <StatTile label={tf.expensesStatMonth} value={mtdExpenses} color="text-red-600" />
+        <StatTile label={tf.expensesStatTotal} value={totalAll}    color="text-ink" />
+        {top2Categories.map(([cat, amt]) => (
           <StatTile key={cat} label={CATEGORY_LABELS[cat] ?? cat} value={amt} color="text-ink/70" />
         ))}
       </div>
@@ -98,13 +116,13 @@ export function ExpensesTab({
       <Card>
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <CardTitle>Dépenses</CardTitle>
+            <CardTitle>{tf.expensesTitle}</CardTitle>
             <button
               type="button"
               onClick={() => setShowForm((v) => !v)}
               className="rounded-lg bg-brand px-3.5 py-2 text-xs font-semibold text-white hover:bg-brand-dark"
             >
-              {showForm ? "Annuler" : "+ Ajouter dépense"}
+              {showForm ? tf.expensesCancel : tf.expensesAdd}
             </button>
           </div>
         </CardHeader>
@@ -117,65 +135,65 @@ export function ExpensesTab({
               action={handleAdd}
               className="rounded-xl border border-[#22506F] bg-[#123A5A] p-4 space-y-3"
             >
-              <p className="text-xs font-semibold uppercase tracking-wider text-[#64748B]">Nouvelle dépense</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-[#64748B]">{tf.expensesFormTitle}</p>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">Titre *</label>
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">{tf.expensesLabelTitle}</label>
                   <input name="title" required placeholder="Ex: Abonnement Figma" className={INPUT_CLS} />
                 </div>
                 <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">Montant (DT) *</label>
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">{tf.expensesLabelAmount}</label>
                   <input name="amount_dt" type="number" step="0.01" min="0" required placeholder="0.00" className={INPUT_CLS} />
                 </div>
                 <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">Catégorie</label>
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">{tf.expensesLabelCategory}</label>
                   <select name="category" defaultValue="other" className={INPUT_CLS}>
-                    {EXPENSE_CATEGORIES.map((c) => (
+                    {I18N_CATEGORIES.map((c) => (
                       <option key={c.value} value={c.value}>{c.label}</option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">Date</label>
-                  <input name="expense_date" type="date" defaultValue={new Date().toISOString().slice(0,10)} className={INPUT_CLS} />
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">{tf.expensesLabelDate}</label>
+                  <input name="expense_date" type="date" defaultValue={new Date().toISOString().slice(0, 10)} className={INPUT_CLS} />
                 </div>
                 <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">Fournisseur</label>
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">{tf.expensesLabelVendor}</label>
                   <input name="vendor" placeholder="Ex: Adobe" className={INPUT_CLS} />
                 </div>
                 <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">Méthode de paiement</label>
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">{tf.expensesLabelMethod}</label>
                   <input name="payment_method" placeholder="Virement, carte…" className={INPUT_CLS} />
                 </div>
                 <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">Projet (optionnel)</label>
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">{tf.expensesLabelProject}</label>
                   <select name="project_id" className={INPUT_CLS}>
-                    <option value="">— Aucun —</option>
+                    <option value="">{t.adminTasks.noRelated}</option>
                     {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">Client (optionnel)</label>
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">{tf.expensesLabelClient}</label>
                   <select name="client_id" className={INPUT_CLS}>
-                    <option value="">— Aucun —</option>
+                    <option value="">{t.adminTasks.noRelated}</option>
                     {clients.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">Notes</label>
-                  <input name="notes" placeholder="Notes optionnelles" className={INPUT_CLS} />
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">{tf.expensesLabelNotes}</label>
+                  <input name="notes" placeholder="…" className={INPUT_CLS} />
                 </div>
               </div>
               <button type="submit" className="rounded-lg bg-brand px-4 py-2 text-xs font-semibold text-white hover:bg-brand-dark">
-                Enregistrer
+                {tf.expensesSave}
               </button>
             </form>
           )}
 
           {/* Category filter */}
           <div className="flex flex-wrap gap-1.5">
-            <FilterPill active={filterCat === "all"} onClick={() => setFilterCat("all")}>Tout</FilterPill>
-            {EXPENSE_CATEGORIES.map((c) => (
+            <FilterPill active={filterCat === "all"} onClick={() => setFilterCat("all")}>{tf.expensesAll}</FilterPill>
+            {I18N_CATEGORIES.map((c) => (
               <FilterPill key={c.value} active={filterCat === c.value} onClick={() => setFilterCat(c.value)}>
                 {c.label}
               </FilterPill>
@@ -184,17 +202,17 @@ export function ExpensesTab({
 
           {/* Table */}
           {filtered.length === 0 ? (
-            <p className="py-8 text-center text-sm text-ink/40">Aucune dépense enregistrée.</p>
+            <p className="py-8 text-center text-sm text-ink/40">{tf.expensesEmpty}</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-ink/8 text-left text-xs font-semibold uppercase tracking-wider text-ink/40">
-                    <th className="pb-2">Date</th>
-                    <th className="pb-2">Titre</th>
-                    <th className="pb-2">Catégorie</th>
-                    <th className="pb-2">Projet/Client</th>
-                    <th className="pb-2 text-right">Montant</th>
+                    <th className="pb-2">{tf.colDate}</th>
+                    <th className="pb-2">{tf.colTitleHeader}</th>
+                    <th className="pb-2">{tf.colCategory}</th>
+                    <th className="pb-2">{tf.colProjectClient}</th>
+                    <th className="pb-2 text-right">{tf.colAmount}</th>
                     <th className="pb-2"></th>
                   </tr>
                 </thead>
@@ -222,7 +240,7 @@ export function ExpensesTab({
                           type="button"
                           onClick={() => handleDelete(e.id)}
                           className="rounded p-1 text-ink/30 hover:bg-red-50/10 hover:text-red-500"
-                          aria-label="Supprimer"
+                          aria-label={t.common.delete}
                         >
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M18 6 6 18M6 6l12 12" />
@@ -234,8 +252,8 @@ export function ExpensesTab({
                 </tbody>
                 <tfoot>
                   <tr className="border-t border-ink/15">
-                    <td colSpan={4} className="pt-2.5 text-xs font-semibold uppercase tracking-wider text-ink/50">Total affiché</td>
-                    <td className="pt-2.5 text-right font-bold text-red-600">{formatDt(filtered.reduce((s,e)=>s+e.amount_dt,0))}</td>
+                    <td colSpan={4} className="pt-2.5 text-xs font-semibold uppercase tracking-wider text-ink/50">{tf.expensesTotal}</td>
+                    <td className="pt-2.5 text-right font-bold text-red-600">{formatDt(filtered.reduce((s, e) => s + e.amount_dt, 0))}</td>
                     <td></td>
                   </tr>
                 </tfoot>

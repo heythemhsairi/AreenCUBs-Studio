@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/lib/i18n/provider";
 
-type OverdueTask = {
+export type OverdueTask = {
   id: string;
   title: string;
   deadline: string;
@@ -15,7 +15,7 @@ type OverdueTask = {
   isAdminTask?: boolean;
 };
 
-type MemberStats = {
+export type MemberStats = {
   id: string;
   username: string;
   full_name: string | null;
@@ -33,7 +33,7 @@ type MemberStats = {
   admin_tasks_active: number;
 };
 
-type Summary = {
+export type Summary = {
   mostLoaded: MemberStats | null;
   withOverdue: MemberStats[];
   unassigned: MemberStats[];

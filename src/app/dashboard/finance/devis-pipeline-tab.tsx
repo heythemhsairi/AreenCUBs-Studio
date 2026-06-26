@@ -9,8 +9,8 @@ import { useI18n } from "@/lib/i18n/provider";
 import type { DevisRow } from "./finance-client";
 
 const STATUS_COLORS: Record<string, string> = {
-  draft: "bg-[#22506F] text-[#94A3B8]",
-  sent: "bg-blue-900/50 text-blue-300",
+  draft:    "bg-[#22506F] text-[#94A3B8]",
+  sent:     "bg-blue-900/50 text-blue-300",
   accepted: "bg-emerald-900/50 text-emerald-300",
   rejected: "bg-red-900/50 text-red-400",
 };
@@ -24,38 +24,40 @@ export function DevisPipelineTab({
   conversionRate: number; expectedRevenue: number; lostRevenue: number; avgDealSize: number;
 }) {
   const { t } = useI18n();
+  const tf = t.finance;
+
   const STATUS_LABELS: Record<string, string> = {
-    draft: t.devis.status.draft,
-    sent: t.devis.status.sent,
+    draft:    t.devis.status.draft,
+    sent:     t.devis.status.sent,
     accepted: t.devis.status.accepted,
     rejected: t.devis.status.rejected,
   };
-  const [filter, setFilter] = useState<string>("all");
 
+  const [filter, setFilter] = useState<string>("all");
   const filtered = filter === "all" ? rows : rows.filter((d) => d.status === filter);
 
   return (
     <div className="space-y-5">
       {/* KPI strip */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <PipelineStat label="Devis envoyés" value={`${totalSent}`} sub="12 derniers mois" />
-        <PipelineStat label="Acceptés" value={`${totalAccepted}`} sub={`${conversionRate.toFixed(0)}% de conversion`} highlight="green" />
-        <PipelineStat label="Refusés" value={`${totalRejected}`} sub={`CA perdu : ${formatDt(lostRevenue)}`} highlight="red" />
-        <PipelineStat label="Deal moyen" value={formatDt(avgDealSize)} sub="Devis acceptés" />
+        <PipelineStat label={tf.pipelineSent}     value={`${totalSent}`}                 sub={tf.pipelineLast12} />
+        <PipelineStat label={tf.pipelineAccepted} value={`${totalAccepted}`}              sub={tf.pipelineConversion(conversionRate)} highlight="green" />
+        <PipelineStat label={tf.pipelineRejected} value={`${totalRejected}`}              sub={tf.pipelineLostRevenue(formatDt(lostRevenue))} highlight="red" />
+        <PipelineStat label={tf.pipelineAvgDeal}  value={formatDt(avgDealSize)}           sub={tf.pipelineAvgDealSub} />
       </div>
 
       {/* Conversion funnel */}
       <Card>
-        <CardHeader><CardTitle>Entonnoir de conversion</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{tf.pipelineFunnelTitle}</CardTitle></CardHeader>
         <CardContent>
           <div className="space-y-2">
             {[
-              { label: "Envoyés", count: totalSent, color: "bg-blue-400", pct: 100 },
-              { label: "Acceptés", count: totalAccepted, color: "bg-emerald-500", pct: totalSent > 0 ? (totalAccepted/totalSent)*100 : 0 },
-              { label: "CA espéré", count: null, color: "bg-brand", pct: null, value: formatDt(expectedRevenue) },
+              { label: tf.pipelineFunnelSent,     count: totalSent,     color: "bg-blue-400",    pct: 100,    value: null },
+              { label: tf.pipelineFunnelAccepted, count: totalAccepted, color: "bg-emerald-500", pct: totalSent > 0 ? (totalAccepted / totalSent) * 100 : 0, value: null },
+              { label: tf.pipelineFunnelExpected, count: null,          color: "bg-brand",       pct: null,   value: formatDt(expectedRevenue) },
             ].map((row) => (
               <div key={row.label} className="flex items-center gap-3">
-                <span className="w-24 shrink-0 text-xs font-medium text-[#F8FAFC]/60">{row.label}</span>
+                <span className="w-32 shrink-0 text-xs font-medium text-[#F8FAFC]/60">{row.label}</span>
                 <div className="flex-1 overflow-hidden rounded-full bg-[#22506F] h-2.5">
                   <div className={cn("h-full rounded-full transition-all", row.color)} style={{ width: `${row.pct ?? 100}%` }} />
                 </div>
@@ -72,7 +74,7 @@ export function DevisPipelineTab({
       <Card>
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <CardTitle>Liste des devis</CardTitle>
+            <CardTitle>{tf.pipelineListTitle}</CardTitle>
             <div className="flex gap-1">
               {["all", "sent", "accepted", "rejected", "draft"].map((s) => (
                 <button
@@ -92,18 +94,18 @@ export function DevisPipelineTab({
         </CardHeader>
         <CardContent>
           {filtered.length === 0 ? (
-            <p className="py-8 text-center text-sm text-[#F8FAFC]/40">Aucun devis pour ce filtre.</p>
+            <p className="py-8 text-center text-sm text-[#F8FAFC]/40">{tf.pipelineEmpty}</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-[#22506F] text-left text-xs font-semibold uppercase tracking-wider text-[#F8FAFC]/40">
                     <th className="pb-2">N°</th>
-                    <th className="pb-2">Client</th>
-                    <th className="pb-2">Date</th>
-                    <th className="pb-2">Échéance</th>
-                    <th className="pb-2">Statut</th>
-                    <th className="pb-2 text-right">Montant</th>
+                    <th className="pb-2">{tf.colClient}</th>
+                    <th className="pb-2">{tf.colDate}</th>
+                    <th className="pb-2">{tf.colDue}</th>
+                    <th className="pb-2">{tf.colStatus}</th>
+                    <th className="pb-2 text-right">{tf.colAmount}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -128,8 +130,8 @@ export function DevisPipelineTab({
                 </tbody>
                 <tfoot>
                   <tr className="border-t border-[#22506F]">
-                    <td colSpan={5} className="pt-2.5 text-xs font-semibold uppercase tracking-wider text-[#F8FAFC]/50">Total</td>
-                    <td className="pt-2.5 text-right font-bold text-[#22D3EE]">{formatDt(filtered.reduce((s,d)=>s+d.total_dt,0))}</td>
+                    <td colSpan={5} className="pt-2.5 text-xs font-semibold uppercase tracking-wider text-[#F8FAFC]/50">{t.common.total}</td>
+                    <td className="pt-2.5 text-right font-bold text-[#22D3EE]">{formatDt(filtered.reduce((s, d) => s + d.total_dt, 0))}</td>
                   </tr>
                 </tfoot>
               </table>
