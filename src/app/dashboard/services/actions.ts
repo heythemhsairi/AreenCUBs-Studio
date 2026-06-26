@@ -13,6 +13,7 @@ function pickFields(formData: FormData) {
     name_fr: String(formData.get("name_fr") ?? "").trim(),
     name_en: stringOrNull(formData.get("name_en")),
     description_fr: stringOrNull(formData.get("description_fr")),
+    description_en: stringOrNull(formData.get("description_en")),
     category: stringOrNull(formData.get("category")),
     default_price_dt: Number.isFinite(price) ? price : 0,
     default_unit: String(formData.get("default_unit") ?? "unit").trim() || "unit",

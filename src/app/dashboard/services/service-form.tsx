@@ -19,6 +19,7 @@ type Service = {
   name_fr: string;
   name_en: string | null;
   description_fr: string | null;
+  description_en: string | null;
   category: string | null;
   default_price_dt: number;
   default_unit: string;
@@ -102,6 +103,13 @@ export function ServiceForm(props: Props) {
                 name="description_fr"
                 rows={2}
                 defaultValue={s?.description_fr ?? ""}
+              />
+            </Field>
+            <Field label={ts.descriptionEn}>
+              <Textarea
+                name="description_en"
+                rows={2}
+                defaultValue={s?.description_en ?? ""}
               />
             </Field>
 

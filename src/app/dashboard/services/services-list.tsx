@@ -23,6 +23,7 @@ type Service = {
   name_fr: string;
   name_en: string | null;
   description_fr: string | null;
+  description_en: string | null;
   category: string | null;
   default_price_dt: number;
   default_unit: string;
@@ -50,7 +51,7 @@ export function ServicesList({ services }: { services: Service[] }) {
     let rows = services;
     if (q.length > 0) {
       rows = rows.filter((s) =>
-        `${s.name_fr} ${s.name_en ?? ""} ${s.description_fr ?? ""} ${s.category ?? ""}`
+        `${s.name_fr} ${s.name_en ?? ""} ${s.description_fr ?? ""} ${s.description_en ?? ""} ${s.category ?? ""}`
           .toLowerCase()
           .includes(q),
       );
@@ -206,6 +207,8 @@ function Row({ svc }: { svc: Service }) {
 
   const displayName =
     locale === "en" && svc.name_en ? svc.name_en : svc.name_fr;
+  const displayDescription =
+    locale === "en" && svc.description_en ? svc.description_en : svc.description_fr;
 
   function onToggle(next: boolean) {
     startTransition(async () => {
@@ -222,9 +225,9 @@ function Row({ svc }: { svc: Service }) {
         >
           {displayName}
         </Link>
-        {svc.description_fr && (
+        {displayDescription && (
           <p className="mt-0.5 truncate text-xs text-ink/50">
-            {svc.description_fr}
+            {displayDescription}
           </p>
         )}
       </TD>

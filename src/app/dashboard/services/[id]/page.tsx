@@ -14,7 +14,7 @@ export default async function EditServicePage({
   const { data } = await supabase
     .from("services")
     .select(
-      "id, name_fr, name_en, description_fr, category, default_price_dt, default_unit, active",
+      "id, name_fr, name_en, description_fr, description_en, category, default_price_dt, default_unit, active",
     )
     .eq("id", id)
     .single();
