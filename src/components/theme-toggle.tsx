@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n/provider";
 
 export type ThemeMode = "light" | "dark" | "system";
 const STORAGE_KEY = "areencubs.theme";
@@ -19,6 +20,7 @@ function applyTheme(mode: ThemeMode) {
 }
 
 export function ThemeToggle({ className }: { className?: string }) {
+  const { t } = useI18n();
   const [mode, setMode] = useState<ThemeMode>("dark");
   const [mounted, setMounted] = useState(false);
 
@@ -66,7 +68,7 @@ export function ThemeToggle({ className }: { className?: string }) {
   const options: { value: ThemeMode; label: string; icon: React.ReactNode }[] = [
     {
       value: "light",
-      label: "Clair",
+      label: t.topbar.themeLight,
       icon: (
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="4" />
@@ -76,7 +78,7 @@ export function ThemeToggle({ className }: { className?: string }) {
     },
     {
       value: "dark",
-      label: "Sombre",
+      label: t.topbar.themeDark,
       icon: (
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
@@ -85,7 +87,7 @@ export function ThemeToggle({ className }: { className?: string }) {
     },
     {
       value: "system",
-      label: "Auto",
+      label: t.topbar.themeAuto,
       icon: (
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <rect x="2" y="3" width="20" height="14" rx="2" />

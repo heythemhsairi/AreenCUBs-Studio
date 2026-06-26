@@ -11,6 +11,7 @@ import { DevisPipelineTab } from "./devis-pipeline-tab";
 import { FacturesTab } from "./factures-tab";
 import { ClientProfilesTab, type ClientProfile } from "./client-profiles-tab";
 import { AuditTab, type AuditData } from "./audit-tab";
+import { PageHeader } from "@/components/dashboard/page-header";
 import { useI18n } from "@/lib/i18n/provider";
 import {
   AreaChart,
@@ -566,6 +567,8 @@ export function FinanceDashboardClient(props: Props) {
 
   return (
     <div className="space-y-6">
+      <PageHeader title={t.finance.osTitle} subtitle={t.finance.osSubtitle} />
+
       {/* ── TAB STRIP ───────────────────────────────────────────── */}
       <div className="bg-[#071B2C] border-b border-[#22506F]">
         <div className="flex overflow-x-auto">

@@ -381,6 +381,9 @@ export const dict = {
       chartCollected: "Encaissé",
       chartExpenses: "Dépenses",
       chartHoverHint: "Survolez pour le détail",
+      // Page header
+      osTitle: "Finance OS",
+      osSubtitle: "v2.0 — tableau de bord financier complet",
       // Dashboard tab labels
       tabDashboard: "Dashboard",
       tabFactures: "Factures",
@@ -1344,6 +1347,9 @@ export const dict = {
       appearance: "Apparence",
       language: "Langue / Language",
       profile: "Menu profil",
+      themeLight: "Clair",
+      themeDark: "Sombre",
+      themeAuto: "Auto",
     },
     socialMedia: {
       title: "Social Media",
@@ -1765,6 +1771,9 @@ export const dict = {
       chartCollected: "Collected",
       chartExpenses: "Expenses",
       chartHoverHint: "Hover for details",
+      // Page header
+      osTitle: "Finance OS",
+      osSubtitle: "v2.0 — complete financial dashboard",
       // Dashboard tab labels
       tabDashboard: "Dashboard",
       tabFactures: "Invoices",
@@ -2721,6 +2730,9 @@ export const dict = {
       appearance: "Appearance",
       language: "Language / Langue",
       profile: "Profile menu",
+      themeLight: "Light",
+      themeDark: "Dark",
+      themeAuto: "Auto",
     },
     socialMedia: {
       title: "Social Media",

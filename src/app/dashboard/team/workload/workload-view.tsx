@@ -146,7 +146,6 @@ export function WorkloadView({
           {members.map((m) => {
             const isOverloaded = m.active >= OVERLOAD_THRESHOLD;
             const isExpanded = expandedId === m.id;
-            const normalActive = m.active - m.admin_tasks_active;
 
             return (
               <div key={m.id}>

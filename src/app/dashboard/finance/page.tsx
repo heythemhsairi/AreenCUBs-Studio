@@ -1,6 +1,5 @@
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { PageHeader } from "@/components/dashboard/page-header";
 import { FinanceDashboardClient } from "./finance-client";
 
 export default async function FinancePage() {
@@ -452,7 +451,6 @@ export default async function FinancePage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Finance OS" subtitle="v2.0 — tableau de bord financier complet" />
       <FinanceDashboardClient
         mtdPaid={mtdPaid}
         prevPaid={prevPaid}

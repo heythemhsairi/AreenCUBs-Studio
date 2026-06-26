@@ -128,50 +128,52 @@ interface StatusDef {
 }
 
 // FINANCE statuses
+// NOTE: `label` here is only a last-resort fallback. The displayed text is
+// resolved via i18n in StatusBadge (t.finance.*). Keep fallbacks English-neutral.
 const financeMap: Record<string, StatusDef> = {
-  paid:      { cls: "bg-[#22C55E]/20 text-[#4ADE80] border border-[#22C55E]/35",  label: "Payé" },
-  payé:      { cls: "bg-[#22C55E]/20 text-[#4ADE80] border border-[#22C55E]/35",  label: "Payé" },
-  partial:   { cls: "bg-[#F59E0B]/20 text-[#FCD34D] border border-[#F59E0B]/35",  label: "Partiel" },
-  unpaid:    { cls: "bg-[#475569]/25 text-[#CBD5E1] border border-[#64748B]/40",   label: "Impayé" },
-  impayé:    { cls: "bg-[#475569]/25 text-[#CBD5E1] border border-[#64748B]/40",   label: "Impayé" },
-  overdue:   { cls: "bg-[#F43F5E]/20 text-[#FB7185] border border-[#F43F5E]/35",  label: "En retard" },
-  en_retard: { cls: "bg-[#F43F5E]/20 text-[#FB7185] border border-[#F43F5E]/35",  label: "En retard" },
-  sent:      { cls: "bg-[#38BDF8]/15 text-[#7DD3FC] border border-[#38BDF8]/30",  label: "Envoyé" },
-  envoyé:    { cls: "bg-[#38BDF8]/15 text-[#7DD3FC] border border-[#38BDF8]/30",  label: "Envoyé" },
-  accepted:  { cls: "bg-[#22C55E]/20 text-[#4ADE80] border border-[#22C55E]/35",  label: "Accepté" },
-  accepté:   { cls: "bg-[#22C55E]/20 text-[#4ADE80] border border-[#22C55E]/35",  label: "Accepté" },
-  converted: { cls: "bg-[#A78BFA]/20 text-[#C4B5FD] border border-[#A78BFA]/35",  label: "Converti" },
-  rejected:  { cls: "bg-[#F43F5E]/20 text-[#FB7185] border border-[#F43F5E]/35",  label: "Refusé" },
-  cancelled: { cls: "bg-[#F43F5E]/20 text-[#FB7185] border border-[#F43F5E]/35",  label: "Annulé" },
-  refusé:    { cls: "bg-[#F43F5E]/20 text-[#FB7185] border border-[#F43F5E]/35",  label: "Refusé" },
-  draft:     { cls: "bg-[#334155] text-[#94A3B8] border border-[#475569]/30",      label: "Brouillon" },
-  brouillon: { cls: "bg-[#334155] text-[#94A3B8] border border-[#475569]/30",      label: "Brouillon" },
+  paid:      { cls: "bg-[#22C55E]/20 text-[#4ADE80] border border-[#22C55E]/35",  label: "Paid" },
+  payé:      { cls: "bg-[#22C55E]/20 text-[#4ADE80] border border-[#22C55E]/35",  label: "Paid" },
+  partial:   { cls: "bg-[#F59E0B]/20 text-[#FCD34D] border border-[#F59E0B]/35",  label: "Partial" },
+  unpaid:    { cls: "bg-[#475569]/25 text-[#CBD5E1] border border-[#64748B]/40",   label: "Unpaid" },
+  impayé:    { cls: "bg-[#475569]/25 text-[#CBD5E1] border border-[#64748B]/40",   label: "Unpaid" },
+  overdue:   { cls: "bg-[#F43F5E]/20 text-[#FB7185] border border-[#F43F5E]/35",  label: "Overdue" },
+  en_retard: { cls: "bg-[#F43F5E]/20 text-[#FB7185] border border-[#F43F5E]/35",  label: "Overdue" },
+  sent:      { cls: "bg-[#38BDF8]/15 text-[#7DD3FC] border border-[#38BDF8]/30",  label: "Sent" },
+  envoyé:    { cls: "bg-[#38BDF8]/15 text-[#7DD3FC] border border-[#38BDF8]/30",  label: "Sent" },
+  accepted:  { cls: "bg-[#22C55E]/20 text-[#4ADE80] border border-[#22C55E]/35",  label: "Accepted" },
+  accepté:   { cls: "bg-[#22C55E]/20 text-[#4ADE80] border border-[#22C55E]/35",  label: "Accepted" },
+  converted: { cls: "bg-[#A78BFA]/20 text-[#C4B5FD] border border-[#A78BFA]/35",  label: "Converted" },
+  rejected:  { cls: "bg-[#F43F5E]/20 text-[#FB7185] border border-[#F43F5E]/35",  label: "Rejected" },
+  cancelled: { cls: "bg-[#F43F5E]/20 text-[#FB7185] border border-[#F43F5E]/35",  label: "Cancelled" },
+  refusé:    { cls: "bg-[#F43F5E]/20 text-[#FB7185] border border-[#F43F5E]/35",  label: "Rejected" },
+  draft:     { cls: "bg-[#334155] text-[#94A3B8] border border-[#475569]/30",      label: "Draft" },
+  brouillon: { cls: "bg-[#334155] text-[#94A3B8] border border-[#475569]/30",      label: "Draft" },
 };
 
-// TASK statuses
+// TASK statuses (label is i18n-resolved fallback only — keep English-neutral)
 const taskMap: Record<string, StatusDef> = {
-  todo:        { cls: "bg-[#334155] text-[#94A3B8] border border-[#475569]/30",      label: "À faire" },
-  in_progress: { cls: "bg-[#38BDF8]/15 text-[#7DD3FC] border border-[#38BDF8]/30",  label: "En cours",    dot: "pulse" },
-  review:      { cls: "bg-[#A78BFA]/20 text-[#C4B5FD] border border-[#A78BFA]/35",  label: "En révision" },
-  done:        { cls: "bg-[#22C55E]/20 text-[#4ADE80] border border-[#22C55E]/35",  label: "Terminé" },
-  overdue:     { cls: "bg-[#F43F5E]/20 text-[#FB7185] border border-[#F43F5E]/35",  label: "En retard" },
+  todo:        { cls: "bg-[#334155] text-[#94A3B8] border border-[#475569]/30",      label: "To do" },
+  in_progress: { cls: "bg-[#38BDF8]/15 text-[#7DD3FC] border border-[#38BDF8]/30",  label: "In progress", dot: "pulse" },
+  review:      { cls: "bg-[#A78BFA]/20 text-[#C4B5FD] border border-[#A78BFA]/35",  label: "Review" },
+  done:        { cls: "bg-[#22C55E]/20 text-[#4ADE80] border border-[#22C55E]/35",  label: "Done" },
+  overdue:     { cls: "bg-[#F43F5E]/20 text-[#FB7185] border border-[#F43F5E]/35",  label: "Overdue" },
 };
 
-// PRIORITY statuses
+// PRIORITY statuses (label is i18n-resolved fallback only — keep English-neutral)
 const priorityMap: Record<string, StatusDef> = {
-  low:      { cls: "bg-[#334155] text-[#64748B] border border-[#475569]/30",      label: "Faible" },
+  low:      { cls: "bg-[#334155] text-[#64748B] border border-[#475569]/30",      label: "Low" },
   normal:   { cls: "bg-[#1E3A5F]/60 text-[#93C5FD] border border-[#3B82F6]/30",  label: "Normal" },
   medium:   { cls: "bg-[#1E3A5F]/60 text-[#93C5FD] border border-[#3B82F6]/30",  label: "Normal" },
-  high:     { cls: "bg-[#F59E0B]/20 text-[#FCD34D] border border-[#F59E0B]/35",  label: "Élevé" },
+  high:     { cls: "bg-[#F59E0B]/20 text-[#FCD34D] border border-[#F59E0B]/35",  label: "High" },
   urgent:   { cls: "bg-[#F43F5E]/20 text-[#FB7185] border border-[#F43F5E]/35",  label: "Urgent", dot: "pulse" },
   critical: { cls: "bg-[#F43F5E]/20 text-[#FB7185] border border-[#F43F5E]/35",  label: "Urgent", dot: "pulse" },
 };
 
-// RISK statuses (no border per spec)
+// RISK statuses (no border per spec; label is fallback only)
 const riskMap: Record<string, StatusDef> = {
-  good:  { cls: "bg-[#22C55E]/15 text-[#22C55E]", label: "Bon" },
-  late:  { cls: "bg-[#F59E0B]/15 text-[#F59E0B]", label: "En retard" },
-  risky: { cls: "bg-[#F43F5E]/15 text-[#F43F5E]", label: "À risque" },
+  good:  { cls: "bg-[#22C55E]/15 text-[#22C55E]", label: "Good" },
+  late:  { cls: "bg-[#F59E0B]/15 text-[#F59E0B]", label: "Late" },
+  risky: { cls: "bg-[#F43F5E]/15 text-[#F43F5E]", label: "Risky" },
 };
 
 // Devis = finance alias
@@ -225,6 +227,14 @@ export function StatusBadge({ status, type, className, label }: StatusBadgeProps
         draft: t.finance?.draft ?? def?.label ?? status,
       };
       return financeLabels[key] ?? def?.label ?? status;
+    }
+    if (type === "risk") {
+      const riskLabels: Record<string, string> = {
+        good:  t.finance?.riskGood ?? def?.label ?? status,
+        late:  t.finance?.riskLate ?? def?.label ?? status,
+        risky: t.finance?.riskRisky ?? def?.label ?? status,
+      };
+      return riskLabels[key] ?? def?.label ?? status;
     }
     return def?.label ?? status;
   })();

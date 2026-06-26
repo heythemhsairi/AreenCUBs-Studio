@@ -201,8 +201,11 @@ export function ServicesList({ services }: { services: Service[] }) {
 }
 
 function Row({ svc }: { svc: Service }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [pending, startTransition] = useTransition();
+
+  const displayName =
+    locale === "en" && svc.name_en ? svc.name_en : svc.name_fr;
 
   function onToggle(next: boolean) {
     startTransition(async () => {
@@ -217,7 +220,7 @@ function Row({ svc }: { svc: Service }) {
           href={`/dashboard/services/${svc.id}`}
           className="block truncate hover:text-brand"
         >
-          {svc.name_fr}
+          {displayName}
         </Link>
         {svc.description_fr && (
           <p className="mt-0.5 truncate text-xs text-ink/50">
