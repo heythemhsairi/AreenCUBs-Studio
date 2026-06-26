@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { formatDt, formatDate } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RiskBadge } from "./finance-client";
+import { useI18n } from "@/lib/i18n/provider";
 
 export type ClientProfile = {
   id: string;
@@ -19,6 +20,9 @@ export type ClientProfile = {
 };
 
 export function ClientProfilesTab({ profiles }: { profiles: ClientProfile[] }) {
+  const { t } = useI18n();
+  const tf = t.finance;
+
   const [riskFilter, setRiskFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
 
@@ -30,20 +34,27 @@ export function ClientProfilesTab({ profiles }: { profiles: ClientProfile[] }) {
   const late  = profiles.filter((c) => c.risk === "late").length;
   const good  = profiles.filter((c) => c.risk === "good").length;
 
+  const FILTER_LABELS: Record<string, string> = {
+    all:   t.common.all,
+    good:  tf.clientsFilterGood,
+    late:  tf.clientsFilterLate,
+    risky: tf.clientsFilterRisky,
+  };
+
   return (
     <div className="space-y-5">
       {/* Summary strip */}
       <div className="grid grid-cols-3 gap-3">
         <div className="rounded-xl border border-emerald-800/50 bg-emerald-950/40 p-4">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-emerald-400">Bons payeurs</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-emerald-400">{tf.clientsGoodPayers}</p>
           <p className="mt-1.5 text-2xl font-bold text-emerald-300">{good}</p>
         </div>
         <div className="rounded-xl border border-amber-800/50 bg-amber-950/40 p-4">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-amber-400">En retard</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-amber-400">{tf.riskLate}</p>
           <p className="mt-1.5 text-2xl font-bold text-amber-300">{late}</p>
         </div>
         <div className="rounded-xl border border-red-800/50 bg-red-950/40 p-4">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-red-400">Risqués</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-red-400">{tf.riskRisky}</p>
           <p className="mt-1.5 text-2xl font-bold text-red-300">{risky}</p>
         </div>
       </div>
@@ -51,9 +62,9 @@ export function ClientProfilesTab({ profiles }: { profiles: ClientProfile[] }) {
       <Card>
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <CardTitle>Profil financier clients</CardTitle>
+            <CardTitle>{tf.clientsProfileTitle}</CardTitle>
             <div className="flex gap-1.5">
-              {["all","good","late","risky"].map((r) => (
+              {["all", "good", "late", "risky"].map((r) => (
                 <button
                   key={r}
                   type="button"
@@ -65,7 +76,7 @@ export function ClientProfilesTab({ profiles }: { profiles: ClientProfile[] }) {
                       : "bg-[#22506F]/60 text-[#F8FAFC]/60 hover:bg-[#22506F]",
                   )}
                 >
-                  {r === "all" ? "Tous" : r === "good" ? "Bon" : r === "late" ? "En retard" : "Risqué"}
+                  {FILTER_LABELS[r]}
                 </button>
               ))}
             </div>
@@ -76,24 +87,24 @@ export function ClientProfilesTab({ profiles }: { profiles: ClientProfile[] }) {
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Rechercher un client…"
+            placeholder={tf.clientsSearchPlaceholder}
             className="w-full max-w-xs rounded-lg border border-[#22506F] bg-[#0D2D47] px-3 py-1.5 text-sm text-[#F8FAFC] placeholder:text-[#F8FAFC]/35 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
           />
 
           {filtered.length === 0 ? (
-            <p className="py-8 text-center text-sm text-[#F8FAFC]/40">Aucun client avec des factures.</p>
+            <p className="py-8 text-center text-sm text-[#F8FAFC]/40">{tf.clientsEmpty}</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-[#22506F] text-left text-xs font-semibold uppercase tracking-wider text-[#F8FAFC]/40">
-                    <th className="pb-2">Client</th>
-                    <th className="pb-2 text-right">Facturé</th>
-                    <th className="pb-2 text-right">Encaissé</th>
-                    <th className="pb-2 text-right">Impayé</th>
-                    <th className="pb-2 text-right">En retard</th>
-                    <th className="pb-2 text-right">Dernier paiement</th>
-                    <th className="pb-2 text-right">Risque</th>
+                    <th className="pb-2">{tf.colClient}</th>
+                    <th className="pb-2 text-right">{tf.colInvoiced}</th>
+                    <th className="pb-2 text-right">{tf.colCollected}</th>
+                    <th className="pb-2 text-right">{tf.colUnpaid}</th>
+                    <th className="pb-2 text-right">{t.filters.overdue}</th>
+                    <th className="pb-2 text-right">{tf.clientsColLastPayment}</th>
+                    <th className="pb-2 text-right">{tf.colRisk}</th>
                   </tr>
                 </thead>
                 <tbody>

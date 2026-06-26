@@ -12,6 +12,7 @@ type OverdueTask = {
   deadline: string;
   days_late: number;
   project: string;
+  isAdminTask?: boolean;
 };
 
 type MemberStats = {
@@ -29,6 +30,7 @@ type MemberStats = {
   total_tracked_seconds: number;
   projects: string[];
   overdue_tasks: OverdueTask[];
+  admin_tasks_active: number;
 };
 
 type Summary = {
@@ -84,10 +86,7 @@ function LoadBar({ active, max }: { active: number; max: number }) {
         : "bg-[#22C55E]";
   return (
     <div className="h-1.5 w-full rounded-full bg-[#22506F]">
-      <div
-        className={cn("h-1.5 rounded-full transition-all", color)}
-        style={{ width: `${pct}%` }}
-      />
+      <div className={cn("h-1.5 rounded-full transition-all", color)} style={{ width: `${pct}%` }} />
     </div>
   );
 }
@@ -102,6 +101,7 @@ export function WorkloadView({
   today: string;
 }) {
   const { t } = useI18n();
+  const tf = t.finance;
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const maxActive = Math.max(...members.map((m) => m.active), 1);
 
@@ -110,27 +110,27 @@ export function WorkloadView({
       {/* Summary strip */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <SummaryTile
-          label="Plus chargé"
+          label={tf.workloadMostLoaded}
           value={summary.mostLoaded?.full_name ?? "—"}
-          sub={`${summary.mostLoaded?.active ?? 0} tâches actives`}
+          sub={tf.workloadActiveTasks(summary.mostLoaded?.active ?? 0)}
           tone={(summary.mostLoaded?.active ?? 0) >= OVERLOAD_THRESHOLD ? "red" : "neutral"}
         />
         <SummaryTile
           label={t.filters.overdue}
-          value={`${summary.withOverdue.length} membres`}
-          sub={`${summary.withOverdue.reduce((s, m) => s + m.overdue, 0)} tâches`}
+          value={`${summary.withOverdue.length} ${t.nav.team.toLowerCase()}`}
+          sub={tf.workloadNoTasks(summary.withOverdue.reduce((s, m) => s + m.overdue, 0))}
           tone={summary.withOverdue.length > 0 ? "red" : "green"}
         />
         <SummaryTile
           label={t.tasks.status.review}
-          value={`${summary.needsReview.length} membres`}
-          sub={`${summary.needsReview.reduce((s, m) => s + m.review, 0)} tâches`}
+          value={`${summary.needsReview.length} ${t.nav.team.toLowerCase()}`}
+          sub={tf.workloadNoTasks(summary.needsReview.reduce((s, m) => s + m.review, 0))}
           tone={summary.needsReview.length > 0 ? "amber" : "green"}
         />
         <SummaryTile
-          label="Sans tâches"
-          value={`${summary.unassigned.length} membres`}
-          sub="disponibles"
+          label={tf.workloadNoMembers}
+          value={`${summary.unassigned.length} ${t.nav.team.toLowerCase()}`}
+          sub={tf.workloadAvailable}
           tone={summary.unassigned.length > 0 ? "slate" : "green"}
         />
       </div>
@@ -139,13 +139,14 @@ export function WorkloadView({
       <div className="overflow-hidden rounded-2xl border border-[#22506F] bg-[#0D2D47]">
         <div className="border-b border-[#22506F] bg-[#123A5A] px-4 py-2.5">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-[#94A3B8]">
-            Membres de l&apos;équipe — {today}
+            {tf.workloadTeamHeader(today)}
           </p>
         </div>
         <div className="divide-y divide-[#1A3E5C]">
           {members.map((m) => {
             const isOverloaded = m.active >= OVERLOAD_THRESHOLD;
             const isExpanded = expandedId === m.id;
+            const normalActive = m.active - m.admin_tasks_active;
 
             return (
               <div key={m.id}>
@@ -169,12 +170,12 @@ export function WorkloadView({
                       )}
                       {isOverloaded && (
                         <span className="rounded-full bg-[#F43F5E]/15 px-2 py-0.5 text-[10px] font-semibold text-[#F43F5E]">
-                          ⚠ Surchargé
+                          {tf.workloadOverloaded}
                         </span>
                       )}
                       {m.active === 0 && (
                         <span className="rounded-full bg-[#22C55E]/15 px-2 py-0.5 text-[10px] font-semibold text-[#22C55E]">
-                          Disponible
+                          {tf.workloadAvailableBadge}
                         </span>
                       )}
                     </div>
@@ -183,28 +184,33 @@ export function WorkloadView({
 
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[#94A3B8]">
                       <span>
-                        <strong className="text-[#F8FAFC]">{m.active}</strong> actives
+                        <strong className="text-[#F8FAFC]">{m.active}</strong> {tf.workloadActive}
                       </span>
+                      {m.admin_tasks_active > 0 && (
+                        <span className="rounded-md bg-[#22D3EE]/10 px-1.5 py-0.5 text-[10px] font-medium text-[#22D3EE]">
+                          {m.admin_tasks_active} {tf.workloadAdminTasksBadge}
+                        </span>
+                      )}
                       {m.in_progress > 0 && (
                         <span>
-                          <strong className="text-[#22D3EE]">{m.in_progress}</strong> en cours
+                          <strong className="text-[#22D3EE]">{m.in_progress}</strong> {tf.workloadInProgress}
                         </span>
                       )}
                       {m.review > 0 && (
                         <span>
-                          <strong className="text-[#F59E0B]">{m.review}</strong> à valider
+                          <strong className="text-[#F59E0B]">{m.review}</strong> {tf.workloadToValidate}
                         </span>
                       )}
                       {m.overdue > 0 && (
                         <span>
-                          <strong className="text-[#F43F5E]">{m.overdue}</strong> en retard
+                          <strong className="text-[#F43F5E]">{m.overdue}</strong> {tf.workloadLate}
                         </span>
                       )}
                       <span>
-                        <strong className="text-[#22C55E]">{m.done_month}</strong> terminées ce mois
+                        <strong className="text-[#22C55E]">{m.done_month}</strong> {tf.workloadDoneMonth}
                       </span>
                       {m.total_tracked_seconds > 0 && (
-                        <span>{fmtTime(m.total_tracked_seconds)} trackées ce mois</span>
+                        <span>{fmtTime(m.total_tracked_seconds)} {tf.workloadTracked}</span>
                       )}
                     </div>
 
@@ -229,16 +235,8 @@ export function WorkloadView({
 
                   <div className="flex shrink-0 items-center gap-2">
                     <svg
-                      className={cn(
-                        "h-4 w-4 text-[#64748B] transition-transform",
-                        isExpanded && "rotate-180",
-                      )}
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
+                      className={cn("h-4 w-4 text-[#64748B] transition-transform", isExpanded && "rotate-180")}
+                      viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
                     >
                       <path d="m6 9 6 6 6-6" />
                     </svg>
@@ -249,47 +247,49 @@ export function WorkloadView({
                 {isExpanded && (
                   <div className="border-t border-[#1A3E5C] bg-[#0D1117] px-4 pb-4 pt-3">
                     {m.active === 0 ? (
-                      <p className="text-sm text-[#64748B]">
-                        Aucune tâche active — membre disponible pour nouvelles missions.
-                      </p>
+                      <p className="text-sm text-[#64748B]">{tf.workloadNoActive}</p>
                     ) : (
                       <div className="space-y-3">
                         {isOverloaded && (
                           <div className="rounded-lg border border-[#F43F5E]/20 bg-[#F43F5E]/10 px-3 py-2 text-xs text-[#F43F5E]">
-                            ⚠ Ce membre a {m.active} tâches actives (seuil :{" "}
-                            {OVERLOAD_THRESHOLD}). Envisagez de redistribuer certaines tâches.
+                            {tf.workloadOverloadWarning(m.active, OVERLOAD_THRESHOLD)}
                           </div>
                         )}
 
                         {m.overdue_tasks.length > 0 && (
                           <div>
                             <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-[#F43F5E]">
-                              Tâches en retard
+                              {tf.workloadOverdueHeader}
                             </p>
                             <div className="space-y-1">
-                              {m.overdue_tasks.map((t) => (
+                              {m.overdue_tasks.map((task) => (
                                 <div
-                                  key={t.id}
+                                  key={task.id}
                                   className="flex items-center justify-between gap-2 rounded-lg border border-[#F43F5E]/15 bg-[#F43F5E]/8 px-3 py-2"
                                 >
                                   <div className="min-w-0">
-                                    <Link
-                                      href={`/dashboard/tasks/${t.id}`}
-                                      className="text-sm font-medium text-[#F8FAFC] hover:text-[#22D3EE]"
-                                    >
-                                      {t.title}
-                                    </Link>
-                                    <p className="text-[11px] text-[#64748B]">
-                                      {t.project}
-                                    </p>
+                                    <div className="flex items-center gap-2">
+                                      <Link
+                                        href={task.isAdminTask ? `/dashboard/admin-tasks/${task.id}` : `/dashboard/tasks/${task.id}`}
+                                        className="text-sm font-medium text-[#F8FAFC] hover:text-[#22D3EE]"
+                                      >
+                                        {task.title}
+                                      </Link>
+                                      {task.isAdminTask && (
+                                        <span className="rounded-md bg-[#22D3EE]/10 px-1.5 py-0.5 text-[10px] font-semibold text-[#22D3EE]">
+                                          {tf.workloadAdminTasksBadge}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <p className="text-[11px] text-[#64748B]">{task.project}</p>
                                   </div>
                                   <div className="flex shrink-0 items-center gap-2">
-                                    <Badge tone="red">+{t.days_late}j</Badge>
+                                    <Badge tone="red">+{task.days_late}d</Badge>
                                     <Link
-                                      href={`/dashboard/tasks/${t.id}`}
+                                      href={task.isAdminTask ? `/dashboard/admin-tasks/${task.id}` : `/dashboard/tasks/${task.id}`}
                                       className="rounded-md bg-[#22D3EE]/10 px-2 py-1 text-xs font-medium text-[#22D3EE] hover:bg-[#22D3EE]/20"
                                     >
-                                      Voir →
+                                      {tf.workloadViewLink}
                                     </Link>
                                   </div>
                                 </div>
@@ -299,9 +299,7 @@ export function WorkloadView({
                         )}
 
                         {m.overdue_tasks.length === 0 && m.active > 0 && (
-                          <p className="text-xs text-[#64748B]">
-                            Aucun retard — {m.active} tâches en cours.
-                          </p>
+                          <p className="text-xs text-[#64748B]">{tf.workloadNoOverdue(m.active)}</p>
                         )}
                       </div>
                     )}
@@ -313,12 +311,12 @@ export function WorkloadView({
         </div>
       </div>
 
-      {/* Overdue late review section */}
+      {/* Overdue review table */}
       {summary.withOverdue.length > 0 && (
         <div className="overflow-hidden rounded-2xl border border-[#22506F] bg-[#0D2D47]">
           <div className="border-b border-[#22506F] bg-[#123A5A] px-4 py-2.5">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-[#F43F5E]">
-              Revue retards du jour
+              {tf.workloadReviewTitle}
             </p>
           </div>
           <div className="p-4">
@@ -326,31 +324,33 @@ export function WorkloadView({
               <table className="w-full min-w-[600px] text-sm">
                 <thead>
                   <tr className="border-b border-[#22506F] text-left">
-                    <Th>Tâche</Th>
-                    <Th>Responsable</Th>
-                    <Th>Projet</Th>
-                    <Th>Retard</Th>
+                    <Th>{tf.workloadColTask}</Th>
+                    <Th>{tf.workloadColOwner}</Th>
+                    <Th>{tf.workloadColProject}</Th>
+                    <Th>{tf.workloadColDelay}</Th>
                     <Th></Th>
                   </tr>
                 </thead>
                 <tbody>
                   {summary.withOverdue
-                    .flatMap((m) =>
-                      m.overdue_tasks.map((t) => ({ ...t, member: m })),
-                    )
+                    .flatMap((m) => m.overdue_tasks.map((task) => ({ ...task, member: m })))
                     .sort((a, b) => b.days_late - a.days_late)
                     .map((row) => (
-                      <tr
-                        key={row.id}
-                        className="border-b border-[#1A3E5C] last:border-0 hover:bg-[#1A3E5C]"
-                      >
+                      <tr key={`${row.id}-${row.member.id}`} className="border-b border-[#1A3E5C] last:border-0 hover:bg-[#1A3E5C]">
                         <Td>
-                          <Link
-                            href={`/dashboard/tasks/${row.id}`}
-                            className="font-medium text-[#F8FAFC] hover:text-[#22D3EE]"
-                          >
-                            {row.title}
-                          </Link>
+                          <div className="flex items-center gap-2">
+                            <Link
+                              href={row.isAdminTask ? `/dashboard/admin-tasks/${row.id}` : `/dashboard/tasks/${row.id}`}
+                              className="font-medium text-[#F8FAFC] hover:text-[#22D3EE]"
+                            >
+                              {row.title}
+                            </Link>
+                            {row.isAdminTask && (
+                              <span className="rounded-md bg-[#22D3EE]/10 px-1.5 py-0.5 text-[10px] font-semibold text-[#22D3EE]">
+                                {tf.workloadAdminTasksBadge}
+                              </span>
+                            )}
+                          </div>
                         </Td>
                         <Td>
                           <span className="text-[#94A3B8]">
@@ -361,14 +361,14 @@ export function WorkloadView({
                           <span className="text-[#64748B]">{row.project}</span>
                         </Td>
                         <Td>
-                          <Badge tone="red">+{row.days_late}j</Badge>
+                          <Badge tone="red">+{row.days_late}d</Badge>
                         </Td>
                         <Td>
                           <Link
-                            href={`/dashboard/tasks/${row.id}`}
+                            href={row.isAdminTask ? `/dashboard/admin-tasks/${row.id}` : `/dashboard/tasks/${row.id}`}
                             className="rounded-md bg-[#22D3EE]/10 px-2 py-1 text-xs font-medium text-[#22D3EE] hover:bg-[#22D3EE]/20"
                           >
-                            Ouvrir →
+                            {tf.workloadOpenLink}
                           </Link>
                         </Td>
                       </tr>
@@ -383,15 +383,8 @@ export function WorkloadView({
   );
 }
 
-function SummaryTile({
-  label,
-  value,
-  sub,
-  tone,
-}: {
-  label: string;
-  value: string;
-  sub: string;
+function SummaryTile({ label, value, sub, tone }: {
+  label: string; value: string; sub: string;
   tone: "red" | "amber" | "green" | "neutral" | "slate";
 }) {
   const styles = {
@@ -404,9 +397,7 @@ function SummaryTile({
 
   return (
     <div className={cn("rounded-xl border p-3.5", styles.card)}>
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">
-        {label}
-      </p>
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">{label}</p>
       <p className={cn("mt-1.5 text-lg font-bold", styles.val)}>{value}</p>
       <p className="text-[11px] text-[#64748B]">{sub}</p>
     </div>
