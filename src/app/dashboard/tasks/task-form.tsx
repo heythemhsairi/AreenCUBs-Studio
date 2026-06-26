@@ -311,24 +311,24 @@ export function TaskForm(props: Props) {
             </Field>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Field label="Temps estimé (minutes)">
+              <Field label={t.tasks.form.estimatedMinutes}>
                 <Input
                   name="estimated_minutes"
                   type="number"
                   min="0"
                   step="15"
-                  placeholder="ex: 90"
+                  placeholder={t.tasks.form.estimatedMinutesPlaceholder}
                   defaultValue={tk?.estimated_minutes ?? ""}
                 />
                 <p className="text-[11px] text-ink/45">
-                  Ex : 30 = 30 min, 120 = 2h
+                  {t.tasks.form.estimatedMinutesHint}
                 </p>
               </Field>
               {tk?.deadline && new Date(tk.deadline) < new Date() && tk.status !== "done" && (
-                <Field label="Raison du retard">
+                <Field label={t.tasks.form.lateReason}>
                   <Input
                     name="late_reason"
-                    placeholder="Blocage, attente client…"
+                    placeholder={t.tasks.form.lateReasonPlaceholder}
                     defaultValue={tk?.late_reason ?? ""}
                   />
                 </Field>
@@ -336,11 +336,11 @@ export function TaskForm(props: Props) {
             </div>
 
             {(tk?.status === "done" || tk?.status === "review") && (
-              <Field label="Note de livraison / commentaire final">
+              <Field label={t.tasks.form.completionNote}>
                 <Textarea
                   name="completion_note"
                   rows={2}
-                  placeholder="Ce qui a été livré, changements notables…"
+                  placeholder={t.tasks.form.completionNotePlaceholder}
                   defaultValue={tk?.completion_note ?? ""}
                 />
               </Field>

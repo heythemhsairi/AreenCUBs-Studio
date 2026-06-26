@@ -15,7 +15,7 @@ export default async function NewDevisPage({
     supabase.from("clients").select("id, name").order("name"),
     supabase
       .from("services")
-      .select("id, name_fr, default_price_dt, default_unit, category")
+      .select("id, name_fr, name_en, default_price_dt, default_unit, category")
       .eq("active", true)
       .order("name_fr"),
   ]);

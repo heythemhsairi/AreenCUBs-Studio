@@ -31,7 +31,7 @@ import {
 // ---------------------------------------------------------------------------
 
 type MonthlySeries = { label: string; paid: number; invoiced: number; expenses: number; profit: number };
-type ServiceTally = { name: string; total_dt: number; count: number };
+type ServiceTally = { name: string; nameEn?: string | null; total_dt: number; count: number };
 type TopClient = { id: string; name: string; paid: number; invoiced: number; unpaid: number; overdue: number; risk: string };
 
 export type FactureWithBalance = {
@@ -85,38 +85,18 @@ type Props = {
 };
 
 // ---------------------------------------------------------------------------
-// Tab config
-// ---------------------------------------------------------------------------
-
-const TABS = [
-  { key: "dashboard", label: "Dashboard" },
-  { key: "factures",  label: "Factures" },
-  { key: "devis",     label: "Pipeline devis" },
-  { key: "expenses",  label: "Dépenses" },
-  { key: "clients",   label: "Clients" },
-  { key: "audit",     label: "Audit" },
-] as const;
-type TabKey = (typeof TABS)[number]["key"];
-
-// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-/** Returns the % change between current and previous.
- *  Returns null when both are 0 (no meaningful change).
- *  Returns null when prev is 0 but current > 0 — use `isNew()` instead to show a "Nouveau" badge.
- */
 function pct(c: number, p: number): number | null {
   if (p === 0) return null;
   return ((c - p) / p) * 100;
 }
 
-/** True when the previous period had 0 and current period has a positive value — "first activity". */
 function isNew(c: number, p: number): boolean {
   return p === 0 && c > 0;
 }
 
-/** True when current value is 0 — nothing to report, trend is meaningless. */
 function noData(c: number, _p: number): boolean {
   return c === 0;
 }
@@ -179,24 +159,28 @@ function PieDarkTooltip({ active, payload }: {
 }
 
 // ---------------------------------------------------------------------------
-// Area chart — replaces MonthlyBars
+// Area chart
 // ---------------------------------------------------------------------------
 
-function RevenueAreaChart({ series }: { series: MonthlySeries[] }) {
+function RevenueAreaChart({ series, labels }: {
+  series: MonthlySeries[];
+  labels: { collected: string; invoiced: string; expenses: string; profit: string };
+}) {
+  const { t } = useI18n();
   if (!series.length) {
     return (
       <div className="flex h-60 items-center justify-center text-sm text-[#64748B]">
-        Pas encore de données.
+        {t.finance.noData}
       </div>
     );
   }
 
   const data = series.map((s) => ({
     name: s.label,
-    "Encaissé": s.paid,
-    "Facturé":  s.invoiced,
-    "Dépenses": s.expenses,
-    "Profit":   s.profit,
+    [labels.collected]: s.paid,
+    [labels.invoiced]:  s.invoiced,
+    [labels.expenses]:  s.expenses,
+    [labels.profit]:    s.profit,
   }));
 
   return (
@@ -245,54 +229,23 @@ function RevenueAreaChart({ series }: { series: MonthlySeries[] }) {
           iconSize={8}
         />
 
-        <Area
-          type="monotone"
-          dataKey="Encaissé"
-          stroke={CHART_COLORS.paid}
-          strokeWidth={2}
-          fill="url(#gradPaid)"
-          dot={false}
-          activeDot={{ r: 4, fill: CHART_COLORS.paid }}
-        />
-        <Area
-          type="monotone"
-          dataKey="Facturé"
-          stroke={CHART_COLORS.invoiced}
-          strokeWidth={2}
-          fill="url(#gradInvoiced)"
-          dot={false}
-          activeDot={{ r: 4, fill: CHART_COLORS.invoiced }}
-        />
-        <Area
-          type="monotone"
-          dataKey="Dépenses"
-          stroke={CHART_COLORS.expenses}
-          strokeWidth={2}
-          fill="url(#gradExpenses)"
-          dot={false}
-          activeDot={{ r: 4, fill: CHART_COLORS.expenses }}
-        />
-        <Area
-          type="monotone"
-          dataKey="Profit"
-          stroke={CHART_COLORS.profit}
-          strokeWidth={2}
-          fill="url(#gradProfit)"
-          dot={false}
-          activeDot={{ r: 4, fill: CHART_COLORS.profit }}
-        />
+        <Area type="monotone" dataKey={labels.collected} stroke={CHART_COLORS.paid}     strokeWidth={2} fill="url(#gradPaid)"      dot={false} activeDot={{ r: 4, fill: CHART_COLORS.paid }} />
+        <Area type="monotone" dataKey={labels.invoiced}  stroke={CHART_COLORS.invoiced} strokeWidth={2} fill="url(#gradInvoiced)"  dot={false} activeDot={{ r: 4, fill: CHART_COLORS.invoiced }} />
+        <Area type="monotone" dataKey={labels.expenses}  stroke={CHART_COLORS.expenses} strokeWidth={2} fill="url(#gradExpenses)"  dot={false} activeDot={{ r: 4, fill: CHART_COLORS.expenses }} />
+        <Area type="monotone" dataKey={labels.profit}    stroke={CHART_COLORS.profit}   strokeWidth={2} fill="url(#gradProfit)"    dot={false} activeDot={{ r: 4, fill: CHART_COLORS.profit }} />
       </AreaChart>
     </ResponsiveContainer>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Recharts donut — replaces Donut + DonutLegend
+// Recharts donut
 // ---------------------------------------------------------------------------
 
 function RechartsDonut({ data }: { data: { label: string; value: number; color: string }[] }) {
+  const { t } = useI18n();
   if (!data.length) {
-    return <p className="py-8 text-center text-sm text-[#64748B]">Pas encore de données.</p>;
+    return <p className="py-8 text-center text-sm text-[#64748B]">{t.finance.noData}</p>;
   }
 
   const pieData = data.map((d) => ({ name: d.label, value: d.value, color: d.color }));
@@ -318,17 +271,13 @@ function RechartsDonut({ data }: { data: { label: string; value: number; color: 
         </PieChart>
       </ResponsiveContainer>
 
-      {/* Legend */}
       <div className="space-y-1.5">
         {data.map((d) => {
           const total = data.reduce((sum, x) => sum + x.value, 0);
           const pctVal = total > 0 ? ((d.value / total) * 100).toFixed(1) : "0";
           return (
             <div key={d.label} className="flex items-center gap-2 text-xs">
-              <span
-                className="h-2 w-2 flex-shrink-0 rounded-full"
-                style={{ background: d.color }}
-              />
+              <span className="h-2 w-2 flex-shrink-0 rounded-full" style={{ background: d.color }} />
               <span className="min-w-0 flex-1 truncate text-[#94A3B8]">{d.label}</span>
               <span className="text-[#64748B]">{pctVal}%</span>
               <span className="font-semibold text-[#F8FAFC]">{d.value.toLocaleString("fr-TN")}</span>
@@ -344,11 +293,7 @@ function RechartsDonut({ data }: { data: { label: string; value: number; color: 
 // Mini donut card
 // ---------------------------------------------------------------------------
 
-function MiniDonutCard({
-  title,
-  subtitle,
-  data,
-}: {
+function MiniDonutCard({ title, subtitle, data }: {
   title: string;
   subtitle: string;
   data: { label: string; value: number; color: string }[];
@@ -367,21 +312,22 @@ function MiniDonutCard({
 // ---------------------------------------------------------------------------
 
 export function RiskBadge({ risk }: { risk: "good" | "late" | "risky" }) {
+  const { t } = useI18n();
   if (risk === "good")
     return (
       <span className="inline-flex items-center gap-1 rounded-full bg-emerald-950/60 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
-        ● Bon
+        ● {t.finance.riskGood}
       </span>
     );
   if (risk === "late")
     return (
       <span className="inline-flex items-center gap-1 rounded-full bg-amber-950/60 px-2 py-0.5 text-[10px] font-semibold text-amber-400">
-        ● En retard
+        ● {t.finance.riskLate}
       </span>
     );
   return (
     <span className="inline-flex items-center gap-1 rounded-full bg-rose-950/60 px-2 py-0.5 text-[10px] font-semibold text-rose-400">
-      ● Risqué
+      ● {t.finance.riskRisky}
     </span>
   );
 }
@@ -391,21 +337,47 @@ export function RiskBadge({ risk }: { risk: "good" | "late" | "risky" }) {
 // ---------------------------------------------------------------------------
 
 function DashboardTab(props: Props) {
-  const { t } = useI18n();
-  // Service donut
+  const { t, locale } = useI18n();
+  const tf = t.finance;
+
+  // Category labels from i18n
+  const CATEGORY_LABELS: Record<string, string> = {
+    salaries:    tf.catSalaries,
+    freelancers: tf.catFreelancers,
+    ads:         tf.catAds,
+    software:    tf.catSoftware,
+    hosting:     tf.catHosting,
+    transport:   tf.catTransport,
+    office:      tf.catOffice,
+    production:  tf.catProduction,
+    other:       tf.catOther,
+  };
+
+  // Chart series labels (locale-aware for Recharts dataKey)
+  const chartLabels = {
+    collected: tf.chartCollected,
+    invoiced:  tf.chartInvoiced,
+    expenses:  tf.chartExpenses,
+    profit:    tf.chartProfit,
+  };
+
+  // Service donut — use nameEn when locale is EN; empty name → localized "no service"
+  const serviceLabel = (s: ServiceTally) => {
+    if (!s.name && !s.nameEn) return tf.donutNoService;
+    return locale === "en" && s.nameEn ? s.nameEn : (s.name || tf.donutNoService);
+  };
   const topSlices = props.topServices.slice(0, 6);
-  const restTotal = props.topServices.slice(6).reduce((s, t) => s + t.total_dt, 0);
+  const restTotal = props.topServices.slice(6).reduce((s, svc) => s + svc.total_dt, 0);
   const serviceDonut = [
-    ...topSlices.map((s, i) => ({ label: s.name, value: s.total_dt, color: PIE_PALETTE[i % PIE_PALETTE.length] })),
-    ...(restTotal > 0 ? [{ label: "Autres", value: restTotal, color: PIE_PALETTE[6 % PIE_PALETTE.length] }] : []),
+    ...topSlices.map((s, i) => ({
+      label: serviceLabel(s),
+      value: s.total_dt,
+      color: PIE_PALETTE[i % PIE_PALETTE.length],
+    })),
+    ...(restTotal > 0 ? [{ label: tf.donutOthers, value: restTotal, color: PIE_PALETTE[6 % PIE_PALETTE.length] }] : []),
   ];
 
   // Expense donut
-  const CATEGORY_LABELS: Record<string, string> = {
-    salaries: "Salaires", freelancers: "Freelances", ads: "Publicité",
-    software: "Logiciels", hosting: "Hébergement", transport: "Transport",
-    office: "Bureau", production: "Production", other: "Autre",
-  };
   const expDonut = Object.entries(props.expByCategory)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 7)
@@ -431,7 +403,7 @@ function DashboardTab(props: Props) {
           trendNoData={noData(props.mtdPaid, props.prevPaid)}
           trendLabel={t.kpis.vsLastMonth}
           tone="green"
-          tooltip="Paiements réellement reçus sur factures uniquement"
+          tooltip={tf.tipRevenueMtd}
         />
         <KpiCard
           label={t.kpis.invoicedMonth}
@@ -442,103 +414,83 @@ function DashboardTab(props: Props) {
           trendNoData={noData(props.mtdInvoiced, props.prevInvoiced)}
           trendLabel={t.kpis.vsLastMonth}
           tone="cyan"
-          tooltip="Total des factures émises ce mois"
+          tooltip={tf.tipInvoicedMonth}
         />
         <KpiCard
           label={t.kpis.outstanding}
           value={props.totalOutstanding}
           suffix=" DT"
           tone={props.totalOverdue > 0 ? "red" : props.totalOutstanding > 0 ? "amber" : "neutral"}
-          tooltip="Balance impayée sur toutes les factures actives"
+          tooltip={tf.tipOutstanding}
         />
         <KpiCard
           label={t.kpis.overdue}
           value={props.totalOverdue}
           suffix=" DT"
           tone={props.totalOverdue > 0 ? "red" : "neutral"}
-          tooltip="Montant des factures dont l'échéance est dépassée"
+          tooltip={tf.tipOverdue}
         />
         <KpiCard
-          label="Dépenses ce mois"
+          label={tf.kpiExpensesMonth}
           value={props.mtdExpenses}
           suffix=" DT"
           tone="neutral"
-          tooltip="Total des dépenses enregistrées ce mois"
+          tooltip={tf.tipExpensesMonth}
         />
         <KpiCard
-          label="Profit net"
+          label={tf.kpiNetProfit}
           value={props.netProfit}
           suffix=" DT"
           tone={props.netProfit >= 0 ? "green" : "red"}
-          tooltip="Encaissé moins dépenses sur le mois en cours"
+          tooltip={tf.tipNetProfit}
         />
         <KpiCard
-          label={props.profitMargin === null ? "Marge (dép. non saisies)" : "Marge"}
+          label={props.profitMargin === null ? tf.kpiMarginNoData : tf.kpiMargin}
           value={props.profitMargin === null ? "N/A" : props.profitMargin}
           suffix={props.profitMargin === null ? "" : "%"}
           decimals={1}
           tone="violet"
-          tooltip={
-            props.profitMargin === null
-              ? "Aucune dépense saisie ce mois — la marge ne peut pas être calculée"
-              : "Profit net / Encaissé × 100"
-          }
+          tooltip={props.profitMargin === null ? tf.tipMarginNoData : tf.tipMargin}
         />
         <KpiCard
-          label="Attendu 30j"
+          label={tf.kpiExpected30}
           value={props.expectedNext30}
           suffix=" DT"
           tone="cyan"
-          tooltip="Soldes impayés dont l'échéance tombe dans les 30 prochains jours"
+          tooltip={tf.tipExpected30}
         />
       </section>
 
       {/* ── MAIN AREA CHART ─────────────────────────────────────── */}
       <div className="rounded-xl border border-[#22506F] bg-[#0D2D47] p-5">
-        <div className="mb-1 text-sm font-semibold text-[#F8FAFC]">
-          Encaissé vs Facturé vs Dépenses — 12 mois
-        </div>
-        <div className="mb-4 text-xs text-[#64748B]">Vue mensuelle agrégée</div>
-        <RevenueAreaChart series={props.monthlySeries} />
+        <div className="mb-1 text-sm font-semibold text-[#F8FAFC]">{tf.chartTitle}</div>
+        <div className="mb-4 text-xs text-[#64748B]">{tf.chartSubtitle}</div>
+        <RevenueAreaChart series={props.monthlySeries} labels={chartLabels} />
       </div>
 
       {/* ── 3-COL DONUT CHARTS ──────────────────────────────────── */}
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-        <MiniDonutCard
-          title="Services (factures)"
-          subtitle="Répartition par chiffre d'affaires"
-          data={serviceDonut}
-        />
-        <MiniDonutCard
-          title="Dépenses par catégorie"
-          subtitle="Toutes périodes"
-          data={expDonut}
-        />
-        <MiniDonutCard
-          title="Top clients (encaissé)"
-          subtitle="Tous temps"
-          data={clientDonut}
-        />
+        <MiniDonutCard title={tf.donutServices}  subtitle={tf.donutServicesSubtitle} data={serviceDonut} />
+        <MiniDonutCard title={tf.donutExpenses}  subtitle={tf.donutExpensesSubtitle} data={expDonut} />
+        <MiniDonutCard title={tf.donutClients}   subtitle={tf.donutClientsSubtitle}  data={clientDonut} />
       </div>
 
       {/* ── OUTSTANDING + EXPECTED ──────────────────────────────── */}
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         <div className="rounded-xl border border-[#22506F] bg-[#0D2D47] p-5">
           <div className="mb-4 flex items-center justify-between">
-            <div className="text-sm font-semibold text-[#F8FAFC]">Factures impayées</div>
+            <div className="text-sm font-semibold text-[#F8FAFC]">{tf.outstandingTitle}</div>
             {props.totalOverdue > 0 && (
-              <Badge tone="red">{formatDt(props.totalOverdue)} en retard</Badge>
+              <Badge tone="red">{formatDt(props.totalOverdue)} {tf.outstandingInLate}</Badge>
             )}
           </div>
           <OutstandingTable rows={props.outstandingRows.slice(0, 10)} />
         </div>
 
         <div className="rounded-xl border border-[#22506F] bg-[#0D2D47] p-5">
-          <div className="mb-4 text-sm font-semibold text-[#F8FAFC]">Paiements attendus (30j)</div>
+          <div className="mb-4 text-sm font-semibold text-[#F8FAFC]">{tf.paymentsTitle}</div>
           {props.paymentsSoon.length === 0 ? (
-            <p className="py-6 text-center text-sm text-[#64748B]">
-              Aucun paiement attendu dans les 30 prochains jours.
-            </p>
+            <p className="py-6 text-center text-sm text-[#64748B]">{tf.paymentsEmpty}</p>
           ) : (
             <ul className="divide-y divide-[#22506F]">
               {props.paymentsSoon.map((r) => (
@@ -546,7 +498,7 @@ function DashboardTab(props: Props) {
                   <div>
                     <p className="text-sm font-medium text-[#F8FAFC]">{r.client_name}</p>
                     <p className="text-xs text-[#64748B]">
-                      Facture #{r.devis_number} · échéance {formatDate(r.due_date)}
+                      {tf.paymentsFacture(r.devis_number)} · {tf.paymentsDue} {formatDate(r.due_date)}
                     </p>
                   </div>
                   <span className="text-sm font-semibold text-[#22D3EE]">
@@ -562,16 +514,16 @@ function DashboardTab(props: Props) {
       {/* ── TOP CLIENTS TABLE ────────────────────────────────────── */}
       {props.topClients.length > 0 && (
         <div className="rounded-xl border border-[#22506F] bg-[#0D2D47] p-5">
-          <div className="mb-4 text-sm font-semibold text-[#F8FAFC]">Meilleurs clients</div>
+          <div className="mb-4 text-sm font-semibold text-[#F8FAFC]">{tf.topClientsTitle}</div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[#22506F] text-left">
-                  <th className="pb-2.5 text-[10px] font-semibold uppercase tracking-widest text-[#64748B]">Client</th>
-                  <th className="pb-2.5 text-right text-[10px] font-semibold uppercase tracking-widest text-[#64748B]">Facturé</th>
-                  <th className="pb-2.5 text-right text-[10px] font-semibold uppercase tracking-widest text-[#64748B]">Encaissé</th>
-                  <th className="pb-2.5 text-right text-[10px] font-semibold uppercase tracking-widest text-[#64748B]">Impayé</th>
-                  <th className="pb-2.5 text-right text-[10px] font-semibold uppercase tracking-widest text-[#64748B]">Risque</th>
+                  <th className="pb-2.5 text-[10px] font-semibold uppercase tracking-widest text-[#64748B]">{tf.colClient}</th>
+                  <th className="pb-2.5 text-right text-[10px] font-semibold uppercase tracking-widest text-[#64748B]">{tf.colInvoiced}</th>
+                  <th className="pb-2.5 text-right text-[10px] font-semibold uppercase tracking-widest text-[#64748B]">{tf.colCollected}</th>
+                  <th className="pb-2.5 text-right text-[10px] font-semibold uppercase tracking-widest text-[#64748B]">{tf.colUnpaid}</th>
+                  <th className="pb-2.5 text-right text-[10px] font-semibold uppercase tracking-widest text-[#64748B]">{tf.colRisk}</th>
                 </tr>
               </thead>
               <tbody>
@@ -600,26 +552,36 @@ function DashboardTab(props: Props) {
 // ---------------------------------------------------------------------------
 
 export function FinanceDashboardClient(props: Props) {
-  const [tab, setTab] = useState<TabKey>("dashboard");
+  const { t } = useI18n();
+  const [tab, setTab] = useState<string>("dashboard");
+
+  const TABS = [
+    { key: "dashboard", label: t.finance.tabDashboard },
+    { key: "factures",  label: t.finance.tabFactures },
+    { key: "devis",     label: t.finance.tabDevis },
+    { key: "expenses",  label: t.finance.tabExpenses },
+    { key: "clients",   label: t.finance.tabClients },
+    { key: "audit",     label: t.finance.tabAudit },
+  ];
 
   return (
     <div className="space-y-6">
       {/* ── TAB STRIP ───────────────────────────────────────────── */}
       <div className="bg-[#071B2C] border-b border-[#22506F]">
         <div className="flex overflow-x-auto">
-          {TABS.map((t) => (
+          {TABS.map((tabItem) => (
             <button
-              key={t.key}
+              key={tabItem.key}
               type="button"
-              onClick={() => setTab(t.key)}
+              onClick={() => setTab(tabItem.key)}
               className={cn(
                 "flex-shrink-0 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap",
-                tab === t.key
+                tab === tabItem.key
                   ? "border-b-2 border-[#22D3EE] text-[#22D3EE]"
                   : "border-b-2 border-transparent text-[#64748B] hover:text-[#94A3B8]",
               )}
             >
-              {t.label}
+              {tabItem.label}
             </button>
           ))}
         </div>

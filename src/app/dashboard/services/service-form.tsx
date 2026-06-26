@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/dashboard/page-header";
+import { useI18n } from "@/lib/i18n/provider";
 import {
   createServiceAction,
   updateServiceAction,
@@ -29,6 +30,8 @@ type Props =
   | { mode: "edit"; service: Service };
 
 export function ServiceForm(props: Props) {
+  const { t } = useI18n();
+  const ts = t.services;
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -51,7 +54,7 @@ export function ServiceForm(props: Props) {
 
   function onDelete() {
     if (props.mode !== "edit") return;
-    if (!confirm("Supprimer ce service ?")) return;
+    if (!confirm(ts.deleteConfirm)) return;
     const fd = new FormData();
     fd.set("id", props.service.id);
     startDelete(async () => {
@@ -66,12 +69,12 @@ export function ServiceForm(props: Props) {
       <PageHeader
         title={
           props.mode === "create"
-            ? "Nouveau service"
-            : (s?.name_fr ?? "Service")
+            ? ts.newService
+            : (s?.name_fr ?? ts.fallbackTitle)
         }
         subtitle={
           <Link href="/dashboard/services" className="hover:underline">
-            ← Catalogue
+            {ts.backToCatalog}
           </Link>
         }
       />
@@ -79,7 +82,7 @@ export function ServiceForm(props: Props) {
       <Card className="max-w-2xl">
         <CardHeader>
           <CardTitle>
-            {props.mode === "create" ? "Créer" : "Modifier"}
+            {props.mode === "create" ? ts.create : ts.edit}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -88,13 +91,13 @@ export function ServiceForm(props: Props) {
               <input type="hidden" name="id" value={s?.id} />
             )}
 
-            <Field label="Nom (FR)">
+            <Field label={ts.nameFr}>
               <Input name="name_fr" required defaultValue={s?.name_fr ?? ""} />
             </Field>
-            <Field label="Nom (EN, optionnel)">
+            <Field label={ts.nameEn}>
               <Input name="name_en" defaultValue={s?.name_en ?? ""} />
             </Field>
-            <Field label="Description (FR)">
+            <Field label={ts.descriptionFr}>
               <Textarea
                 name="description_fr"
                 rows={2}
@@ -103,14 +106,14 @@ export function ServiceForm(props: Props) {
             </Field>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <Field label="Catégorie">
+              <Field label={ts.category}>
                 <Input
                   name="category"
                   defaultValue={s?.category ?? ""}
-                  placeholder="Branding…"
+                  placeholder={ts.categoryPlaceholder}
                 />
               </Field>
-              <Field label="Prix (DT)">
+              <Field label={ts.priceDt}>
                 <Input
                   name="default_price_dt"
                   type="number"
@@ -120,7 +123,7 @@ export function ServiceForm(props: Props) {
                   required
                 />
               </Field>
-              <Field label="Unité">
+              <Field label={ts.unit}>
                 <Input
                   name="default_unit"
                   defaultValue={s?.default_unit ?? "unit"}
@@ -135,25 +138,25 @@ export function ServiceForm(props: Props) {
                 defaultChecked={s?.active ?? true}
                 className="h-4 w-4 rounded border-ink/30 accent-brand"
               />
-              Actif (affiché dans le sélecteur de devis)
+              {ts.activeLabel}
             </label>
 
             {error && <p className="text-sm text-red-600">{error}</p>}
-            {saved && <p className="text-sm text-green-700">Enregistré ✓</p>}
+            {saved && <p className="text-sm text-green-700">{ts.saved}</p>}
 
             <div className="flex items-center gap-3 pt-2">
               <Button type="submit" disabled={pending}>
                 {pending
-                  ? "Enregistrement…"
+                  ? ts.saving
                   : props.mode === "create"
-                    ? "Créer"
-                    : "Enregistrer"}
+                    ? ts.create
+                    : ts.save}
               </Button>
               <Link
                 href="/dashboard/services"
                 className="text-sm text-ink/55 hover:text-ink"
               >
-                Annuler
+                {ts.cancel}
               </Link>
             </div>
           </form>
@@ -163,13 +166,10 @@ export function ServiceForm(props: Props) {
       {props.mode === "edit" && (
         <Card className="max-w-2xl border-red-200">
           <CardHeader>
-            <CardTitle className="text-red-700">Supprimer</CardTitle>
+            <CardTitle className="text-red-700">{ts.deleteTitle}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-ink/70">
-              Les devis existants conservent leur référence (lien défini sur
-              null).
-            </p>
+            <p className="text-sm text-ink/70">{ts.deleteNote}</p>
             <Button
               type="button"
               variant="outline"
@@ -177,7 +177,7 @@ export function ServiceForm(props: Props) {
               onClick={onDelete}
               disabled={delPending}
             >
-              {delPending ? "Suppression…" : "Supprimer"}
+              {delPending ? ts.deleting : ts.delete}
             </Button>
           </CardContent>
         </Card>

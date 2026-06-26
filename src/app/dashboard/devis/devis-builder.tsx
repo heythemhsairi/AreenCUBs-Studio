@@ -15,6 +15,7 @@ import { formatDt } from "@/lib/format";
 type Service = {
   id: string;
   name_fr: string;
+  name_en?: string | null;
   default_price_dt: number;
   default_unit: string;
   category: string | null;
@@ -178,12 +179,16 @@ export function DevisBuilder(props: Props) {
     );
   }
 
+  function serviceName(svc: Service) {
+    return locale === "en" && svc.name_en ? svc.name_en : svc.name_fr;
+  }
+
   function applyService(rowKey: string, serviceId: string) {
     const svc = props.services.find((s) => s.id === serviceId);
     if (!svc) return;
     updateRow(rowKey, {
       service_id: svc.id,
-      description: svc.name_fr,
+      description: serviceName(svc),
       unit_price_dt: Number(svc.default_price_dt),
     });
   }
@@ -338,7 +343,7 @@ export function DevisBuilder(props: Props) {
                     <option value="">{db.servicePlaceholder}</option>
                     {props.services.map((s) => (
                       <option key={s.id} value={s.id}>
-                        {s.name_fr} ({s.default_price_dt} DT)
+                        {serviceName(s)} ({s.default_price_dt} DT)
                       </option>
                     ))}
                   </Select>

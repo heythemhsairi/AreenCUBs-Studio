@@ -13,6 +13,7 @@ import {
 } from "../actions";
 import { toast } from "@/components/toast";
 import { formatDt } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/provider";
 
 type DevisStatus = "draft" | "sent" | "accepted" | "rejected";
 
@@ -23,6 +24,8 @@ export function DevisStatusActions({
   devisId: string;
   currentStatus: DevisStatus;
 }) {
+  const { t } = useI18n();
+  const td = t.devis;
   const [pending, startTransition] = useTransition();
 
   function changeTo(s: DevisStatus) {
@@ -34,42 +37,21 @@ export function DevisStatusActions({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Cycle de vie</CardTitle>
+        <CardTitle>{td.lifecycle}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex flex-wrap gap-2">
-          <Button
-            variant={currentStatus === "draft" ? "primary" : "outline"}
-            size="sm"
-            disabled={pending}
-            onClick={() => changeTo("draft")}
-          >
-            Brouillon
-          </Button>
-          <Button
-            variant={currentStatus === "sent" ? "primary" : "outline"}
-            size="sm"
-            disabled={pending}
-            onClick={() => changeTo("sent")}
-          >
-            Envoyé
-          </Button>
-          <Button
-            variant={currentStatus === "accepted" ? "primary" : "outline"}
-            size="sm"
-            disabled={pending}
-            onClick={() => changeTo("accepted")}
-          >
-            Accepté
-          </Button>
-          <Button
-            variant={currentStatus === "rejected" ? "primary" : "outline"}
-            size="sm"
-            disabled={pending}
-            onClick={() => changeTo("rejected")}
-          >
-            Refusé
-          </Button>
+          {(["draft", "sent", "accepted", "rejected"] as DevisStatus[]).map((s) => (
+            <Button
+              key={s}
+              variant={currentStatus === s ? "primary" : "outline"}
+              size="sm"
+              disabled={pending}
+              onClick={() => changeTo(s)}
+            >
+              {td.status[s]}
+            </Button>
+          ))}
         </div>
       </CardContent>
     </Card>
@@ -85,6 +67,8 @@ export function PaymentSection({
   totalDt: number;
   paidDt: number;
 }) {
+  const { t } = useI18n();
+  const td = t.devis;
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -110,7 +94,7 @@ export function PaymentSection({
   }
 
   function onMarkFullyPaid() {
-    if (!confirm("Marquer comme entièrement payé ? Un paiement du solde sera enregistré.")) return;
+    if (!confirm(td.markFullyPaidConfirm)) return;
     const fd = new FormData();
     fd.set("devis_id", devisId);
     startMarkPaid(async () => {
@@ -121,13 +105,13 @@ export function PaymentSection({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Paiement</CardTitle>
+        <CardTitle>{td.paymentTitle}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
             <span className="text-ink/60">
-              Encaissé{" "}
+              {td.collected}{" "}
               <span className="font-semibold text-ink">{formatDt(paidDt)}</span>{" "}
               / {formatDt(totalDt)}
             </span>
@@ -141,10 +125,10 @@ export function PaymentSection({
               }
             >
               {isFullyPaid
-                ? "Payé"
+                ? td.payment.paid
                 : remaining < totalDt
-                  ? "Partiel"
-                  : "Impayé"}
+                  ? td.payment.partial
+                  : td.payment.unpaid}
             </span>
           </div>
           <div className="h-2 w-full overflow-hidden rounded-full bg-ink/5">
@@ -155,7 +139,7 @@ export function PaymentSection({
           </div>
           {!isFullyPaid && (
             <p className="text-xs text-ink/50">
-              Reste à encaisser :{" "}
+              {td.remainingToCollect}{" "}
               <span className="font-semibold text-ink">
                 {formatDt(remaining)}
               </span>
@@ -173,9 +157,7 @@ export function PaymentSection({
               disabled={markPending}
               className="w-full"
             >
-              {markPending
-                ? "Enregistrement…"
-                : `Marquer entièrement payé (${formatDt(remaining)})`}
+              {markPending ? td.saving : td.markFullyPaid(formatDt(remaining))}
             </Button>
           </div>
         )}
@@ -183,10 +165,10 @@ export function PaymentSection({
         <form className="space-y-3" onSubmit={onSubmit}>
           <input type="hidden" name="devis_id" value={devisId} />
           <p className="text-xs font-medium uppercase tracking-wide text-ink/50">
-            ou enregistrer un paiement partiel
+            {td.orRecordPartial}
           </p>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <Field label="Montant (DT)">
+            <Field label={td.labelAmountDt}>
               <Input
                 name="amount_dt"
                 type="number"
@@ -196,7 +178,7 @@ export function PaymentSection({
                 placeholder={remaining > 0 ? remaining.toFixed(2) : "0.00"}
               />
             </Field>
-            <Field label="Date">
+            <Field label={td.labelDate}>
               <Input
                 name="paid_at"
                 type="date"
@@ -204,19 +186,19 @@ export function PaymentSection({
                 required
               />
             </Field>
-            <Field label="Méthode">
-              <Input name="method" placeholder="Virement, espèces…" />
+            <Field label={td.labelMethod}>
+              <Input name="method" placeholder={td.methodPlaceholder} />
             </Field>
-            <Field label="Note">
+            <Field label={td.labelNote}>
               <Input name="notes" />
             </Field>
           </div>
           {error && <p className="text-sm text-red-600">{error}</p>}
           {done && (
-            <p className="text-sm text-green-600">Paiement enregistré.</p>
+            <p className="text-sm text-green-600">{td.paymentRecorded}</p>
           )}
           <Button type="submit" size="sm" variant="outline" disabled={pending}>
-            {pending ? "Enregistrement…" : "Ajouter le paiement"}
+            {pending ? td.saving : td.addPayment}
           </Button>
         </form>
       </CardContent>
@@ -225,14 +207,11 @@ export function PaymentSection({
 }
 
 export function ConvertToFactureButton({ devisId }: { devisId: string }) {
+  const { t } = useI18n();
+  const td = t.devis;
   const [pending, startTransition] = useTransition();
   function onClick() {
-    if (
-      !confirm(
-        "Générer une facture à partir de ce devis ? Vous serez redirigé vers la nouvelle facture.",
-      )
-    )
-      return;
+    if (!confirm(td.convertConfirm)) return;
     startTransition(async () => {
       const res = await convertDevisToFactureAction(devisId);
       // redirect() throws — only reaches here on explicit error return
@@ -249,7 +228,7 @@ export function ConvertToFactureButton({ devisId }: { devisId: string }) {
       onClick={onClick}
       disabled={pending}
     >
-      {pending ? "Conversion…" : "→ Convertir en facture"}
+      {pending ? td.converting : td.convertToFactureArrow}
     </Button>
   );
 }
@@ -261,15 +240,12 @@ export function DeleteDevisButton({
   devisId: string;
   kind: "devis" | "facture";
 }) {
+  const { t } = useI18n();
+  const td = t.devis;
   const [pending, startTransition] = useTransition();
 
   function onDelete() {
-    if (
-      !confirm(
-        `Supprimer ${kind === "facture" ? "cette facture" : "ce devis"} ? Action irréversible.`,
-      )
-    )
-      return;
+    if (!confirm(kind === "facture" ? td.deleteFactureConfirm : td.deleteDevisConfirm)) return;
     const fd = new FormData();
     fd.set("id", devisId);
     fd.set("kind", kind);
@@ -286,7 +262,7 @@ export function DeleteDevisButton({
       onClick={onDelete}
       disabled={pending}
     >
-      {pending ? "…" : "Supprimer"}
+      {pending ? td.deleting : td.delete}
     </Button>
   );
 }

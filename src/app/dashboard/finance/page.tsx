@@ -79,7 +79,7 @@ export default async function FinancePage() {
     supabase.from("projects").select("id, name").order("name"),
     supabase
       .from("devis_items")
-      .select("line_total_dt, is_bonus, services:service_id(name_fr), devis:devis_id(status, kind)"),
+      .select("line_total_dt, is_bonus, services:service_id(name_fr, name_en), devis:devis_id(status, kind)"),
     // All factures (for client profiles & status breakdown)
     supabase
       .from("devis")
@@ -197,15 +197,18 @@ export default async function FinancePage() {
   }
 
   // ── SERVICE BREAKDOWN (factures only) ─────────────────────────
-  type ServiceTally = { name: string; total_dt: number; count: number };
+  // name_en is empty string when missing → the client falls back to FR
+  // and renders a localized "no service" label for the empty key.
+  type ServiceTally = { name: string; nameEn: string; total_dt: number; count: number };
   const serviceTally = new Map<string, ServiceTally>();
   for (const line of factureItems ?? []) {
     if (line.is_bonus) continue;
     const parent = Array.isArray(line.devis) ? line.devis[0] : line.devis;
     if ((parent as { kind?: string } | null)?.kind !== "facture") continue;
     const svc = Array.isArray(line.services) ? line.services[0] : line.services;
-    const name = (svc as { name_fr?: string } | null)?.name_fr ?? "Sans service";
-    const t = serviceTally.get(name) ?? { name, total_dt: 0, count: 0 };
+    const name = (svc as { name_fr?: string } | null)?.name_fr ?? "";
+    const nameEn = (svc as { name_en?: string | null } | null)?.name_en ?? "";
+    const t = serviceTally.get(name) ?? { name, nameEn, total_dt: 0, count: 0 };
     t.total_dt += Number(line.line_total_dt ?? 0);
     t.count += 1;
     serviceTally.set(name, t);
