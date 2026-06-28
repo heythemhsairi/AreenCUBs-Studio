@@ -154,10 +154,22 @@ export function DevisPrintView({
         </tbody>
       </table>
 
-      {/* ── Tail: totals right-aligned, then the cachet/signature block
-             below it (mirrors the reference PDF). Kept as one block that
-             stays together but flows right under the table — no orphaning. ── */}
+      {/* ── Tail: cachet/signature on the LEFT, totals on the RIGHT, same
+             row. Side-by-side reuses the empty left space under the table and
+             keeps the tail short so a 5–6 line quote stays one page. ── */}
       <div className="doc-tail">
+        <section className="signature">
+          <div className="signature-tag">Cachet &amp; Signature</div>
+          <div className="signature-box">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/stamp.png"
+              alt="Cachet et signature Areen CUBs"
+              className="signature-stamp"
+            />
+          </div>
+        </section>
+
         <section className="totals">
           <div className="totals-inner">
             <div className="totals-row">
@@ -192,18 +204,6 @@ export function DevisPrintView({
               <span>Total TTC</span>
               <strong>{formatDt(devis.total_dt)}</strong>
             </div>
-          </div>
-        </section>
-
-        <section className="signature">
-          <div className="signature-tag">Cachet &amp; Signature</div>
-          <div className="signature-box">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/stamp.png"
-              alt="Cachet et signature Areen CUBs"
-              className="signature-stamp"
-            />
           </div>
         </section>
       </div>
@@ -414,19 +414,23 @@ export function DevisPrintView({
           font-weight: 600;
         }
 
-        /* ── Tail: totals right-aligned, cachet block below (matches the
-             reference PDF). Right-aligned column so it reads as one official
-             block under the table. Kept together but not orphaned. ── */
+        /* ── Tail: cachet (left) + totals (right) on the same row. Reuses the
+             empty left space under the table so the tail stays short and a
+             5–6 line quote keeps to one page. break-inside:avoid keeps the
+             pair together; it flows right under the table so it can't be
+             orphaned to a blank page. ── */
         .doc-tail {
           display: flex;
-          flex-direction: column;
-          align-items: flex-end;
-          gap: 5mm;
+          flex-direction: row;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 8mm;
           margin-top: 5mm;
           break-inside: avoid;
         }
         .signature {
           width: 68mm;
+          flex-shrink: 0;
           text-align: center;
         }
         .signature-tag {
@@ -457,6 +461,7 @@ export function DevisPrintView({
 
         .totals {
           width: 72mm;
+          flex-shrink: 0;
         }
         .totals-inner {
           width: 100%;
