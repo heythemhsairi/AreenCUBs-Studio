@@ -154,22 +154,10 @@ export function DevisPrintView({
         </tbody>
       </table>
 
-      {/* ── Tail: signature (left) + totals (right). Flows right under the
-             table; does NOT carry break-inside on the whole block so it can
-             never be orphaned onto a blank page. ── */}
+      {/* ── Tail: totals right-aligned, then the cachet/signature block
+             below it (mirrors the reference PDF). Kept as one block that
+             stays together but flows right under the table — no orphaning. ── */}
       <div className="doc-tail">
-        <section className="signature">
-          <div className="signature-tag">Cachet &amp; Signature</div>
-          <div className="signature-box">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/stamp.png"
-              alt="Cachet et signature Areen CUBs"
-              className="signature-stamp"
-            />
-          </div>
-        </section>
-
         <section className="totals">
           <div className="totals-inner">
             <div className="totals-row">
@@ -204,6 +192,18 @@ export function DevisPrintView({
               <span>Total TTC</span>
               <strong>{formatDt(devis.total_dt)}</strong>
             </div>
+          </div>
+        </section>
+
+        <section className="signature">
+          <div className="signature-tag">Cachet &amp; Signature</div>
+          <div className="signature-box">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/stamp.png"
+              alt="Cachet et signature Areen CUBs"
+              className="signature-stamp"
+            />
           </div>
         </section>
       </div>
@@ -414,45 +414,52 @@ export function DevisPrintView({
           font-weight: 600;
         }
 
-        /* ── Tail: signature + totals on one row ───────────────────────── */
+        /* ── Tail: totals right-aligned, cachet block below (matches the
+             reference PDF). Right-aligned column so it reads as one official
+             block under the table. Kept together but not orphaned. ── */
         .doc-tail {
           display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          gap: 8mm;
+          flex-direction: column;
+          align-items: flex-end;
+          gap: 5mm;
+          margin-top: 5mm;
+          break-inside: avoid;
         }
         .signature {
-          flex-shrink: 0;
+          width: 68mm;
+          text-align: center;
         }
         .signature-tag {
-          font-size: 8.5pt;
+          font-size: 9.5pt;
           font-weight: 700;
-          color: var(--muted);
-          margin-bottom: 1.5mm;
+          color: var(--ink);
+          margin-bottom: 2mm;
         }
         .signature-box {
-          width: 56mm; /* ~210px */
-          height: 27mm; /* ~102px */
+          width: 68mm; /* ~257px frame */
+          height: 62mm; /* ~234px frame — room for a 59mm stamp */
           display: flex;
           align-items: center;
           justify-content: center;
-          border: 1px solid rgba(30, 30, 36, 0.12);
+          border: 1px solid rgba(30, 30, 36, 0.2);
           border-radius: 1.5mm;
           padding: 2mm;
           box-sizing: border-box;
         }
         .signature-stamp {
-          max-width: 40mm; /* ~150px */
-          max-height: 18mm; /* ~68px */
+          width: 59mm; /* ~224px — matches the reference PDF stamp */
+          height: 59mm;
+          max-width: 100%;
+          max-height: 100%;
           object-fit: contain;
           mix-blend-mode: multiply;
         }
 
         .totals {
-          flex-shrink: 0;
+          width: 72mm;
         }
         .totals-inner {
-          width: 70mm;
+          width: 100%;
           font-size: 9.5pt;
         }
         .totals-row {
