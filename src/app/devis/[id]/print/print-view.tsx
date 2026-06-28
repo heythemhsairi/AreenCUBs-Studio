@@ -45,14 +45,17 @@ export function DevisPrintView({
   settings: AppSettings;
 }) {
   const isFacture = devis.kind === "facture";
-  const docTitle = isFacture ? "Facture." : "Devis.";
-  const numberLabel = isFacture ? "#FACT" : "#EST";
+  const docType = isFacture ? "FACTURE" : "DEVIS";
   const fullNumber = formatDevisNumber(devis.devis_number, devis.kind);
-  const numberFormatted = fullNumber.replace(/^(EST|FACT)-/, "");
+
+  // Density modes — drive vertical compression by line count so a short quote
+  // breathes and a long one tightens up to stay on one page when feasible.
+  // 1–6: normal · 7–12: compact · 13+: long (multi-page allowed, tightest).
+  const n = items.length;
+  const density = n <= 6 ? "normal" : n <= 12 ? "compact" : "long";
 
   useEffect(() => {
-    // The browser's "Save as PDF" defaults to document.title, so set it
-    // to e.g. "Devis-EST-0000038" / "Facture-FACT-0000012".
+    // The browser's "Save as PDF" defaults to document.title.
     const prev = document.title;
     document.title = `${isFacture ? "Facture" : "Devis"}-${fullNumber}`;
     const t = setTimeout(() => window.print(), 400);
@@ -63,91 +66,101 @@ export function DevisPrintView({
   }, [isFacture, fullNumber]);
 
   return (
-    <div className="devis-page">
-      <header className="devis-header">
-        <h1 className="devis-title">{docTitle}</h1>
+    <div className={`doc density-${density}`}>
+      {/* ── Header: brand left, document type + number right ── */}
+      <header className="doc-header">
         <div className="brand">
-          <BrandLogo width={170} className="brand-logo" />
+          <BrandLogo width={150} className="brand-logo" />
+        </div>
+        <div className="doc-id">
+          <div className="doc-type">{docType}</div>
+          <div className="doc-number">{fullNumber}</div>
         </div>
       </header>
 
+      {/* ── Meta row: date / due date / object, compact inline ── */}
       <section className="meta">
-        <div className="meta-no">
-          {numberLabel} : {numberFormatted}
+        <div className="meta-item">
+          <span className="meta-label">Date</span>
+          <span className="meta-value">{formatDate(devis.date)}</span>
         </div>
-        <div className="meta-row">
-          <strong>Date :</strong> {formatDate(devis.date)}
-        </div>
-        <div className="meta-row">
-          <strong>Échéance :</strong> {formatDate(devis.due_date)}
+        <div className="meta-item">
+          <span className="meta-label">Échéance</span>
+          <span className="meta-value">{formatDate(devis.due_date)}</span>
         </div>
         {devis.object && (
-          <div className="meta-row">
-            <strong>Objet :</strong> {devis.object}
+          <div className="meta-item meta-item--object">
+            <span className="meta-label">Objet</span>
+            <span className="meta-value">{devis.object}</span>
           </div>
         )}
       </section>
 
+      {/* ── Parties: two compact cards side by side ── */}
       <section className="parties">
         <div className="party">
-          <div className="party-tag">Expéditeur :</div>
+          <div className="party-tag">Expéditeur</div>
           <div className="party-box">
             <div className="party-name">{settings.company_name}</div>
-            <div>Adresse: {settings.company_address}</div>
-            <div className="mt">Matricule Fiscal: {settings.matricule_fiscal}</div>
+            {settings.company_address && (
+              <div className="party-line">{settings.company_address}</div>
+            )}
+            {settings.matricule_fiscal && (
+              <div className="party-line">
+                M.F : {settings.matricule_fiscal}
+              </div>
+            )}
           </div>
         </div>
         <div className="party">
-          <div className="party-tag">Envoyer à :</div>
+          <div className="party-tag">Client</div>
           <div className="party-box party-box--client">
             <div className="party-name">{client?.name ?? "—"}</div>
-            {client?.address && <div>Adresse: {client.address}</div>}
+            {client?.address && (
+              <div className="party-line">{client.address}</div>
+            )}
             {client?.matricule_fiscal && (
-              <div className="mt">
-                Matricule Fiscal: {client.matricule_fiscal}
-              </div>
+              <div className="party-line">M.F : {client.matricule_fiscal}</div>
             )}
           </div>
         </div>
       </section>
 
-      <section>
-        <table className="items">
-          <thead>
-            <tr>
-              <th>Description</th>
-              <th>Taxe</th>
-              <th>P.U.</th>
-              <th>Quantité</th>
-              <th className="right">Prix</th>
+      {/* ── Line items table ── */}
+      <table className="items">
+        <thead>
+          <tr>
+            <th className="col-desc">Description</th>
+            <th className="col-tax">Taxe</th>
+            <th className="col-unit right">P.U.</th>
+            <th className="col-qty right">Qté</th>
+            <th className="col-price right">Prix</th>
+          </tr>
+        </thead>
+        <tbody>
+          {items.map((it, i) => (
+            <tr key={i}>
+              <td className="col-desc">{it.description}</td>
+              <td className="col-tax">TVA {Number(devis.tva_rate).toFixed(0)}%</td>
+              <td className="col-unit right">
+                {it.is_bonus ? "Bonus" : `${it.unit_price_dt} DT`}
+              </td>
+              <td className="col-qty right">{it.quantity}</td>
+              <td className="col-price right">
+                {it.is_bonus ? "Bonus" : `${it.line_total_dt} DT`}
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {items.map((it, i) => (
-              <tr key={i}>
-                <td>{it.description}</td>
-                <td>TVA {Number(devis.tva_rate).toFixed(0)}%</td>
-                <td>{it.is_bonus ? "Bonus" : `${it.unit_price_dt} DT`}</td>
-                <td>{it.quantity}</td>
-                <td className="right">
-                  {it.is_bonus ? "Bonus" : `${it.line_total_dt} DT`}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
+          ))}
+        </tbody>
+      </table>
 
+      {/* ── Tail: signature (left) + totals (right). Flows right under the
+             table; does NOT carry break-inside on the whole block so it can
+             never be orphaned onto a blank page. ── */}
       <div className="doc-tail">
-        {/* Stamp / signature on the LEFT */}
         <section className="signature">
           <div className="signature-tag">Cachet &amp; Signature</div>
           <div className="signature-box">
-            {/*
-              Areen CUBs official stamp + signature (public/stamp.png).
-              No box/border — it sits directly on the page so the
-              cachet reads like a real ink stamp.
-            */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/stamp.png"
@@ -157,51 +170,51 @@ export function DevisPrintView({
           </div>
         </section>
 
-        {/* Totals on the RIGHT */}
         <section className="totals">
           <div className="totals-inner">
             <div className="totals-row">
-              <span>Sous total :</span>
+              <span>Sous total</span>
               <strong>{formatDt(devis.subtotal_dt)}</strong>
             </div>
             {devis.discount_dt > 0 && (
               <>
                 <div className="totals-row totals-row--discount">
-                  <span>Remise :</span>
+                  <span>Remise</span>
                   <strong>− {formatDt(devis.discount_dt)}</strong>
                 </div>
                 <div className="totals-row totals-row--net">
-                  <span>Net HT :</span>
-                  <strong>{formatDt(devis.subtotal_dt - devis.discount_dt)}</strong>
+                  <span>Net HT</span>
+                  <strong>
+                    {formatDt(devis.subtotal_dt - devis.discount_dt)}
+                  </strong>
                 </div>
               </>
             )}
             <div className="totals-row">
-              <span>TVA ({Number(devis.tva_rate).toFixed(0)}%) :</span>
+              <span>TVA ({Number(devis.tva_rate).toFixed(0)}%)</span>
               <strong>{formatDt(devis.tva_dt)}</strong>
             </div>
             {devis.stamp_dt > 0 && (
               <div className="totals-row">
-                <span>Timbre fiscal :</span>
+                <span>Timbre fiscal</span>
                 <strong>{formatDt(devis.stamp_dt)}</strong>
               </div>
             )}
             <div className="totals-row totals-row--final">
-              <span>Total TTC :</span>
+              <span>Total TTC</span>
               <strong>{formatDt(devis.total_dt)}</strong>
             </div>
           </div>
         </section>
       </div>
 
+      {/* ── Compact single-line footer ── */}
       <footer className="footer">
-        <span>📧 {settings.email}</span>
-        <span>📞 {settings.phone}</span>
-        <span>🌐 {settings.website}</span>
+        {settings.email} · {settings.phone} · {settings.website}
       </footer>
 
       <div className="print-controls">
-        <button onClick={() => window.print()}>Imprimer / Enregistrer en PDF</button>
+        <button onClick={() => window.print()}>Imprimer / PDF</button>
       </div>
 
       <style jsx global>{`
@@ -211,232 +224,267 @@ export function DevisPrintView({
           --accent: #ff9e1f;
           --ink: #1e1e24;
           --muted: #6b6b75;
-          --cream: #fff8f0;
+          --line: rgba(30, 30, 36, 0.12);
+          --paper: #ffffff;
+          /* density-driven spacing knobs (overridden per .density-* below) */
+          --gap: 6mm;
+          --row-pad: 2.4mm;
+          --base-fs: 10pt;
         }
 
         html,
         body {
           margin: 0;
           padding: 0;
-          background: #f4ece0;
+          background: #e9eef2;
           color: var(--ink);
           font-family: var(--font-franklin), ui-sans-serif, system-ui,
             -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
-          font-size: 11pt;
-          line-height: 1.45;
+          font-size: var(--base-fs);
+          line-height: 1.4;
         }
 
-        .devis-page {
+        .doc {
           width: 210mm;
           min-height: 297mm;
           margin: 16px auto;
-          padding: 18mm 16mm 14mm;
-          background: var(--cream);
+          padding: 14mm 14mm 10mm;
+          background: var(--paper);
           box-sizing: border-box;
-          box-shadow: 0 4px 24px rgba(30, 30, 36, 0.12);
-          position: relative;
-          /* Column layout so the footer can be pushed to the bottom of
-             the sheet on short (1-page) devis instead of floating in the
-             middle, while still flowing naturally on long ones. */
+          box-shadow: 0 4px 24px rgba(30, 30, 36, 0.14);
           display: flex;
           flex-direction: column;
         }
 
-        .devis-header {
+        /* ── Density tiers ─────────────────────────────────────────────── */
+        .density-compact {
+          --gap: 4.5mm;
+          --row-pad: 1.8mm;
+          --base-fs: 9.5pt;
+        }
+        .density-long {
+          --gap: 3.5mm;
+          --row-pad: 1.4mm;
+          --base-fs: 9pt;
+        }
+
+        /* ── Header ────────────────────────────────────────────────────── */
+        .doc-header {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          margin-bottom: 6mm;
-          padding-bottom: 4mm;
+          padding-bottom: 3mm;
+          margin-bottom: var(--gap);
           border-bottom: 2px solid var(--brand);
-        }
-
-        .devis-title {
-          margin: 0;
-          font-size: 38pt;
-          font-weight: 800;
-          color: var(--brand);
-          letter-spacing: -1px;
-          line-height: 1;
-        }
-
-        .brand {
-          display: flex;
-          align-items: center;
         }
         .brand-logo {
           color: var(--brand) !important;
         }
-
-        .meta {
-          margin-bottom: 6mm;
+        .doc-id {
+          text-align: right;
+          line-height: 1.1;
         }
-        .meta-no {
-          font-weight: 700;
-          color: var(--brand);
+        .doc-type {
           font-size: 11pt;
-          margin-bottom: 2mm;
-          letter-spacing: 0.5px;
+          font-weight: 700;
+          letter-spacing: 2px;
+          color: var(--muted);
         }
-        .meta-row {
-          font-size: 10pt;
-          margin-top: 0.5mm;
+        .doc-number {
+          font-size: 19pt;
+          font-weight: 800;
+          color: var(--brand);
+          letter-spacing: -0.3px;
         }
 
+        /* ── Meta inline row ───────────────────────────────────────────── */
+        .meta {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 3mm 8mm;
+          margin-bottom: var(--gap);
+          font-size: 9.5pt;
+        }
+        .meta-item {
+          display: flex;
+          gap: 2mm;
+          align-items: baseline;
+        }
+        .meta-item--object {
+          flex: 1 1 100%;
+        }
+        .meta-label {
+          text-transform: uppercase;
+          font-size: 7.5pt;
+          letter-spacing: 0.5px;
+          color: var(--muted);
+          font-weight: 700;
+        }
+        .meta-value {
+          font-weight: 600;
+        }
+
+        /* ── Parties ───────────────────────────────────────────────────── */
         .parties {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 6mm;
-          margin: 4mm 0 8mm;
+          gap: var(--gap);
+          margin-bottom: var(--gap);
         }
         .party-tag {
-          font-style: italic;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
           color: var(--muted);
-          font-size: 9pt;
+          font-size: 7.5pt;
+          font-weight: 700;
           margin-bottom: 1mm;
         }
         .party-box {
-          background: rgba(59, 139, 186, 0.08);
+          background: rgba(59, 139, 186, 0.07);
           border-left: 3px solid var(--brand);
-          border-radius: 2mm;
-          padding: 3mm 4mm;
-          font-size: 9.5pt;
+          border-radius: 1.5mm;
+          padding: 2.5mm 3mm;
+          font-size: 9pt;
         }
         .party-box--client {
           background: rgba(255, 158, 31, 0.08);
           border-left-color: var(--accent);
         }
-        .party-box .party-name {
+        .party-name {
           font-weight: 800;
+          font-size: 11pt;
+          margin-bottom: 0.5mm;
           color: var(--ink);
-          font-size: 13pt;
-          margin-bottom: 1mm;
         }
-        .party-box .mt {
-          margin-top: 2mm;
+        .party-line {
+          color: #45454d;
+          word-break: break-word;
         }
 
+        /* ── Table ─────────────────────────────────────────────────────── */
         .items {
           width: 100%;
           border-collapse: collapse;
-          font-size: 10pt;
+          font-size: var(--base-fs);
+          margin-bottom: var(--gap);
         }
         .items thead th {
           background: var(--brand);
           color: #fff;
           text-align: left;
-          padding: 2.5mm 3mm;
+          padding: var(--row-pad) 3mm;
           font-weight: 700;
-          font-size: 9.5pt;
+          font-size: 8.5pt;
+          text-transform: uppercase;
+          letter-spacing: 0.3px;
         }
         .items thead th.right {
           text-align: right;
         }
         .items tbody td {
-          padding: 2.5mm 3mm;
-          border-bottom: 1px solid rgba(30, 30, 36, 0.08);
+          padding: var(--row-pad) 3mm;
+          border-bottom: 1px solid var(--line);
           vertical-align: top;
         }
         .items tbody tr:nth-child(even) td {
-          background: rgba(30, 30, 36, 0.02);
+          background: rgba(30, 30, 36, 0.025);
         }
-        .items tbody td.right {
+        .items td.right,
+        .items th.right {
           text-align: right;
         }
+        .col-desc {
+          width: 52%;
+          word-break: break-word;
+        }
+        .col-tax {
+          width: 14%;
+          white-space: nowrap;
+        }
+        .col-unit {
+          width: 13%;
+          white-space: nowrap;
+        }
+        .col-qty {
+          width: 8%;
+        }
+        .col-price {
+          width: 13%;
+          white-space: nowrap;
+          font-weight: 600;
+        }
 
-        /* Tail = stamp (left) + totals (right) on the same row so a long
-           devis/facture doesn't waste a whole extra block of vertical
-           space. */
+        /* ── Tail: signature + totals on one row ───────────────────────── */
         .doc-tail {
           display: flex;
           justify-content: space-between;
           align-items: flex-start;
-          gap: 6mm;
-          margin-top: 8mm;
+          gap: 8mm;
         }
-        .totals {
+        .signature {
+          flex-shrink: 0;
+        }
+        .signature-tag {
+          font-size: 8.5pt;
+          font-weight: 700;
+          color: var(--muted);
+          margin-bottom: 1.5mm;
+        }
+        .signature-box {
+          width: 58mm;
+          height: 25mm;
           display: flex;
-          justify-content: flex-end;
+          align-items: center;
+          justify-content: flex-start;
+        }
+        .signature-stamp {
+          max-width: 48mm; /* ~180px */
+          max-height: 19mm; /* ~70px */
+          object-fit: contain;
+          mix-blend-mode: multiply;
+        }
+
+        .totals {
           flex-shrink: 0;
         }
         .totals-inner {
-          width: 72mm;
-          font-size: 10pt;
+          width: 70mm;
+          font-size: 9.5pt;
         }
         .totals-row {
           display: flex;
           justify-content: space-between;
-          padding: 1.5mm 0;
+          padding: 1mm 0;
         }
         .totals-row--discount {
           color: #c0392b;
         }
         .totals-row--net {
-          border-top: 1px dashed rgba(30, 30, 36, 0.15);
-          padding-top: 1.5mm;
-          margin-top: 1mm;
+          border-top: 1px dashed var(--line);
+          padding-top: 1.2mm;
+          margin-top: 0.6mm;
           font-weight: 600;
         }
         .totals-row--final {
-          border-top: 1px solid var(--brand);
-          margin-top: 2mm;
-          padding-top: 3mm;
-          font-size: 12pt;
+          border-top: 2px solid var(--brand);
+          margin-top: 1.5mm;
+          padding-top: 2mm;
+          font-size: 12.5pt;
           font-weight: 800;
           color: var(--brand);
         }
 
-        .signature {
-          width: 100mm;
-        }
-        .signature-tag {
-          font-weight: 700;
-          margin-bottom: 2.5mm;
-          text-align: center;
-        }
-        .signature-box {
-          height: 76mm;
-          border: 1px solid rgba(30, 30, 36, 0.35);
-          border-radius: 2mm;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 2mm;
-          background: #fff;
-        }
-        .signature-stamp {
-          max-width: 100%;
-          max-height: 100%;
-          object-fit: contain;
-          /* +30% over the previous size — the source PNG has internal
-             whitespace so we scale it up a touch past the box bounds. */
-          transform: scale(1.15);
-          /* multiply so the blue ink blends with the box instead of a
-             hard white tile */
-          mix-blend-mode: multiply;
-        }
-
-        /* Keep a line-item row from being split across two printed pages,
-           and keep the totals + signature block together. */
-        .items tr {
-          page-break-inside: avoid;
-        }
-        .doc-tail {
-          page-break-inside: avoid;
-        }
-
-        /* Push the footer to the bottom of the sheet (flex-column parent)
-           so short devis aren't half-empty with a floating footer. */
+        /* ── Footer ────────────────────────────────────────────────────── */
         .footer {
           margin-top: auto;
-          padding-top: 6mm;
-          display: flex;
-          justify-content: space-between;
+          padding-top: 4mm;
+          text-align: center;
           color: var(--muted);
-          font-size: 9pt;
-          border-top: 1px solid rgba(30, 30, 36, 0.1);
+          font-size: 8.5pt;
+          border-top: 1px solid var(--line);
         }
 
+        /* ── Print-only control button ─────────────────────────────────── */
         .print-controls {
           position: fixed;
           right: 12px;
@@ -458,6 +506,18 @@ export function DevisPrintView({
           background: var(--brand-dark);
         }
 
+        /* ── Page-break behaviour ──────────────────────────────────────── */
+        /* Keep a single row intact, and keep the small signature / totals
+           sub-blocks intact — but NOT the whole tail, so it can sit right
+           under the table instead of being shoved to a blank second page. */
+        .items tr {
+          break-inside: avoid;
+        }
+        .signature,
+        .totals-inner {
+          break-inside: avoid;
+        }
+
         @page {
           size: A4;
           margin: 0;
@@ -468,15 +528,11 @@ export function DevisPrintView({
           body {
             background: #fff;
           }
-          /* Keep the full-sheet box (with its own padding) so the
-             flex-column + footer margin-top:auto pins the footer to the
-             bottom of page 1. Long devis just grow past 297mm and the
-             browser paginates. */
-          .devis-page {
+          .doc {
             margin: 0;
             box-shadow: none;
           }
-          /* Repeat the table header on every printed page */
+          /* Repeat the table header on every printed page for long docs. */
           .items thead {
             display: table-header-group;
           }
