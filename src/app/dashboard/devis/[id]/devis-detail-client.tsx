@@ -45,6 +45,7 @@ type Props = {
   discountDt: number;
   tvaDt: number;
   tvaRate: number;
+  stampDt: number;
   totalDt: number;
   clientName: string | null;
   items: DevisItem[];
@@ -75,6 +76,7 @@ export function DevisDetailClient({
   discountDt,
   tvaDt,
   tvaRate,
+  stampDt,
   totalDt,
   clientName,
   items,
@@ -212,6 +214,9 @@ export function DevisDetailClient({
                 label={`${t.devis.tva} (${Number(tvaRate).toFixed(0)}%)`}
                 value={formatDt(tvaDt)}
               />
+              {stampDt > 0 && (
+                <Row label={t.devis.stamp} value={formatDt(stampDt)} />
+              )}
               <div className="border-t border-ink/10 pt-2">
                 <Row label={t.devis.totalTtc} value={formatDt(totalDt)} bold />
               </div>

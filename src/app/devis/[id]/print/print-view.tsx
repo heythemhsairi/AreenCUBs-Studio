@@ -15,6 +15,7 @@ type Devis = {
   discount_dt: number;
   tva_dt: number;
   tva_rate: number;
+  stamp_dt: number;
   total_dt: number;
 };
 
@@ -179,6 +180,12 @@ export function DevisPrintView({
               <span>TVA ({Number(devis.tva_rate).toFixed(0)}%) :</span>
               <strong>{formatDt(devis.tva_dt)}</strong>
             </div>
+            {devis.stamp_dt > 0 && (
+              <div className="totals-row">
+                <span>Timbre fiscal :</span>
+                <strong>{formatDt(devis.stamp_dt)}</strong>
+              </div>
+            )}
             <div className="totals-row totals-row--final">
               <span>Total TTC :</span>
               <strong>{formatDt(devis.total_dt)}</strong>

@@ -12,6 +12,10 @@ export type ActionResult<T = unknown> =
   | { ok: false; error: string };
 
 const TVA_RATE = 19.0;
+// Tunisian fiscal stamp (timbre fiscal): a fixed fee added on top of the
+// TVA-inclusive total. The stamp itself is not taxed. Stored per-document in
+// devis.stamp_dt (0 = no stamp).
+const STAMP_DT = 1.0;
 
 const DEVIS_STATUSES = ["draft", "sent", "accepted", "rejected"] as const;
 const PAYMENT_STATUSES = ["unpaid", "partial", "paid"] as const;
@@ -37,6 +41,8 @@ type DevisInput = {
   items: DevisItemInput[];
   kind: DevisKind;
   discount_dt: number;
+  /** Whether the fiscal stamp (timbre fiscal) is applied to this document. */
+  apply_stamp: boolean;
   /** Optional manual override of the document number. */
   devis_number: number | null;
 };
@@ -79,6 +85,7 @@ function pickDevisInput(formData: FormData): DevisInput {
     items: parseItems(formData),
     kind,
     discount_dt: Math.max(0, Number(formData.get("discount_dt") ?? 0) || 0),
+    apply_stamp: formData.get("apply_stamp") === "on",
     devis_number: parseDevisNumber(formData.get("devis_number")),
   };
 }
@@ -98,7 +105,7 @@ function stringOrNull(v: FormDataEntryValue | null): string | null {
   return s.length === 0 ? null : s;
 }
 
-function computeTotals(items: DevisItemInput[], discountDt = 0) {
+function computeTotals(items: DevisItemInput[], discountDt = 0, applyStamp = false) {
   const subtotal = items.reduce(
     (sum, it) => sum + it.quantity * it.unit_price_dt,
     0,
@@ -106,11 +113,13 @@ function computeTotals(items: DevisItemInput[], discountDt = 0) {
   const discount = Math.max(0, Math.min(subtotal, discountDt));
   const net = subtotal - discount;
   const tva = +((net * TVA_RATE) / 100).toFixed(2);
-  const total = +(net + tva).toFixed(2);
+  const stamp = applyStamp ? STAMP_DT : 0;
+  const total = +(net + tva + stamp).toFixed(2);
   return {
     subtotal: +subtotal.toFixed(2),
     discount: +discount.toFixed(2),
     tva,
+    stamp: +stamp.toFixed(2),
     total,
   };
 }
@@ -168,7 +177,7 @@ export async function createDevisAction(
   if (input.items.length === 0)
     return { ok: false, error: "Ajoutez au moins une ligne." };
 
-  const totals = computeTotals(input.items, input.discount_dt);
+  const totals = computeTotals(input.items, input.discount_dt, input.apply_stamp);
   const supabase = await createClient();
 
   // Manual number if the admin set one, otherwise the next in sequence.
@@ -204,6 +213,7 @@ export async function createDevisAction(
       discount_dt: totals.discount,
       tva_rate: TVA_RATE,
       tva_dt: totals.tva,
+      stamp_dt: totals.stamp,
       total_dt: totals.total,
       created_by: session.id,
     })
@@ -246,7 +256,7 @@ export async function updateDevisAction(
   if (input.items.length === 0)
     return { ok: false, error: "Ajoutez au moins une ligne." };
 
-  const totals = computeTotals(input.items, input.discount_dt);
+  const totals = computeTotals(input.items, input.discount_dt, input.apply_stamp);
   const supabase = await createClient();
 
   // Allow editing the document number; reject collisions with a
@@ -287,6 +297,7 @@ export async function updateDevisAction(
       discount_dt: totals.discount,
       tva_rate: TVA_RATE,
       tva_dt: totals.tva,
+      stamp_dt: totals.stamp,
       total_dt: totals.total,
       ...numberPatch,
     })
@@ -560,7 +571,7 @@ export async function convertDevisToFactureAction(
   const { data: source } = await supabase
     .from("devis")
     .select(
-      "id, kind, client_id, object, notes, subtotal_dt, discount_dt, tva_rate, tva_dt, total_dt, devis_items(service_id, description, quantity, unit_price_dt, line_total_dt, position, is_bonus)",
+      "id, kind, client_id, object, notes, subtotal_dt, discount_dt, tva_rate, tva_dt, stamp_dt, total_dt, devis_items(service_id, description, quantity, unit_price_dt, line_total_dt, position, is_bonus)",
     )
     .eq("id", devisId)
     .single();
@@ -586,6 +597,13 @@ export async function convertDevisToFactureAction(
     .toISOString()
     .slice(0, 10);
 
+  // Factures carry the fiscal stamp by default. If the source devis already had
+  // one, keep its value; otherwise apply the standard stamp. Recompute the
+  // total so it reflects the stamp (stamp is added on top, untaxed).
+  const factureStamp = Number(source.stamp_dt ?? 0) > 0 ? Number(source.stamp_dt) : STAMP_DT;
+  const baseTotal = Number(source.total_dt ?? 0) - Number(source.stamp_dt ?? 0);
+  const factureTotal = +(baseTotal + factureStamp).toFixed(2);
+
   const { data: facture, error: insErr } = await supabase
     .from("devis")
     .insert({
@@ -601,7 +619,8 @@ export async function convertDevisToFactureAction(
       discount_dt: source.discount_dt ?? 0,
       tva_rate: source.tva_rate,
       tva_dt: source.tva_dt,
-      total_dt: source.total_dt,
+      stamp_dt: factureStamp,
+      total_dt: factureTotal,
       created_by: session.id,
     })
     .select("id")
@@ -675,7 +694,7 @@ export async function convertDevisToFactureAction(
     .select("amount_dt")
     .eq("devis_id", facture.id);
   const totalPaid = (paidRows ?? []).reduce((s, p) => s + Number(p.amount_dt ?? 0), 0);
-  const totalDt   = Number(source.total_dt ?? 0);
+  const totalDt   = factureTotal;
   const newStatus =
     totalPaid <= 0 ? "unpaid"
     : totalPaid + 0.01 >= totalDt ? "paid"

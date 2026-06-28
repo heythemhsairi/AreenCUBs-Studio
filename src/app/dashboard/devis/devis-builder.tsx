@@ -41,6 +41,7 @@ type Devis = {
   notes: string | null;
   devis_number?: number;
   discount_dt?: number;
+  stamp_dt?: number;
   items: Array<{
     service_id: string | null;
     description: string;
@@ -71,6 +72,9 @@ type Props =
     };
 
 const TVA_RATE = 19;
+// Tunisian fiscal stamp (timbre fiscal) — fixed fee added on top of the
+// TVA-inclusive total, untaxed. Mirrors STAMP_DT in actions.ts.
+const STAMP_DT = 1;
 const todayIso = () => new Date().toISOString().slice(0, 10);
 const plus14Iso = () =>
   new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
@@ -118,6 +122,13 @@ export function DevisBuilder(props: Props) {
   const [discountDt, setDiscountDt] = useState<number>(
     props.mode === "edit" ? Number(props.devis.discount_dt ?? 0) : 0,
   );
+  // Fiscal stamp: in edit mode reflect the saved value; when creating, default
+  // ON for factures (legal requirement) and OFF for devis.
+  const [applyStamp, setApplyStamp] = useState<boolean>(
+    props.mode === "edit"
+      ? Number(props.devis.stamp_dt ?? 0) > 0
+      : props.kind === "facture",
+  );
 
   const [items, setItems] = useState<LineItem[]>(() =>
     props.mode === "edit"
@@ -143,14 +154,16 @@ export function DevisBuilder(props: Props) {
     const discount = Math.max(0, Math.min(subtotal, discountDt || 0));
     const net = subtotal - discount;
     const tva = +((net * TVA_RATE) / 100).toFixed(2);
-    const total = +(net + tva).toFixed(2);
+    const stamp = applyStamp ? STAMP_DT : 0;
+    const total = +(net + tva + stamp).toFixed(2);
     return {
       subtotal: +subtotal.toFixed(2),
       discount: +discount.toFixed(2),
       tva,
+      stamp: +stamp.toFixed(2),
       total,
     };
-  }, [items, discountDt]);
+  }, [items, discountDt, applyStamp]);
 
   const discountPct =
     totals.subtotal > 0 ? (totals.discount / totals.subtotal) * 100 : 0;
@@ -207,6 +220,7 @@ export function DevisBuilder(props: Props) {
     fd.set("notes", notes);
     fd.set("devis_number", docNumber.trim());
     fd.set("discount_dt", String(discountDt || 0));
+    if (applyStamp) fd.set("apply_stamp", "on");
     fd.set(
       "items_json",
       JSON.stringify(
@@ -460,6 +474,23 @@ export function DevisBuilder(props: Props) {
                 />
               )}
               <Row label={db.tva} value={formatDt(totals.tva)} />
+
+              {/* Fiscal stamp toggle */}
+              <label className="flex items-center justify-between gap-3 rounded-lg bg-cream-dark/40 p-3">
+                <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-ink/60">
+                  <input
+                    type="checkbox"
+                    checked={applyStamp}
+                    onChange={(e) => setApplyStamp(e.target.checked)}
+                    className="h-4 w-4 rounded border-ink/30 accent-brand"
+                  />
+                  {db.stamp}
+                </span>
+                <span className="text-right text-xs text-ink/55">
+                  {applyStamp ? formatDt(totals.stamp) : formatDt(STAMP_DT)}
+                </span>
+              </label>
+
               <div className="border-t border-ink/10 pt-2">
                 <Row
                   label={db.totalTtc}

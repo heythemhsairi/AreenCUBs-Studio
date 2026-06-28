@@ -15,7 +15,7 @@ export default async function DevisDetailPage({
   const { data: devis } = await supabase
     .from("devis")
     .select(
-      "id, kind, devis_number, date, due_date, object, notes, status, payment_status, subtotal_dt, discount_dt, tva_dt, tva_rate, total_dt, parent_devis_id, clients:client_id(id, name, address, matricule_fiscal), devis_items(id, description, quantity, unit_price_dt, line_total_dt, is_bonus, position)",
+      "id, kind, devis_number, date, due_date, object, notes, status, payment_status, subtotal_dt, discount_dt, tva_dt, tva_rate, stamp_dt, total_dt, parent_devis_id, clients:client_id(id, name, address, matricule_fiscal), devis_items(id, description, quantity, unit_price_dt, line_total_dt, is_bonus, position)",
     )
     .eq("id", id)
     .single();
@@ -67,6 +67,7 @@ export default async function DevisDetailPage({
       discountDt={Number(devis.discount_dt ?? 0)}
       tvaDt={Number(devis.tva_dt)}
       tvaRate={Number(devis.tva_rate)}
+      stampDt={Number(devis.stamp_dt ?? 0)}
       totalDt={Number(devis.total_dt)}
       clientName={client?.name ?? null}
       items={items.map((it) => ({
