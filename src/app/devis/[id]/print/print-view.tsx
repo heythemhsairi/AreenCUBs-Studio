@@ -431,15 +431,19 @@ export function DevisPrintView({
           margin-bottom: 1.5mm;
         }
         .signature-box {
-          width: 58mm;
-          height: 25mm;
+          width: 56mm; /* ~210px */
+          height: 27mm; /* ~102px */
           display: flex;
           align-items: center;
-          justify-content: flex-start;
+          justify-content: center;
+          border: 1px solid rgba(30, 30, 36, 0.12);
+          border-radius: 1.5mm;
+          padding: 2mm;
+          box-sizing: border-box;
         }
         .signature-stamp {
-          max-width: 48mm; /* ~180px */
-          max-height: 19mm; /* ~70px */
+          max-width: 40mm; /* ~150px */
+          max-height: 18mm; /* ~68px */
           object-fit: contain;
           mix-blend-mode: multiply;
         }
