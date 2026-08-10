@@ -103,29 +103,52 @@ After `db:start`, every endpoint must be loopback:
 npm run db:status | grep -Ei 'http|postgresql'   # expect 127.0.0.1 only
 ```
 
-> ### ⚠ KNOWN GAP — the stack is reachable from the LAN
+> ### ⚠ UNRESOLVED — the stack is reachable from the LAN on Docker Desktop for Windows
 >
-> `db:status` advertises `127.0.0.1`, but Docker **publishes on `0.0.0.0`**. Verified on this machine while the stack was running:
+> `db:status` advertises `127.0.0.1`, but Docker **publishes on `0.0.0.0`**. Measured on this machine while the stack was running:
 >
 > ```
 > 192.168.1.11:54321 reachable = True     ← Supabase API
 > 192.168.1.11:54322 reachable = True     ← PostgreSQL (postgres:postgres)
 > ```
 >
-> Anyone on the same network can reach the staging database with default credentials. The data is entirely synthetic, but a superuser PostgreSQL port is a foothold regardless.
+> A superuser PostgreSQL port, open to the local network. The seeded data is entirely synthetic, but that is still a foothold.
 >
-> The Supabase CLI exposes no bind-address setting, so this must be fixed at the Docker or firewall layer. **Two options, both free — neither applied yet:**
+> #### The Docker daemon configuration does NOT fix this on Windows
 >
-> **A. Bind Docker to loopback (fixes the cause).** Add `"ip": "127.0.0.1"` to `%USERPROFILE%\.docker\daemon.json`, then restart Docker Desktop. This makes every published port default to loopback.
+> The following was applied to `%USERPROFILE%\.docker\daemon.json` and Docker Desktop restarted. **It is not sufficient.**
 >
-> **B. Firewall block (masks it).** Windows Firewall does not filter loopback, so an inbound block leaves `127.0.0.1` working. Requires elevation:
-> ```powershell
-> New-NetFirewallRule -DisplayName 'AreenCUBs staging - block LAN access to Supabase' `
->   -Direction Inbound -Action Block -Protocol TCP -LocalPort 54320-54324 -Profile Any
+> ```jsonc
+> {
+>   "ip": "127.0.0.1",                       // default bridge only
+>   "default-network-opts": {
+>     "bridge": {
+>       "com.docker.network.bridge.host_binding_ipv4": "127.0.0.1"
+>     }
+>   }
+> }
 > ```
-> Remove with `Remove-NetFirewallRule -DisplayName 'AreenCUBs staging*'`.
 >
-> **Until one is applied, stop the stack when not actively using it:** `npm run db:stop`.
+> Measured results, Docker Desktop 29.6.2 / WSL 2 backend:
+>
+> | Mechanism | Outcome |
+> |---|---|
+> | `"ip"` alone | applies to the **default bridge only**. Supabase uses a user-defined bridge, so it never applied. |
+> | `default-network-opts.bridge` | a newly created user-defined bridge came back with only `enable_ipv4` / `enable_ipv6` — the host-binding option **was not inherited**. |
+> | `docker network create -o com.docker.network.bridge.host_binding_ipv4=127.0.0.1` | the option **was present** on the network, yet the published port still bound `0.0.0.0:55998`. **Ignored.** |
+> | `docker run -p 127.0.0.1:55997:8025` | bound `127.0.0.1:55997` only. LAN probe `False`, loopback `True`. **This is the only mechanism that works.** |
+>
+> **Root cause:** on Docker Desktop for Windows, host port publishing is performed by Docker Desktop's Windows-side proxy, not by the Linux bridge. That proxy binds `0.0.0.0` unless the publish spec itself carries an explicit `HostIp`. The container's `HostConfig.PortBindings` showed `HostIp: ""` — nothing is *requesting* `0.0.0.0`; it is simply the platform default, and the network option cannot override it.
+>
+> The Supabase CLI owns the publish spec and `config.toml` has no bind-address setting, so there is currently **no supported way** to make `supabase start` publish on loopback under Docker Desktop for Windows.
+>
+> #### Remaining options
+>
+> 1. **Operational discipline (in force today).** Run `npm run db:stop` whenever staging is not actively in use. Verified: after `db:stop`, the LAN probe returns `False` and zero containers remain. This is what the project does now.
+> 2. **Run the stack inside WSL 2 instead of Docker Desktop.** Install Docker CE inside the Ubuntu distribution and run the Supabase CLI there. WSL 2 forwards ports to Windows on `127.0.0.1` only, so this would satisfy the requirement natively. It is a change of development architecture and needs approval before it is attempted.
+> 3. **Windows Firewall inbound block.** Explicitly ruled out by management — recorded here only so the decision is not revisited by accident.
+>
+> The `daemon.json` change above was left in place: it is harmless and does harden the default bridge, but it does **not** close this gap. A backup of the original sits at `daemon.json.bak-areencubs`. That file is machine configuration and is never committed.
 
 `npm run db:start` prints local URLs and keys. Put them in `.env.local`:
 
