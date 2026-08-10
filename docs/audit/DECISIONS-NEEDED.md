@@ -16,6 +16,47 @@ The step most often missed: **redeploy Vercel after updating the variable** — 
 
 ---
 
+## 1b. Content OS RLS grants full CRUD to any authenticated identity — HIGH
+
+**New, confirmed against real PostgreSQL on 2026-08-10. Not yet fixed: tightening RLS is a permission change and needs your approval.**
+
+Migration 21 guards all three Content OS tables with:
+
+```sql
+USING (auth.role() = 'authenticated')   -- for SELECT *and* FOR ALL
+```
+
+Every other table in the schema checks the *application* role — `is_admin()`, `is_worker_or_admin()`, or a `profiles` lookup. Content OS checks only that a JWT exists.
+
+Measured, as a user with **no `profiles` row** (the same identity Phase 1d denies at the front door):
+
+```
+orphan app role            = NULL
+orphan is_worker_or_admin  = false
+orphan CAN READ plans      = 2
+orphan INSERTED plans      = 1
+orphan UPDATED items       = 3
+orphan DELETED items       = 3
+```
+
+A truly anonymous caller (`anon`, no claims) **is** correctly denied — which is why Phase 0's unauthenticated probes did not surface this. The boundary is "any authenticated identity", not "anyone".
+
+**Impact.** Anyone holding a valid session — including an auth user created without the profile insert, exactly the manual onboarding gap behind finding #3.21 — can read, alter and delete every client's content plans and items directly through PostgREST, bypassing the UI and the `requireWorkerOrAdmin()` checks entirely.
+
+**Recommended fix** (forward-only migration, not written, not applied):
+
+```sql
+alter policy "content_items_read"  on content_items  using (public.is_worker_or_admin());
+alter policy "content_items_write" on content_items  using (public.is_worker_or_admin());
+-- and the equivalent for client_content_profiles and monthly_content_plans
+```
+
+This aligns the database with what the application already enforces, so it should be behaviour-preserving for legitimate use. **Confirm first** whether any flow intentionally lets freelancers read content — if so the read policy needs a narrower rule rather than `is_worker_or_admin()`.
+
+Current behaviour is pinned by tests in `scripts/db/content-os.dbtest.mjs`, so it cannot change silently. Those tests must be inverted as part of the fix.
+
+---
+
 ## 2. Read-only production migration history
 
 Needed to confirm or refute the drift prediction from finding #1: migration `0018` cannot parse, so `0018`–`0025` should be absent from production.

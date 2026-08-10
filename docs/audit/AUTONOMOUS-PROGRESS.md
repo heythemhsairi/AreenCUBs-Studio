@@ -63,3 +63,48 @@ foreign-container safety, and per-outcome reporting.
 `vitest.config.ts` now includes `scripts/**/*.test.mjs`.
 
 **Totals: 196 tests, 8 files** (was 175 / 7).
+
+---
+
+## Phase 2c — real PostgreSQL and RLS integration tests
+
+**Status: complete.**
+
+Isolation gate re-run before any test touched the database: preflight all-pass, LAN refused. Stack stopped afterwards — 0 containers, 0 listeners.
+
+### Suite
+
+`npm run test:db` — a **separate** vitest config (`vitest.db.config.ts`) so the default suite stays hermetic and CI needs no Docker. **99 tests across 4 files**, all passing.
+
+| File | Tests | Covers |
+|---|---|---|
+| `schema.dbtest.mjs` | 33 | migrations 0018-0025: tables, functions, triggers, indexes, policies, constraints, FK cascade |
+| `rls.dbtest.mjs` | 27 | `current_role()`, `is_admin()`, fail-closed, admin access, non-admin denial, anonymous |
+| `content-os.dbtest.mjs` | 22 | plan/item creation, vocabularies, finding #16 source split, finding #3 overdue posts |
+| `finance.dbtest.mjs` | 17 | finding #5 contradictions, stamp migration behaviour, bonus lines |
+
+### How the RLS tests avoid proving nothing
+
+Every assertion runs as an **impersonated** user — `set local role authenticated` plus `request.jwt.claims` — inside a transaction that always rolls back. As the `postgres` superuser RLS is bypassed entirely and all of these would pass vacuously, so the suite asserts up front that `current_user` is not `postgres`, that `is_superuser` is `off`, and that a superuser read returns rows where an orphan read returns none. If impersonation ever silently stops working, those guards fail first.
+
+No application test uses service-role privileges.
+
+### Confirmed: `public.current_role()` behaves correctly after the 0018 fix
+
+Returns `admin` / `worker` / `freelancer` from `profiles`, and is provably *not* the reserved PostgreSQL `current_role` keyword — the built-in returns `authenticated` for every caller, the function returns the application role. Returns NULL for a profile-less user, and `is_admin()` coalesces that to false.
+
+### Migration 21 retry hazard — now empirical
+
+Re-running any of its `CREATE POLICY` statements is rejected with *"already exists"*. A partial apply can never self-heal. The guarded repair migration remains necessary and unapproved.
+
+### NEW HIGH-SEVERITY FINDING — Content OS RLS
+
+Any authenticated identity, **including one with no `profiles` row**, can read, insert, update and delete every client's content. Measured, not inferred. Full evidence and the recommended forward-only fix are in `DECISIONS-NEEDED.md` §1b. **Not fixed here** — tightening RLS is a permission change requiring approval. Current behaviour is pinned by tests so it cannot drift silently.
+
+### Three test defects found and corrected in my own suite
+
+1. **`sqlAs` output parsing** sliced by position; psql emits a command tag per statement, so results were misread. Replaced with sentinel-fenced extraction.
+2. **"freelancer cannot mutate a client"** asserted that the statement *throws*. RLS denies an UPDATE by filtering rows, so a statement matching nothing returns success. It briefly looked like a security gap; measuring rows-affected showed **0 rows changed** — RLS was correct all along. The test now asserts rows affected, which is the actual property.
+3. **A finance assertion** expected an aggregate difference of exactly 1 DT; the real difference is 597 DT because it also sweeps in the draft-marked-paid invoice. Replaced with an enumeration of the specific hidden documents (`9001:1.00`, `9002:596.00`) — stricter and honest about what is measured.
+
+Also corrected: a data-modifying CTE joined back against its own table returns nothing (PostgreSQL snapshot semantics); and `sqlAs(null, …)` is *not* anonymous — it still presents `role=authenticated`. A separate `sqlAsAnon` using the `anon` role was added, and that distinction is precisely what the Content OS finding turns on.
