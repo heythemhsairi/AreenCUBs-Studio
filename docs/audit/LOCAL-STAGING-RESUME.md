@@ -44,14 +44,36 @@ Confirmed on this machine before starting:
 
 ## Remaining commands, in order
 
+### Result of the elevated install (completed 2026-08-10 06:34, exit code 0)
+
+| Component | State |
+|---|---|
+| WSL | **2.7.11.0 installed** |
+| WSL kernel | 6.18.33.2-2 |
+| `VirtualMachinePlatform` | **Enabled** |
+| `Microsoft-Windows-Subsystem-Linux` (legacy feature) | Disabled — not required by WSL 2.7.x, which ships as a standalone package |
+| Linux distribution | **none installed** — `--no-launch` staged WSL only |
+| `CBS RebootPending` | **True** |
+
+DISM reported: *"Changes will not be effective until the system is rebooted."*
+
 ### Stage A — after the restart
 
 ```powershell
+wsl --version
 wsl --status
-wsl --list --verbose        # expect a distribution at VERSION 2
 ```
 
-If WSL reports version 1, run once (elevated):
+Then install the distribution, which the staged install did not include:
+
+```powershell
+wsl --install -d Ubuntu --no-launch
+wsl --list --verbose            # expect Ubuntu at VERSION 2
+```
+
+`--no-launch` avoids the interactive UNIX username/password prompt. Docker Desktop does not need a user distribution — it provisions its own `docker-desktop` WSL instance — so Ubuntu can stay unlaunched. Launching it later (`wsl -d Ubuntu`) will ask for a username; that is a user action.
+
+If any distribution reports VERSION 1:
 ```powershell
 wsl --set-default-version 2
 ```
