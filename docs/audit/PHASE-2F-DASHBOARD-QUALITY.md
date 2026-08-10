@@ -142,3 +142,27 @@ The harness is in place; these need additional specs.
 | F-3 | Denial page assertion | — | Test defect, corrected |
 | F-4 | Fail-closed auth | — | Verified working |
 | F-5 | 13-route sweep | — | 10 clean |
+
+---
+
+## F-1 update — hydration remediation (approved phase)
+
+A hydration-safe time source was introduced: `src/lib/time/now.tsx`. The server resolves the instant once in `dashboard/layout.tsx` and passes it to `NowProvider`; `useNow()` / `useToday()` return that value during SSR **and** the first client render, so markup matches. The clock adopts the real client time only after mount, which is an ordinary state update rather than a mismatch.
+
+Behaviour preserved: the greeting is still derived from the **Africa/Tunis** hour (now via `Intl.DateTimeFormat` with an explicit `timeZone`, instead of `getHours()` on an ambient date), and overdue/priority calculations are unchanged apart from being computed from a stable "today".
+
+Converted: `overview-client.tsx` (greeting hour + two `today` computations) and `priorities-section.tsx` (relative deadlines + inline day math).
+
+**Measured result: browser failures fell from 6 to 3.** `/dashboard` is now clean on desktop, tablet and mobile.
+
+### Still open — `/dashboard/team` (3 failures, one per viewport)
+
+Not fixed, and the cause is **not yet identified**. Ruled out by inspection:
+
+- `team/page.tsx` and `list-client.tsx` contain no date rendering at all (`created_at` is typed but never displayed)
+- no `new Date()` / `Date.now()` in `avatar.tsx`, `avatar-stack.tsx`, `ui/badge.tsx`
+- the shared layout components it renders are the same ones `/dashboard/clients` uses, and that route is clean
+
+Remaining suspect: `notification-bell.tsx`, whose `relativeTime()` uses `Date.now()` — but it is in the topbar on every route, which does not explain why only this one fails.
+
+**Next step:** run the app in dev mode (non-minified React prints the exact mismatched text rather than `#418`). A diagnostic harness exists at the scratchpad stage but was blocked twice by the stack still reporting `health: starting`; it needs the same readiness wait that `run-e2e.sh` now has.

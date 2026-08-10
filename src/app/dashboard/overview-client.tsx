@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { AlertTriangle, CheckCircle2, Clock, TrendingUp, Users, FileText, CalendarDays } from "lucide-react";
 import { useI18n } from "@/lib/i18n/provider";
+import { useNow, useToday } from "@/lib/time/now";
+import { APP_TIME_ZONE } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge, StatusBadge } from "@/components/ui/badge";
 import { KpiCard } from "@/components/ui/kpi-card";
@@ -157,8 +159,10 @@ export function OverviewClient({
         : t.dashboard.freelancer.title;
 
   // Compute today helpers used by multiple sections
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  // Hydration-safe midnight. A render-time `new Date()` resolved to the UTC
+  // day on the server and the Africa/Tunis day in the browser, so overdue
+  // counts and relative day labels differed across hydration (React #418).
+  const today = useToday();
 
   const overdueTasks = upcomingTasks.filter((task) => {
     const due = new Date(task.deadline);
@@ -957,7 +961,17 @@ function Greeting({
   role: UserRole;
 }) {
   const { t } = useI18n();
-  const hour = new Date().getHours();
+  // Africa/Tunis hour, not the runtime's. Reading getHours() from a
+  // render-time `new Date()` gave the UTC hour on the server and the Tunis
+  // hour in the browser, so the greeting text differed and hydration failed
+  // (#418). The greeting itself is unchanged — it is still the local hour.
+  const hour = Number(
+    new Intl.DateTimeFormat("en-GB", {
+      hour: "2-digit",
+      hour12: false,
+      timeZone: APP_TIME_ZONE,
+    }).format(useNow()),
+  );
   const time =
     hour < 5
       ? t.greeting.goodNight
@@ -1271,8 +1285,10 @@ function MyTasksList({ rows }: { rows: UpcomingTask[] }) {
     );
   }
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  // Hydration-safe midnight. A render-time `new Date()` resolved to the UTC
+  // day on the server and the Africa/Tunis day in the browser, so overdue
+  // counts and relative day labels differed across hydration (React #418).
+  const today = useToday();
 
   return (
     <ul className="space-y-1.5">

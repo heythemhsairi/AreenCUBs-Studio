@@ -7,6 +7,7 @@ import type { NotificationRow } from "@/components/dashboard/notification-bell";
 import { WhatsNewBanner } from "@/components/dashboard/whats-new-banner";
 import { getUnseenUpdate } from "@/lib/updates";
 import { MobileBottomNav } from "@/components/dashboard/mobile-bottom-nav";
+import { NowProvider } from "@/lib/time/now";
 
 export default async function DashboardLayout({
   children,
@@ -39,7 +40,13 @@ export default async function DashboardLayout({
     // tables not yet migrated
   }
 
+  // Resolved once on the server so the server render and the first client
+  // render agree. Client components must read the clock through useNow()
+  // rather than calling new Date() during render — see src/lib/time/now.tsx.
+  const serverNowIso = new Date().toISOString();
+
   return (
+    <NowProvider serverNowIso={serverNowIso}>
     <div className="flex h-screen overflow-hidden bg-[#071B2C]">
       {/* fixed dark mesh background */}
       <div aria-hidden className="pointer-events-none fixed inset-0 -z-10">
@@ -71,5 +78,6 @@ export default async function DashboardLayout({
       <MobileBottomNav role={session.role} />
       <CommandPalette />
     </div>
+    </NowProvider>
   );
 }

@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/lib/i18n/provider";
+import { useToday } from "@/lib/time/now";
 import { togglePriorityPinAction } from "./priority-actions";
 
 type Pin = {
@@ -37,10 +38,14 @@ export function PriorityPinsSection({ pins }: { pins: Pin[] }) {
   const [items, setItems] = useState(pins);
   const [, startTransition] = useTransition();
 
+  // Hydration-safe: a render-time `new Date()` gives the server's UTC day and
+  // the browser's Africa/Tunis day, so relative deadlines ("45j retard") could
+  // differ by one across hydration and React would discard the subtree (#418).
+  const todayMidnight = useToday();
+
   function relativeDeadline(iso: string | null): string {
     if (!iso) return "";
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const today = todayMidnight;
     const d = new Date(iso);
     const days = Math.floor((d.getTime() - today.getTime()) / 86400000);
     if (days < 0) return t.pins.relativeLate(days);
@@ -128,11 +133,9 @@ export function PriorityPinsSection({ pins }: { pins: Pin[] }) {
                     </Badge>
                     {p.deadline &&
                       (() => {
-                        const dToday = new Date();
-                        dToday.setHours(0, 0, 0, 0);
                         const days = Math.floor(
                           (new Date(p.deadline).getTime() -
-                            dToday.getTime()) /
+                            todayMidnight.getTime()) /
                             86400000,
                         );
                         const late = days < 0;
