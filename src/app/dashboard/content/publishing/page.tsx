@@ -1,5 +1,6 @@
 import { requireWorkerOrAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { toBusinessDateKey } from "@/lib/format";
 import { PublishingClient, type SocialPost } from "./publishing-client";
 
 export default async function PublishingPage({
@@ -79,6 +80,10 @@ export default async function PublishingPage({
     name: c.name,
   }));
 
+  // Resolved once on the server in the business timezone so that server render
+  // and client hydration agree. See PublishingClient's `todayKey` prop.
+  const todayKey = toBusinessDateKey(new Date()) ?? "1970-01-01";
+
   return (
     <PublishingClient
       posts={posts}
@@ -86,6 +91,7 @@ export default async function PublishingPage({
       tasks={tasks}
       clients={clients}
       preselectedTaskId={preselectedTaskId}
+      todayKey={todayKey}
     />
   );
 }

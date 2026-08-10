@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useTransition, useEffect } from "react";
 import { useI18n } from "@/lib/i18n/provider";
+import { formatDateTime, formatDateTimeShort } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
@@ -48,6 +49,14 @@ type Props = {
   tasks: Task[];
   clients: Client[];
   preselectedTaskId?: string;
+  /**
+   * Today's date as `YYYY-MM-DD` in the business timezone, resolved on the
+   * server and passed down so server render and client hydration agree on a
+   * single value. Calling `new Date()` during render instead made the initial
+   * month/year time-dependent and could differ between the two passes — one of
+   * the two causes of hydration error #418 on this page.
+   */
+  todayKey: string;
 };
 
 // ─── Platform config ──────────────────────────────────────────────────────────
@@ -102,12 +111,35 @@ function toDateKey(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
+/**
+ * Splits a `YYYY-MM-DD` key into `[year, monthIndex0]` using string arithmetic
+ * only — no `Date` construction, so it cannot be perturbed by the ambient
+ * timezone of whichever side of hydration is running it.
+ *
+ * Exported for test coverage.
+ */
+export function parseDateKey(key: string): [number, number] {
+  const [y, m] = key.split("-");
+  const year = Number(y);
+  const month1 = Number(m);
+  if (!Number.isFinite(year) || !Number.isFinite(month1) || month1 < 1 || month1 > 12) {
+    // Defensive: a malformed key must not crash the page. Fall back to the
+    // epoch month; the user can still navigate.
+    return [1970, 0];
+  }
+  return [year, month1 - 1];
+}
+
+// Hydration-safe: locale and timezone are pinned inside the shared formatter.
+// Previously these called `toLocaleString(undefined, …)`, which resolved to
+// en-US/UTC on the server and fr-FR/Africa-Tunis in the browser, producing
+// React hydration error #418 on this page. See src/lib/format.ts.
 function fmtDate(iso: string) {
-  return new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+  return formatDateTime(iso);
 }
 
 function fmtDateShort(iso: string) {
-  return new Date(iso).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" });
+  return formatDateTimeShort(iso);
 }
 
 // ─── PlatformPicker ───────────────────────────────────────────────────────────
@@ -722,7 +754,7 @@ function Modal({
 
 // ─── Main view ────────────────────────────────────────────────────────────────
 
-export function PublishingClient({ posts, projects, tasks, clients, preselectedTaskId }: Props) {
+export function PublishingClient({ posts, projects, tasks, clients, preselectedTaskId, todayKey }: Props) {
   const { t } = useI18n();
   const c = t.contentOS;
 
@@ -735,9 +767,11 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
     }
   }
 
-  const today = new Date();
-  const [year, setYear] = useState(today.getFullYear());
-  const [month, setMonth] = useState(today.getMonth());
+  // Derived by pure string arithmetic from the server-supplied key, so the
+  // initial render is identical on both sides of hydration.
+  const [todayYear, todayMonth0] = parseDateKey(todayKey);
+  const [year, setYear] = useState(todayYear);
+  const [month, setMonth] = useState(todayMonth0);
   // Default to "list" — safe on mobile, no hydration mismatch, user can switch to calendar
   const [view, setView] = useState<"calendar" | "list">("list");
   const [filterPlatform, setFP] = useState("");
@@ -763,7 +797,7 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
   const monthNames = c.months;
 
   const calDays = buildCalendarDays(year, month);
-  const todayKey = toDateKey(today);
+  // `todayKey` now arrives as a prop from the server — see Props.
   const postsByDate: Record<string, SocialPost[]> = {};
   for (const p of posts) {
     if (!p.scheduled_at) continue;
