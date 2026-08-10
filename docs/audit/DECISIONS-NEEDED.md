@@ -124,3 +124,15 @@ Reproduced in a browser on all three viewports (`docs/audit/PHASE-2F-DASHBOARD-Q
 The hand-rolled contrast check in `e2e/a11y.spec.ts` produced false positives across three different implementations and is now diagnostic-only. Adding **axe-core** (free, MIT) would give trustworthy results.
 
 Small, free, additive — but it is a new dependency, so it is listed rather than added unilaterally.
+
+---
+
+## 10. Accessibility remediation from axe-core — MEDIUM/HIGH
+
+Confirmed in-browser across desktop, tablet and mobile with no exclusions (`PHASE-2F-DASHBOARD-QUALITY.md` F-6).
+
+**Critical (14 instances):** `select-name` on the inline status selectors (`/dashboard/tasks` ×4, `/dashboard/clients` ×1) and `label` on `/dashboard/settings` (×9). Screen-reader users cannot identify controls that mutate records. Small per instance; spread across several files.
+
+**Serious:** `color-contrast` on every audited route (12–39 nodes each, more on narrow viewports). This is the design-token problem from Phase 0 confirmed in a browser — `--c-text-2`/`--c-text-3` and brand tints against card surfaces. A token-level fix, not per-element patches.
+
+**Why not fixed here:** the labelling fixes touch high-impact financial and task controls, and the contrast fix is a design-system change. Both want review rather than an unattended sweep.

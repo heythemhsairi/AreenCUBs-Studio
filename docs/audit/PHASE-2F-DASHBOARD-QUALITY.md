@@ -166,3 +166,46 @@ Not fixed, and the cause is **not yet identified**. Ruled out by inspection:
 Remaining suspect: `notification-bell.tsx`, whose `relativeTime()` uses `Date.now()` — but it is in the topbar on every route, which does not explain why only this one fails.
 
 **Next step:** run the app in dev mode (non-minified React prints the exact mismatched text rather than `#418`). A diagnostic harness exists at the scratchpad stage but was blocked twice by the stack still reporting `health: starting`; it needs the same readiness wait that `run-e2e.sh` now has.
+
+---
+
+## F-6 · axe-core results — contrast IS a real finding after all
+
+`@axe-core/playwright` replaced the hand-rolled contrast walker. Rules: `wcag2a, wcag2aa, wcag21a, wcag21aa`. **No exclusions of any kind.** Serious and critical are treated as failures; minor/moderate are logged.
+
+### Correction to F-2
+
+F-2 concluded that contrast was "not a confirmed finding" because my walker produced impossible 1.00:1 values. That was right about the *numbers* and wrong about the *conclusion*: axe confirms **genuine, widespread contrast violations**. My measurement was broken; the underlying problem was real. Reported here rather than left as a refuted finding.
+
+### Critical — `select-name` / `label`
+
+| Route | Rule | Nodes |
+|---|---|---|
+| `/dashboard/tasks` | `select-name` — select has no accessible name | 4 |
+| `/dashboard/clients` | `select-name` | 1 |
+| `/dashboard/settings` | `label` — form elements have no labels | 9 |
+
+**Impact:** a screen-reader user cannot tell what these controls change. On `/dashboard/tasks` and `/dashboard/clients` these are the inline status selectors — the same high-impact controls flagged in audit finding #10 for lacking confirmation. A user who cannot identify the control can still change a task's status with it.
+
+**Recommended fix:** `aria-label` on each `<select>` naming the record it affects, and `<label htmlFor>` on the settings inputs. Small per-instance, 14 instances total, spread across several files.
+
+### Serious — `color-contrast`
+
+| Route | Nodes (desktop) |
+|---|---|
+| `/dashboard/finance` | 39 |
+| `/dashboard/tasks` | 32 |
+| `/dashboard/content` | 32 |
+| `/dashboard` | 15 |
+| `/dashboard/settings` | 16 |
+| `/dashboard/clients` | 13 |
+| `/dashboard/projects` | 12 |
+| `/login` | 1 |
+
+Node counts rise on tablet/mobile (e.g. `/dashboard` 15 → 27), consistent with denser layouts exposing more low-contrast text.
+
+**This is the Phase 0 token problem, confirmed in a browser.** It is a design-system fix — the `--c-text-2` / `--c-text-3` / brand-tint tokens against card surfaces — not a per-element patch, and it is exactly what the Phase 2 design-token work was scoped to address.
+
+### Status
+
+The axe suite **fails** on this baseline. Left failing deliberately: the violations are real and reporting them is the point. Fixing 14 labelling instances plus a token overhaul is a remediation phase of its own, recorded in `DECISIONS-NEEDED.md`.
