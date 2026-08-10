@@ -1,0 +1,291 @@
+-- ═══════════════════════════════════════════════════════════════════════════
+-- Areen CUBs Studio — LOCAL STAGING SEED
+--
+--   ⚠  LOCAL USE ONLY. Never run against the hosted project.
+--      Applied automatically by `supabase db reset` / `npm run db:reset`.
+--
+-- ── Provenance ─────────────────────────────────────────────────────────────
+-- EVERY row below is fabricated. No client name, contact detail, project,
+-- amount, invoice or payment has been copied from production. The company
+-- names are invented; the addresses and tax numbers are structurally valid
+-- but meaningless; the money is round numbers chosen to make the audit
+-- findings reproducible.
+--
+-- ── Passwords ──────────────────────────────────────────────────────────────
+-- The staging accounts share the password `staging-only-not-a-secret`.
+-- This is a fixture for a database that exists only inside this machine and
+-- is destroyed by every `db reset`. It is not a credential and must never be
+-- reused anywhere else.
+--
+-- ── Purpose ────────────────────────────────────────────────────────────────
+-- The data is arranged so the confirmed audit findings can be reproduced and
+-- then verified as fixed, without touching production:
+--
+--   #1  Content OS   — profiles/plans/items exercised end to end
+--   #3  Publishing   — scheduled posts left in the past
+--   #5  Finance      — the exact "paid invoice with a balance" contradiction
+--   #6  Projects     — a completed project still holding open tasks
+--   #7  Projects     — an active project past its deadline
+--   #18 Services     — `Branding` and `branding` as separate categories
+-- ═══════════════════════════════════════════════════════════════════════════
+
+begin;
+
+-- ── Clean slate (local only; order respects foreign keys) ──────────────────
+truncate table
+  public.payments,
+  public.devis_items,
+  public.devis,
+  public.task_comments,
+  public.tasks,
+  public.projects,
+  public.clients
+restart identity cascade;
+
+delete from auth.users where email like '%@staging.local';
+
+-- ═══ 1. Staging accounts ═══════════════════════════════════════════════════
+-- One per role in the current user_role enum, so RLS can be exercised as
+-- each principal. A fourth user is created WITHOUT a profile row to prove
+-- the Phase 1d fail-closed behaviour.
+
+insert into auth.users (
+  id, instance_id, aud, role, email, encrypted_password,
+  email_confirmed_at, created_at, updated_at,
+  raw_app_meta_data, raw_user_meta_data
+)
+values
+  ('11111111-1111-4111-8111-111111111111', '00000000-0000-0000-0000-000000000000',
+   'authenticated', 'authenticated', 'admin@staging.local',
+   crypt('staging-only-not-a-secret', gen_salt('bf')), now(), now(), now(),
+   '{"provider":"email","providers":["email"]}', '{}'),
+
+  ('22222222-2222-4222-8222-222222222222', '00000000-0000-0000-0000-000000000000',
+   'authenticated', 'authenticated', 'worker@staging.local',
+   crypt('staging-only-not-a-secret', gen_salt('bf')), now(), now(), now(),
+   '{"provider":"email","providers":["email"]}', '{}'),
+
+  ('33333333-3333-4333-8333-333333333333', '00000000-0000-0000-0000-000000000000',
+   'authenticated', 'authenticated', 'freelancer@staging.local',
+   crypt('staging-only-not-a-secret', gen_salt('bf')), now(), now(), now(),
+   '{"provider":"email","providers":["email"]}', '{}'),
+
+  -- Deliberately has NO profiles row. Signing in as this user must be DENIED
+  -- and routed to /account-unavailable — never silently granted freelancer.
+  ('44444444-4444-4444-8444-444444444444', '00000000-0000-0000-0000-000000000000',
+   'authenticated', 'authenticated', 'orphan@staging.local',
+   crypt('staging-only-not-a-secret', gen_salt('bf')), now(), now(), now(),
+   '{"provider":"email","providers":["email"]}', '{}');
+
+insert into public.profiles (id, username, full_name, role) values
+  ('11111111-1111-4111-8111-111111111111', 'admin',      'Staging Admin',      'admin'),
+  ('22222222-2222-4222-8222-222222222222', 'worker',     'Staging Worker',     'worker'),
+  ('33333333-3333-4333-8333-333333333333', 'freelancer', 'Staging Freelancer', 'freelancer')
+on conflict (id) do update
+  set username = excluded.username,
+      full_name = excluded.full_name,
+      role = excluded.role;
+
+-- ═══ 2. Fabricated clients ═════════════════════════════════════════════════
+insert into public.clients (id, name, address, matricule_fiscal, email, phone, notes, created_by) values
+  ('c1000000-0000-4000-8000-000000000001', 'Atlas Foods SARL',
+   '12 Rue Exemple, Tunis 1000', 'FAKE-0000001AAA000',
+   'contact@atlasfoods.invalid', '+216 00 000 001',
+   'FABRICATED staging client.', '11111111-1111-4111-8111-111111111111'),
+
+  ('c1000000-0000-4000-8000-000000000002', 'Nova Immobilier',
+   '5 Avenue Fictive, Sousse 4000', 'FAKE-0000002BBB000',
+   'hello@novaimmo.invalid', '+216 00 000 002',
+   'FABRICATED staging client.', '11111111-1111-4111-8111-111111111111'),
+
+  ('c1000000-0000-4000-8000-000000000003', 'Zenith Fitness',
+   '88 Rue Imaginaire, Sfax 3000', 'FAKE-0000003CCC000',
+   'team@zenithfit.invalid', '+216 00 000 003',
+   'FABRICATED staging client — no content profile, tests the empty state.',
+   '11111111-1111-4111-8111-111111111111');
+
+-- ═══ 3. Projects — findings #6 and #7 ══════════════════════════════════════
+insert into public.projects (id, client_id, name, description, status, owner_id, start_date, end_date) values
+  -- #7: still "active" although the deadline passed. Derived health must
+  --     report Overdue while the manual status stays untouched.
+  ('e1000000-0000-4000-8000-000000000001', 'c1000000-0000-4000-8000-000000000001',
+   'Refonte identité Atlas', 'FABRICATED. Deadline in the past, status still active.',
+   'active', '22222222-2222-4222-8222-222222222222', '2026-05-01', '2026-07-31'),
+
+  -- #6: marked completed while open tasks remain attached.
+  ('e1000000-0000-4000-8000-000000000002', 'c1000000-0000-4000-8000-000000000002',
+   'Campagne printemps Nova', 'FABRICATED. Completed but still holds open tasks.',
+   'completed', '22222222-2222-4222-8222-222222222222', '2026-03-01', '2026-06-30'),
+
+  ('e1000000-0000-4000-8000-000000000003', 'c1000000-0000-4000-8000-000000000003',
+   'Lancement Zenith', 'FABRICATED. Healthy control project.',
+   'active', '22222222-2222-4222-8222-222222222222', '2026-08-01', '2026-12-31');
+
+insert into public.tasks (id, project_id, title, status, priority, assignee_id, created_by, deadline) values
+  ('7a000000-0000-4000-8000-000000000001', 'e1000000-0000-4000-8000-000000000001',
+   'Direction artistique — planches', 'in_progress', 'high',
+   '22222222-2222-4222-8222-222222222222', '11111111-1111-4111-8111-111111111111', '2026-07-20'),
+
+  ('7a000000-0000-4000-8000-000000000002', 'e1000000-0000-4000-8000-000000000001',
+   'Charte graphique — livraison', 'todo', 'urgent',
+   '33333333-3333-4333-8333-333333333333', '11111111-1111-4111-8111-111111111111', '2026-07-28'),
+
+  -- #6: these two are open on a project whose status is 'completed'.
+  ('7a000000-0000-4000-8000-000000000003', 'e1000000-0000-4000-8000-000000000002',
+   'Retouches visuels campagne', 'in_progress', 'normal',
+   '22222222-2222-4222-8222-222222222222', '11111111-1111-4111-8111-111111111111', '2026-06-25'),
+
+  ('7a000000-0000-4000-8000-000000000004', 'e1000000-0000-4000-8000-000000000002',
+   'Rapport de performance', 'todo', 'low',
+   '22222222-2222-4222-8222-222222222222', '11111111-1111-4111-8111-111111111111', '2026-07-05'),
+
+  ('7a000000-0000-4000-8000-000000000005', 'e1000000-0000-4000-8000-000000000003',
+   'Brief client initial', 'done', 'normal',
+   '22222222-2222-4222-8222-222222222222', '11111111-1111-4111-8111-111111111111', '2026-08-05');
+
+-- ═══ 4. Services — finding #18 (case-only duplicate categories) ════════════
+insert into public.services (name_fr, name_en, category, default_price_dt, default_unit) values
+  ('Identité visuelle',      'Brand identity',   'Branding',  2500.00, 'package'),
+  ('Charte graphique',       'Brand guidelines', 'branding',  1200.00, 'unit'),
+  ('Gestion réseaux sociaux','Social media',     'Social',     900.00, 'month')
+on conflict do nothing;
+
+-- ═══ 5. Finance — finding #5 reproduced exactly ════════════════════════════
+-- The contradiction: an invoice whose stored payment_status says 'paid' but
+-- whose payments fall 1.00 DT short of total_dt. The global unpaid KPI
+-- filters on payment_status and reports 0, while the client risk table
+-- recomputes invoiced − collected and reports 1 DT. Both read the same row.
+--
+-- The 1 DT gap mirrors production's cause: migration 20260626000003 raised
+-- total_dt by the fiscal stamp on already-settled invoices without
+-- reconciling the payments or the status.
+
+insert into public.devis (
+  id, devis_number, kind, client_id, date, due_date, object,
+  status, payment_status, subtotal_dt, discount_dt, tva_rate, tva_dt, stamp_dt, total_dt, created_by
+) values
+  -- (a) The contradiction. 1190.00 paid against a 1191.00 total, marked paid.
+  ('d1000000-0000-4000-8000-000000000001', 9001, 'facture',
+   'c1000000-0000-4000-8000-000000000001', '2026-06-10', '2026-06-24',
+   'FABRICATED — settled invoice left 1 DT short by the stamp heal migration',
+   'accepted', 'paid', 1000.00, 0.00, 19.00, 190.00, 1.00, 1191.00,
+   '11111111-1111-4111-8111-111111111111'),
+
+  -- (b) A draft invoice marked paid — an impossible state the constraints
+  --     introduced in Phase 1 must reject.
+  ('d1000000-0000-4000-8000-000000000002', 9002, 'facture',
+   'c1000000-0000-4000-8000-000000000002', '2026-07-02', '2026-07-16',
+   'FABRICATED — draft carrying a paid payment_status',
+   'draft', 'paid', 500.00, 0.00, 19.00, 95.00, 1.00, 596.00,
+   '11111111-1111-4111-8111-111111111111'),
+
+  -- (c) A draft QUOTE carrying a payment_status at all. Quotes have no
+  --     payment concept; the column exists on every row regardless.
+  ('d1000000-0000-4000-8000-000000000003', 9003, 'devis',
+   'c1000000-0000-4000-8000-000000000003', '2026-08-01', '2026-08-15',
+   'FABRICATED — quote wrongly carrying payment state',
+   'draft', 'unpaid', 3000.00, 0.00, 19.00, 570.00, 0.00, 3570.00,
+   '11111111-1111-4111-8111-111111111111'),
+
+  -- (d) Genuinely overdue and unpaid — the control case.
+  ('d1000000-0000-4000-8000-000000000004', 9004, 'facture',
+   'c1000000-0000-4000-8000-000000000001', '2026-06-01', '2026-06-15',
+   'FABRICATED — genuinely overdue invoice',
+   'sent', 'unpaid', 2000.00, 0.00, 19.00, 380.00, 1.00, 2381.00,
+   '11111111-1111-4111-8111-111111111111'),
+
+  -- (e) Partially paid — exercises balance derivation.
+  ('d1000000-0000-4000-8000-000000000005', 9005, 'facture',
+   'c1000000-0000-4000-8000-000000000002', '2026-07-20', '2026-08-20',
+   'FABRICATED — partially paid invoice',
+   'sent', 'partial', 4000.00, 200.00, 19.00, 722.00, 1.00, 4523.00,
+   '11111111-1111-4111-8111-111111111111');
+
+insert into public.devis_items (devis_id, description, quantity, unit_price_dt, line_total_dt, position, is_bonus) values
+  ('d1000000-0000-4000-8000-000000000001', 'Identité visuelle complète', 1, 1000.00, 1000.00, 0, false),
+  ('d1000000-0000-4000-8000-000000000002', 'Community management',       1,  500.00,  500.00, 0, false),
+  ('d1000000-0000-4000-8000-000000000003', 'Refonte site vitrine',       1, 3000.00, 3000.00, 0, false),
+  -- A bonus line: priced but free. Its price must never reach the subtotal.
+  ('d1000000-0000-4000-8000-000000000003', 'Séance photo offerte',       1,  400.00,    0.00, 1, true),
+  ('d1000000-0000-4000-8000-000000000004', 'Campagne publicitaire',      1, 2000.00, 2000.00, 0, false),
+  ('d1000000-0000-4000-8000-000000000005', 'Production vidéo',           2, 2000.00, 4000.00, 0, false);
+
+insert into public.payments (devis_id, amount_dt, paid_at, method, notes, recorded_by) values
+  -- 1190.00 against a 1191.00 total: the 1 DT contradiction.
+  ('d1000000-0000-4000-8000-000000000001', 1190.00, '2026-06-20', 'virement',
+   'FABRICATED — 1 DT short of total_dt while status says paid',
+   '11111111-1111-4111-8111-111111111111'),
+  ('d1000000-0000-4000-8000-000000000005', 2000.00, '2026-08-01', 'espèces',
+   'FABRICATED — partial payment', '11111111-1111-4111-8111-111111111111');
+
+-- ═══ 6. Content OS — finding #1 ════════════════════════════════════════════
+-- Only inserted if migration 21 actually applied. If these tables are absent
+-- the seed fails loudly here, which is precisely the signal we want: it means
+-- the Content OS schema did not land.
+
+insert into public.client_content_profiles
+  (client_id, brand_voice, industry, target_audience, platforms, monthly_goal, posting_frequency, content_pillars, created_by)
+values
+  ('c1000000-0000-4000-8000-000000000001', 'Chaleureux et familial', 'Agroalimentaire',
+   'Familles 25-45 ans', array['instagram','facebook'], '12 posts / mois', '3 par semaine',
+   array['Produit','Recette','Coulisses'], '11111111-1111-4111-8111-111111111111'),
+  ('c1000000-0000-4000-8000-000000000002', 'Premium et rassurant', 'Immobilier',
+   'Investisseurs 30-55 ans', array['instagram','linkedin'], '8 posts / mois', '2 par semaine',
+   array['Bien','Conseil','Témoignage'], '11111111-1111-4111-8111-111111111111')
+on conflict (client_id) do nothing;
+
+insert into public.monthly_content_plans (id, client_id, month, year, theme, goals, status, created_by) values
+  ('b1000000-0000-4000-8000-000000000001', 'c1000000-0000-4000-8000-000000000001',
+   8, 2026, 'Saveurs d''été', 'FABRICATED plan.', 'approved', '11111111-1111-4111-8111-111111111111'),
+  ('b1000000-0000-4000-8000-000000000002', 'c1000000-0000-4000-8000-000000000002',
+   8, 2026, 'Rentrée immobilière', 'FABRICATED plan.', 'draft', '11111111-1111-4111-8111-111111111111')
+on conflict (client_id, month, year) do nothing;
+
+insert into public.content_items
+  (plan_id, client_id, title, content_type, platform, pillar, caption, publish_date, deadline, status, priority, created_by)
+values
+  ('b1000000-0000-4000-8000-000000000001', 'c1000000-0000-4000-8000-000000000001',
+   'Recette estivale — salade Atlas', 'reel', 'instagram', 'Recette',
+   'FABRICATED caption.', '2026-08-14', '2026-08-12', 'approved', 'normal',
+   '11111111-1111-4111-8111-111111111111'),
+  ('b1000000-0000-4000-8000-000000000001', 'c1000000-0000-4000-8000-000000000001',
+   'Coulisses production', 'carousel', 'facebook', 'Coulisses',
+   'FABRICATED caption.', '2026-08-21', '2026-08-19', 'design', 'high',
+   '11111111-1111-4111-8111-111111111111'),
+  ('b1000000-0000-4000-8000-000000000002', 'c1000000-0000-4000-8000-000000000002',
+   'Nouveau bien — Lac 2', 'post', 'linkedin', 'Bien',
+   'FABRICATED caption.', '2026-08-28', '2026-08-26', 'idea', 'normal',
+   '11111111-1111-4111-8111-111111111111');
+
+-- ═══ 7. Publishing — finding #3 (past-dated, still "scheduled") ════════════
+insert into public.social_posts
+  (title, content, platforms, status, scheduled_at, project_id, task_id, created_by, hashtags, notes)
+values
+  ('Post Atlas — lancement', 'FABRICATED content.', array['instagram'], 'scheduled',
+   '2026-06-25 09:00:00+01', 'e1000000-0000-4000-8000-000000000001', null,
+   '11111111-1111-4111-8111-111111111111', '#atlas', 'Past-dated, still scheduled.'),
+  ('Post Nova — visite', 'FABRICATED content.', array['facebook','instagram'], 'scheduled',
+   '2026-06-30 17:30:00+01', 'e1000000-0000-4000-8000-000000000002', null,
+   '11111111-1111-4111-8111-111111111111', '#nova', 'Past-dated, still scheduled.'),
+  ('Post Zenith — promo', 'FABRICATED content.', array['instagram'], 'scheduled',
+   '2026-07-02 12:00:00+01', 'e1000000-0000-4000-8000-000000000003', null,
+   '11111111-1111-4111-8111-111111111111', '#zenith', 'Past-dated, still scheduled.'),
+  ('Post Atlas — publié', 'FABRICATED content.', array['instagram'], 'published',
+   '2026-08-05 10:00:00+01', 'e1000000-0000-4000-8000-000000000001', null,
+   '11111111-1111-4111-8111-111111111111', '#atlas', 'Control: genuinely published.');
+
+commit;
+
+-- ── Summary ────────────────────────────────────────────────────────────────
+do $$
+declare
+  n_clients int; n_devis int; n_items int;
+begin
+  select count(*) into n_clients from public.clients;
+  select count(*) into n_devis   from public.devis;
+  select count(*) into n_items   from public.content_items;
+  raise notice 'Staging seed complete: % clients, % documents, % content items.',
+    n_clients, n_devis, n_items;
+  raise notice 'Sign in with admin / worker / freelancer  (password: staging-only-not-a-secret)';
+  raise notice 'orphan@staging.local has NO profile and MUST be denied.';
+end $$;
