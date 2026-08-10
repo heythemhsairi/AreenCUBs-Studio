@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from "vitest";
-import { sql, sqlAs, sqlAsAnon, dbAvailable, USERS } from "./sql.mjs";
+import { sql, sqlAs, sqlAsAnon, dbAvailable, USERS, sqlAsExpectDeniedOrZero } from "./sql.mjs";
 
 /**
  * Content OS integration coverage — audit finding #1.
@@ -123,7 +123,122 @@ describe("content items persist correctly", () => {
   });
 });
 
-describe("CONFIRMED FINDING — Content OS RLS grants full CRUD to any authenticated identity", () => {
+describe("CONTAINED — Content OS RLS now checks the application role", () => {
+  /**
+   * These were the tests proving the vulnerability. Migration
+   * 20260811000001_content_os_rls_containment.sql replaced migration 21's
+   * `auth.role() = 'authenticated'` policies with `is_worker_or_admin()`,
+   * so they are now inverted: each asserts DENIAL.
+   *
+   * Assertions are on rows visible and rows AFFECTED, not on whether the
+   * statement throws — RLS denies a write by filtering rows, so a denied
+   * UPDATE returns success with zero rows. "Did it throw?" would pass
+   * vacuously.
+   */
+  it("an unprovisioned identity still has no application role", () => {
+    expect(sqlAs(USERS.orphan, "select coalesce(public.current_role()::text,'NULL');")).toBe("NULL");
+    expect(sqlAs(USERS.orphan, "select public.is_worker_or_admin();")).toBe("f");
+  });
+
+  it("DENIES an unprovisioned identity all reads", () => {
+    expect(sqlAs(USERS.orphan, "select count(*) from public.monthly_content_plans;")).toBe("0");
+    expect(sqlAs(USERS.orphan, "select count(*) from public.content_items;")).toBe("0");
+    expect(sqlAs(USERS.orphan, "select count(*) from public.client_content_profiles;")).toBe("0");
+  });
+
+  it("DENIES an unprovisioned identity every write — zero rows affected", () => {
+    const inserted = sqlAsExpectDeniedOrZero(
+      USERS.orphan,
+      `with i as (
+         insert into public.monthly_content_plans (client_id, month, year, theme)
+         values ('${CLIENT}', 9, 2027, 'synthetic probe') returning 1)
+       select count(*) from i;`,
+    );
+    const updated = sqlAsExpectDeniedOrZero(
+      USERS.orphan,
+      "with u as (update public.content_items set title='synthetic probe' returning 1) select count(*) from u;",
+    );
+    const deleted = sqlAsExpectDeniedOrZero(
+      USERS.orphan,
+      "with d as (delete from public.content_items returning 1) select count(*) from d;",
+    );
+    expect(inserted).toBe(0);
+    expect(updated).toBe(0);
+    expect(deleted).toBe(0);
+  });
+
+  it("DENIES a freelancer — Content OS is worker/admin territory in the approved model", () => {
+    expect(sqlAs(USERS.freelancer, "select count(*) from public.monthly_content_plans;")).toBe("0");
+    expect(sqlAs(USERS.freelancer, "select count(*) from public.content_items;")).toBe("0");
+    expect(
+      sqlAsExpectDeniedOrZero(
+        USERS.freelancer,
+        "with u as (update public.content_items set title='x' returning 1) select count(*) from u;",
+      ),
+    ).toBe(0);
+  });
+
+  it("DENIES a truly anonymous caller", () => {
+    expect(sqlAsAnon("select count(*) from public.content_items;")).toBe("0");
+    expect(sqlAsAnon("select count(*) from public.monthly_content_plans;")).toBe("0");
+    expect(sqlAsAnon("select count(*) from public.client_content_profiles;")).toBe("0");
+  });
+
+  it("ALLOWS an admin full functionality", () => {
+    expect(Number(sqlAs(USERS.admin, "select count(*) from public.monthly_content_plans;"))).toBeGreaterThan(0);
+    expect(Number(sqlAs(USERS.admin, "select count(*) from public.content_items;"))).toBeGreaterThan(0);
+    expect(
+      sqlAs(
+        USERS.admin,
+        `with i as (
+           insert into public.monthly_content_plans (client_id, month, year, theme, created_by)
+           values ('${CLIENT}', 10, 2027, 'admin probe', '${USERS.admin}') returning 1)
+         select count(*) from i;`,
+      ),
+    ).toBe("1");
+  });
+
+  it("ALLOWS a worker — matches requireWorkerOrAdmin() in the application", () => {
+    expect(Number(sqlAs(USERS.worker, "select count(*) from public.monthly_content_plans;"))).toBeGreaterThan(0);
+    expect(
+      sqlAs(
+        USERS.worker,
+        `with i as (
+           insert into public.monthly_content_plans (client_id, month, year, theme)
+           values ('${CLIENT}', 11, 2027, 'worker probe') returning 1)
+         select count(*) from i;`,
+      ),
+    ).toBe("1");
+  });
+
+  it("the policies now check the application role, not merely that a JWT exists", () => {
+    const quals = sql(
+      `select string_agg(distinct qual, ' | ') from pg_policies
+       where tablename in ('client_content_profiles','monthly_content_plans','content_items')
+         and qual is not null;`,
+    );
+    expect(quals).toContain("is_worker_or_admin");
+    expect(quals).not.toContain("auth.role()");
+  });
+
+  it("INSERT policies carry a WITH CHECK expression", () => {
+    // A missing WITH CHECK on INSERT would leave writes ungated even with a
+    // correct USING clause.
+    const n = Number(
+      sql(`select count(*) from pg_policies
+           where tablename in ('client_content_profiles','monthly_content_plans','content_items')
+             and cmd = 'INSERT' and with_check is not null;`),
+    );
+    expect(n).toBe(3);
+  });
+
+  it("leaves the fixture unchanged — every probe rolled back", () => {
+    expect(sql("select count(*) from public.content_items;")).toBe("3");
+    expect(sql("select count(*) from public.monthly_content_plans;")).toBe("2");
+  });
+});
+
+describe.skip("SUPERSEDED — original vulnerability demonstration", () => {
   /**
    * Migration 21 guards all three Content OS tables with
    *   USING (auth.role() = 'authenticated')

@@ -202,26 +202,53 @@ describe("0024 devis_stamp / 0025 fix_devis_totals", () => {
   });
 });
 
-describe("migration 21 retry hazard (finding #1 root cause)", () => {
-  it("cannot be re-run — an unguarded CREATE POLICY aborts a retry", () => {
-    // Documented empirically rather than inferred. A partial apply of
-    // migration 21 can therefore never self-heal, which is why a separate
-    // guarded repair migration is still required (and still unapproved).
-    const err = sqlExpectError(
-      `create policy "content_profiles_read" on public.client_content_profiles for select using (true);`,
+describe("migration 21 retry hazard, after containment", () => {
+  /**
+   * Migration 20260811000001 replaced migration 21's permissive policies, so
+   * its original policy NAMES no longer exist and re-creating them no longer
+   * collides. The unguarded-CREATE-POLICY hazard in migration 21 is unchanged
+   * as a fact about that file — it simply can no longer be demonstrated by
+   * name collision here.
+   *
+   * These assertions now verify the containment end state instead, which is
+   * what actually matters going forward.
+   */
+  it("migration 21's permissive policies are gone", () => {
+    const n = Number(
+      sql(`select count(*) from pg_policies
+           where policyname in ('content_profiles_read','content_plans_read','content_items_read',
+                                'content_profiles_write','content_plans_write','content_items_write');`),
     );
-    expect(err.toLowerCase()).toMatch(/already exists/);
+    expect(n).toBe(0);
   });
 
-  it("the same hazard exists for every policy migration 21 creates", () => {
-    for (const [policy, table] of [
-      ["content_plans_read", "monthly_content_plans"],
-      ["content_items_read", "content_items"],
-    ]) {
-      const err = sqlExpectError(
-        `create policy "${policy}" on public.${table} for select using (true);`,
-      );
-      expect(err.toLowerCase()).toMatch(/already exists/);
-    }
+  it("no Content OS policy is permissive-to-all", () => {
+    // A `qual = true` SELECT policy would re-open the tables. This is exactly
+    // what a leaky test probe once left behind, so it is asserted explicitly.
+    const open = sql(
+      `select coalesce(string_agg(policyname, ','), '') from pg_policies
+       where tablename in ('client_content_profiles','monthly_content_plans','content_items')
+         and (qual = 'true' or with_check = 'true');`,
+    );
+    expect(open).toBe("");
+  });
+
+  it("the containment migration is recorded as applied", () => {
+    const v = sql(
+      "select coalesce(string_agg(version, ','), '') from supabase_migrations.schema_migrations where version like '20260811%';",
+    );
+    expect(v).toContain("20260811000001");
+  });
+
+  it("a still-guarded duplicate policy is rejected AND leaves no trace", () => {
+    // Proves both the hazard shape and that sqlExpectError rolls back.
+    const err = sqlExpectError(
+      `create policy "content_plans_select" on public.monthly_content_plans for select using (true);`,
+    );
+    expect(err.toLowerCase()).toMatch(/already exists/);
+    const open = sql(
+      `select count(*) from pg_policies where tablename='monthly_content_plans' and qual='true';`,
+    );
+    expect(open).toBe("0");
   });
 });

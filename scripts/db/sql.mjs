@@ -68,10 +68,25 @@ export function sql(query) {
   ).trim();
 }
 
-/** Runs SQL expecting failure; returns the error text. Throws if it succeeds. */
+/**
+ * Runs SQL expecting failure; returns the error text. Throws if it succeeds.
+ *
+ * ALWAYS wrapped in a rolled-back transaction. This previously ran bare, and
+ * when a probe that was *expected* to fail instead succeeded, its effect
+ * persisted: a `CREATE POLICY ... USING (true)` probe left a permissive policy
+ * behind and silently re-opened a table for every later test in the run. A
+ * diagnostic must never be able to change the database it is inspecting.
+ */
 export function sqlExpectError(query) {
+  const c = dbContainer();
+  if (!c) throw new Error("no local staging database");
+  const wrapped = `begin; ${query}; rollback;`;
   try {
-    sql(query);
+    execFileSync(
+      docker,
+      ["exec", c, "psql", "-U", "postgres", "-d", "postgres", "-v", "ON_ERROR_STOP=1", "-tAc", wrapped],
+      { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 60_000 },
+    );
   } catch (err) {
     return `${err.stdout ?? ""}${err.stderr ?? ""}`.trim() || err.message;
   }
@@ -158,6 +173,25 @@ export function sqlAsAnon(query) {
     { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 60_000 },
   );
   return extractFenced(out);
+}
+
+/**
+ * Runs a write as an impersonated user and returns the number of rows
+ * AFFECTED, treating an outright rejection as zero.
+ *
+ * RLS denies a write by filtering rows, not by raising, so a denied UPDATE
+ * returns success with zero rows. Asserting "did it throw?" would pass
+ * vacuously; this returns the number that actually matters. An INSERT blocked
+ * by a WITH CHECK clause DOES raise, so both shapes are normalised to 0.
+ */
+export function sqlAsExpectDeniedOrZero(userId, query) {
+  try {
+    const out = sqlAs(userId, query);
+    const n = Number(String(out).trim().split("\n").pop());
+    return Number.isFinite(n) ? n : 0;
+  } catch {
+    return 0; // rejected outright — also zero rows affected
+  }
 }
 
 /** As sqlAs, but expects the statement to be rejected. Returns the error. */
