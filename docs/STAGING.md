@@ -71,10 +71,14 @@ Then install **Docker Desktop for Windows** from <https://www.docker.com/product
 
 > **Licensing:** Docker Desktop is free for personal use, education, open source, and **small businesses under 250 employees and under $10M annual revenue**. Areen CUBs qualifies. No subscription is required.
 
-Confirm:
+Confirm everything at once:
 ```bash
-docker --version && docker info --format '{{.ServerVersion}}'
+npm run db:preflight
 ```
+
+It checks WSL 2, the Docker daemon, the Supabase CLI, the project files and the four ports, then prints the exact remediation for anything missing — in installation order. It installs nothing, changes nothing and needs no elevation.
+
+> **Why this cannot be done from an agent session:** `wsl --install` requires an elevated process, and this session runs unelevated as `DESKTOP-T61VSOV\AreenCubs` (`Get-WindowsOptionalFeature` returns *"The requested operation requires elevation"*). The install also requires a restart. Both are user actions.
 
 ### If Docker is not an option
 
@@ -85,9 +89,18 @@ A container-free fallback exists: a portable PostgreSQL install plus a small shi
 ## 3. Start the stack
 
 ```bash
+npm run db:preflight # confirm prerequisites (fails fast if anything is missing)
 npm run db:start     # first run pulls images (~1 GB, a few minutes)
 npm run db:reset     # applies all 25 migrations, then supabase/seed.sql
 npm run db:verify    # asserts the environment is correct
+```
+
+### Confirming isolation
+
+After `db:start`, every endpoint must be loopback. Anything else means the stack is not isolated:
+
+```bash
+npm run db:status | grep -Ei 'http|postgresql'   # expect 127.0.0.1 only
 ```
 
 `npm run db:start` prints local URLs and keys. Put them in `.env.local`:

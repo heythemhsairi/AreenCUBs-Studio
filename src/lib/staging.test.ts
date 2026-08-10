@@ -90,7 +90,7 @@ describe("production write paths are guarded", () => {
   });
 
   it("provides local lifecycle scripts instead", () => {
-    for (const s of ["db:start", "db:stop", "db:reset", "db:status", "db:verify"]) {
+    for (const s of ["db:preflight", "db:start", "db:stop", "db:reset", "db:status", "db:verify"]) {
       expect(pkg.scripts[s]).toBeTruthy();
     }
   });
