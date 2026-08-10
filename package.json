@@ -8,6 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run",
     "db:link": "supabase link --project-ref exdatjsgeomejhdofgvw",
     "db:push": "supabase db push",
     "db:diff": "supabase db diff"
@@ -37,6 +39,7 @@
     "postcss": "^8.4.49",
     "supabase": "^2.6.8",
     "tailwindcss": "^3.4.16",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "vitest": "^3.2.4"
   }
 }
