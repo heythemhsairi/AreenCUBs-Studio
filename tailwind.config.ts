@@ -80,6 +80,16 @@ const config: Config = {
           "Segoe UI",
           "Helvetica",
           "Arial",
+          // Arabic fallback only — reached for glyphs the Latin face lacks.
+          "var(--font-noto-arabic)",
+          "sans-serif",
+        ],
+        // Opt-in Arabic-first stack: `font-arabic`.
+        arabic: [
+          "var(--font-noto-arabic)",
+          "var(--font-franklin)",
+          "ui-sans-serif",
+          "system-ui",
           "sans-serif",
         ],
       },

@@ -82,9 +82,26 @@
     background: var(--c-bg);
     background-attachment: fixed;
     color: var(--c-text-1);
+    /* Latin first, unchanged. Noto Sans Arabic sits after it purely as a
+       fallback: the browser only reaches it for codepoints Libre Franklin
+       has no glyph for, i.e. Arabic script. Latin rendering is unaffected. */
     font-family: var(--font-franklin), ui-sans-serif, system-ui, -apple-system,
-      "Segoe UI", Helvetica, Arial, sans-serif;
+      "Segoe UI", Helvetica, Arial, var(--font-noto-arabic), sans-serif;
     font-feature-settings: "ss01" on, "cv11" on;
+  }
+
+  /* Arabic content leads with Noto Sans Arabic rather than falling back to it.
+     Applies to any element explicitly marked as Arabic, and to descendants,
+     so a single lang="ar" section switches typeface without extra classes.
+
+     Scope note: this is typography only. Arabic translations and RTL layout
+     are deliberately NOT part of this phase — no `direction` or `text-align`
+     is set here, so marking an element lang="ar" changes the font and nothing
+     else. `dir="rtl"` remains an explicit, separate decision. */
+  [lang="ar"],
+  [lang="ar"] * {
+    font-family: var(--font-noto-arabic), var(--font-franklin), ui-sans-serif,
+      system-ui, "Segoe UI", sans-serif;
   }
 
   /* dark body gets the mesh overlay too */

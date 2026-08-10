@@ -297,14 +297,35 @@ Read-only filesystem inspection found both families in two locations (`~/Downloa
 - **Clear Sans** — originally released by Intel under Apache 2.0, which permits embedding. **Needs confirmation** that these specific files are that release.
 - **Ping AR + LT** — a commercial foundry Arabic family. Desktop `.otf` files installed for design work **do not** grant web-embedding rights. A separate **webfont licence** is almost certainly required.
 
-**Licensing conclusion (recorded 2026-08-10):**
+> ### ✅ RESOLVED — decision taken 2026-08-10 (Phase 1e)
+>
+> **Noto Sans Arabic is approved as the free replacement for Ping AR + LT.**
+> Management elected **not to purchase a font licence**. Ping AR + LT is
+> withdrawn from the design entirely — not deferred, not kept as a swap target.
+>
+> - Loaded via `next/font/google` as a **variable font** (100–900, no static
+>   weight array) with `display: "swap"`, self-hosted at build time so the
+>   browser makes no third-party request.
+> - Added as the **Arabic fallback** in the global stack, after the Latin face;
+>   applied Arabic-first to anything marked `lang="ar"`.
+> - **Libre Franklin is unchanged.** Latin rendering is untouched.
+> - Licence: **SIL Open Font License** — free, and embeddable without purchase.
+> - **No Ping AR file was copied, converted or committed** at any point.
+> - Arabic translations and RTL layout are explicitly **out of scope** for this
+>   phase; the `lang="ar"` rule sets typography only, no `direction`.
+>
+> Enforced by tests in `src/lib/fonts.test.ts`, including a guard that no font
+> binary of any family is ever committed to the repository.
+
+**Licensing conclusion (recorded 2026-08-10, superseded by the decision above):**
 
 - **Neither family will be copied, converted, or committed** until licensing is documented in writing.
 - **Ping AR + LT is explicitly excluded from any copy or WOFF2 conversion step.** Desktop `.otf` files licensed for design work do not convey web-embedding rights, and no EULA accompanies these files.
 - **Proposed fallback: Noto Sans Arabic** (SIL Open Font License, unambiguously embeddable, broad weight coverage, strong Arabic shaping). It is *proposed only* — **the substitution will not be finalised without approval.**
 - Clear Sans is *probably* the Apache-2.0 Intel release, but "probably" is not a licence. It stays uncommitted pending confirmation.
 
-> **APPROVAL REQUIRED before Phase 2 typography:** either (a) the Ping AR + LT **webfont** licence, or (b) sign-off on Noto Sans Arabic as the shipped Arabic face with Ping AR kept as a drop-in swap.
+> ~~**APPROVAL REQUIRED before Phase 2 typography:** either (a) the Ping AR + LT **webfont** licence, or (b) sign-off on Noto Sans Arabic as the shipped Arabic face with Ping AR kept as a drop-in swap.~~
+> **Closed 2026-08-10 — option (b) chosen, with Ping AR withdrawn rather than retained as a swap.** No licence purchased. Implemented in Phase 1e.
 
 ---
 
@@ -350,7 +371,7 @@ Phase 0 static analysis is complete. **Every remaining item below is blocked on 
 | 3 | Production DB backup confirmation | Any approved migration | Required by your own rules before Phase 1 |
 | 4 | Test logins for each role | Authorization matrix | Staging accounts only |
 | 5 | Browser automation (Playwright) approval | Responsive + a11y evidence, before/after screenshots | Not currently installed; needed for the 320/390/768/1280/1440 matrix |
-| 6 | Ping AR + LT webfont licence | Phase 2 typography | See §5 |
+| ~~6~~ | ~~Ping AR + LT webfont licence~~ | ~~Phase 2 typography~~ | ✅ **Closed** — Noto Sans Arabic approved, no licence needed (§5) |
 | 7 | Written approval for Drive OAuth spike | Phase 5 | Read-only scope first |
 
 Without #1 I cannot reproduce findings 1, 3, 5 or 16 against real data, and I will not mark them fixed on static analysis alone.
@@ -383,5 +404,5 @@ Ordered by dependency, not by severity.
 1. **Production drift is unmeasured.** Until §8.2 is supplied, the true delta between repo migrations and the live database is unknown. Everything about finding #1 rests on an inference.
 2. **Financial reconciliation touches settled records.** The 1 DT discrepancy is small; the precedent is not. Backup + written approval required.
 3. **No test safety net exists today.** Refactoring money math without tests first would be reckless — hence Phase 0.5.
-4. **Ping AR licensing may block the Arabic tier** and force a fallback family.
+4. ~~**Ping AR licensing may block the Arabic tier** and force a fallback family.~~ **Retired 2026-08-10** — Noto Sans Arabic (SIL OFL) adopted, no licence dependency remains. Residual risk is only cosmetic: the Arabic face is no longer the one originally art-directed for, so Arabic typography should be design-reviewed when translations land.
 5. **Google Drive may not support secure review playback** at all; the hybrid architecture in your brief is the likely outcome, and it implies paid object storage — which needs separate approval.
