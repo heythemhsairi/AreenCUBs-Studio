@@ -142,13 +142,11 @@ npm run db:status | grep -Ei 'http|postgresql'   # expect 127.0.0.1 only
 >
 > The Supabase CLI owns the publish spec and `config.toml` has no bind-address setting, so there is currently **no supported way** to make `supabase start` publish on loopback under Docker Desktop for Windows.
 >
-> #### Remaining options
+> #### ✅ RESOLVED — run the stack inside WSL 2 instead
 >
-> 1. **Operational discipline (in force today).** Run `npm run db:stop` whenever staging is not actively in use. Verified: after `db:stop`, the LAN probe returns `False` and zero containers remain. This is what the project does now.
-> 2. **Run the stack inside WSL 2 instead of Docker Desktop.** Install Docker CE inside the Ubuntu distribution and run the Supabase CLI there. WSL 2 forwards ports to Windows on `127.0.0.1` only, so this would satisfy the requirement natively. It is a change of development architecture and needs approval before it is attempted.
-> 3. **Windows Firewall inbound block.** Explicitly ruled out by management — recorded here only so the decision is not revisited by accident.
+> The Docker Desktop daemon configuration was **reverted** (restored from backup, hash-verified) and the stack now runs on a native Docker Engine inside the Ubuntu WSL distribution. See §9. Isolation is proven, not assumed.
 >
-> The `daemon.json` change above was left in place: it is harmless and does harden the default bridge, but it does **not** close this gap. A backup of the original sits at `daemon.json.bak-areencubs`. That file is machine configuration and is never committed.
+> The Windows Firewall route stays ruled out by management — recorded here only so the decision is not revisited by accident.
 
 `npm run db:start` prints local URLs and keys. Put them in `.env.local`:
 
@@ -245,3 +243,95 @@ Once running:
 - Never point `.env.local` at production for day-to-day development.
 - The money module stays disconnected from persistence until the one-centime divergence is approved (`docs/audit/MONEY-COMPATIBILITY.md` §4).
 - No migration is applied to production without approval and a verified backup.
+
+---
+
+## 9. Running the stack inside WSL 2 (the isolated setup)
+
+Docker Desktop cannot bind published ports to loopback on Windows (§3). The stack therefore runs on a native Docker Engine inside the Ubuntu WSL distribution, where the daemon's default binding **is** honoured. Isolation was measured, not assumed.
+
+### Why this works when Docker Desktop did not
+
+The decisive difference is visible in one field. Under **both** setups the container requests `HostIp: ""` — nothing ever asks for `0.0.0.0`:
+
+| | `HostConfig.PortBindings` | Actual binding |
+|---|---|---|
+| Docker Desktop (Windows) | `{"HostIp":"","HostPort":"54322"}` | `0.0.0.0:54322` ❌ |
+| Docker Engine (WSL 2) | `{"HostIp":"","HostPort":"54322"}` | `127.0.0.1:54322` ✅ |
+
+Native Linux Docker applies the daemon's default binding when `HostIp` is empty. Docker Desktop's Windows-side proxy does not — it publishes on `0.0.0.0` regardless of any network option.
+
+### One-time setup
+
+```bash
+# Inside Ubuntu, as root. Docker Engine CE — free and open source.
+# Follow Docker's official Ubuntu procedure, then:
+cat > /etc/docker/daemon.json <<'JSON'
+{
+  "ip": "127.0.0.1",
+  "default-network-opts": {
+    "bridge": { "com.docker.network.bridge.host_binding_ipv4": "127.0.0.1" }
+  }
+}
+JSON
+systemctl restart docker
+```
+
+The daemon listens on the **UNIX socket only**. No `hosts` entry is added, so the API is never exposed over TCP; `0.0.0.0:2375` is never configured.
+
+The workspace is a **separate clone inside the Linux filesystem** (`~/AreenCUBs-Studio-staging`, ext4 — not a `/mnt/c` drvfs mount), cloned from the local Windows repository rather than any hosted source. It carries **no `.env*` file at all**, so `supabase start` generates its own local keys. `node_modules` is installed natively in Linux and never shared with Windows — without this, `npm` resolves through PATH interop to `/mnt/c/Program Files/nodejs/npm`.
+
+### Daily use
+
+```bash
+wsl -d Ubuntu
+cd ~/AreenCUBs-Studio-staging
+npm run db:preflight && npm run db:start && npm run db:reset && npm run db:verify
+```
+
+### Measured isolation (2026-08-10)
+
+Linux side — `docker ps`, `docker inspect`, `ss -lntp`:
+
+```
+supabase_db     127.0.0.1:54322->5432/tcp
+supabase_kong   127.0.0.1:54321->8000/tcp
+supabase_studio 127.0.0.1:54323->3000/tcp
+supabase_inbucket 127.0.0.1:54324->8025/tcp
+
+LISTEN 127.0.0.1:54321  docker-proxy
+LISTEN 127.0.0.1:54322  docker-proxy
+LISTEN 127.0.0.1:54323  docker-proxy
+LISTEN 127.0.0.1:54324  docker-proxy
+
+wildcard bindings: none          LINUX ISOLATION: PASS
+```
+
+Windows side — `Get-NetTCPConnection` and `Test-NetConnection`:
+
+| Target | 54321 | 54322 | 54323 | 54324 |
+|---|---|---|---|---|
+| `127.0.0.1` (must succeed) | ✅ True | ✅ True | ✅ True | ✅ True |
+| LAN `192.168.1.11` (must fail) | ✅ False | ✅ False | ✅ False | ✅ False |
+| WSL VM `172.31.35.107` (must fail) | ✅ False | ✅ False | ✅ False | ✅ False |
+| WSL gateway `172.31.32.1` (must fail) | ✅ False | ✅ False | ✅ False | ✅ False |
+
+Windows listeners on those ports: `127.0.0.1` only. No `0.0.0.0`, no `[::]`.
+
+### WSL networking mode
+
+`.wslconfig` is **absent**, so WSL defaults apply: **NAT** networking and `localhostForwarding=true`. Nothing was changed. NAT was confirmed empirically — the VM's `eth0` is `172.31.35.107/20`, a different subnet from the Windows LAN address `192.168.1.11`. In **mirrored** mode the VM shares the host's interfaces, and a service bound to `127.0.0.1` inside the VM would become reachable on the host's LAN address. **Do not enable mirrored networking** — `npm run db:preflight` now fails if it is set.
+
+### Operational note
+
+WSL shuts the VM down when idle, which stops the containers and removes the Windows-side forwarding. This is observable as ports that answered a moment ago suddenly refusing. It is not a fault, and it is a *safe* default: when idle, nothing listens at all. Run any `wsl` command to bring it back; systemd restarts Docker and the containers.
+
+### What preflight now detects
+
+`npm run db:preflight` checks, in addition to the earlier prerequisites:
+
+- **Docker flavour** — native engine vs Docker Desktop, warning that Desktop cannot enforce loopback publishing
+- **Docker API not on TCP** — fails on any `tcp://` endpoint
+- **WSL networking mode** — fails on `mirrored`
+- **Published port bindings** — fails on any `0.0.0.0` / `[::]` binding on a running `supabase_*` container
+- **LAN reachability** — dials the host's own non-loopback addresses and requires refusal
