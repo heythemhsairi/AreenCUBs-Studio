@@ -603,6 +603,9 @@ function DarkKanbanCard({
 
       {/* Status selector */}
       <select
+        // axe `select-name` (critical) — see tasks-kanban.tsx. The name
+        // identifies both the field and the row it mutates.
+        aria-label={`${t.tasks.statusLabel} — ${task.title}`}
         value={effectiveStatus}
         onChange={(e) => {
           const s = e.target.value as Status;

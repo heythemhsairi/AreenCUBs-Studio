@@ -1,6 +1,12 @@
 "use client";
 
-import { useTransition } from "react";
+import {
+  useTransition,
+  useId,
+  cloneElement,
+  isValidElement,
+  type ReactElement,
+} from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -168,12 +174,27 @@ function Field({
   full?: boolean;
   children: React.ReactNode;
 }) {
+  // axe `label` (critical): this rendered a bare <label> with no htmlFor and a
+  // control with no id, so none of the nine settings fields had an accessible
+  // name. Fixed once here rather than nine times at the call sites.
+  //
+  // useId() is React's SSR-safe identifier generator — server and client agree,
+  // so this cannot reintroduce a hydration mismatch the way an ad-hoc random id
+  // would.
+  const id = useId();
+  const control = isValidElement(children)
+    ? cloneElement(children as ReactElement<{ id?: string }>, { id })
+    : children;
+
   return (
     <div className={`space-y-1.5 ${full ? "md:col-span-2" : ""}`}>
-      <label className="text-xs font-semibold uppercase tracking-wider text-ink/55">
+      <label
+        htmlFor={id}
+        className="text-xs font-semibold uppercase tracking-wider text-ink/55"
+      >
         {label}
       </label>
-      {children}
+      {control}
     </div>
   );
 }

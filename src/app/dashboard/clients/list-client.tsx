@@ -85,6 +85,10 @@ export function ClientsListClient({ clients }: { clients: ClientRow[] }) {
               />
             </div>
             <select
+              // axe `select-name` (critical): this control had no accessible
+              // name, so a screen-reader user could change the sort order
+              // without knowing what it does.
+              aria-label={t.common.sortBy}
               value={sort}
               onChange={(e) => setSort(e.target.value as Sort)}
               className="h-9 rounded-lg border border-[#22506F] bg-[#123A5A] px-3 text-xs font-medium text-[#94A3B8] focus:border-[#22D3EE] focus:outline-none focus:ring-2 focus:ring-[#22D3EE]/20"

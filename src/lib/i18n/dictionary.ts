@@ -1071,6 +1071,8 @@ export const dict = {
       addTitle: "Nouvelle tâche",
       empty: "Aucune tâche.",
       emptyMine: "Aucune tâche assignée.",
+      // Accessible name for the inline status selector (axe select-name).
+      statusLabel: "Statut de la tâche",
       columns: {
         title: "Titre",
         project: "Projet",
@@ -2457,6 +2459,8 @@ export const dict = {
       addTitle: "New task",
       empty: "No tasks.",
       emptyMine: "No assigned tasks.",
+      // Accessible name for the inline status selector (axe select-name).
+      statusLabel: "Task status",
       columns: {
         title: "Title",
         project: "Project",

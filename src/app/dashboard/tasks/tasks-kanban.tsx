@@ -316,6 +316,10 @@ function KanbanCard({
       </div>
 
       <select
+        // axe `select-name` (critical). This control MUTATES a task, so an
+        // unnamed one lets a screen-reader user change a task's status without
+        // knowing which task or which field. The name carries both.
+        aria-label={`${t.tasks.statusLabel} — ${task.title}`}
         value={effectiveStatus}
         onChange={onChangeStatus}
         onClick={(e) => e.stopPropagation()}
