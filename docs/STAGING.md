@@ -335,3 +335,42 @@ WSL shuts the VM down when idle, which stops the containers and removes the Wind
 - **WSL networking mode** — fails on `mirrored`
 - **Published port bindings** — fails on any `0.0.0.0` / `[::]` binding on a running `supabase_*` container
 - **LAN reachability** — dials the host's own non-loopback addresses and requires refusal
+
+---
+
+## 10. Stopping the stack reliably
+
+`npm run db:stop` no longer shells straight to `supabase stop`. That command returns before the Docker daemon has finished tearing containers down, so a count taken immediately afterwards is a race — it once reported **9 containers** for a stack whose ports were already closed.
+
+Stopping is now an operation with a settling period: issue the stop, then poll until containers *and* ports agree, with a bounded timeout.
+
+| Outcome | Exit | Meaning |
+|---|---|---|
+| `already-stopped` | 0 | nothing running, nothing listening — safe to call repeatedly |
+| `stopped` | 0 | 0 running, 0 stale, 0 listeners |
+| `timeout` | 1 | containers still running after the budget |
+| `docker-failed` | 1 | the daemon could not be queried |
+| `ports-still-listening` | 1 | containers gone but a port is still bound |
+| `stale-containers` | 1 | exited Supabase containers remain |
+
+Properties worth knowing:
+
+- **Idempotent** — repeated calls succeed without issuing a stop.
+- **Never touches foreign containers** — only `^supabase_` names are considered, so an unrelated local Postgres is never stopped.
+- **Removes stale containers** — exited ones are what cause `container name already in use` on the next start.
+- **A non-zero `supabase stop` is not automatically fatal** — the settled state decides, since the CLI can exit non-zero on a degraded stack whose containers still go away.
+- **Ports are checked independently** — containers gone but a port still bound reports failure, never success.
+
+Logic lives in `scripts/lib/staging-lifecycle.mjs` (pure, dependency-injected) and is covered by 21 tests driven by a fake clock. `scripts/stop-staging.mjs` only supplies the Docker and socket adapters.
+
+### Preflight refuses, it does not warn
+
+`npm run db:preflight` **fails** — it does not warn — on any of:
+
+- Docker Desktop on Windows (cannot bind published ports to loopback)
+- WSL mirrored networking (the VM would share the host's interfaces)
+- a `tcp://` Docker endpoint (API exposed over the network)
+- any `0.0.0.0` / `[::]` binding on a running `supabase_*` container
+- a successful probe against the host's own non-loopback address
+
+The last check is empirical on purpose. Binding text alone was misleading on Docker Desktop: a network carrying `host_binding_ipv4=127.0.0.1` still answered on the LAN.

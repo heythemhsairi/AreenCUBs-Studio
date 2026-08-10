@@ -100,4 +100,11 @@ describe("production write paths are guarded", () => {
     // remote form that could be triggered by accident.
     expect(pkg.scripts["db:reset"]).toBe("supabase db reset");
   });
+
+  it("routes db:stop through the verified stop script, not a bare supabase stop", () => {
+    // A bare `supabase stop` returns before the daemon has finished tearing
+    // containers down, so a count taken straight afterwards is unreliable.
+    expect(pkg.scripts["db:stop"]).toBe("node scripts/stop-staging.mjs");
+    expect(pkg.scripts["db:stop"]).not.toMatch(/^supabase stop/);
+  });
 });

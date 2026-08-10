@@ -141,11 +141,14 @@ if (dockerOk) {
     (process.platform === "win32" && !/^unix:/.test(endpoint));
 
   if (isDesktop) {
+    // FAIL, not WARN. Measured: Docker Desktop publishes on 0.0.0.0 regardless
+    // of any daemon or per-network binding option, so the isolation gate cannot
+    // hold here. Allowing a warning would let the stack start exposed.
     record(
       "Docker flavour",
-      "WARN",
+      "FAIL",
       `Docker Desktop (${endpoint || "npipe"}) — CANNOT bind published ports to loopback`,
-      "Ports will publish on 0.0.0.0 and be reachable from the LAN. Run the stack inside WSL (see docs/STAGING.md), or stop it when idle.",
+      "Run the stack inside WSL 2 with the native Docker Engine (docs/STAGING.md §9). Docker Desktop publishes on 0.0.0.0 and exposes PostgreSQL to the LAN.",
     );
   } else {
     record("Docker flavour", "PASS", `native engine (${endpoint || "unix socket"})`);
