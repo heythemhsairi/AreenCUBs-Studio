@@ -61,3 +61,30 @@ Then read, in order:
 2. `docs/audit/DECISIONS-NEEDED.md` — everything blocked on approval
 3. `docs/audit/PHASE-0-DISCOVERY.md` — the confirmed issue register
 4. `docs/STAGING.md` — how to run the isolated stack
+
+---
+
+## Next steps (in order)
+
+1. **Phase 2d — browser/hydration verification.** Not started.
+   - `npm i -D @playwright/test && npx playwright install chromium` (free)
+   - Generate ephemeral local Supabase keys from `npm run db:status` into an **ignored** temp env file inside the WSL clone. Never print, never commit, delete afterwards.
+   - Cover: synthetic admin login, missing-profile fail-closed, Content OS plan creation, Publishing hydration under UTC-server vs Africa/Tunis-browser, finance pages against the contradiction fixture, navigation and error states.
+   - Responsive at mobile / tablet / desktop; focused a11y (keyboard, visible focus, labels, dialogs, contrast).
+   - Screenshots must contain fabricated data only.
+2. **Phase 2f — dashboard quality audit**, using 2d evidence.
+
+Run database and browser work **only** inside WSL, prove isolation first, stop the stack after.
+
+## Current totals
+
+| | |
+|---|---|
+| Unit tests | **197** (8 files) — `npm run test:run`, no Docker needed |
+| Database tests | **99** (4 files) — `npm run test:db`, requires the WSL stack |
+| Build | clean, **52 routes** |
+| Typecheck | clean |
+
+## Commits this session
+
+`dae79f2` Phase 2b · `6a7fce7` Phase 2c · Phase 2e (this commit)

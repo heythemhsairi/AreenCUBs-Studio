@@ -108,3 +108,27 @@ Any authenticated identity, **including one with no `profiles` row**, can read, 
 3. **A finance assertion** expected an aggregate difference of exactly 1 DT; the real difference is 597 DT because it also sweeps in the draft-marked-paid invoice. Replaced with an enumeration of the specific hidden documents (`9001:1.00`, `9002:596.00`) — stricter and honest about what is measured.
 
 Also corrected: a data-modifying CTE joined back against its own table returns nothing (PostgreSQL snapshot semantics); and `sqlAs(null, …)` is *not* anonymous — it still presents `role=authenticated`. A separate `sqlAsAnon` using the `anon` role was added, and that distinction is precisely what the Content OS finding turns on.
+
+---
+
+## Phase 2e — production-repair readiness without production access
+
+**Status: complete.** Nothing executed against production.
+
+- `docs/audit/PRODUCTION-DRIFT-DECISION.md` — the full decision tree. Four outcomes (history ends at 0017 / 0018 recorded but objects absent / partial manual application / schema fine but ledger inconsistent), each with the read-only evidence required, the expected migration-list pattern, a forward-only repair strategy, and rollback plus verification.
+- `scripts/prod-migration-history.mjs` — guarded read-only wrapper. Verified locally that it **refuses** without `--i-have-approval` and **rejects** any extra argument. It redacts project refs, URLs, connection strings and JWTs from its output, never reads `.env.local`, and never accepts a key as an argument. **Not executed.**
+- Service-role rotation checklist, including the step most often missed: **redeploy Vercel**, because env vars are read at build/boot and the old key stays live until then.
+
+**No production repair migration was created.** Writing one before the history is known would be guessing. `.sql.plan` is reserved for non-executable drafts — the extension matters, since the Supabase CLI only picks up `.sql` under `migrations/`.
+
+The rule carried into every branch: **a corrected historical migration will never heal production.** `0003`, `0007` and `0018` were fixed for fresh installs; migrations already recorded as applied — or as failed — do not re-run.
+
+---
+
+## Not yet done
+
+**Phase 2d — browser and hydration verification.** Not started. Requires a Playwright install plus browser binaries, ephemeral local credentials in an ignored temp file inside the WSL clone, and a full e2e pass. Deferred for context, not blocked.
+
+**Phase 2f — dashboard quality audit.** Depends on 2d for evidence.
+
+Both are safe to run locally with the infrastructure already in place. See `SESSION-STATE.md` for the exact resume steps.
