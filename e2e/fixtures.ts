@@ -76,15 +76,29 @@ export const ACCOUNTS = {
   orphan: { username: "orphan", password: "staging-only-not-a-secret" },
 };
 
+/**
+ * Signs in and does not return until the session is actually usable.
+ *
+ * The previous implementation raced: `Promise.all([waitForLoadState('networkidle'),
+ * click])` could resolve before the server action's redirect and Set-Cookie had
+ * landed, so the next `goto` was made without a session and bounced to /login.
+ * It passed on the desktop project and failed on tablet and mobile purely on
+ * timing — the classic shape of a flaky auth helper.
+ *
+ * Waiting for the URL to LEAVE /login ties the helper to the observable
+ * outcome instead of to network quiescence.
+ */
 export async function login(page: Page, who: keyof typeof ACCOUNTS) {
   const { username, password } = ACCOUNTS[who];
   await page.goto("/login");
   await page.fill('input[name="username"]', username);
   await page.fill('input[name="password"]', password);
-  await Promise.all([
-    page.waitForLoadState("networkidle"),
-    page.click('button[type="submit"]'),
-  ]);
+  await page.click('button[type="submit"]');
+
+  // Valid accounts land on /dashboard; the profile-less account is redirected
+  // to /account-unavailable. Either is a completed sign-in.
+  await page.waitForURL((url) => !url.pathname.startsWith("/login"), { timeout: 30_000 });
+  await page.waitForLoadState("networkidle");
 }
 
 /** React hydration failures, by the codes React emits in production builds. */

@@ -22,6 +22,10 @@ const ROUTES = [
 ];
 
 test.describe("core navigation", () => {
+  test.beforeEach(async ({ page }) => {
+    await login(page, "admin");
+  });
+
   for (const route of ROUTES) {
     test(`${route} loads without console errors or failed requests`, async ({
       page,
@@ -35,10 +39,6 @@ test.describe("core navigation", () => {
       expect(diagnostics.failedRequests, `failed requests on ${route}`).toEqual([]);
     });
   }
-
-  test.beforeEach(async ({ page }) => {
-    await login(page, "admin");
-  });
 });
 
 test.describe("Publishing hydration — the #418 regression", () => {

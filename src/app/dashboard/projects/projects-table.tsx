@@ -4,6 +4,7 @@ import { useState, useTransition, useRef, useEffect } from "react";
 import Link from "next/link";
 import { ChevronDown, Check } from "lucide-react";
 import { useI18n } from "@/lib/i18n/provider";
+import { formatDate } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Table, THead, TBody, TR, TH, TD, EmptyState } from "@/components/ui/table";
 import { toast } from "@/components/toast";
@@ -182,9 +183,11 @@ export function ProjectsTable({
             </TD>
             <TD className="text-[#B8D0E4]">{p.owner}</TD>
             <TD className="text-[#B8D0E4]">
-              {p.end_date
-                ? new Date(p.end_date).toLocaleDateString()
-                : "—"}
+              {/* Bare toLocaleDateString() follows the RUNTIME locale, so the
+                  server (en-US/UTC) and the browser (fr-FR/Africa-Tunis) render
+                  different text and React fails hydration with #418. Reproduced
+                  in the browser on /dashboard/projects. */}
+              {formatDate(p.end_date)}
             </TD>
             <TD className="text-[#B8D0E4]">{p.tasks_count}</TD>
           </TR>

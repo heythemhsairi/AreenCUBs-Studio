@@ -49,12 +49,25 @@ delete from auth.users where email like '%@staging.local';
 -- each principal. A fourth user is created WITHOUT a profile row to prove
 -- the Phase 1d fail-closed behaviour.
 
+-- GoTrue scans confirmation_token / recovery_token / email_change* as
+-- non-nullable Go strings. Leaving them NULL makes sign-in fail with
+--   "Scan error on column ... converting NULL to string is unsupported"
+-- and a 500 from /token, which looks like a wrong password but is not.
+-- They must be empty strings, not NULL.
 insert into auth.users (
   id, instance_id, aud, role, email, encrypted_password,
   email_confirmed_at, created_at, updated_at,
-  raw_app_meta_data, raw_user_meta_data
+  raw_app_meta_data, raw_user_meta_data,
+  confirmation_token, recovery_token, email_change,
+  email_change_token_new, email_change_token_current,
+  phone_change, phone_change_token, reauthentication_token
 )
-values
+select
+  v.id::uuid, v.instance_id::uuid, v.aud, v.role, v.email, v.encrypted_password,
+  v.email_confirmed_at::timestamptz, v.created_at::timestamptz, v.updated_at::timestamptz,
+  v.raw_app_meta_data::jsonb, v.raw_user_meta_data::jsonb,
+  '', '', '', '', '', '', '', ''
+from (values
   ('11111111-1111-4111-8111-111111111111', '00000000-0000-0000-0000-000000000000',
    'authenticated', 'authenticated', 'admin@staging.local',
    crypt('staging-only-not-a-secret', gen_salt('bf')), now(), now(), now(),
@@ -75,7 +88,28 @@ values
   ('44444444-4444-4444-8444-444444444444', '00000000-0000-0000-0000-000000000000',
    'authenticated', 'authenticated', 'orphan@staging.local',
    crypt('staging-only-not-a-secret', gen_salt('bf')), now(), now(), now(),
-   '{"provider":"email","providers":["email"]}', '{}');
+   '{"provider":"email","providers":["email"]}', '{}')
+) as v(
+  id, instance_id, aud, role, email, encrypted_password,
+  email_confirmed_at, created_at, updated_at,
+  raw_app_meta_data, raw_user_meta_data
+);
+
+-- GoTrue resolves a password grant through auth.identities, not auth.users
+-- alone. Without an identity row the account exists but cannot sign in.
+insert into auth.identities (
+  provider_id, user_id, identity_data, provider,
+  last_sign_in_at, created_at, updated_at
+)
+select
+  u.id::text,
+  u.id,
+  jsonb_build_object('sub', u.id::text, 'email', u.email, 'email_verified', true),
+  'email',
+  now(), now(), now()
+from auth.users u
+where u.email like '%@staging.local'
+on conflict do nothing;
 
 insert into public.profiles (id, username, full_name, role) values
   ('11111111-1111-4111-8111-111111111111', 'admin',      'Staging Admin',      'admin'),

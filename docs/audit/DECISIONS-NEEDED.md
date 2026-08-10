@@ -98,3 +98,29 @@ The brief describes commercial / intern / client-portal roles. The database has 
 ## 7. Paid or contractual services
 
 None accepted. Docker Desktop was installed under its free tier and no licence terms were accepted on anyone's behalf. Docker Engine CE, Noto Sans Arabic (SIL OFL), Vitest and Playwright are all free/open-source.
+
+---
+
+## 8. Remaining hydration (#418) causes on /dashboard and /dashboard/team — MEDIUM/HIGH
+
+Reproduced in a browser on all three viewports (`docs/audit/PHASE-2F-DASHBOARD-QUALITY.md` F-1). One of four causes is fixed; three remain because they change behaviour rather than formatting:
+
+| Location | Code | Why it mismatches |
+|---|---|---|
+| `overview-client.tsx:960` | `const hour = new Date().getHours()` | Time-of-day greeting: UTC hour ≠ Africa/Tunis hour |
+| `overview-client.tsx:160,1274` | `const today = new Date()` | Relative day counts (`45j retard`, `+70j`) differ per side |
+| `priorities-section.tsx:42,131` | `const today = new Date()` | Same |
+
+**Recommended fix:** pass the current business date from the server, exactly as Publishing now does (`todayKey` prop), and derive the greeting from that value rather than the client clock.
+
+**Why not done unattended:** it changes what the dashboard displays (the greeting, and which items count as overdue at a boundary), which is dashboard behaviour rather than a formatting defect.
+
+**Note:** this also corrects Phase 0, which claimed `publishing-client.tsx` was the only file using an ambient locale. The grep matched `toLocale*(undefined` and missed the bare no-argument form. A corrected scan found `projects-table.tsx:186`, now fixed.
+
+---
+
+## 9. Automated contrast checking needs axe-core — LOW
+
+The hand-rolled contrast check in `e2e/a11y.spec.ts` produced false positives across three different implementations and is now diagnostic-only. Adding **axe-core** (free, MIT) would give trustworthy results.
+
+Small, free, additive — but it is a new dependency, so it is listed rather than added unilaterally.

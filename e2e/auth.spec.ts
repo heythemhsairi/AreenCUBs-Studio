@@ -54,11 +54,16 @@ test.describe("fail-closed: authenticated but no profile", () => {
 
   test("the denial page explains nothing about which check failed", async ({ page }) => {
     await login(page, "orphan");
-    const body = (await page.locator("body").innerText()).toLowerCase();
+    // Read from <main>, not <body>. Playwright's innerText on body returned ""
+    // here even though the accessibility snapshot showed the content present —
+    // asserting against an empty string would have been a false finding.
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    const text = (await page.locator("main").innerText()).toLowerCase();
+    expect(text.length).toBeGreaterThan(0);
     // Authenticated-but-unauthorised: naming the cause would tell an attacker
     // which half of the check they cleared.
-    expect(body).not.toMatch(/profile.*not found|no profiles row|missing row/);
-    expect(body).toMatch(/compte non configur|not yet linked|administrator/i);
+    expect(text).not.toMatch(/profile.*not found|no profiles row|missing row/);
+    expect(text).toMatch(/compte non configur|not yet linked|administrator/i);
   });
 
   test("the orphan cannot reach a protected route directly", async ({ page }) => {
