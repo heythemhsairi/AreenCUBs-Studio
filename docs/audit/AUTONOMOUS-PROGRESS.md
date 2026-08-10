@@ -132,3 +132,57 @@ The rule carried into every branch: **a corrected historical migration will neve
 **Phase 2f — dashboard quality audit.** Depends on 2d for evidence.
 
 Both are safe to run locally with the infrastructure already in place. See `SESSION-STATE.md` for the exact resume steps.
+
+---
+
+## Phase 2d — Playwright browser verification — **INCOMPLETE (blocked)**
+
+**Status: scaffolding written and committed. The suite has NEVER been executed. No browser result in this report is real.**
+
+### What exists
+
+- `@playwright/test` as a repository devDependency; Chromium headless shell installed in the WSL runner (free).
+- `playwright.config.ts` — server pinned to `TZ=UTC` via `webServer.env`, browser context pinned to `Africa/Tunis`. That asymmetry is the production condition that produced React #418; a matching pair would test nothing.
+- Three projects: desktop 1280×720, tablet 768×1024, mobile 390×844.
+- `e2e/fixtures.ts` — collects console errors, page errors and failed requests on every test, with a deliberately narrow benign-noise filter.
+- `e2e/auth.spec.ts` — unauthenticated redirect, invalid credentials, unknown user, admin login, orphan fail-closed (including that the denial page does not reveal which check failed), protected-route access, role scoping.
+- `e2e/dashboard.spec.ts` — 13 routes for console/network cleanliness, Publishing hydration on direct load and client navigation, Clients as the historical control, Content OS reads, finance fixtures, `NaN`/`undefined` money guards, 404 and unknown-record handling.
+- `e2e/a11y.spec.ts` — accessible names, keyboard traversal, visible focus, heading order, image alts, `html[lang]`, mobile horizontal-overflow, 44×44 tap targets, gross contrast failures.
+- `scripts/run-e2e.sh` — brings the stack up if idle, runs the isolation gate, writes ephemeral credentials to an ignored `.env.local`, builds, runs Playwright, and deletes the credential files on exit via a `trap` (including on failure).
+
+### The blocker
+
+The runner cannot extract the local Supabase credentials. Five evidence-based attempts:
+
+1. `supabase status -o env` via `$(...)` with `2>/dev/null` — empty.
+2. Same with `2>&1` — the assignments appear when piped directly to `sed`, but not under command substitution.
+3. Local binary (`node_modules/.bin/supabase`) redirected to a file — file written but contains no `KEY=` assignments.
+4. Fallback parser for a `label: value` table — no matching lines.
+5. Fallback parser for the box-drawn table (`│ label │ value │`) — still no match; the diagnostic dump of field names printed nothing, so the file's actual structure remains unconfirmed.
+
+Two environment quirks compounded the diagnosis and are worth recording:
+
+- **Git Bash rewrites POSIX paths** in commands sent to WSL, so `> /tmp/x` became a Windows path and failed with *"No such file or directory"*. Anything non-trivial must go through a script **file**.
+- **The WSL VM stops when idle**, taking the stack with it. One failure was simply a stopped stack, which looked like a credential problem. `run-e2e.sh` now starts the stack if it finds none, so that cause is eliminated.
+
+### What is NOT claimed
+
+No browser test has run. Nothing about hydration, accessibility, responsiveness, console errors or the UI fail-closed path has been verified in a browser during this phase. The Phase 1b hydration fix remains supported only by the deterministic unit tests and the before/after measurement from that phase.
+
+### To unblock
+
+Run inside the WSL clone and share the **field names only** (never values):
+
+```bash
+cd ~/AreenCUBs-Studio-staging
+./node_modules/.bin/supabase status > /tmp/st.txt 2>&1
+sed -E 's/(key|secret|token)[^A-Za-z0-9_]+\S+/\1: <redacted>/Ig' /tmp/st.txt | head -30
+```
+
+With the true output shape, `pick()` in `scripts/run-e2e.sh` is a one-line change. Alternatively, write the four values into `~/AreenCUBs-Studio-staging/.env.local` yourself (it is gitignored) and run `npx playwright test` directly — the suite needs nothing else.
+
+---
+
+## Phase 2f — dashboard quality audit — **NOT STARTED**
+
+Depends on Phase 2d for browser evidence. Producing a quality report without it would mean inventing findings, which the brief explicitly forbids.

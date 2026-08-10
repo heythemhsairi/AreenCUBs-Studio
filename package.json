@@ -19,7 +19,8 @@
     "db:verify": "node scripts/verify-staging.mjs",
     "db:link": "supabase link --project-ref exdatjsgeomejhdofgvw",
     "db:push": "echo \"REFUSED: db:push targets PRODUCTION. Use 'npm run db:reset' for local staging. To deploy for real, run 'npx supabase db push' deliberately and only with approval.\" && exit 1",
-    "db:diff": "supabase db diff"
+    "db:diff": "supabase db diff",
+    "test:e2e": "bash scripts/run-e2e.sh"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",
@@ -39,6 +40,7 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@types/node": "^22.10.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
