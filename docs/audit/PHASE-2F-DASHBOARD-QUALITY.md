@@ -209,3 +209,19 @@ Node counts rise on tablet/mobile (e.g. `/dashboard` 15 → 27), consistent with
 ### Status
 
 The axe suite **fails** on this baseline. Left failing deliberately: the violations are real and reporting them is the point. Fixing 14 labelling instances plus a token overhaul is a remediation phase of its own, recorded in `DECISIONS-NEEDED.md`.
+
+---
+
+## F-6 update — critical accessible-name violations FIXED
+
+Verified in-browser: every audited route went from **2 violation types to 1**. `select-name` and `label` are gone; only `color-contrast` remains.
+
+| Rule | Before | After |
+|---|---|---|
+| `select-name` (critical) | tasks ×4, clients ×1 | **0** |
+| `label` (critical) | settings ×9 | **0** |
+| `color-contrast` (serious) | every route | unchanged — Priority 3 |
+
+The settings fix is worth noting: all nine failures came from **one** `Field` wrapper rendering a bare `<label>` with no `htmlFor` around a control with no `id`. Fixing the wrapper — deriving an id with React's SSR-safe `useId()` and cloning the child to receive it — produced a real `<label htmlFor>` relationship for all nine, rather than nine `aria-label` patches.
+
+**Remaining: `color-contrast` only**, 12–39 nodes per route, more on narrow viewports. This is the design-token work in `DECISIONS-NEEDED.md` §10 and is **not started** — it needs the semantic light/dark token pass, not per-component overrides.
