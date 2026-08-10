@@ -62,10 +62,44 @@ if (process.platform === "win32") {
 }
 
 // ── 2. Container runtime ─────────────────────────────────────────────────────
+/**
+ * Resolves the docker executable.
+ *
+ * A shell started before Docker Desktop was installed keeps a stale PATH, so
+ * `docker` can be genuinely installed and working while still not resolvable
+ * by name. Falling back to the standard install locations avoids reporting a
+ * false negative in exactly the situation this script is most used: right
+ * after installing Docker.
+ */
+function resolveDocker() {
+  const candidates = ["docker"];
+  if (process.platform === "win32") {
+    candidates.push(
+      `${process.env.ProgramFiles ?? "C:\\Program Files"}\\Docker\\Docker\\resources\\bin\\docker.exe`,
+    );
+  } else {
+    candidates.push("/usr/local/bin/docker", "/usr/bin/docker");
+  }
+  for (const c of candidates) {
+    try {
+      execFileSync(c, ["--version"], {
+        stdio: ["ignore", "pipe", "pipe"],
+        timeout: 30_000,
+      });
+      return c;
+    } catch {
+      /* try next */
+    }
+  }
+  return null;
+}
+
+const dockerBin = resolveDocker();
 try {
-  const v = run("docker", ["--version"]);
+  if (!dockerBin) throw new Error("not found");
+  const v = run(dockerBin, ["--version"]);
   try {
-    const server = run("docker", ["info", "--format", "{{.ServerVersion}}"]);
+    const server = run(dockerBin, ["info", "--format", "{{.ServerVersion}}"]);
     record("Docker daemon", "PASS", `${v.replace(/^Docker version /, "")} / engine ${server}`);
   } catch {
     record(

@@ -80,13 +80,69 @@ Each item follows the required 11-field format. Findings are re-numbered to matc
 | **Reproduction** | Requires DB access — see Verification below |
 | **Expected** | Profile and monthly plan save successfully |
 | **Actual** | PostgREST error referencing `public.client_content_profiles` / `public.monthly_content_plans`; all clients show 0 plans |
-| **Likely cause** | **ASSUMPTION — the migration exists in the repo but appears never to have been fully applied.** Production drift **remains an inference** until migration history is checked (§8.2). The non-idempotent `CREATE POLICY` block (§2) means a partial apply cannot self-heal on retry. Secondary candidate: stale PostgREST schema cache. |
+| **Likely cause** | **RESOLVED 2026-08-10 against local staging — see §3.1.1.** The Content OS schema is sound. The migration chain **aborts at migration 18** with a hard syntax error, so migrations 18–25 (Content OS is 21) can never have reached production. |
 | **Recommended fix** | Do **not** author a new schema, and **do not rewrite migration 21** — it may already have been applied somewhere. Once production migration history is available, prepare a **separate, guarded repair migration** using a reviewed `DROP POLICY IF EXISTS` + recreate strategy (or a `pg_policies` existence check), then `NOTIFY pgrst, 'reload schema'`. **Not to be applied anywhere without approval.** |
 | **Files** | `supabase/migrations/20260625000021_content_os.sql`, `src/app/dashboard/content/actions.ts` |
 | **Verification** | `supabase migration list`; `select to_regclass('public.monthly_content_plans')`; `select * from pg_policies where tablename in (...)` |
 | **Evidence** | Repo schema is **complete and correct** — 3 tables, 6 indexes, FKs, timestamps, updated_at triggers, RLS enabled. The bug is in *delivery*, not design. |
 
 **Important correction to the original audit:** the brief instructs "restore the full schema". The schema does not need restoring — it needs *applying*. Writing a replacement migration would be the exact "incomplete emergency schema" the brief warns against.
+
+---
+
+### 3.1.1 — Finding #1 RESOLVED: the migration chain aborts at migration 18
+
+**Evidence: local staging, 2026-08-10. 25/25 migrations applied to an empty database; `db:verify` 17/17 checks passed.**
+
+Replaying the chain against a real PostgreSQL 15 instance surfaced **four defects invisible to static reading**. The third is the answer to finding #1.
+
+| # | Migration | SQLSTATE | Defect |
+|---|---|---|---|
+| 1 | `..0003_seed_services` | `42P10` | `on conflict (name_fr)` targets a unique constraint that migration **0007** creates — four migrations later. Introduced when 0007 retroactively patched 0003 (its own header says so). Fresh applies abort at statement 0. |
+| 2 | `..0003` + `..0007` | `42P07` | Both guard the constraint with `exception when duplicate_object`. `ADD CONSTRAINT … UNIQUE` builds an index first, so a name collision raises **`duplicate_table`**, which that handler never catches. |
+| 3 | `..0018_operational_improvements` | **`42601`** | **`current_role()` unqualified.** `current_role` is a reserved PostgreSQL keyword taking no parentheses, so the bare call is a *syntax error*. This project defines its own `public.current_role()` in migration 0002; **all 30 other call sites qualify it — this one did not.** |
+| 4 | — | — | Consequence of #3, below. |
+
+#### Why #3 settles finding #1
+
+A syntax error is not conditional. Migration 18 **cannot have applied successfully in any environment, ever** — including production. Because Supabase applies migrations in order and halts on failure, everything from 18 onward never ran:
+
+```
+18 operational_improvements  ← aborts here (42601)
+19 finance_os_v2
+20 finance_payment_integrity
+21 content_os                ← the Content OS schema
+22 admin_tasks
+23 service_english_fields
+24 devis_stamp
+25 fix_devis_totals
+```
+
+**Finding #1 is therefore not a Content OS bug at all.** `client_content_profiles` and `monthly_content_plans` are absent from production because migration 21 sits behind a migration that cannot parse. The schema was always correct; the chain in front of it was broken.
+
+This also predicts that migrations 19, 20, 22, 23, 24 and 25 are equally absent — which would independently explain parts of finding #5, since `stamp_dt` (24) and the totals heal (25) are downstream of the same blockage.
+
+> **This prediction is testable and MUST be confirmed** before any repair is planned: run `supabase migration list` against the hosted project and compare. Until then the production side remains an inference — a well-supported one, but an inference.
+
+#### Migration 21's retry hazard — now empirically confirmed
+
+Phase 0 inferred that migration 21's unguarded `CREATE POLICY` blocks cannot self-heal. Re-running one against the live staging database:
+
+```
+policy "content_profiles_read" for table "client_content_profiles" already exists
+```
+
+Confirmed. A partial apply of migration 21 can never be retried successfully — the repair migration remains necessary, and still awaits approval.
+
+#### Fixes applied (staging only, no production contact)
+
+All three defects were fixed in the migration files. **No production impact:** every one of these files is already recorded as applied (or permanently failed) in any existing environment and will not re-run there. The fixes only affect provisioning a database from empty.
+
+Defect #3's fix restores intended behaviour rather than changing a rule — the file's own comment reads *"only admin can write"*, and `public.current_role()` is the established convention. It is also a **narrowing**, not a widening: production currently has no policy on these tables at all (RLS enabled, zero policies = deny all), so this moves them from "table absent" to "admins only".
+
+#### Operational significance beyond finding #1
+
+The repository's migrations were written assuming they would only ever run forward, once, against a live database — never replayed from scratch. That assumption held until a second environment was needed. Before this work, **the project had no reproducible path from an empty database to a working schema**: no staging, no disaster recovery, no onboarding a developer. That is now fixed and guarded by `npm run db:verify`.
 
 ---
 

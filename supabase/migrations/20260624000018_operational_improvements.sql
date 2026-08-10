@@ -65,13 +65,25 @@ ALTER TABLE user_update_views ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "updates_read" ON app_updates
   FOR SELECT USING (auth.uid() IS NOT NULL AND active = true);
 CREATE POLICY "updates_admin_write" ON app_updates
-  FOR ALL USING (current_role() = 'admin');
+  -- Must be schema-qualified. `current_role` is a reserved PostgreSQL keyword
+  -- (invoked without parentheses, like current_user), so the bare form
+  -- `current_role()` is a syntax error — 42601, "syntax error at or near (".
+  -- This project defines its OWN public.current_role() in migration 0002,
+  -- returning the application role from public.profiles; all 30 other call
+  -- sites across the migrations qualify it. This one did not.
+  FOR ALL USING (public.current_role() = 'admin');
 
 -- app_update_items: authenticated read; admin write
 CREATE POLICY "update_items_read" ON app_update_items
   FOR SELECT USING (auth.uid() IS NOT NULL);
 CREATE POLICY "update_items_admin_write" ON app_update_items
-  FOR ALL USING (current_role() = 'admin');
+  -- Must be schema-qualified. `current_role` is a reserved PostgreSQL keyword
+  -- (invoked without parentheses, like current_user), so the bare form
+  -- `current_role()` is a syntax error — 42601, "syntax error at or near (".
+  -- This project defines its OWN public.current_role() in migration 0002,
+  -- returning the application role from public.profiles; all 30 other call
+  -- sites across the migrations qualify it. This one did not.
+  FOR ALL USING (public.current_role() = 'admin');
 
 -- user_update_views: each user manages their own rows
 CREATE POLICY "views_own" ON user_update_views

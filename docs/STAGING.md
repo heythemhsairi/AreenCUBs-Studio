@@ -97,11 +97,35 @@ npm run db:verify    # asserts the environment is correct
 
 ### Confirming isolation
 
-After `db:start`, every endpoint must be loopback. Anything else means the stack is not isolated:
+After `db:start`, every endpoint must be loopback:
 
 ```bash
 npm run db:status | grep -Ei 'http|postgresql'   # expect 127.0.0.1 only
 ```
+
+> ### ⚠ KNOWN GAP — the stack is reachable from the LAN
+>
+> `db:status` advertises `127.0.0.1`, but Docker **publishes on `0.0.0.0`**. Verified on this machine while the stack was running:
+>
+> ```
+> 192.168.1.11:54321 reachable = True     ← Supabase API
+> 192.168.1.11:54322 reachable = True     ← PostgreSQL (postgres:postgres)
+> ```
+>
+> Anyone on the same network can reach the staging database with default credentials. The data is entirely synthetic, but a superuser PostgreSQL port is a foothold regardless.
+>
+> The Supabase CLI exposes no bind-address setting, so this must be fixed at the Docker or firewall layer. **Two options, both free — neither applied yet:**
+>
+> **A. Bind Docker to loopback (fixes the cause).** Add `"ip": "127.0.0.1"` to `%USERPROFILE%\.docker\daemon.json`, then restart Docker Desktop. This makes every published port default to loopback.
+>
+> **B. Firewall block (masks it).** Windows Firewall does not filter loopback, so an inbound block leaves `127.0.0.1` working. Requires elevation:
+> ```powershell
+> New-NetFirewallRule -DisplayName 'AreenCUBs staging - block LAN access to Supabase' `
+>   -Direction Inbound -Action Block -Protocol TCP -LocalPort 54320-54324 -Profile Any
+> ```
+> Remove with `Remove-NetFirewallRule -DisplayName 'AreenCUBs staging*'`.
+>
+> **Until one is applied, stop the stack when not actively using it:** `npm run db:stop`.
 
 `npm run db:start` prints local URLs and keys. Put them in `.env.local`:
 

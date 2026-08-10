@@ -17,7 +17,19 @@ delete from public.services s
 using ranked r
 where s.id = r.id and r.rn > 1;
 
+-- Existence check rather than an exception handler. On a fresh database
+-- migration 0003 now creates this constraint itself (it needs it for its own
+-- ON CONFLICT target), so this statement re-runs against an existing
+-- constraint. That raises duplicate_table (42P07, "relation already exists")
+-- from the underlying index build — NOT duplicate_object (42710) — so the
+-- previous `exception when duplicate_object` guard did not catch it and the
+-- migration aborted. Already-migrated environments are unaffected: this file
+-- is recorded as applied and will not re-run.
 do $$ begin
-  alter table public.services
-    add constraint services_name_fr_uk unique (name_fr);
-exception when duplicate_object then null; end $$;
+  if not exists (
+    select 1 from pg_constraint where conname = 'services_name_fr_uk'
+  ) then
+    alter table public.services
+      add constraint services_name_fr_uk unique (name_fr);
+  end if;
+end $$;
