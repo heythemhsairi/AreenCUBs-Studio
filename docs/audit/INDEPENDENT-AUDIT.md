@@ -137,3 +137,12 @@ correctness, misleading for provenance: "which commit did these tests run
 against?" had no trustworthy answer. It was hard-reset to the canonical commit
 (runner only; the canonical Windows repo is fetched read-only) and now reports
 0 dirty files.
+
+**A measurement that lied about itself.** The teardown check reported two stray
+`next-server` processes after having just reported zero. There were none: the
+probe ran as `bash -lc '... pgrep -f next-server ...'`, so the shell's own
+command line contained the pattern and `pgrep` counted itself. Run from a
+script file, where the command line is just the script path, it reports none.
+This is the self-matching trap already recorded for `pkill` — worth noting that
+it corrupts *measurements* as readily as it kills the wrong process, and that a
+teardown proof is exactly where a false positive is most expensive.
