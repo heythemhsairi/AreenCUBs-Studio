@@ -943,3 +943,88 @@ describe("video review — Phase 7", () => {
     expect(writes).toBe("0");
   });
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+describe("profile self-update guard — the production hotfix", () => {
+  // The same object that is applied to production as an emergency fix. Kept
+  // here so the two cannot drift: if this suite passes, the production
+  // statement is the one being tested.
+
+  const PROTECTED = [
+    ["role", "'admin'"],
+    ["username", "'hijack'"],
+    ["job_title", "'CEO'"],
+  ];
+
+  for (const who of ["worker", "freelancer", "commercial", "intern", "client"]) {
+    for (const [column, value] of PROTECTED) {
+      it(`${who} cannot change their own ${column}`, () => {
+        expect(
+          rowsUpdated(USERS[who], "public.profiles", `${column} = ${value}`, `id = '${USERS[who]}'`),
+        ).toBe(0);
+      });
+    }
+  }
+
+  it("permitted self-service fields still work for every role", () => {
+    // The guard is worthless if it also breaks the profile page. full_name and
+    // avatar_url are the two fields a person may edit about themselves.
+    for (const who of ["worker", "freelancer", "commercial", "intern", "client"]) {
+      expect(
+        `${who}:${rowsUpdated(USERS[who], "public.profiles", "full_name = 'Nouveau Nom'", `id = '${USERS[who]}'`)}`,
+      ).toBe(`${who}:1`);
+      expect(
+        `${who}:${rowsUpdated(USERS[who], "public.profiles", "avatar_url = 'https://example.invalid/a.png'", `id = '${USERS[who]}'`)}`,
+      ).toBe(`${who}:1`);
+    }
+  });
+
+  it("an administrator can still manage roles", () => {
+    expect(
+      rowsUpdated(USERS.admin, "public.profiles", "role = 'worker'", `id = '${USERS.freelancer}'`),
+    ).toBe(1);
+  });
+
+  it("the service-role path is untouched, so team management keeps working", () => {
+    // No JWT claim: auth.uid() is NULL, which is how the admin client calls.
+    // Guarding this path would break role administration while fixing the
+    // escalation.
+    const out = sql(
+      "begin; with u as (update public.profiles set role = 'worker' " +
+        `where id = '${USERS.freelancer}' returning 1) select 'ROWS=' || count(*) from u; rollback;`,
+    );
+    expect(out).toContain("ROWS=1");
+  });
+
+  it("depends on nothing a lagging database might be missing", () => {
+    // Production is behind on migrations, so the guard inlines its own lookup
+    // rather than calling is_admin() or auth_role().
+    const body = sql(
+      "select prosrc from pg_proc p join pg_namespace n on n.oid = p.pronamespace " +
+        "where n.nspname = 'public' and p.proname = 'guard_profile_self_update';",
+    );
+    for (const dependency of ["auth_role", "is_admin", "current_role", "is_internal"]) {
+      expect(body, `guard calls ${dependency}`).not.toContain(dependency);
+    }
+    expect(body).toContain("auth.uid()");
+  });
+
+  it("does not test current_user, which a definer function would answer wrongly", () => {
+    // The defect this replaced: inside SECURITY DEFINER, current_user is the
+    // function's owner, so the guard permitted every write it existed to stop.
+    const body = sql(
+      "select prosrc from pg_proc p join pg_namespace n on n.oid = p.pronamespace " +
+        "where n.nspname = 'public' and p.proname = 'guard_profile_self_update';",
+    );
+    expect(body).not.toContain("current_user");
+  });
+
+  it("the superseded guard is gone", () => {
+    expect(
+      sql(
+        "select count(*) from pg_proc p join pg_namespace n on n.oid = p.pronamespace " +
+          "where n.nspname = 'public' and p.proname = 'guard_profile_role_change';",
+      ),
+    ).toBe("0");
+  });
+});

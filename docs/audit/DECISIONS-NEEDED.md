@@ -211,3 +211,93 @@ which a future scoping bug becomes unbounded.
 Not changed now: switching them requires confirming an admin SELECT policy on
 each of those tables first, and a silent switch that returned empty data would
 be a worse regression than the 500 this phase removed.
+
+---
+
+## 13. Emergency hotfix — prepared and verified, BLOCKED ON ACCESS
+
+Approved as an emergency production security fix. Everything that can be done
+without touching production is done. **Nothing has been applied, because this
+environment holds no production credentials.**
+
+### What was checked, and what it found
+
+| Check | Result |
+|---|---|
+| `~/.supabase/access-token` (Windows and WSL) | absent |
+| `supabase/.temp/project-ref` — project link | absent |
+| `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD`, `DATABASE_URL` | unset |
+| `.env.local` | present, but restricted by `CLAUDE.md` and not read |
+
+Even reading `.env.local` would not help. It carries the anon and service-role
+keys, and a service-role key authenticates against PostgREST — it cannot execute
+`CREATE TRIGGER`. Applying this fix needs the SQL editor or a Postgres
+connection string, neither of which exists here.
+
+### `supabase db push` is ruled out — by the constraint, and by the schema
+
+The instruction was: do not use a general migration push if it would execute any
+other pending migration. It would execute **twenty-three**: `0018`–`0025`, which
+have never applied to production, plus the seven added in Phases 2–7, plus the
+alignment migration.
+
+It would also fail. Migration `20260624000018` contains an unqualified
+`current_role()`, a syntax error (42601) — the defect that stopped the chain in
+the first place. A push would abort partway with production in an unknown state.
+
+**The fix must be applied as a single standalone statement in the Supabase
+dashboard SQL editor.**
+
+### What is ready
+
+`docs/audit/HOTFIX-PROFILE-ROLE-ESCALATION.sql` — four sections: read-only
+pre-flight, the fix, the rollback, and a validation matrix. Self-contained: it
+calls no helper function and references no enum value added after migration
+0001, so it is correct whether production sits at `0017` or `0025`.
+
+### Verified against a production-shaped replica
+
+`scripts/verify-hotfix-prodshape.sh` rebuilds the local database with migrations
+`0001`–`0017` only — what production has per `PHASE-0-DISCOVERY.md` §3.1.1 —
+and runs the whole procedure. Testing on the full local schema would have proved
+little: that schema has six roles and every Phase 2 object, none of which
+production has.
+
+```
+replica stops at 0017 · profiles_update_self restricts no column ·
+job_title present · no guard already installed · auth_role() absent, as in production
+CONFIRMED  a worker promoted themselves to admin — 1 row changed
+self-promotion denied (worker, freelancer) · username denied · job_title denied
+full_name still writable · avatar_url still writable
+administrator can still manage roles · service-role path unaffected
+reads unaffected · role distribution unchanged
+rollback removes both objects · the hole returns — the rollback is genuine
+ALL CHECKS PASSED
+```
+
+The rollback rehearsal matters most: it proves the prepared rollback restores
+the exact prior behaviour rather than merely running without error.
+
+### What is needed to execute
+
+One of:
+
+1. **Preferred** — you run the SQL yourself. Open the Supabase dashboard SQL
+   editor, run section 1 and keep the output, run section 2, then section 4.
+   Roughly five minutes, and no credential ever leaves the dashboard.
+2. A Postgres connection string for the production database, supplied through a
+   file or environment variable rather than pasted into chat.
+
+Option 1 is better and not only for secrecy: the pre-flight output should be
+read by a person before the write, and the service-role key is still unrotated,
+so widening its use now is the wrong direction.
+
+### Local convergence
+
+Migration `20260811000008` installs the identical object locally, so local and
+production converge on one guard rather than two near-identical twins. 21 tests
+in `role-matrix.dbtest.mjs` cover it, including that it calls no helper a
+lagging database might be missing, and that it does not test `current_user` —
+the mistake that made the first version permit every write it existed to stop.
+
+§11b and §11c remain open and untouched, as instructed.
