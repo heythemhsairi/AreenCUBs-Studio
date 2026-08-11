@@ -115,3 +115,14 @@ test.describe("axe — authenticated routes", () => {
     expect(blocking.map((v) => v.id)).toEqual([]);
   });
 });
+
+test.describe("axe — client portal", () => {
+  // Scanned under its own session because the portal is the one surface an
+  // admin cannot reach: requireClientContact admits the client role only.
+  test("the portal has no serious or critical violations", async ({ page }) => {
+    await login(page, "client");
+    await page.goto("/portal", { waitUntil: "networkidle" });
+    const { blocking } = await scan(page, "/portal");
+    expect(blocking.map((v) => `${v.id} (${v.nodes.length})`)).toEqual([]);
+  });
+});

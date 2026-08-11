@@ -1,4 +1,5 @@
 import { test as base, expect, type Page, type ConsoleMessage } from "@playwright/test";
+import { execFileSync } from "node:child_process";
 
 /**
  * Shared fixtures.
@@ -103,6 +104,49 @@ export async function login(page: Page, who: keyof typeof ACCOUNTS) {
   // to /account-unavailable. Either is a completed sign-in.
   await page.waitForURL((url) => !url.pathname.startsWith("/login"), { timeout: 30_000 });
   await page.waitForLoadState("networkidle");
+}
+
+
+/**
+ * Restores the one row the portal approval tests write to.
+ *
+ * The database suite runs every statement inside a transaction that is always
+ * rolled back. Browser tests cannot: they drive the real application, and the
+ * approval they record is a real UPDATE that survives the test. So the first
+ * run passed, the item stopped being pending, and every run after it failed on
+ * a button that was correctly no longer there.
+ *
+ * Restoring the fixture is the honest fix. Asserting "either state is fine"
+ * would have made the test unable to detect the approval failing outright.
+ */
+export function resetPortalApprovalFixture() {
+  const container = execFileSync("docker", ["ps", "--format", "{{.Names}}"], {
+    encoding: "utf8",
+  })
+    .split("\n")
+    .map((n) => n.trim())
+    .find((n) => n.startsWith("supabase_db_"));
+
+  if (!container) throw new Error("no local staging database container");
+
+  execFileSync(
+    "docker",
+    [
+      "exec",
+      container,
+      "psql",
+      "-U",
+      "postgres",
+      "-d",
+      "postgres",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-tAc",
+      "update public.content_items set approval_status = 'pending', client_feedback = null " +
+        "where id = 'a1000000-0000-4000-8000-000000000001';",
+    ],
+    { encoding: "utf8" },
+  );
 }
 
 /** React hydration failures, by the codes React emits in production builds. */

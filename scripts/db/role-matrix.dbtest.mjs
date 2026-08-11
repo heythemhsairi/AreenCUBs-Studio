@@ -1,5 +1,13 @@
 import { describe, it, expect, beforeAll } from "vitest";
-import { sql, sqlAs, sqlAsExpectDeniedOrZero, dbAvailable, USERS, FIXTURES } from "./sql.mjs";
+import {
+  sql,
+  sqlAs,
+  sqlAsExpectDeniedOrZero,
+  sqlAsExpectError,
+  dbAvailable,
+  USERS,
+  FIXTURES,
+} from "./sql.mjs";
 
 /**
  * The six-role permission matrix, asserted against real PostgreSQL.
@@ -585,5 +593,186 @@ describe("containment of the broad policies", () => {
       );
       expect(`${table}.${index}=${found}`).toBe(`${table}.${index}=1`);
     }
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+describe("client portal — Phase 6 surfaces", () => {
+  // Phase 2 gave the client role nothing, and the block above still asserts
+  // that every internal table reads zero for it. These are the only doors that
+  // opened, and they are views and one function, never a table policy.
+
+  it("shows the organisation the contact belongs to, and only its name", () => {
+    expect(sqlAs(USERS.client, "select name from public.portal_client_org;")).toBe(
+      "Atlas Foods SARL",
+    );
+    const cols = sql(
+      "select string_agg(column_name, ',' order by column_name) from information_schema.columns " +
+        "where table_schema = 'public' and table_name = 'portal_client_org';",
+    ).split(",");
+    expect(cols.sort()).toEqual(["id", "name"]);
+  });
+
+  it("shows content that has been put in front of the client, and no work in progress", () => {
+    // Two of Atlas's four items: one awaiting review, one approved. The item
+    // in 'design' is theirs but unfinished, and a client sees work once it is
+    // shown to them, not while it is being made.
+    expect(count(USERS.client, "public.portal_content_items")).toBe(2);
+    expect(
+      Number(
+        sqlAs(
+          USERS.client,
+          `select count(*) from public.portal_content_items where id = '${FIXTURES.itemInternalWip}';`,
+        ),
+      ),
+    ).toBe(0);
+  });
+
+  it("never returns another organisation's content, even by id", () => {
+    // The direct-object-reference case that matters most. This fixture is in a
+    // client-visible status on purpose, so membership is the only thing
+    // stopping it — if the test used an internal-status row it would pass for
+    // the wrong reason.
+    expect(
+      Number(
+        sqlAs(
+          USERS.client,
+          `select count(*) from public.portal_content_items where id = '${FIXTURES.itemOtherOrg}';`,
+        ),
+      ),
+    ).toBe(0);
+  });
+
+  it("exposes no column that describes the agency rather than the deliverable", () => {
+    const cols = sql(
+      "select string_agg(column_name, ',' order by column_name) from information_schema.columns " +
+        "where table_schema = 'public' and table_name = 'portal_content_items';",
+    ).split(",");
+    for (const internal of [
+      "assigned_to",
+      "created_by",
+      "priority",
+      "deadline",
+      "visual_direction",
+      "pillar",
+      "task_id",
+    ]) {
+      expect(cols, `portal_content_items exposes ${internal}`).not.toContain(internal);
+    }
+  });
+
+  it("is not writable through the view", () => {
+    // A single-table view with no aggregate is auto-updatable, and Supabase
+    // grants ALL to authenticated by default. Without the explicit REVOKE this
+    // would write straight through to content_items.
+    expect(
+      rowsUpdated(USERS.client, "public.portal_content_items", "title = 'probe'", "true"),
+    ).toBe(0);
+  });
+
+  it("returns nothing to an internal role — these views are client-scoped", () => {
+    for (const who of ["admin", "worker", "commercial", "intern", "freelancer"]) {
+      expect(
+        `${who}:${count(USERS[who], "public.portal_content_items")}`,
+        `${who} reached the portal view`,
+      ).toBe(`${who}:0`);
+    }
+  });
+
+  it("records a decision on an item awaiting review", () => {
+    const after = sqlAs(
+      USERS.client,
+      `select public.portal_set_approval('${FIXTURES.itemAwaitingReview}', 'approved', null); ` +
+        `select approval_status from public.portal_content_items where id = '${FIXTURES.itemAwaitingReview}';`,
+    );
+    expect(after).toBe("approved");
+  });
+
+  it("does not move the item through the production workflow", () => {
+    // A client's approval records their decision. Advancing `status` stays
+    // with the agency, and the function never writes that column.
+    const after = sqlAs(
+      USERS.client,
+      `select public.portal_set_approval('${FIXTURES.itemAwaitingReview}', 'approved', null); ` +
+        `select status from public.portal_content_items where id = '${FIXTURES.itemAwaitingReview}';`,
+    );
+    expect(after).toBe("client_review");
+  });
+
+  it("refuses another organisation's item with the same error as a missing one", () => {
+    // Identical messages on purpose: a distinct "not yours" would let a client
+    // enumerate other organisations' ids by watching which error comes back.
+    const foreign = sqlAsExpectError(
+      USERS.client,
+      `select public.portal_set_approval('${FIXTURES.itemOtherOrg}', 'approved', null);`,
+    );
+    const missing = sqlAsExpectError(
+      USERS.client,
+      "select public.portal_set_approval('00000000-0000-4000-8000-000000000000', 'approved', null);",
+    );
+    expect(foreign).toContain("Item not found");
+    expect(missing).toContain("Item not found");
+  });
+
+  it("refuses an item that is not awaiting review", () => {
+    expect(
+      sqlAsExpectError(
+        USERS.client,
+        `select public.portal_set_approval('${FIXTURES.itemInternalWip}', 'approved', null);`,
+      ),
+    ).toContain("not awaiting your review");
+  });
+
+  it("refuses a decision it does not recognise", () => {
+    expect(
+      sqlAsExpectError(
+        USERS.client,
+        `select public.portal_set_approval('${FIXTURES.itemAwaitingReview}', 'published', null);`,
+      ),
+    ).toContain("Unknown decision");
+  });
+
+  it("refuses an internal user pretending to be the client", () => {
+    for (const who of ["admin", "worker", "commercial", "intern", "freelancer"]) {
+      expect(
+        sqlAsExpectError(
+          USERS[who],
+          `select public.portal_set_approval('${FIXTURES.itemAwaitingReview}', 'approved', null);`,
+        ),
+      ).toContain("Only a client contact");
+    }
+  });
+
+  it("notifies the internal owner and writes one audit entry", () => {
+    // Measured as a DELTA, not an absolute count.
+    //
+    // Two reasons, and the second one bit. Counting from inside the client's
+    // own session returns 0/0 whether the inserts happened or not — a client
+    // holds no policy on notifications (they belong to the assignee) or on
+    // audit_log. And the browser suite drives the real application, so its
+    // approval tests leave permanent rows behind; an absolute count passed
+    // until the e2e run had happened at least once, then failed forever.
+    //
+    // The role is dropped for the call and restored for the count, all inside
+    // one rolled-back transaction.
+    const out = sql(
+      "begin; " +
+        "create temp table _before on commit drop as select " +
+        "  (select count(*) from public.notifications where kind = 'content_approval') as n, " +
+        "  (select count(*) from public.audit_log where entity_type = 'content_item') as a; " +
+        `select set_config('request.jwt.claims', '{"sub":"${USERS.client}","role":"authenticated"}', true); ` +
+        "set local role authenticated; " +
+        `select public.portal_set_approval('${FIXTURES.itemAwaitingReview}', 'revision_requested', 'Merci de revoir la photo'); ` +
+        "reset role; " +
+        "select 'N=' " +
+        "  || ((select count(*) from public.notifications where kind = 'content_approval') - (select n from _before))::text " +
+        "  || '/' " +
+        "  || ((select count(*) from public.audit_log where entity_type = 'content_item') - (select a from _before))::text; " +
+        "rollback;",
+    );
+    // Substring rather than a line split: psql returns command tags alongside
+    // the result, and an escape sequence in this file has already once landed
+    // as a literal line break and taken the whole suite out of the run.
+    expect(out).toContain("N=1/1");
   });
 });

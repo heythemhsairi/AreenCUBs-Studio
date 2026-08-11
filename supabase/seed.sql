@@ -380,20 +380,44 @@ insert into public.monthly_content_plans (id, client_id, month, year, theme, goa
 on conflict (client_id, month, year) do nothing;
 
 insert into public.content_items
-  (plan_id, client_id, title, content_type, platform, pillar, caption, publish_date, deadline, status, priority, created_by)
+  (id, plan_id, client_id, title, content_type, platform, pillar, caption, publish_date, deadline, status, priority, assigned_to, created_by)
 values
-  ('b1000000-0000-4000-8000-000000000001', 'c1000000-0000-4000-8000-000000000001',
+  -- Awaiting the client's decision: the one item the portal can act on.
+  ('a1000000-0000-4000-8000-000000000001',
+   'b1000000-0000-4000-8000-000000000001', 'c1000000-0000-4000-8000-000000000001',
+   'Teaser gamme bio', 'post', 'instagram', 'Produit',
+   'FABRICATED caption.', '2026-08-18', '2026-08-16', 'client_review', 'normal',
+   '22222222-2222-4222-8222-222222222222', '11111111-1111-4111-8111-111111111111'),
+
+  -- Belongs to Nova and is in a client-visible status. The Atlas contact must
+  -- not reach it, and because the status is NOT what stops them, this fixture
+  -- tests membership rather than the status filter.
+  ('a1000000-0000-4000-8000-000000000002',
+   'b1000000-0000-4000-8000-000000000002', 'c1000000-0000-4000-8000-000000000002',
+   'Visite guidée Lac 2', 'reel', 'instagram', 'Bien',
+   'FABRICATED caption.', '2026-08-30', '2026-08-28', 'approved', 'normal',
+   '22222222-2222-4222-8222-222222222222', '11111111-1111-4111-8111-111111111111'),
+
+  ('a1000000-0000-4000-8000-000000000003',
+   'b1000000-0000-4000-8000-000000000001', 'c1000000-0000-4000-8000-000000000001',
    'Recette estivale — salade Atlas', 'reel', 'instagram', 'Recette',
    'FABRICATED caption.', '2026-08-14', '2026-08-12', 'approved', 'normal',
-   '11111111-1111-4111-8111-111111111111'),
-  ('b1000000-0000-4000-8000-000000000001', 'c1000000-0000-4000-8000-000000000001',
+   '22222222-2222-4222-8222-222222222222', '11111111-1111-4111-8111-111111111111'),
+
+  -- Atlas's own item, still in internal production. Visible to the agency,
+  -- invisible in the portal: a client sees work once it is put in front of
+  -- them, not while it is being made.
+  ('a1000000-0000-4000-8000-000000000004',
+   'b1000000-0000-4000-8000-000000000001', 'c1000000-0000-4000-8000-000000000001',
    'Coulisses production', 'carousel', 'facebook', 'Coulisses',
    'FABRICATED caption.', '2026-08-21', '2026-08-19', 'design', 'high',
-   '11111111-1111-4111-8111-111111111111'),
-  ('b1000000-0000-4000-8000-000000000002', 'c1000000-0000-4000-8000-000000000002',
+   '22222222-2222-4222-8222-222222222222', '11111111-1111-4111-8111-111111111111'),
+
+  ('a1000000-0000-4000-8000-000000000005',
+   'b1000000-0000-4000-8000-000000000002', 'c1000000-0000-4000-8000-000000000002',
    'Nouveau bien — Lac 2', 'post', 'linkedin', 'Bien',
    'FABRICATED caption.', '2026-08-28', '2026-08-26', 'idea', 'normal',
-   '11111111-1111-4111-8111-111111111111');
+   '22222222-2222-4222-8222-222222222222', '11111111-1111-4111-8111-111111111111');
 
 -- ═══ 7. Publishing — finding #3 (past-dated, still "scheduled") ════════════
 insert into public.social_posts

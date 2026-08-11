@@ -239,4 +239,10 @@ export const FIXTURES = {
   devisDraft: "d1000000-0000-4000-8000-000000000006",
   /** Already issued ('sent') — a commercial must not be able to touch it. */
   devisSent: "d1000000-0000-4000-8000-000000000005",
+  /** Atlas content awaiting the client's decision. */
+  itemAwaitingReview: "a1000000-0000-4000-8000-000000000001",
+  /** Nova content in a client-visible status — the IDOR target. */
+  itemOtherOrg: "a1000000-0000-4000-8000-000000000002",
+  /** Atlas content still in internal production. */
+  itemInternalWip: "a1000000-0000-4000-8000-000000000004",
 };

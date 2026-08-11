@@ -1,4 +1,4 @@
-import { test, expect, login } from "./fixtures";
+import { test, expect, login, resetPortalApprovalFixture } from "./fixtures";
 
 /**
  * Role scoping, observed through the browser.
@@ -169,8 +169,87 @@ test.describe("client contact — no internal surface", () => {
     await page.goto("/portal", { waitUntil: "networkidle" });
     const body = await page.locator("body").innerText();
 
-    for (const internal of [NOT_OWNED, OWNED, "Staging Worker", "Staging Admin"]) {
+    // NOT_OWNED is Atlas Foods, which is this contact's OWN organisation — it
+    // is named "not owned" from the commercial's point of view, not the
+    // client's. Written when /portal was a placeholder with no content at all,
+    // this asserted the portal never showed it, which stopped being true the
+    // moment the portal started working.
+    //
+    // What must stay absent is every OTHER organisation and every employee.
+    for (const internal of [OWNED, OWNED_TOO, "Staging Worker", "Staging Admin"]) {
       expect(body, `portal leaked "${internal}"`).not.toContain(internal);
     }
+    expect(body).toContain(NOT_OWNED);
+  });
+});
+
+test.describe("client portal — what it shows and what it refuses", () => {
+  test.beforeEach(async ({ page }) => {
+    // Two of these tests record a real decision that outlives the test, so the
+    // pending item is restored first. Without it the suite passes once.
+    resetPortalApprovalFixture();
+    await login(page, "client");
+    await page.goto("/portal", { waitUntil: "networkidle" });
+  });
+
+  test("shows the organisation and the content awaiting a decision", async ({
+    page,
+    diagnostics,
+  }) => {
+    const body = await page.locator("body").innerText();
+
+    expect(body).toContain("Atlas Foods SARL");
+    expect(body).toContain("Teaser gamme bio");        // awaiting review
+    expect(body).toContain("Recette estivale");        // already approved
+
+    expect(diagnostics.significantErrors()).toEqual([]);
+  });
+
+  test("hides work still in production, and every other organisation's content", async ({
+    page,
+  }) => {
+    const body = await page.locator("body").innerText();
+
+    // Atlas's own item, still in 'design'. A client sees work once it is put
+    // in front of them, not while it is being made.
+    expect(body, "portal showed an item still in internal production").not.toContain(
+      "Coulisses production",
+    );
+
+    // Nova's item, in a client-visible status. Membership is the only thing
+    // stopping it, which is exactly what this asserts.
+    expect(body, "portal showed another organisation's content").not.toContain(
+      "Visite guidée Lac 2",
+    );
+  });
+
+  test("shows no internal field anywhere on the page", async ({ page }) => {
+    const body = await page.locator("body").innerText();
+    for (const internal of ["Staging Worker", "urgent", "Priorité", "Deadline interne"]) {
+      expect(body, `portal leaked "${internal}"`).not.toContain(internal);
+    }
+  });
+
+  test("records an approval, and the item leaves the pending list", async ({ page }) => {
+    const pending = page.getByText("Teaser gamme bio");
+    await expect(pending).toBeVisible();
+
+    await page.getByRole("button", { name: "Valider" }).click();
+
+    // The action revalidates /portal, and the item re-renders under "Vos
+    // contenus" carrying the decision. It stays in 'client_review' internally,
+    // which is correct — the client answered, the agency has not yet acted.
+    await expect(page.getByText("Validé par vous")).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole("button", { name: "Valider" })).toHaveCount(0);
+  });
+
+  test("a revision request without a comment is refused", async ({ page }) => {
+    // Not a database rule — an empty revision request is valid SQL and useless
+    // to the team, so the action rejects it and the page says why.
+    await page.getByRole("button", { name: "Demander une modification" }).click();
+    // Located by its text, not by role: Next.js renders its own route
+    // announcer with role="alert", so an unscoped alert locator matches twice
+    // and trips strict mode.
+    await expect(page.getByText("Merci d'indiquer")).toBeVisible();
   });
 });

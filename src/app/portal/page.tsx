@@ -1,30 +1,54 @@
 import { requireClientContact } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
+import { PortalClient, type PortalItem } from "./portal-client";
 
 /**
- * Client portal — placeholder.
+ * Client portal.
  *
- * This route exists now because /dashboard is closed to the `client` role, and
- * a guard needs somewhere to send them that is not a 404 and not a redirect
- * loop back into the guard that rejected them.
+ * Reads three owner-run views — `portal_client_org`, `portal_content_plans`
+ * and `portal_content_items` — and never a base table. That is the whole
+ * design: the `client` role holds no policy on any internal table, so the
+ * Phase 2 assertion that it reads zero rows from all of them stays true, and
+ * the portal's surface is exactly the columns those views project.
  *
- * It shows nothing about the agency and reads no client data: the portal's
- * scoped surfaces arrive in Phase 6 together with the RLS policies that make
- * them safe. Until then the honest state is "signed in, nothing to show yet",
- * which is also the correct fail-closed behaviour.
+ * Nothing here filters by client id. Membership is resolved inside the views
+ * by `client_contact_of()`, which means a mistake in this file cannot widen
+ * what is returned. If it could, the boundary would be in the wrong place.
  */
 export default async function PortalPage() {
   const session = await requireClientContact();
-  const name = session.full_name ?? session.username;
+  const supabase = await createClient();
+
+  const [orgRes, itemsRes] = await Promise.all([
+    supabase.from("portal_client_org").select("id, name").maybeSingle(),
+    supabase
+      .from("portal_content_items")
+      .select(
+        "id, title, content_type, platform, caption, publish_date, status, approval_status, final_asset_url",
+      )
+      .order("publish_date", { ascending: true, nullsFirst: false }),
+  ]);
+
+  const loadError = orgRes.error?.message ?? itemsRes.error?.message ?? null;
+
+  const items: PortalItem[] = (itemsRes.data ?? []).map((i) => ({
+    id: i.id,
+    title: i.title,
+    contentType: i.content_type,
+    platform: i.platform,
+    caption: i.caption,
+    publishDate: i.publish_date,
+    status: i.status,
+    approvalStatus: i.approval_status,
+    assetUrl: i.final_asset_url,
+  }));
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-xl flex-col items-center justify-center gap-4 px-6 text-center">
-      <h1 className="text-2xl font-semibold text-ink">Espace client</h1>
-      <p className="text-ink/70">
-        Bonjour {name}. Votre espace est en cours de préparation.
-      </p>
-      <p className="text-sm text-ink/60">
-        Vos publications, livrables et validations apparaîtront ici.
-      </p>
-    </main>
+    <PortalClient
+      contactName={(session.full_name ?? session.username).split(" ")[0]}
+      orgName={orgRes.data?.name ?? null}
+      items={items}
+      loadError={loadError}
+    />
   );
 }

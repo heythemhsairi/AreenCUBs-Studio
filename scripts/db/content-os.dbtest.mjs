@@ -233,7 +233,9 @@ describe("CONTAINED — Content OS RLS now checks the application role", () => {
   });
 
   it("leaves the fixture unchanged — every probe rolled back", () => {
-    expect(sql("select count(*) from public.content_items;")).toBe("3");
+    // Five since Phase 6: the seed gained one item awaiting client review and
+    // one belonging to a second organisation, both fixtures for the portal.
+    expect(sql("select count(*) from public.content_items;")).toBe("5");
     expect(sql("select count(*) from public.monthly_content_plans;")).toBe("2");
   });
 });
@@ -316,7 +318,9 @@ describe.skip("SUPERSEDED — original vulnerability demonstration", () => {
   });
 
   it("leaves the fixture unchanged — every probe rolled back", () => {
-    expect(sql("select count(*) from public.content_items;")).toBe("3");
+    // Five since Phase 6: the seed gained one item awaiting client review and
+    // one belonging to a second organisation, both fixtures for the portal.
+    expect(sql("select count(*) from public.content_items;")).toBe("5");
     expect(sql("select count(*) from public.monthly_content_plans;")).toBe("2");
   });
 });
