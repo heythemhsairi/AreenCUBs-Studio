@@ -141,6 +141,9 @@ Confirmed in-browser across desktop, tablet and mobile with no exclusions (`PHAS
 
 ## 11. Phase 2 — three items that need a decision before production
 
+> **11a is RESOLVED.** Applied to production by hand on 2026-08-11 and validated.
+> See `PRODUCTION-HOTFIX-RECORD.md`. 11b and 11c remain open.
+
 Implemented and verified locally. None has been applied anywhere but the staging
 database on this machine.
 
@@ -214,7 +217,11 @@ be a worse regression than the 500 this phase removed.
 
 ---
 
-## 13. Emergency hotfix — prepared and verified, BLOCKED ON ACCESS
+## 13. Emergency hotfix — APPLIED AND VALIDATED
+
+> Resolved. The owner ran it through the Supabase SQL Editor; evidence and the
+> rollback are recorded in `PRODUCTION-HOTFIX-RECORD.md`. The section below is
+> kept as the record of what was prepared and why `db push` was refused.
 
 Approved as an emergency production security fix. Everything that can be done
 without touching production is done. **Nothing has been applied, because this
@@ -301,3 +308,26 @@ lagging database might be missing, and that it does not test `current_user` —
 the mistake that made the first version permit every write it existed to stop.
 
 §11b and §11c remain open and untouched, as instructed.
+
+
+---
+
+## 14. Production has no migration ledger — blocks all further schema work
+
+`supabase_migrations.schema_migrations` **does not exist in production**, found
+by the hotfix pre-flight. Production was never managed by the Supabase CLI.
+
+This is not a decision so much as a finding that changes what is safe:
+
+- `PHASE-0-DISCOVERY.md` §3.1.1 inferred production sits at migration `0017`.
+  That inference cannot be confirmed, because there is nothing to confirm it
+  against. **Production's schema state is unknown.**
+- `supabase db push` is now categorically unusable, not merely constrained. With
+  no ledger the CLI treats all thirty-four migrations as unapplied and would try
+  to rebuild the schema from zero on top of itself, aborting on the first
+  `create type` or `create table` that already exists.
+
+**Decision needed before any Phase 2–7 migration reaches production:** establish
+the real schema state by inspecting production's objects, then choose whether to
+baseline it into the CLI ledger or keep managing it by reviewed standalone
+statements. Detail in `PRODUCTION-HOTFIX-RECORD.md`.
