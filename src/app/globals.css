@@ -903,3 +903,28 @@ html.light .text-\[\#F43F5E\]\/80,
 html.light .text-\[\#F43F5E\]\/70,
 html.light .text-\[\#FB7185\]\/80,
 html.light .text-\[\#FB7185\]\/70 { color: #A11D36 !important; }  /* 6.81:1 */
+
+/* -------------------------------------------------------------------------
+   Surfaces that stay DARK in both themes.
+
+   The mobile bottom navigation is painted bg-[#0D2D47]/95 regardless of
+   theme. The light-theme text corrections above are written for light
+   backgrounds, so inside this container they produced light-mode greys on a
+   dark panel — axe measured #556575 on #193750 at 2.05:1, a regression the
+   desktop run could not see because the nav is md:hidden.
+
+   Inside a [data-surface="dark"] container the dark-theme treatment applies
+   even in light mode. The approved supporting colour reads 6.09:1 there.
+   ------------------------------------------------------------------------- */
+html.light [data-surface="dark"] .text-\[\#64748B\],
+html.light [data-surface="dark"] .text-\[\#94A3B8\],
+html.light [data-surface="dark"] .text-\[\#86A8C2\],
+html.light [data-surface="dark"] .text-ink\/40,
+html.light [data-surface="dark"] .text-ink\/45,
+html.light [data-surface="dark"] .text-ink\/50,
+html.light [data-surface="dark"] .text-ink\/55,
+html.light [data-surface="dark"] .text-ink\/60,
+html.light [data-surface="dark"] .text-ink\/65,
+html.light [data-surface="dark"] .text-ink\/70 { color: #8FADCE !important; }
+
+html.light [data-surface="dark"] .text-\[\#22D3EE\] { color: #7DD3FC !important; }
