@@ -179,59 +179,40 @@ Write the permission matrix first. Everything from Phase 3 onward depends on it.
 
 ---
 
-## Continuation point — 99f2240
+## Continuation point — b62b41c
 
-### Phase 1 (contrast) — nearly complete
+### Phase 1 (contrast) — one item left, and it is structural
 
-**Session result: 9 failing axe checks → 3; 1 passing → 7.** Desktop, light theme measured throughout; dark-theme pairs fixed as they surfaced.
+**Verified across desktop + tablet + mobile: 4 failing axe checks, 26 passing.** The 4 are a single colour pair counted once per viewport.
 
-Everything was fixed in the light-theme override block in `globals.css`, not in components. An early attempt changed the `--c-text-3` / `--c-cyan` custom properties and axe showed **no change at all** — those elements do not consume them. Always re-measure after a token edit.
+All corrections live in the light-theme override block in `globals.css`. Components were not restyled, so hierarchy, badge shape and brand identity are unchanged — only text colours moved.
 
-Corrected this session:
+### The one remaining failure
 
-| Was | Ratio | Now | Ratio |
-|---|---|---|---|
-| `#6C8298` muted text | 3.97 | `#556575` | 5.99 |
-| `#1A9DBF` accent | 2.92 | `#0E6C87` | 5.50 |
-| `#7DD3FC` info badge | 1.48 | `#0A5680` | 7.04 |
-| `#FCD34D` warning badge | 1.24 | `#7C4A02` | 6.37 |
-| `#FB7185` danger badge | 2.07 | `#A11D36` | 5.89 |
-| `#C4B5FD` violet badge | 2.72 | `#6D28D9` | 7.10 |
-| `#4ADE80` success badge | 2.27 | `#166534` | 7.13 |
-| `#38BDF8` | 2.14 | `#0A5680` | 7.91 |
-| `#06B6D4` | 2.11 | `#0E6C87` | 5.21 |
-| `#34D399` | 1.55 | `#166534` | 5.75 |
-| `#3B8BBA` brand, light | 3.55 | `#1064D4` primary | 5.53 |
-| `#3B8BBA` brand, dark | 3.76 | `#8FADCE` supporting | 6.09 |
-| `#788591` dark muted | 3.88 | `#8FADCE` supporting | 6.32 |
+`#34d399` on `#ceedec` = **1.55:1**, from `PIE_PALETTE` in `src/app/dashboard/finance/finance-client.tsx:116`, rendered as donut legend text.
 
-`text-ink/50…70` alpha was also raised so the blend clears AA in light mode.
+**It cannot be fixed by changing the value.** The palette is shared by both themes:
 
-### Remaining — 3 single-node pairs
-
-| Foreground | Background | Ratio |
+| Candidate | Light on `#ceedec` | Dark on `#0d2d47` |
 |---|---|---|
-| `#34d399` | `#ceedec` | 1.55 |
-| `#94969c` | `#f5f9ff` | 2.79 |
-| `#f4627d` | `#f5f0f7` | 2.71 |
+| `#34D399` (current) | 1.55 ✗ | passes |
+| `#166534` | 5.75 ✓ | 1.99 ✗ |
+| `#047857` | 4.43 ✗ | 2.58 ✗ |
 
-All light-theme opacity blends whose originating class is not yet identified. `#34d399` is a *second* instance the class override did not catch, so it is set inline or via a different class.
+**Chart palettes must become theme-aware** — series colours resolved per theme rather than a shared constant array. `src/components/charts/palette.ts` already centralises one palette and is the natural place. `PIE_PALETTE` in `finance-client.tsx` and the `expenses` / `profit` constants above it should move there too.
 
-**How to find them:** the axe artifacts record each failing node's DOM target.
+This is a real refactor of how chart colour is resolved, not a value swap. It was deliberately not forced, because any single value that fixes light mode breaks dark-mode data visualisation.
 
-```bash
-cd ~/AreenCUBs-Studio-staging
-bash scripts/run-e2e.sh --project=desktop -g axe
-grep -r "target" e2e/.artifacts --include=error-context.md | head
-```
+### Regression worth remembering
 
-Locate the component from the target selector rather than adding another blind global override.
+Running only desktop hid a regression I introduced. My light-mode replacements landed on the mobile bottom navigation, which is painted `bg-[#0D2D47]/95` in **both** themes, giving `#556575` on `#193750` at 2.05:1 across nine nodes. The nav is `md:hidden`, so desktop could never see it.
+
+Fixed by marking persistently-dark containers with `data-surface="dark"` and scoping the light-theme corrections around them. **Any future theme override must be checked against every surface it can land on, on every viewport.** If another always-dark surface appears, mark it the same way.
 
 ### Still outstanding for Phase 1
 
-- Tablet and mobile axe runs — only desktop was re-measured this session
-- A full dark-theme sweep — dark pairs were fixed opportunistically as they surfaced
 - Fabricated-data screenshots at 1280×720, 768×1024, 390×844
+- Theme-aware chart palettes (the item above)
 
 ### Then: Phase 2 — role schema and complete RLS matrix
 
@@ -240,4 +221,4 @@ Write the permission matrix first. Everything from Phase 3 onward depends on it.
 ### Totals at this commit
 
 200 unit · 103 database · typecheck clean · build clean, 52 routes.
-Axe: 3 failing, 7 passing on desktop.
+Axe: 4 failing / 26 passing across all three viewports.
