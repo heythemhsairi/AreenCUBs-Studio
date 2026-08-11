@@ -95,6 +95,26 @@ describe("production write paths are guarded", () => {
     }
   });
 
+  it("exposes verified preview lifecycle commands", () => {
+    expect(pkg.scripts["preview:local"]).toBe("bash scripts/preview-local.sh");
+    expect(pkg.scripts["preview:stop"]).toBe("bash scripts/preview-stop.sh");
+  });
+
+  it("the preview stop script never uses pkill -f, which self-terminates", () => {
+    // A pkill pattern that appears in the invoking command line matches the
+    // invoking shell. That once killed a cleanup command before it ran,
+    // leaving ten containers up while reporting nothing.
+    const stop = readFileSync(join(ROOT, "scripts/preview-stop.sh"), "utf8");
+    expect(stop).not.toMatch(/pkill\s+-f/);
+    expect(stop).toMatch(/ss -lntpH/);
+  });
+
+  it("the preview start script refuses Docker Desktop via the preflight gate", () => {
+    const start = readFileSync(join(ROOT, "scripts/preview-local.sh"), "utf8");
+    expect(start).toMatch(/db:preflight/);
+    expect(start).toMatch(/ISOLATION GATE FAILED/);
+  });
+
   it("keeps db:reset pointed at the local stack", () => {
     // `supabase db reset` operates on the local database only; it has no
     // remote form that could be triggered by accident.

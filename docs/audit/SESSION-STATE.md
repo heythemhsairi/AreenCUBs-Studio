@@ -88,3 +88,48 @@ Run database and browser work **only** inside WSL, prove isolation first, stop t
 ## Commits this session
 
 `dae79f2` Phase 2b · `6a7fce7` Phase 2c · Phase 2e (this commit)
+
+---
+
+## Continuation point (updated)
+
+**HEAD:** see `git log -1`. Branch `phase-1-data-integrity`. Tree clean.
+
+### Safe local preview
+
+```bash
+wsl -d Ubuntu
+cd ~/AreenCUBs-Studio-staging
+npm run preview:local     # isolation gate, synthetic DB, app on 127.0.0.1:3000
+npm run preview:stop      # tears down and PROVES it; nonzero if incomplete
+```
+
+Open **http://127.0.0.1:3000/dashboard**. Synthetic logins (fabricated, local DB only):
+`admin` / `worker` / `freelancer`, password `staging-only-not-a-secret`; `orphan` is authenticated with no profile and must be denied.
+
+### Master-brief phase status
+
+| Phase | Status |
+|---|---|
+| 1A `/dashboard/team` hydration | **NOT DONE** — 3 browser failures. Bisection plan in PHASE-2F. |
+| 1B accessibility labels | ✅ done (`4438079`), verified in browser |
+| 1C contrast / design tokens | **NOT STARTED** — axe reports `color-contrast` on every route |
+| 2 role & permission architecture | **NOT STARTED** — DB has 3 roles; commercial/intern/client are greenfield |
+| 3 Content OS authorization | interim containment done (`8c21885`); full 6-role model not started |
+| 4 commercial dashboard | **NOT STARTED** |
+| 5 intern dashboard | **NOT STARTED** |
+| 6 client portal | **NOT STARTED** |
+| 7 video review + storage provider | **NOT STARTED** |
+| 8 optional TVA | module built & tested (`eceab3d`), **not wired**; divergence unapproved |
+| 9 task/project operations | existing features only; import workflow not started |
+| 10 reporting | **NOT STARTED** |
+| 11 design system rollout | **NOT STARTED** |
+| 12 safe local preview | ✅ done |
+
+### Recommended next order
+
+1. **Phase 1C contrast** — axe evidence exists, token-level fix, self-contained.
+2. **Phase 2 role schema + RLS** — everything from Phase 3 onward depends on it. Start with the permission matrix document, then a forward-only migration adding roles and membership/assignment tables, then RLS tests per role.
+3. **Phase 1A hydration** — use production-build component bisection; the dev-server harness failed three times.
+
+Phases 4–7 and 10 are each multi-session features. Do not start one without room to finish and verify it.

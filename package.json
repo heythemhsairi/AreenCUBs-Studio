@@ -20,7 +20,9 @@
     "db:link": "supabase link --project-ref exdatjsgeomejhdofgvw",
     "db:push": "echo \"REFUSED: db:push targets PRODUCTION. Use 'npm run db:reset' for local staging. To deploy for real, run 'npx supabase db push' deliberately and only with approval.\" && exit 1",
     "db:diff": "supabase db diff",
-    "test:e2e": "bash scripts/run-e2e.sh"
+    "test:e2e": "bash scripts/run-e2e.sh",
+    "preview:local": "bash scripts/preview-local.sh",
+    "preview:stop": "bash scripts/preview-stop.sh"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",
