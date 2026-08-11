@@ -855,3 +855,26 @@ html.light .text-ink\/55 { color: rgba(16,32,51,0.75) !important; }
 html.light .text-ink\/60 { color: rgba(16,32,51,0.78) !important; }
 html.light .text-ink\/65 { color: rgba(16,32,51,0.80) !important; }
 html.light .text-ink\/70 { color: rgba(16,32,51,0.82) !important; }
+
+/* -------------------------------------------------------------------------
+   Brand text — per theme.
+
+   `brand.DEFAULT` (#3B8BBA) compiles to a single value, so `text-brand`
+   cannot be theme-aware in tailwind.config.ts. Axe measured it failing on
+   BOTH themes: 3.55:1 on the light page and 3.76:1 on a dark card.
+
+   Resolved with the approved palette rather than an invented tint:
+     light  -> #1064D4  primary     5.53:1 on white, 5.09 on #F0F6FF
+     dark   -> #8FADCE  supporting  6.09:1 on #0D2D47, 5.08 on #123A5A
+
+   This is the palette working as intended — #8FADCE is unusable as light-mode
+   body text at 1.70:1 on #E8EBEC, and excellent on dark surfaces.
+   Backgrounds, borders and `brand-dark` are untouched.
+   ------------------------------------------------------------------------- */
+html.light .text-brand,
+html.light .hover\:text-brand:hover,
+html.light .group:hover .group-hover\:text-brand { color: #1064D4 !important; }
+
+html:not(.light) .text-brand,
+html:not(.light) .hover\:text-brand:hover,
+html:not(.light) .group:hover .group-hover\:text-brand { color: #8FADCE !important; }
