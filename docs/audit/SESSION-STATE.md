@@ -179,34 +179,48 @@ Write the permission matrix first. Everything from Phase 3 onward depends on it.
 
 ---
 
-## PROGRAMME COMPLETE — see COMPLETION-REPORT.md
+## PROGRAMME COMPLETE — then independently audited
 
-All twelve phases are done. The final gate run passed every suite on every
-viewport (241 unit · 260 db · 287 e2e · axe zero serious/critical · 34
-migrations from zero · build clean). `docs/audit/COMPLETION-REPORT.md` is the
-deliverable: completed/verified, locally-implemented-but-gated, unresolved
-blockers, required management actions, and the exact production rollout plan.
+All twelve phases are done (`COMPLETION-REPORT.md`). A fresh evidence-based
+audit followed, treating the recorded-complete state as untrusted:
+`INDEPENDENT-AUDIT.md`.
 
-Nothing is left to continue autonomously. The next actions are the owner's —
-key rotation first, then the rollout plan's Step 1. The environment traps and
-open decisions recorded below remain accurate for any future session.
+**Three defects confirmed and fixed**, each with a test that fails without it:
 
+| | Commit |
+|---|---|
+| The client portal had no error boundary — `error.message` and `error.digest` shown to external contacts | `d7b7bec` |
+| A commercial was offered a media control that redirected them off the page | `ee6702a` |
+| A TVA-disabled document stated a rate — including on every line of the printed document | `530627d` |
 
-Branch `phase-1-data-integrity`. Phases 1–10 complete and committed; the
-production escalation hotfix is live and validated.
+**Measured clean and now pinned** (`08e7f16`): the seven owner-run views grant
+`authenticated:SELECT` and nothing else, refuse `anon` outright, and return
+zero to a session with no membership. Tests enumerate views by pattern, so one
+added later is covered the day it appears.
 
-| Phase | Commit | What landed |
-|---|---|---|
-| 2 — roles and RLS | `b2bc5b9` | Six-role matrix, membership, audit log, guards |
-| 3 — /dashboard/team | `e146f30` | Server-render throw, not hydration; degraded email read |
-| 4 — commercial | `a2578c3` | Commercial dashboard, scoped quote access |
-| 5 — intern | `d51a64a` | Intern dashboard, nav for new roles, client CRM guard |
-| 6 — client portal | `9f77812` | Portal views, approvals, notifications |
-| hotfix | `353069c`…`c3a74d0` | Escalation closed in production; **no migration ledger exists there** |
-| 7 — video review | `da4d471` + `78e4f09` | Schema+RLS, staff workspace, portal player, upload, resolution |
-| 8 — storage boundary | `dd31fce` | Provider interface, Drive adapter (unconnected), mock, runbook |
-| 9 — optional TVA | `8d9e799` | One calc source, per-doc toggle+rate, issued-doc freeze, shadow log |
-| 10 — reporting/security | `3d21495` | Agency brief, audit surface, SECURITY-REVIEW.md |
+Database posture, measured: no `public` table without RLS; no RLS-enabled table
+without policies; no `SECURITY DEFINER` function with an unpinned `search_path`;
+`anon` reaches zero rows everywhere.
+
+**Final gates, all green:** 34 migrations from zero · typecheck · build ·
+244 unit · 268 database · **302 browser tests across three viewports** ·
+axe zero serious/critical · 36 screenshots · secret scan clean (three matches
+inspected and confirmed placeholders in `.env.example` and the loopback default
+in `docs/STAGING.md`) · stack stopped with 0 containers, 0 listeners.
+
+Nothing further is safe to do autonomously. What remains is owner action —
+key rotation first, then the production schema baseline that gates every
+migration rollout.
+
+### Two process notes for the next session
+
+- `mksync.sh` runs `git add -A` as a side effect. It swept two unrelated audit
+  fixes into one commit; they were split before anything built on top. **Commit
+  before syncing**, or stage explicitly afterwards.
+- The runner is synced by tar, so its git HEAD stops describing its files.
+  `resync-runner.sh <commit>` hard-resets it (runner only — the canonical repo
+  is fetched read-only) and must run **before** the working tree is layered on,
+  or git refuses rather than clobbering.
 
 ### The environment traps, still true
 
