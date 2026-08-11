@@ -74,6 +74,10 @@ export const ACCOUNTS = {
   freelancer: { username: "freelancer", password: "staging-only-not-a-secret" },
   /** Authenticated but has NO profiles row — must be denied. */
   orphan: { username: "orphan", password: "staging-only-not-a-secret" },
+  commercial: { username: "commercial", password: "staging-only-not-a-secret" },
+  intern: { username: "intern", password: "staging-only-not-a-secret" },
+  /** A contact at a client organisation — external, not an employee. */
+  client: { username: "client", password: "staging-only-not-a-secret" },
 };
 
 /**

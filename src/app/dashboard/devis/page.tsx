@@ -1,9 +1,9 @@
-import { requireAdmin } from "@/lib/auth";
+import { requireQuoteAccess } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { DevisListView } from "@/components/devis/devis-list-view";
 
 export default async function DevisListPage() {
-  await requireAdmin();
+  await requireQuoteAccess();
   const supabase = await createClient();
 
   const [{ data: rows }, { data: clients }] = await Promise.all([

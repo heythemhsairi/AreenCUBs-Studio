@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireAdmin } from "@/lib/auth";
+import { requireAdmin, requireQuoteAccess } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { notifyMany } from "@/lib/notify";
@@ -167,10 +167,24 @@ async function numberTaken(
   return !!data;
 }
 
+/**
+ * Draft authoring is open to a commercial; everything that ISSUES, SETTLES or
+ * REMOVES a document stays with the administrator.
+ *
+ * The split is deliberate and matches docs/audit/PERMISSION-MATRIX.md. Row
+ * scoping is not repeated here because RLS already does it: a commercial's
+ * INSERT is rejected unless the client is theirs and the status is 'draft',
+ * and their UPDATE matches zero rows once a document leaves draft. Duplicating
+ * that in TypeScript would create a second definition of the rule that could
+ * drift from the first.
+ *
+ * Two layers, two jobs: the guard decides who may call the action, the policy
+ * decides which rows the call may touch.
+ */
 export async function createDevisAction(
   formData: FormData,
 ): Promise<ActionResult> {
-  const session = await requireAdmin();
+  const session = await requireQuoteAccess();
   const input = pickDevisInput(formData);
 
   if (!input.client_id) return { ok: false, error: "Client requis." };
@@ -247,7 +261,7 @@ export async function createDevisAction(
 export async function updateDevisAction(
   formData: FormData,
 ): Promise<ActionResult> {
-  await requireAdmin();
+  await requireQuoteAccess();
   const id = String(formData.get("id") ?? "");
   if (!id) return { ok: false, error: "ID manquant." };
 

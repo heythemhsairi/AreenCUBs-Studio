@@ -1,4 +1,5 @@
-import { requireSession } from "@/lib/auth";
+import { requireInternal } from "@/lib/auth";
+import { CommercialDashboard } from "./commercial-dashboard";
 import { createClient } from "@/lib/supabase/server";
 import { OverviewClient } from "./overview-client";
 import { getDonutPalette } from "@/components/charts/palette";
@@ -25,7 +26,17 @@ async function safe<T>(
 }
 
 export default async function DashboardPage() {
-  const session = await requireSession();
+  const session = await requireInternal();
+
+  // Branch BEFORE any query runs. A commercial must not see agency-wide
+  // finance, and the strongest guarantee is that the queries producing those
+  // figures are never issued for this session — not that the result is hidden
+  // after the fact. A conditional around the markup leaves the number one
+  // refactor away from being rendered and one network tab away from being read.
+  if (session.role === "commercial") {
+    return <CommercialDashboard session={session} />;
+  }
+
   const supabase = await createClient();
 
   const now = new Date();

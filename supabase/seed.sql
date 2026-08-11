@@ -136,7 +136,7 @@ insert into public.profiles (id, username, full_name, role) values
   ('33333333-3333-4333-8333-333333333333', 'freelancer', 'Staging Freelancer', 'freelancer'),
   ('55555555-5555-4555-8555-555555555555', 'commercial', 'Staging Commercial', 'commercial'),
   ('66666666-6666-4666-8666-666666666666', 'intern',     'Staging Intern',     'intern'),
-  ('77777777-7777-4777-8777-777777777777', 'clientuser', 'Staging Client Contact', 'client')
+  ('77777777-7777-4777-8777-777777777777', 'client',     'Staging Client Contact', 'client')
 on conflict (id) do update
   set username = excluded.username,
       full_name = excluded.full_name,

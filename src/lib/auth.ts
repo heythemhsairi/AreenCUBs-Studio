@@ -148,6 +148,22 @@ export async function requireInternal(): Promise<SessionProfile> {
   return requireRoles(INTERNAL_ROLES);
 }
 
+/**
+ * The quote and invoice surface.
+ *
+ * Admin and commercial only — a worker has no financial access at all under
+ * the matrix, so this is deliberately NOT requireWorkerOrAdmin.
+ *
+ * The guard opens the pages; it does not decide what they contain. A
+ * commercial reaching /dashboard/devis sees exactly the documents RLS returns
+ * for them, which is their own clients' and nothing else, and the actions that
+ * issue a document, record a payment or delete a record keep requireAdmin.
+ * Route access and row access are separate questions and both are answered.
+ */
+export async function requireQuoteAccess(): Promise<SessionProfile> {
+  return requireRoles(["admin", "commercial"]);
+}
+
 /** The client portal. The inverse of requireInternal. */
 export async function requireClientContact(): Promise<SessionProfile> {
   return requireRoles(["client"]);

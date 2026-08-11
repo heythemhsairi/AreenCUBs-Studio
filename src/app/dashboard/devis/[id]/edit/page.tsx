@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { requireAdmin } from "@/lib/auth";
+import { requireQuoteAccess } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { DevisBuilder } from "../../devis-builder";
 
@@ -8,7 +8,7 @@ export default async function EditDevisPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireAdmin();
+  await requireQuoteAccess();
   const { id } = await params;
   const supabase = await createClient();
 
