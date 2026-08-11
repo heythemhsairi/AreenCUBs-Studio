@@ -179,7 +179,18 @@ Write the permission matrix first. Everything from Phase 3 onward depends on it.
 
 ---
 
-## Continuation point — HEAD 3d21495, Phase 11 gates running
+## PROGRAMME COMPLETE — see COMPLETION-REPORT.md
+
+All twelve phases are done. The final gate run passed every suite on every
+viewport (241 unit · 260 db · 287 e2e · axe zero serious/critical · 34
+migrations from zero · build clean). `docs/audit/COMPLETION-REPORT.md` is the
+deliverable: completed/verified, locally-implemented-but-gated, unresolved
+blockers, required management actions, and the exact production rollout plan.
+
+Nothing is left to continue autonomously. The next actions are the owner's —
+key rotation first, then the rollout plan's Step 1. The environment traps and
+open decisions recorded below remain accurate for any future session.
+
 
 Branch `phase-1-data-integrity`. Phases 1–10 complete and committed; the
 production escalation hotfix is live and validated.
@@ -197,29 +208,18 @@ production escalation hotfix is live and validated.
 | 9 — optional TVA | `8d9e799` | One calc source, per-doc toggle+rate, issued-doc freeze, shadow log |
 | 10 — reporting/security | `3d21495` | Agency brief, audit surface, SECURITY-REVIEW.md |
 
-### If the Phase 11 gate run was interrupted
-
-Re-run: `wsl -d Ubuntu -u root -- bash -lc 'bash /root/run.sh p11.sh'`
-(reset from zero → typecheck → unit → db → full e2e all three viewports,
-including the screenshot matrix). Then Phase 12: the completion report per the
-roadmap's four categories — completed/verified, locally-implemented-but-gated,
-unresolved blockers, required management actions, production rollout plan.
-Close: preview:stop, secret scan, clean tree, SESSION-STATE.
-
 ### The environment traps, still true
 
 1. `SECURITY DEFINER` makes `current_user` the owner — identify callers by `auth.uid()`.
 2. Assert rows affected, never "did it throw".
 3. CLI skips future-dated migrations silently.
 4. `git archive` scopes to the shell cwd — run from repo root.
-5. Backslash escapes collapse in Bash heredocs — use the Write tool for scripts with escapes; char-code tricks beat regex classes.
-6. Browser tests persist writes — reset fixtures (incl. `storage.objects` rows; direct deletes need `set local session_replication_role = replica` past the storage extension's protect_delete trigger).
-7. The WSL VM idles out between tool calls; every fresh call cold-boots the stack (~30 s of "database system is starting up" — wait for health, it is not a crash).
-8. The WSL clone is synced by tar; its git HEAD is stale — verify provenance against the Windows repo.
+5. Backslash escapes collapse in Bash heredocs — use the Write tool; char codes beat regex classes.
+6. Browser tests persist writes — reset fixtures (incl. `storage.objects` rows via `session_replication_role = replica`).
+7. The WSL VM idles out between tool calls; cold boots look like DB crashes — wait for health.
+8. The WSL clone is synced by tar; verify provenance against the Windows repo.
 
 ### Open items (`DECISIONS-NEEDED.md`)
 
-§1 service-role key rotation (oldest, owner action) · §11b/§11c worker and
-freelancer scope changes (decided separately) · §14 production schema unknown,
-no ledger — every production change stays hand-applied and self-contained ·
-money-engine activation · Drive account connection.
+§1 key rotation · §11b/§11c scope decisions · §14 production schema unknown ·
+millimes engine · Drive connection · Clear Sans licence.
