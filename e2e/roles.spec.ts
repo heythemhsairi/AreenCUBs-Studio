@@ -231,8 +231,9 @@ test.describe("client portal — what it shows and what it refuses", () => {
   });
 
   test("records an approval, and the item leaves the pending list", async ({ page }) => {
-    const pending = page.getByText("Teaser gamme bio");
-    await expect(pending).toBeVisible();
+    // Exact match: Phase 7 added a review asset named "Teaser gamme bio —
+    // montage", which a substring locator also matches, tripping strict mode.
+    await expect(page.getByText("Teaser gamme bio", { exact: true })).toBeVisible();
 
     await page.getByRole("button", { name: "Valider" }).click();
 

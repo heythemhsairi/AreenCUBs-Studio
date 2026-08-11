@@ -149,6 +149,58 @@ export function resetPortalApprovalFixture() {
   );
 }
 
+/**
+ * Restores the review fixtures the Phase 7 browser tests write to.
+ *
+ * Same reasoning as resetPortalApprovalFixture: browser tests drive the real
+ * application and their writes survive the test, so anything mutated must be
+ * put back or the suite only passes on its first run. This clears the resolve
+ * flag on the seeded client comment, removes comments the tests posted
+ * (recognisable by their PROBE- prefix), and drops any version uploaded to the
+ * Nova asset so the upload test can assert an exact version number.
+ */
+export function resetReviewFixture() {
+  const container = execFileSync("docker", ["ps", "--format", "{{.Names}}"], {
+    encoding: "utf8",
+  })
+    .split("\n")
+    .map((n) => n.trim())
+    .find((n) => n.startsWith("supabase_db_"));
+
+  if (!container) throw new Error("no local staging database container");
+
+  const statements = [
+    "begin;",
+    "update public.review_comments set resolved_at = null, resolved_by = null " +
+      "where id = 'f3000000-0000-4000-8000-000000000002';",
+    "delete from public.review_comments where body like 'PROBE-%';",
+    "delete from public.review_versions " +
+      "where asset_id = 'f1000000-0000-4000-8000-000000000002' and version_number > 1;",
+    // The storage OBJECT row too, not only the version row. The upload uses
+    // upsert:false — a version's file is immutable once the client may have
+    // seen it — so a leftover object at the same path fails the next run with
+    // "The resource already exists".
+    //
+    // Direct deletes on storage.objects are blocked by the local storage
+    // extension's protect_delete() trigger, even for a superuser. Disabling
+    // triggers is scoped with SET LOCAL to this transaction and placed AFTER
+    // the review-table deletes above, whose ON DELETE CASCADE is itself
+    // implemented as system triggers and must stay enabled.
+    "set local session_replication_role = replica;",
+    "delete from storage.objects where bucket_id = 'review-media' " +
+      "and name like 'c1000000-0000-4000-8000-000000000002/%';",
+    "update public.review_assets set status = 'in_review' " +
+      "where id in ('f1000000-0000-4000-8000-000000000001', 'f1000000-0000-4000-8000-000000000002');",
+    "commit;",
+  ].join(" ");
+
+  execFileSync(
+    "docker",
+    ["exec", container, "psql", "-U", "postgres", "-d", "postgres", "-v", "ON_ERROR_STOP=1", "-tAc", statements],
+    { encoding: "utf8" },
+  );
+}
+
 /** React hydration failures, by the codes React emits in production builds. */
 export function hydrationErrors(errors: string[]): string[] {
   return errors.filter((e) =>

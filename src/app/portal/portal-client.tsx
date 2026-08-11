@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useTransition } from "react";
-import { AlertCircle, CheckCircle2, Inbox, MessageSquare } from "lucide-react";
+import { AlertCircle, CheckCircle2, Film, Inbox, MessageSquare } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,15 +31,19 @@ export type PortalItem = {
  * priority, no brief and no cost anywhere on this page, because none of those
  * reach the browser in the first place.
  */
+export type PortalReview = { id: string; title: string; status: string };
+
 export function PortalClient({
   contactName,
   orgName,
   items,
+  reviews,
   loadError,
 }: {
   contactName: string;
   orgName: string | null;
   items: PortalItem[];
+  reviews: PortalReview[];
   loadError: string | null;
 }) {
   // Split on the client's own DECISION, not on the internal workflow status.
@@ -100,6 +105,38 @@ export function PortalClient({
           )}
         </CardContent>
       </Card>
+
+      {reviews.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Vidéos à visionner</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="divide-y divide-[var(--c-border)]">
+              {reviews.map((r) => (
+                <li key={r.id}>
+                  <Link
+                    href={`/portal/review/${r.id}`}
+                    className="flex items-center justify-between gap-4 py-3 transition-colors hover:bg-[var(--c-surface-2)]"
+                  >
+                    <div className="flex min-w-0 items-center gap-2">
+                      <Film size={16} className="shrink-0 text-ink/60" aria-hidden="true" />
+                      <p className="truncate text-sm font-medium text-ink">{r.title}</p>
+                    </div>
+                    <Badge tone={r.status === "approved" ? "green" : "amber"}>
+                      {r.status === "approved"
+                        ? "Validé"
+                        : r.status === "changes_requested"
+                          ? "Retours envoyés"
+                          : "À visionner"}
+                    </Badge>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>

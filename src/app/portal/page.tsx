@@ -19,7 +19,7 @@ export default async function PortalPage() {
   const session = await requireClientContact();
   const supabase = await createClient();
 
-  const [orgRes, itemsRes] = await Promise.all([
+  const [orgRes, itemsRes, reviewsRes] = await Promise.all([
     supabase.from("portal_client_org").select("id, name").maybeSingle(),
     supabase
       .from("portal_content_items")
@@ -27,9 +27,14 @@ export default async function PortalPage() {
         "id, title, content_type, platform, caption, publish_date, status, approval_status, final_asset_url",
       )
       .order("publish_date", { ascending: true, nullsFirst: false }),
+    supabase
+      .from("portal_review_assets")
+      .select("id, title, status, updated_at")
+      .order("updated_at", { ascending: false }),
   ]);
 
-  const loadError = orgRes.error?.message ?? itemsRes.error?.message ?? null;
+  const loadError =
+    orgRes.error?.message ?? itemsRes.error?.message ?? reviewsRes.error?.message ?? null;
 
   const items: PortalItem[] = (itemsRes.data ?? []).map((i) => ({
     id: i.id,
@@ -48,6 +53,11 @@ export default async function PortalPage() {
       contactName={(session.full_name ?? session.username).split(" ")[0]}
       orgName={orgRes.data?.name ?? null}
       items={items}
+      reviews={(reviewsRes.data ?? []).map((r) => ({
+        id: r.id,
+        title: r.title,
+        status: r.status,
+      }))}
       loadError={loadError}
     />
   );

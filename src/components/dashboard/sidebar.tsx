@@ -23,6 +23,7 @@ import {
   Settings,
   Layers,
   ClipboardList,
+  Clapperboard,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -74,6 +75,13 @@ function buildNav(
       label: t.contentOS.nav,
       icon: Layers,
       rolesAllowed: ["admin", "worker"],
+      group: "workspace",
+    },
+    {
+      href: "/dashboard/review",
+      label: t.nav.review,
+      icon: Clapperboard,
+      rolesAllowed: ["admin", "worker", "commercial"],
       group: "workspace",
     },
     {
