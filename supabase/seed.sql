@@ -277,6 +277,30 @@ insert into public.devis (
    '55555555-5555-4555-8555-555555555555')
 on conflict do nothing;
 
+-- A document with TVA switched OFF. Attached to Atlas (the admin's client)
+-- rather than a commercial-owned one, so the commercial scoping counts in
+-- role-matrix.dbtest.mjs are untouched.
+--
+-- Its whole purpose is display: with tva_enabled false the detail view and the
+-- printed document must state no tax at all, rather than a rate that produced
+-- zero. Totals are deliberately trivial so the assertion is unambiguous.
+insert into public.devis (
+  id, devis_number, kind, client_id, date, due_date, object,
+  status, payment_status, subtotal_dt, discount_dt,
+  tva_enabled, tva_rate, tva_dt, stamp_dt, total_dt, created_by
+) values
+  ('d1000000-0000-4000-8000-000000000007', 9007, 'devis',
+   'c1000000-0000-4000-8000-000000000001', '2026-08-08', '2026-08-22',
+   'FABRICATED — devis sans TVA',
+   'draft', 'unpaid', 800.00, 0.00,
+   false, 19.00, 0.00, 0.00, 800.00,
+   '11111111-1111-4111-8111-111111111111')
+on conflict do nothing;
+
+insert into public.devis_items (devis_id, description, quantity, unit_price_dt, line_total_dt, position, is_bonus) values
+  ('d1000000-0000-4000-8000-000000000007', 'Prestation hors champ TVA', 1, 800.00, 800.00, 0, false)
+on conflict do nothing;
+
 -- Its line item. Without this the document's stored subtotal would not
 -- reconcile against its lines, and finance.dbtest.mjs asserts — correctly —
 -- that no seeded document is internally inconsistent.

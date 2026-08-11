@@ -254,3 +254,43 @@ test.describe("client portal — what it shows and what it refuses", () => {
     await expect(page.getByText("Merci d'indiquer")).toBeVisible();
   });
 });
+
+test.describe("optional TVA — what the document states", () => {
+  test.beforeEach(async ({ page }) => {
+    await login(page, "admin");
+  });
+
+  test("a TVA-disabled document states no tax anywhere", async ({ page }) => {
+    // Devis 9007 is seeded with tva_enabled false. Before the fix both the
+    // detail view and the PRINTED document rendered a TVA line labelled with
+    // the rate — and the print view put "TVA 19%" against every single line
+    // item, stating a rate on paper that charges none.
+    await page.goto("/dashboard/devis/d1000000-0000-4000-8000-000000000007", {
+      waitUntil: "networkidle",
+    });
+    const detail = await page.locator("body").innerText();
+    expect(detail).toContain("Prestation hors champ TVA");
+    expect(detail).not.toMatch(/TVA\s*\(/);
+
+    await page.goto("/devis/d1000000-0000-4000-8000-000000000007/print", {
+      waitUntil: "networkidle",
+    });
+    const print = await page.locator("body").innerText();
+    expect(print).toContain("Prestation hors champ TVA");
+    expect(print, "printed document stated a TVA rate it does not charge").not.toContain(
+      "TVA 19%",
+    );
+    expect(print).not.toMatch(/TVA\s*\(19/);
+  });
+
+  test("a TVA-enabled document still states it", async ({ page }) => {
+    // The control. A fix that simply removed the row everywhere would pass the
+    // test above and silently strip the tax line from every real invoice.
+    await page.goto("/devis/d1000000-0000-4000-8000-000000000001/print", {
+      waitUntil: "networkidle",
+    });
+    const print = await page.locator("body").innerText();
+    expect(print).toContain("TVA");
+    expect(print).toContain("19");
+  });
+});

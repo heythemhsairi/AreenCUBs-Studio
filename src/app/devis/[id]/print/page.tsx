@@ -21,7 +21,7 @@ export default async function DevisPrintPage({
     supabase
       .from("devis")
       .select(
-        "id, kind, devis_number, date, due_date, object, subtotal_dt, tva_dt, tva_rate, stamp_dt, total_dt, discount_dt, clients:client_id(id, name, address, matricule_fiscal), devis_items(id, description, quantity, unit_price_dt, line_total_dt, is_bonus, position)",
+        "id, kind, devis_number, date, due_date, object, subtotal_dt, tva_dt, tva_rate, tva_enabled, stamp_dt, total_dt, discount_dt, clients:client_id(id, name, address, matricule_fiscal), devis_items(id, description, quantity, unit_price_dt, line_total_dt, is_bonus, position)",
       )
       .eq("id", id)
       .single(),
@@ -48,6 +48,11 @@ export default async function DevisPrintPage({
         discount_dt: Number(devis.discount_dt ?? 0),
         tva_dt: Number(devis.tva_dt),
         tva_rate: Number(devis.tva_rate),
+        // Explicitly mapped. The page rebuilds a narrow object rather than
+        // spreading the row, so a column added to the SELECT reaches the view
+        // only if it is named here too — selecting it was not enough, and the
+        // printed document went on stating a rate it does not charge.
+        tva_enabled: devis.tva_enabled ?? true,
         stamp_dt: Number(devis.stamp_dt ?? 0),
         total_dt: Number(devis.total_dt),
       }}

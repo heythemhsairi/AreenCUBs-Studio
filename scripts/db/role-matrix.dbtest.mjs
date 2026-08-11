@@ -1034,7 +1034,12 @@ describe("optional TVA — Phase 9", () => {
   it("historical rows read as TVA-enabled, legacy-calculated", () => {
     // The backfill is a statement of fact — every existing document WAS
     // computed with TVA by the legacy engine — not a policy choice.
-    expect(sql("select count(*) from public.devis where tva_enabled = false;")).toBe("0");
+    // Scoped to the documents that existed before the toggle. Devis 9007 is a
+    // deliberately TVA-disabled fixture added to test the display rule, so
+    // asserting "no row anywhere is disabled" would now assert the fixture away.
+    expect(
+      sql("select count(*) from public.devis where tva_enabled = false and devis_number <> 9007;"),
+    ).toBe("0");
     expect(sql("select count(*) from public.devis where calc_source <> 'legacy-v1';")).toBe("0");
   });
 
@@ -1042,7 +1047,7 @@ describe("optional TVA — Phase 9", () => {
     // The same hard-coded constant the finance suite pins, for the same
     // reason: a computed expectation would move with the damage it detects.
     expect(Number(sql("select round(sum(total_dt),2) from public.devis;"))).toBeCloseTo(
-      14046,
+      14846,
       2,
     );
   });
@@ -1083,6 +1088,25 @@ describe("optional TVA — Phase 9", () => {
         "select 'EDITED'; rollback;",
     );
     expect(out).toContain("EDITED");
+  });
+
+
+  it("a TVA-disabled document stores no tax and says so explicitly", () => {
+    // tva_enabled is the record of the DECISION. tva_dt = 0 alone cannot carry
+    // it: a zero equally describes an exempt client, a rounding artefact, or a
+    // document that predates the column.
+    const row = sqlAs(
+      USERS.admin,
+      "select tva_enabled::text || '/' || tva_dt::text || '/' || total_dt::text " +
+        "from public.devis where devis_number = 9007;",
+    );
+    expect(row).toBe("false/0.00/800.00");
+  });
+
+  it("every other seeded document remains TVA-enabled", () => {
+    expect(
+      sql("select count(*) from public.devis where tva_enabled = false;"),
+    ).toBe("1");
   });
 
   it("the shadow log stores structure, never amounts or clients", () => {

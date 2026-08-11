@@ -186,12 +186,23 @@ describe("stamp migration behaviour (0024 / 0025)", () => {
   });
 
   it("the stamp is excluded from the VAT base", () => {
+    // Scoped to TVA-ENABLED documents. The invariant is about how the tax is
+    // computed when it applies; a document with the tax switched off stores
+    // tva_dt = 0 while retaining its rate for the record, and comparing that
+    // zero against rate x base would flag correct data as broken.
     const bad = Number(
       sql(`select count(*) from public.devis
-           where tva_dt <> round((coalesce(subtotal_dt,0) - coalesce(discount_dt,0))
+           where tva_enabled
+             and tva_dt <> round((coalesce(subtotal_dt,0) - coalesce(discount_dt,0))
                                  * coalesce(tva_rate,0) / 100, 2);`),
     );
     expect(bad).toBe(0);
+
+    // And the disabled case holds its own, stricter invariant: no tax at all.
+    const badDisabled = Number(
+      sql("select count(*) from public.devis where not tva_enabled and tva_dt <> 0;"),
+    );
+    expect(badDisabled).toBe(0);
   });
 });
 
@@ -228,13 +239,13 @@ describe("no financial behaviour was changed by this suite", () => {
 
   it("document totals are unchanged from the seeded fixture", () => {
     const total = sql("select round(sum(total_dt),2) from public.devis;");
-    // 1191.00 + 596.00 + 3570.00 + 2381.00 + 4523.00 + 1785.00 — fabricated.
+    // 1191.00 + 596.00 + 3570.00 + 2381.00 + 4523.00 + 1785.00 + 800.00.
     //
     // The last term is the commercial-authored draft added in Phase 2 so the
     // draft-only rule has a document to act on. The constant is deliberately
     // hard-coded rather than derived: this assertion exists to catch a TEST
     // that mutates money, and a computed expectation would move with the
     // damage it is supposed to detect. It changes only when the seed does.
-    expect(Number(total)).toBeCloseTo(14046, 2);
+    expect(Number(total)).toBeCloseTo(14846, 2);
   });
 });

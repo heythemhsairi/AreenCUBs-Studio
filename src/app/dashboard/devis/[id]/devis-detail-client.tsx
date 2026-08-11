@@ -45,6 +45,7 @@ type Props = {
   discountDt: number;
   tvaDt: number;
   tvaRate: number;
+  tvaEnabled: boolean;
   stampDt: number;
   totalDt: number;
   clientName: string | null;
@@ -76,6 +77,7 @@ export function DevisDetailClient({
   discountDt,
   tvaDt,
   tvaRate,
+  tvaEnabled,
   stampDt,
   totalDt,
   clientName,
@@ -210,10 +212,18 @@ export function DevisDetailClient({
               {discountDt > 0 && (
                 <Row label={t.devis.discount} value={`− ${formatDt(discountDt)}`} />
               )}
-              <Row
-                label={`${t.devis.tva} (${Number(tvaRate).toFixed(0)}%)`}
-                value={formatDt(tvaDt)}
-              />
+              {/*
+                Omitted entirely when TVA is off, not shown as zero. A row
+                reading "TVA (19%)  0,00 DT" asserts that a 19% rate was
+                applied and produced nothing, which is a different — and
+                false — statement about the document's tax treatment.
+              */}
+              {tvaEnabled && (
+                <Row
+                  label={`${t.devis.tva} (${Number(tvaRate).toFixed(0)}%)`}
+                  value={formatDt(tvaDt)}
+                />
+              )}
               {stampDt > 0 && (
                 <Row label={t.devis.stamp} value={formatDt(stampDt)} />
               )}
