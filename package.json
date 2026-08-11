@@ -22,7 +22,8 @@
     "db:diff": "supabase db diff",
     "test:e2e": "bash scripts/run-e2e.sh",
     "preview:local": "bash scripts/preview-local.sh",
-    "preview:stop": "bash scripts/preview-stop.sh"
+    "preview:stop": "bash scripts/preview-stop.sh",
+    "preview:detach": "bash scripts/preview-local.sh --detach"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",

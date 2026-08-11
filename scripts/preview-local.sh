@@ -14,6 +14,13 @@ set -uo pipefail
 REPO="${PREVIEW_REPO:-/root/AreenCUBs-Studio-staging}"
 cd "$REPO" || { echo "[preview] repo not found: $REPO"; exit 1; }
 
+# Detached mode. Without it the server is a child of whatever shell launched
+# it, so an agent tool call or an SSH session ending takes the preview down
+# with it — which is the opposite of what a preview is for. setsid puts the
+# server in its own session, so it outlives its launcher.
+DETACH=0
+[ "${1:-}" = "--detach" ] && DETACH=1
+
 say() { echo "[preview] $*"; }
 
 # ── 1. Database ─────────────────────────────────────────────────────────────
@@ -74,4 +81,18 @@ say "      orphan       authenticated with NO profile; must be denied"
 say ""
 say "    Stop with:  npm run preview:stop"
 say ""
+if [ "$DETACH" = "1" ]; then
+  LOG=/tmp/preview-next.log
+  setsid env TZ=UTC npx next dev -H 0.0.0.0 -p 3000 >"$LOG" 2>&1 < /dev/null &
+  disown 2>/dev/null || true
+  say "detached (pid $!) — log: $LOG"
+  # Do not report success until the port actually answers; a detached process
+  # that died on startup would otherwise look identical to one that is ready.
+  for _ in $(seq 1 90); do
+    curl -sf -o /dev/null --max-time 2 http://127.0.0.1:3000/login && { say "serving"; exit 0; }
+    sleep 2
+  done
+  say "did not start within 180s — see $LOG"
+  exit 1
+fi
 exec env TZ=UTC npx next dev -H 0.0.0.0 -p 3000
