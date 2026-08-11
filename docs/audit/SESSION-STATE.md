@@ -185,34 +185,36 @@ Write the permission matrix first. Everything from Phase 3 onward depends on it.
 
 **Measured this session: 9 failing axe checks → 6; 1 passing → 4.** Every dominant pair is gone.
 
-Fixed at the true source (the light-theme override block in globals.css, *not* the custom properties — those elements do not consume them):
+Fixed at the true source — the light-theme override block in `globals.css`, **not** the custom properties. A first attempt changed `--c-text-3` / `--c-cyan` and axe showed the failing colours completely unchanged, because those elements do not consume them.
 
-- muted text  →  (30+ nodes)
-- accent  →  (13 nodes)
-- badge foregrounds: info/success/warning/danger/violet/cyan, dark-theme tones given darkened light-mode equivalents of the same hue
--  alpha raised so the blend clears AA
+- muted text `#6C8298` → `#556575` (30+ nodes, 3.97 → 5.99:1 on white)
+- accent `#1A9DBF` → `#0E6C87` (13 nodes, 2.92 → 5.50:1)
+- badge foregrounds — dark-theme tones given darkened light-mode equivalents of the same hue:
+  `#7DD3FC`→`#0A5680`, `#4ADE80`/`#22C55E`→`#166534`, `#FCD34D`→`#7C4A02`,
+  `#FB7185`/`#F43F5E`→`#A11D36`, `#C4B5FD`/`#A78BFA`→`#6D28D9`, `#67E8F9`→`#0E6C87`
+- `text-ink/50` … `text-ink/70` alpha raised so the blend clears AA
 
 ### Remaining — 7 distinct single-node pairs
 
-| Pair | Ratio | Theme |
-|---|---|---|
-|  on  | 3.76 | **dark** |
-|  on  | 3.55 | light |
-|  on  | 2.79 | light |
-|  on  | 2.71 | light |
-|  on  | 2.14 | light |
-|  on  | 2.11 | light |
-|  on  | 1.55 | light |
+| Foreground | Background | Ratio | Theme |
+|---|---|---|---|
+| `#3b8bba` | `#0d2d47` | 3.76 | **dark** |
+| `#3b8bba` | `#f5f9ff` | 3.55 | light |
+| `#94969c` | `#f5f9ff` | 2.79 | light |
+| `#f4627d` | `#f5f0f7` | 2.71 | light |
+| `#38bdf8` | `#ffffff` | 2.14 | light |
+| `#06b6d4` | `#daf4f9` | 2.11 | light |
+| `#34d399` | `#ceedec` | 1.55 | light |
 
- is  in tailwind.config.ts — it fails on **both** themes and needs a per-theme value, which is the one genuinely structural item left.
+`#3b8bba` is `brand.DEFAULT` in `tailwind.config.ts`. It fails on **both** themes and needs a per-theme value — the one genuinely structural item left.
 
-**Key finding for the dark theme:** the approved supporting colour  measures **6.41:1** on  /  and 6.09:1 on  — it is the correct dark-theme muted text, the same colour that is unusable at 1.70:1 on the light background. Use it there.
+**Key finding for the dark theme:** the approved supporting colour `#8FADCE` measures **6.41:1** on `#0c2941` and `#162939`, and 6.09:1 on `#0d2d47`. It is the correct dark-theme muted text — the same colour that is unusable at 1.70:1 on the light background `#E8EBEC`.
 
 ### Still outstanding for Phase 1
 
-- Dark-theme sweep (only now visible; the light noise was masking it)
-- Fabricated-data screenshots at 1280×720 / 768×1024 / 390×844
-- Tablet and mobile axe runs (only desktop has been re-measured this session)
+- Dark-theme sweep — only became visible once the light-theme noise was cleared
+- Fabricated-data screenshots at 1280×720, 768×1024, 390×844
+- Tablet and mobile axe runs — only desktop was re-measured this session
 
 ### Then: Phase 2 — role schema and complete RLS matrix
 
@@ -220,10 +222,13 @@ Write the permission matrix first; everything from Phase 3 onward depends on it.
 
 ### Evidence command
 
+```bash
+cd ~/AreenCUBs-Studio-staging
+bash scripts/run-e2e.sh --project=desktop -g axe
+```
 
-
- prints exact colour pairs, ratios and font sizes.
+`e2e/axe.spec.ts` prints the exact colour pairs, ratios and font sizes.
 
 ### Totals at this commit
 
-200 unit · 103 database · typecheck clean · build clean 52 routes.
+200 unit · 103 database · typecheck clean · build clean, 52 routes.
