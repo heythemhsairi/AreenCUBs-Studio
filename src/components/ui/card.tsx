@@ -11,11 +11,11 @@ type CardProps = HTMLAttributes<HTMLDivElement> & {
 };
 
 const variantClass: Record<CardVariant, string> = {
-  default:  "bg-[var(--c-card)] border border-[var(--c-border)] rounded-2xl",
-  elevated: "bg-[var(--c-elevated)] border border-[var(--c-border)] rounded-2xl",
-  glass:    "bg-[var(--c-card)]/80 backdrop-blur-xl border border-[var(--c-border)]/80 rounded-2xl",
-  ghost:    "bg-transparent border border-[var(--c-border)]/50 rounded-2xl",
-  ring:     "bg-[var(--c-card)] border-2 border-accent2/40 rounded-2xl shadow-[0_0_16px_rgba(34,211,238,0.12)]",
+  default:  "bg-[var(--c-card)] border border-[var(--c-border)] rounded-xl",
+  elevated: "bg-[var(--c-elevated)] border border-[var(--c-border)] rounded-xl",
+  glass:    "bg-[var(--c-card)]/80 backdrop-blur-xl border border-[var(--c-border)]/80 rounded-xl",
+  ghost:    "bg-transparent border border-[var(--c-border)]/50 rounded-xl",
+  ring:     "bg-[var(--c-card)] border-2 border-accent2/40 rounded-xl shadow-[0_0_16px_rgba(34,211,238,0.12)]",
 };
 
 const interactiveClass =

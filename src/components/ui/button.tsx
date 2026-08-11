@@ -9,25 +9,41 @@ type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
   size?: Size;
 };
 
+/*
+ * One fill, one outline, one quiet, one destructive. The two gradient variants
+ * that used to live here are gone: a vertical gradient on a control is a 2013
+ * affordance, and both of them hard-coded their hover stops, so neither
+ * followed the theme.
+ *
+ * No variant pairs a 1px border with a wide soft shadow. That combination --
+ * the "ghost card" -- is the single most reliable tell of a generated
+ * interface, and it reads as neither flat nor raised.
+ */
 const variantClass: Record<Variant, string> = {
   primary:
-    "bg-accent2 text-accent2-fg font-semibold hover:bg-accent2/90 active:translate-y-[1px] focus-visible:ring-accent2 disabled:opacity-50 disabled:hover:bg-accent2",
+    "bg-accent2 text-accent2-fg font-semibold shadow-ac-sm hover:bg-accent2-hover focus-visible:ring-accent2 disabled:opacity-50 disabled:hover:bg-accent2",
   outline:
-    "border border-[var(--c-border)] text-[var(--c-text-2)] bg-transparent hover:bg-[var(--c-elevated)] hover:text-[var(--c-text-1)] hover:border-accent2/40 focus-visible:ring-[var(--c-border)] disabled:opacity-50",
+    "border border-line-strong text-content-2 bg-transparent hover:bg-surface-2 hover:text-content hover:border-accent2 focus-visible:ring-accent2 disabled:opacity-50",
   ghost:
-    "bg-transparent text-[var(--c-text-2)] hover:bg-[var(--c-elevated)] hover:text-[var(--c-text-1)] focus-visible:ring-[var(--c-border)]/40 disabled:opacity-50",
+    "bg-transparent text-content-2 hover:bg-surface-2 hover:text-content focus-visible:ring-accent2 disabled:opacity-50",
   danger:
-    "bg-danger/10 text-danger border border-danger/20 hover:bg-danger/20 focus-visible:ring-danger/40 disabled:opacity-50",
+    "bg-danger-weak text-danger border border-danger/30 hover:bg-danger hover:text-accent2-fg focus-visible:ring-danger disabled:opacity-50",
   accent:
-    "bg-gradient-to-b from-accent to-accent-dark text-ink shadow-sm hover:shadow-accent-glow hover:text-ink hover:from-[#ffb24d] hover:to-accent active:translate-y-[1px] focus-visible:ring-accent disabled:opacity-50",
+    "bg-warning text-content-inverse font-semibold shadow-ac-sm hover:bg-warning/90 focus-visible:ring-warning disabled:opacity-50",
   ink:
-    "bg-gradient-to-b from-ink to-[#0c0c10] text-cream shadow-sm hover:from-[#2a2a33] hover:to-ink active:translate-y-[1px] focus-visible:ring-ink disabled:opacity-50",
+    "bg-content text-content-inverse font-semibold shadow-ac-sm hover:bg-content/90 focus-visible:ring-content disabled:opacity-50",
 };
 
+/*
+ * Heights are the DESKTOP rhythm. The 44px minimum touch target is met on
+ * coarse pointers only, via the pseudo-element in the base class below, so a
+ * dense table row is not forced to 44px on a mouse-driven screen while a
+ * thumb still gets a full target on a phone.
+ */
 const sizeClass: Record<Size, string> = {
-  sm: "h-8 px-3 text-sm",
-  md: "h-10 px-4 text-sm",
-  lg: "h-11 px-5 text-base",
+  sm: "h-8 px-3 text-[13px]",
+  md: "h-9 px-4 text-sm",
+  lg: "h-11 px-5 text-[15px]",
 };
 
 export const Button = forwardRef<HTMLButtonElement, Props>(function Button(
@@ -38,7 +54,21 @@ export const Button = forwardRef<HTMLButtonElement, Props>(function Button(
     <button
       ref={ref}
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-md font-medium tracking-tight transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--c-bg)] disabled:cursor-not-allowed",
+        // `active:scale-[0.98]` rather than a downward nudge: the press reads
+        // as the control yielding under the finger instead of the layout
+        // shifting. Transitions are the token easing and duration, so
+        // prefers-reduced-motion collapses them at the source.
+        "relative inline-flex items-center justify-center gap-2 rounded-lg",
+        "font-medium tracking-tight",
+        "transition-[background-color,color,border-color,box-shadow,transform]",
+        "duration-2 ease-ac",
+        "active:scale-[0.98]",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+        "focus-visible:ring-offset-canvas",
+        "disabled:cursor-not-allowed disabled:active:scale-100",
+        // Coarse pointers get a 44x44 hit area without changing the visual box.
+        "after:absolute after:left-1/2 after:top-1/2 after:-translate-x-1/2 after:-translate-y-1/2",
+        "after:h-full after:w-full pointer-coarse:after:h-11 pointer-coarse:after:min-w-11",
         variantClass[variant],
         sizeClass[size],
         className,

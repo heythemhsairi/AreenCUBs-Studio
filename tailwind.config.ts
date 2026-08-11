@@ -1,5 +1,6 @@
 import type { Config } from "tailwindcss";
 import tailwindcssAnimate from "tailwindcss-animate";
+import plugin from "tailwindcss/plugin";
 
 const config: Config = {
   darkMode: "class",
@@ -204,7 +205,14 @@ const config: Config = {
       },
     },
   },
-  plugins: [tailwindcssAnimate],
+  plugins: [
+    // A coarse pointer is a finger. The 44x44 minimum applies there and only
+    // there — enforcing it on a mouse-driven screen would inflate every dense
+    // table row for no one's benefit.
+    plugin(({ addVariant }) => {
+      addVariant("pointer-coarse", "@media (pointer: coarse)");
+    }),
+    tailwindcssAnimate],
 };
 
 export default config;

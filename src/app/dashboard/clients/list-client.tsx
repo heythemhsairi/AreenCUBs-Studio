@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { formatDate } from "@/lib/format";
 import { useMemo, useState } from "react";
 import { useI18n } from "@/lib/i18n/provider";
 import { Button } from "@/components/ui/button";
@@ -129,7 +130,7 @@ export function ClientsListClient({ clients }: { clients: ClientRow[] }) {
                     <TD className="text-content-3">{c.phone ?? "—"}</TD>
                     <TD className="text-content-3">{c.projects_count}</TD>
                     <TD className="text-content-3">
-                      {new Date(c.created_at).toLocaleDateString("fr-FR")}
+                      {formatDate(c.created_at)}
                     </TD>
                   </TR>
                 ))}
@@ -168,7 +169,7 @@ export function ClientsListClient({ clients }: { clients: ClientRow[] }) {
                       <span />
                     )}
                     <p className="text-xs text-content-3">
-                      {new Date(c.created_at).toLocaleDateString("fr-FR")}
+                      {formatDate(c.created_at)}
                     </p>
                   </div>
                 </Link>
