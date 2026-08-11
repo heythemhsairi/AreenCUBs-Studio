@@ -179,56 +179,65 @@ Write the permission matrix first. Everything from Phase 3 onward depends on it.
 
 ---
 
-## Continuation point — e45dff0
+## Continuation point — 99f2240
 
-### Phase 1 (contrast) — substantially done, not finished
+### Phase 1 (contrast) — nearly complete
 
-**Measured this session: 9 failing axe checks → 6; 1 passing → 4.** Every dominant pair is gone.
+**Session result: 9 failing axe checks → 3; 1 passing → 7.** Desktop, light theme measured throughout; dark-theme pairs fixed as they surfaced.
 
-Fixed at the true source — the light-theme override block in `globals.css`, **not** the custom properties. A first attempt changed `--c-text-3` / `--c-cyan` and axe showed the failing colours completely unchanged, because those elements do not consume them.
+Everything was fixed in the light-theme override block in `globals.css`, not in components. An early attempt changed the `--c-text-3` / `--c-cyan` custom properties and axe showed **no change at all** — those elements do not consume them. Always re-measure after a token edit.
 
-- muted text `#6C8298` → `#556575` (30+ nodes, 3.97 → 5.99:1 on white)
-- accent `#1A9DBF` → `#0E6C87` (13 nodes, 2.92 → 5.50:1)
-- badge foregrounds — dark-theme tones given darkened light-mode equivalents of the same hue:
-  `#7DD3FC`→`#0A5680`, `#4ADE80`/`#22C55E`→`#166534`, `#FCD34D`→`#7C4A02`,
-  `#FB7185`/`#F43F5E`→`#A11D36`, `#C4B5FD`/`#A78BFA`→`#6D28D9`, `#67E8F9`→`#0E6C87`
-- `text-ink/50` … `text-ink/70` alpha raised so the blend clears AA
+Corrected this session:
 
-### Remaining — 7 distinct single-node pairs
-
-| Foreground | Background | Ratio | Theme |
+| Was | Ratio | Now | Ratio |
 |---|---|---|---|
-| `#3b8bba` | `#0d2d47` | 3.76 | **dark** |
-| `#3b8bba` | `#f5f9ff` | 3.55 | light |
-| `#94969c` | `#f5f9ff` | 2.79 | light |
-| `#f4627d` | `#f5f0f7` | 2.71 | light |
-| `#38bdf8` | `#ffffff` | 2.14 | light |
-| `#06b6d4` | `#daf4f9` | 2.11 | light |
-| `#34d399` | `#ceedec` | 1.55 | light |
+| `#6C8298` muted text | 3.97 | `#556575` | 5.99 |
+| `#1A9DBF` accent | 2.92 | `#0E6C87` | 5.50 |
+| `#7DD3FC` info badge | 1.48 | `#0A5680` | 7.04 |
+| `#FCD34D` warning badge | 1.24 | `#7C4A02` | 6.37 |
+| `#FB7185` danger badge | 2.07 | `#A11D36` | 5.89 |
+| `#C4B5FD` violet badge | 2.72 | `#6D28D9` | 7.10 |
+| `#4ADE80` success badge | 2.27 | `#166534` | 7.13 |
+| `#38BDF8` | 2.14 | `#0A5680` | 7.91 |
+| `#06B6D4` | 2.11 | `#0E6C87` | 5.21 |
+| `#34D399` | 1.55 | `#166534` | 5.75 |
+| `#3B8BBA` brand, light | 3.55 | `#1064D4` primary | 5.53 |
+| `#3B8BBA` brand, dark | 3.76 | `#8FADCE` supporting | 6.09 |
+| `#788591` dark muted | 3.88 | `#8FADCE` supporting | 6.32 |
 
-`#3b8bba` is `brand.DEFAULT` in `tailwind.config.ts`. It fails on **both** themes and needs a per-theme value — the one genuinely structural item left.
+`text-ink/50…70` alpha was also raised so the blend clears AA in light mode.
 
-**Key finding for the dark theme:** the approved supporting colour `#8FADCE` measures **6.41:1** on `#0c2941` and `#162939`, and 6.09:1 on `#0d2d47`. It is the correct dark-theme muted text — the same colour that is unusable at 1.70:1 on the light background `#E8EBEC`.
+### Remaining — 3 single-node pairs
 
-### Still outstanding for Phase 1
+| Foreground | Background | Ratio |
+|---|---|---|
+| `#34d399` | `#ceedec` | 1.55 |
+| `#94969c` | `#f5f9ff` | 2.79 |
+| `#f4627d` | `#f5f0f7` | 2.71 |
 
-- Dark-theme sweep — only became visible once the light-theme noise was cleared
-- Fabricated-data screenshots at 1280×720, 768×1024, 390×844
-- Tablet and mobile axe runs — only desktop was re-measured this session
+All light-theme opacity blends whose originating class is not yet identified. `#34d399` is a *second* instance the class override did not catch, so it is set inline or via a different class.
 
-### Then: Phase 2 — role schema and complete RLS matrix
-
-Write the permission matrix first; everything from Phase 3 onward depends on it.
-
-### Evidence command
+**How to find them:** the axe artifacts record each failing node's DOM target.
 
 ```bash
 cd ~/AreenCUBs-Studio-staging
 bash scripts/run-e2e.sh --project=desktop -g axe
+grep -r "target" e2e/.artifacts --include=error-context.md | head
 ```
 
-`e2e/axe.spec.ts` prints the exact colour pairs, ratios and font sizes.
+Locate the component from the target selector rather than adding another blind global override.
+
+### Still outstanding for Phase 1
+
+- Tablet and mobile axe runs — only desktop was re-measured this session
+- A full dark-theme sweep — dark pairs were fixed opportunistically as they surfaced
+- Fabricated-data screenshots at 1280×720, 768×1024, 390×844
+
+### Then: Phase 2 — role schema and complete RLS matrix
+
+Write the permission matrix first. Everything from Phase 3 onward depends on it.
 
 ### Totals at this commit
 
 200 unit · 103 database · typecheck clean · build clean, 52 routes.
+Axe: 3 failing, 7 passing on desktop.
