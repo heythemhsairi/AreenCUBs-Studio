@@ -176,3 +176,54 @@ Write the permission matrix first. Everything from Phase 3 onward depends on it.
 ### Totals at this commit
 
 200 unit · 103 database · typecheck clean · build clean 52 routes. Axe still fails on the remaining tail (deliberately — real defects, not suppressed).
+
+---
+
+## Continuation point — e45dff0
+
+### Phase 1 (contrast) — substantially done, not finished
+
+**Measured this session: 9 failing axe checks → 6; 1 passing → 4.** Every dominant pair is gone.
+
+Fixed at the true source (the light-theme override block in globals.css, *not* the custom properties — those elements do not consume them):
+
+- muted text  →  (30+ nodes)
+- accent  →  (13 nodes)
+- badge foregrounds: info/success/warning/danger/violet/cyan, dark-theme tones given darkened light-mode equivalents of the same hue
+-  alpha raised so the blend clears AA
+
+### Remaining — 7 distinct single-node pairs
+
+| Pair | Ratio | Theme |
+|---|---|---|
+|  on  | 3.76 | **dark** |
+|  on  | 3.55 | light |
+|  on  | 2.79 | light |
+|  on  | 2.71 | light |
+|  on  | 2.14 | light |
+|  on  | 2.11 | light |
+|  on  | 1.55 | light |
+
+ is  in tailwind.config.ts — it fails on **both** themes and needs a per-theme value, which is the one genuinely structural item left.
+
+**Key finding for the dark theme:** the approved supporting colour  measures **6.41:1** on  /  and 6.09:1 on  — it is the correct dark-theme muted text, the same colour that is unusable at 1.70:1 on the light background. Use it there.
+
+### Still outstanding for Phase 1
+
+- Dark-theme sweep (only now visible; the light noise was masking it)
+- Fabricated-data screenshots at 1280×720 / 768×1024 / 390×844
+- Tablet and mobile axe runs (only desktop has been re-measured this session)
+
+### Then: Phase 2 — role schema and complete RLS matrix
+
+Write the permission matrix first; everything from Phase 3 onward depends on it.
+
+### Evidence command
+
+
+
+ prints exact colour pairs, ratios and font sizes.
+
+### Totals at this commit
+
+200 unit · 103 database · typecheck clean · build clean 52 routes.
