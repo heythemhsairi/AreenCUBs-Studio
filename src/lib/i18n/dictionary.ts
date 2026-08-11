@@ -990,6 +990,22 @@ export const dict = {
       scopeNote:
         "Vous voyez uniquement les clients que vous avez créés ou qui vous sont assignés. L'émission des documents, les paiements et les remboursements relèvent de l'administration.",
     },
+    internUi: {
+      greeting: "Bonjour",
+      subtitle: "Vos tâches assignées et leurs échéances.",
+      errorTitle: "Certaines données n'ont pas pu être chargées.",
+      errorHint: "Réessayez dans un instant.",
+      kpiOpen: "En cours",
+      kpiOverdue: "En retard",
+      kpiDone: "Terminées",
+      tasksTitle: "Mes tâches",
+      tasksEmpty: "Aucune tâche assignée",
+      tasksEmptyHint: "Les tâches qui vous sont confiées apparaîtront ici.",
+      noContext: "Sans projet",
+      overdueBadge: "En retard",
+      scopeNote:
+        "Vous voyez uniquement les tâches qui vous sont assignées et le contexte nécessaire pour les réaliser.",
+    },
     dashboard: {
       welcome: "Bienvenue",
       placeholder: "Bientôt : tâches, devis, et plus.",
@@ -2409,6 +2425,22 @@ export const dict = {
       clientsCta: "New client",
       scopeNote:
         "You see only the clients you created or were assigned. Issuing documents, payments and refunds are administration actions.",
+    },
+    internUi: {
+      greeting: "Hello",
+      subtitle: "Your assigned tasks and their deadlines.",
+      errorTitle: "Some data could not be loaded.",
+      errorHint: "Try again shortly.",
+      kpiOpen: "In progress",
+      kpiOverdue: "Overdue",
+      kpiDone: "Completed",
+      tasksTitle: "My tasks",
+      tasksEmpty: "No tasks assigned",
+      tasksEmptyHint: "Tasks assigned to you will appear here.",
+      noContext: "No project",
+      overdueBadge: "Overdue",
+      scopeNote:
+        "You see only the tasks assigned to you and the context needed to complete them.",
     },
     dashboard: {
       welcome: "Welcome",

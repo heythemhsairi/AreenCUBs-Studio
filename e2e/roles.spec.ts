@@ -79,6 +79,65 @@ test.describe("commercial — dashboard scope", () => {
   });
 });
 
+test.describe("intern — reduced surface", () => {
+  test.beforeEach(async ({ page }) => {
+    await login(page, "intern");
+  });
+
+  test("sees the tasks assigned to them and nothing else", async ({
+    page,
+    diagnostics,
+  }) => {
+    await page.goto("/dashboard", { waitUntil: "networkidle" });
+    const body = await page.locator("body").innerText();
+
+    // The intern's open task. Their other assigned task is already 'done' and
+    // is counted in the KPI rather than listed, so asserting on that one would
+    // fail for a page that is behaving correctly.
+    expect(body).toContain("Préparer la revue de contenu");
+
+    // Tasks belonging to other people, on projects the intern is not on.
+    for (const foreign of ["Charte graphique", "Rapport de performance"]) {
+      expect(body, `intern saw unassigned task "${foreign}"`).not.toContain(foreign);
+    }
+    expect(diagnostics.significantErrors()).toEqual([]);
+  });
+
+  test("reads its client through the reduced directory, never the notes", async ({
+    page,
+  }) => {
+    await page.goto("/dashboard", { waitUntil: "networkidle" });
+    const body = await page.locator("body").innerText();
+
+    // The client behind the assigned task, by name.
+    expect(body).toContain("Zenith Fitness");
+
+    // And nothing the clients TABLE carries. An intern holds no policy on that
+    // table at all, precisely because the row contains internal commentary and
+    // RLS cannot withhold a single column.
+    expect(body).not.toContain("FABRICATED staging client");
+    expect(body).not.toContain("FAKE-0000003CCC000");
+    expect(body).not.toContain(NOT_OWNED);
+  });
+
+  test("sees no finance surface and is redirected from the agency pages", async ({
+    page,
+  }) => {
+    await page.goto("/dashboard", { waitUntil: "networkidle" });
+    const body = await page.locator("body").innerText();
+    for (const financeWord of ["Encaissé", "Marge", "Impayés", "Pipeline"]) {
+      expect(body, `finance term "${financeWord}" leaked to an intern`).not.toContain(
+        financeWord,
+      );
+    }
+
+    for (const route of ["/dashboard/finance", "/dashboard/devis", "/dashboard/team"]) {
+      await page.goto(route, { waitUntil: "networkidle" });
+      await expect(page, `intern reached ${route}`).toHaveURL(/\/dashboard\/?$/);
+    }
+  });
+});
+
 test.describe("client contact — no internal surface", () => {
   test("signing in never reaches the dashboard", async ({ page }) => {
     await login(page, "client");

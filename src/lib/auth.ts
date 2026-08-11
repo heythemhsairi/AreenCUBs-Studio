@@ -164,6 +164,20 @@ export async function requireQuoteAccess(): Promise<SessionProfile> {
   return requireRoles(["admin", "commercial"]);
 }
 
+/**
+ * The client directory and its records.
+ *
+ * A commercial creates and manages clients; the matrix grants it explicitly.
+ * They see only their own, because that is what RLS returns — the guard opens
+ * the route, the policy decides the rows.
+ *
+ * Deletion is NOT here. deleteClientAction keeps requireAdmin, since removing a
+ * client removes its projects, quotes and history with it.
+ */
+export async function requireClientAccess(): Promise<SessionProfile> {
+  return requireRoles(["admin", "worker", "commercial"]);
+}
+
 /** The client portal. The inverse of requireInternal. */
 export async function requireClientContact(): Promise<SessionProfile> {
   return requireRoles(["client"]);

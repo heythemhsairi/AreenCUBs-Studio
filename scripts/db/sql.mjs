@@ -231,8 +231,10 @@ export const FIXTURES = {
   projectZenith: "e1000000-0000-4000-8000-000000000003",
   /** Assigned to the freelancer. */
   taskFreelancer: "7a000000-0000-4000-8000-000000000002",
-  /** Assigned to the intern (and the worker). */
+  /** Assigned to the intern (and the worker); already done. */
   taskIntern: "7a000000-0000-4000-8000-000000000005",
+  /** The intern's open task. */
+  taskInternOpen: "7a000000-0000-4000-8000-000000000006",
   /** Draft quote for a commercial-owned client. */
   devisDraft: "d1000000-0000-4000-8000-000000000006",
   /** Already issued ('sent') — a commercial must not be able to touch it. */

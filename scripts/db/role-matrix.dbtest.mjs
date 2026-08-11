@@ -123,7 +123,7 @@ describe("administrator — matrix §2, full access", () => {
   it("sees every client, project, task and financial document", () => {
     expect(count(USERS.admin, "public.clients")).toBe(4);
     expect(count(USERS.admin, "public.projects")).toBe(3);
-    expect(count(USERS.admin, "public.tasks")).toBe(5);
+    expect(count(USERS.admin, "public.tasks")).toBe(6);
     expect(count(USERS.admin, "public.devis")).toBeGreaterThanOrEqual(6);
   });
 
@@ -284,7 +284,7 @@ describe("worker — matrix §2 and §4, blanket access removed", () => {
 
   it("sees the projects and tasks it is on", () => {
     expect(count(USERS.worker, "public.projects")).toBe(3);
-    expect(count(USERS.worker, "public.tasks")).toBe(5);
+    expect(count(USERS.worker, "public.tasks")).toBe(6);
   });
 
   it("cannot assign roles", () => {
@@ -294,9 +294,18 @@ describe("worker — matrix §2 and §4, blanket access removed", () => {
 
 // ═══════════════════════════════════════════════════════════════════════════
 describe("intern — matrix §2, strictly less than a worker", () => {
-  it("sees only the one task assigned to them", () => {
-    expect(count(USERS.intern, "public.tasks")).toBe(1);
-    expect(sqlAs(USERS.intern, "select id from public.tasks;")).toBe(FIXTURES.taskIntern);
+  it("sees only the tasks assigned to them", () => {
+    // Two of the six: both on the Zenith project, both through task_assignees.
+    expect(count(USERS.intern, "public.tasks")).toBe(2);
+    // Aggregated in SQL rather than split in JS: psql returns one row per
+    // id, and an earlier version of this assertion carried a literal line
+    // break inside its string, which parsed as a syntax error and took the
+    // whole file out of the run.
+    const ids = sqlAs(
+      USERS.intern,
+      "select string_agg(id::text, ',' order by id) from public.tasks;",
+    );
+    expect(ids).toBe([FIXTURES.taskIntern, FIXTURES.taskInternOpen].sort().join(","));
   });
 
   it("sees only the project that task lives in", () => {

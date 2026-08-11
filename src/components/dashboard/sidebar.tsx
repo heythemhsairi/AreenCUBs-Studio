@@ -29,6 +29,15 @@ import type { LucideIcon } from "lucide-react";
 type NavItem = {
   href: string;
   label: string;
+  /**
+   * Allow-list. A role absent here sees no link — which is why every new role
+   * must be added deliberately rather than inheriting a default.
+   *
+   * A nav entry is not a permission. Each destination re-checks with its own
+   * guard, and the database re-checks again; this list only decides what is
+   * worth offering. It is kept in step with src/lib/auth.ts so a role is never
+   * shown a link that immediately redirects it back.
+   */
   rolesAllowed: UserRole[];
   icon: LucideIcon;
   group: "workspace" | "business" | "team" | "system";
@@ -43,21 +52,21 @@ function buildNav(
       href: "/dashboard",
       label: t.nav.overview,
       icon: LayoutDashboard,
-      rolesAllowed: ["admin", "worker", "freelancer"],
+      rolesAllowed: ["admin", "worker", "freelancer", "commercial", "intern"],
       group: "workspace",
     },
     {
       href: "/dashboard/tasks",
       label: role === "freelancer" ? t.nav.myTasks : t.nav.tasks,
       icon: CheckSquare,
-      rolesAllowed: ["admin", "worker", "freelancer"],
+      rolesAllowed: ["admin", "worker", "freelancer", "intern"],
       group: "workspace",
     },
     {
       href: "/dashboard/calendar",
       label: t.nav.calendar,
       icon: Calendar,
-      rolesAllowed: ["admin", "worker", "freelancer"],
+      rolesAllowed: ["admin", "worker", "freelancer", "intern"],
       group: "workspace",
     },
     {
@@ -71,7 +80,7 @@ function buildNav(
       href: "/dashboard/clients",
       label: t.nav.clients,
       icon: Users,
-      rolesAllowed: ["admin", "worker"],
+      rolesAllowed: ["admin", "worker", "commercial"],
       group: "workspace",
     },
     {
@@ -85,14 +94,14 @@ function buildNav(
       href: "/dashboard/devis",
       label: t.nav.devis,
       icon: FileText,
-      rolesAllowed: ["admin"],
+      rolesAllowed: ["admin", "commercial"],
       group: "business",
     },
     {
       href: "/dashboard/factures",
       label: t.nav.factures,
       icon: Receipt,
-      rolesAllowed: ["admin"],
+      rolesAllowed: ["admin", "commercial"],
       group: "business",
     },
     {

@@ -208,7 +208,15 @@ insert into public.tasks (id, project_id, title, status, priority, assignee_id, 
 
   ('7a000000-0000-4000-8000-000000000005', 'e1000000-0000-4000-8000-000000000003',
    'Brief client initial', 'done', 'normal',
-   '22222222-2222-4222-8222-222222222222', '11111111-1111-4111-8111-111111111111', '2026-08-05');
+   '22222222-2222-4222-8222-222222222222', '11111111-1111-4111-8111-111111111111', '2026-08-05'),
+
+  -- The intern's live work. Task #5 above is already 'done', so without an
+  -- open task the intern dashboard would render an empty state and its tests
+  -- would assert nothing. Assigned through task_assignees below, on the same
+  -- project, so the intern's whole world stays a single client.
+  ('7a000000-0000-4000-8000-000000000006', 'e1000000-0000-4000-8000-000000000003',
+   'Préparer la revue de contenu', 'in_progress', 'normal',
+   '22222222-2222-4222-8222-222222222222', '11111111-1111-4111-8111-111111111111', '2026-08-20');
 
 -- ═══ 3b. Explicit membership and assignment ════════════════════════════════
 -- The scope rows every Phase 2 policy resolves through. Access is never
@@ -248,7 +256,8 @@ on conflict do nothing;
 -- is therefore client #3 — every other client, project and task must be
 -- invisible to them.
 insert into public.task_assignees (task_id, user_id) values
-  ('7a000000-0000-4000-8000-000000000005', '66666666-6666-4666-8666-666666666666')
+  ('7a000000-0000-4000-8000-000000000005', '66666666-6666-4666-8666-666666666666'),
+  ('7a000000-0000-4000-8000-000000000006', '66666666-6666-4666-8666-666666666666')
 on conflict do nothing;
 
 -- A draft quote for a commercial-owned client, so the draft-only rule has

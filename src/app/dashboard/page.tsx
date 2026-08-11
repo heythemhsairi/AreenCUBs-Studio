@@ -1,5 +1,6 @@
 import { requireInternal } from "@/lib/auth";
 import { CommercialDashboard } from "./commercial-dashboard";
+import { InternDashboard } from "./intern-dashboard";
 import { createClient } from "@/lib/supabase/server";
 import { OverviewClient } from "./overview-client";
 import { getDonutPalette } from "@/components/charts/palette";
@@ -35,6 +36,9 @@ export default async function DashboardPage() {
   // refactor away from being rendered and one network tab away from being read.
   if (session.role === "commercial") {
     return <CommercialDashboard session={session} />;
+  }
+  if (session.role === "intern") {
+    return <InternDashboard session={session} />;
   }
 
   const supabase = await createClient();

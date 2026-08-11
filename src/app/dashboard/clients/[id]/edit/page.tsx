@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { requireWorkerOrAdmin } from "@/lib/auth";
+import { requireClientAccess } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { ClientForm } from "../../client-form";
 
@@ -8,7 +8,7 @@ export default async function EditClientPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireWorkerOrAdmin();
+  await requireClientAccess();
   const { id } = await params;
   const supabase = await createClient();
   const { data: client } = await supabase
