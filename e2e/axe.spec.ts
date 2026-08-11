@@ -45,6 +45,24 @@ async function scan(page: import("@playwright/test").Page, label: string) {
   if (violations.length > 0) {
     console.log(`\n[axe] ${label} — ${violations.length} violation type(s):`);
     console.log(summarise(violations));
+
+    // Colour pairs are the actionable evidence for the contrast phase: node
+    // counts alone cannot tell you which token to change. axe reports the
+    // resolved foreground, background and ratio per node.
+    for (const v of violations) {
+      if (v.id !== "color-contrast") continue;
+      const pairs = new Map<string, number>();
+      for (const node of v.nodes as unknown as {
+        any?: { data?: { fgColor?: string; bgColor?: string; contrastRatio?: number; fontSize?: string } }[];
+      }[]) {
+        const d = node.any?.[0]?.data;
+        if (!d?.fgColor) continue;
+        const key = `${d.fgColor} on ${d.bgColor} = ${d.contrastRatio}:1 (${d.fontSize ?? "?"})`;
+        pairs.set(key, (pairs.get(key) ?? 0) + 1);
+      }
+      const sorted = [...pairs.entries()].sort((a, b) => b[1] - a[1]);
+      for (const [pair, count] of sorted) console.log(`    x${count}  ${pair}`);
+    }
   }
 
   const blocking = violations.filter((v) => BLOCKING.has(v.impact ?? ""));

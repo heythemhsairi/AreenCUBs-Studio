@@ -45,9 +45,17 @@
     --c-border:   #D8E6F7;
     --c-text-1:   #102033;
     --c-text-2:   #49627A;
-    --c-text-3:   #6C8298;
+    /* WCAG AA. Measured by axe on the light surfaces this token actually
+       lands on: #6C8298 gave 3.97:1 on #FFFFFF, 3.76:1 on #F5F9FF and
+       3.14:1 on #D8E6F7 — the single largest source of violations, 30+ nodes.
+       #556575 keeps the same blue-grey hue and reads as the same tier of
+       muted text, at 5.99 / 5.67 / 4.73:1 respectively. */
+    --c-text-3:   #556575;
     --c-brand:    #2C6E96;
-    --c-cyan:     #1A9DBF;
+    /* #1A9DBF measured 2.92:1 on #F0F6FF and 2.84:1 on #E8F5F9. Darkened
+       along the same hue to 5.50 / 5.37:1 rather than switching to the brand
+       blue, so the accent keeps its identity. */
+    --c-cyan:     #0E6C87;
     --c-success:  #159A5B;
     --c-warning:  #C77800;
     --c-danger:   #D92D4A;
@@ -488,12 +496,12 @@ html.light .divide-\[\#1E2A3A\] > * + * { border-color: #D8E6F7 !important; }
 /* Text */
 html.light .text-\[\#F8FAFC\]  { color: #102033 !important; }
 html.light .text-\[\#94A3B8\]  { color: #49627A !important; }
-html.light .text-\[\#64748B\]  { color: #6C8298 !important; }
-html.light .text-\[\#3F4C59\]  { color: #6C8298 !important; }
+html.light .text-\[\#64748B\]  { color: #556575 !important; }
+html.light .text-\[\#3F4C59\]  { color: #556575 !important; }
 html.light .text-\[\#CBD5E1\]  { color: #49627A !important; }
 html.light .text-\[\#F4FAFF\]  { color: #102033 !important; }
 html.light .text-\[\#B8D0E4\]  { color: #49627A !important; }
-html.light .text-\[\#86A8C2\]  { color: #6C8298 !important; }
+html.light .text-\[\#86A8C2\]  { color: #556575 !important; }
 
 /* ink tokens in light mode behave naturally (they're already dark) */
 html.light .text-ink    { color: #102033 !important; }
@@ -510,8 +518,8 @@ html.light .bg-cream\/60  { background-color: rgba(248,251,255,0.8) !important; 
 html.light .bg-cream-dark\/40 { background-color: rgba(240,246,255,0.6) !important; }
 
 /* Brand cyan — stays readable in light */
-html.light .text-\[\#22D3EE\] { color: #1A9DBF !important; }
-html.light .text-\[\#22B8D6\] { color: #1A9DBF !important; }
+html.light .text-\[\#22D3EE\] { color: #0E6C87 !important; }
+html.light .text-\[\#22B8D6\] { color: #0E6C87 !important; }
 html.light .border-\[\#22D3EE\]\/40 { border-color: rgba(26,157,191,0.35) !important; }
 html.light .bg-\[\#22D3EE\]\/10 { background-color: rgba(26,157,191,0.10) !important; }
 html.light .bg-\[\#22D3EE\]\/15 { background-color: rgba(26,157,191,0.12) !important; }
@@ -568,7 +576,7 @@ html.light .bg-\[\#475569\]\/25  { background-color: rgba(16,32,51,0.08) !import
 html.light .bg-\[\#1E3A5F\]\/60  { background-color: rgba(44,110,150,0.12) !important; }
 html.light .text-\[\#94A3B8\]    { color: #49627A !important; }
 html.light .text-\[\#CBD5E1\]    { color: #49627A !important; }
-html.light .text-\[\#64748B\]    { color: #6C8298 !important; }
+html.light .text-\[\#64748B\]    { color: #556575 !important; }
 html.light .text-\[\#93C5FD\]    { color: #2C6E96 !important; }
 html.light .border-\[\#475569\]\/30 { border-color: rgba(16,32,51,0.15) !important; }
 html.light .border-\[\#64748B\]\/40  { border-color: rgba(16,32,51,0.18) !important; }
@@ -603,18 +611,18 @@ html.light .hover\:border-\[\#22D3EE\]\/30:hover { border-color: rgba(26,157,191
 
 /* Kanban card title & project text */
 html.light .text-\[\#F8FAFC\]    { color: #102033 !important; }
-html.light .text-\[\#3D5068\]    { color: #6C8298 !important; }
+html.light .text-\[\#3D5068\]    { color: #556575 !important; }
 
 /* Kanban status select */
 html.light select.bg-\[\#071B2C\]\/70,
 html.light .bg-\[\#071B2C\]\/70 select { background-color: #F0F6FF !important; }
 
 /* Kanban column header status text */
-html.light .text-\[\#64748B\]    { color: #6C8298 !important; }
+html.light .text-\[\#64748B\]    { color: #556575 !important; }
 
 /* Kanban empty drop zone */
 html.light .border-\[\#22506F\].border-dashed { border-color: #B8D0E4 !important; }
-html.light .text-\[\#374151\]    { color: #6C8298 !important; }
+html.light .text-\[\#374151\]    { color: #556575 !important; }
 
 /* =========================================================================
    SLATE COLOR OVERRIDES — slate-* are near-black, invisible in dark mode
@@ -636,7 +644,7 @@ html:not(.light) .border-slate-600 { border-color: #22506F !important; }
 html.light .text-slate-900 { color: #102033 !important; }
 html.light .text-slate-800 { color: #1E3A55 !important; }
 html.light .text-slate-600 { color: #49627A !important; }
-html.light .text-slate-500 { color: #6C8298 !important; }
+html.light .text-slate-500 { color: #556575 !important; }
 
 /* =========================================================================
    COMMAND PALETTE — light mode override
@@ -712,8 +720,8 @@ html.light .due-today-active:hover {
 /* Icon + number colors */
 .due-today-icon  { color: #22D3EE; }
 .due-today-number { color: #22D3EE; }
-html.light .due-today-icon   { color: #1A9DBF; }
-html.light .due-today-number { color: #1A9DBF; }
+html.light .due-today-icon   { color: #0E6C87; }
+html.light .due-today-number { color: #0E6C87; }
 
 /* =========================================================================
    FEATURED CARD
