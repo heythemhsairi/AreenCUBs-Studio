@@ -51,11 +51,21 @@ export function ReviewDetailClient({
   versions,
   comments,
   canMutate,
+  canPlayMedia,
 }: {
   asset: { id: string; title: string; status: string; clientName: string };
   versions: ReviewVersion[];
   comments: ReviewComment[];
   canMutate: boolean;
+  /**
+   * Separate from canMutate on purpose: playback is a READ, and a role can be
+   * allowed to read the review while still being unable to fetch the file.
+   * A commercial holds an RLS policy on review_assets/versions/comments but
+   * NO policy on the review-media bucket, so createSignedUrl would fail for
+   * them — and getReviewMediaUrlAction is staff-only, so the button did not
+   * merely fail, it redirected them off the page entirely.
+   */
+  canPlayMedia: boolean;
 }) {
   const latest = versions[0] ?? null;
   const [error, setError] = useState<string | null>(null);
@@ -157,15 +167,19 @@ export function ReviewDetailClient({
                 />
               ) : (
                 <>
-                  {previewUrl ? (
+                  {previewUrl && canPlayMedia ? (
                     // eslint-disable-next-line jsx-a11y/media-has-caption -- review
                     // cuts are work-in-progress uploads without caption tracks.
                     <video src={previewUrl} controls className="w-full rounded-lg bg-black" />
-                  ) : (
+                  ) : canPlayMedia ? (
                     <Button type="button" variant="outline" onClick={loadPreview} disabled={pending}>
                       <Film size={16} aria-hidden="true" />
                       Prévisualiser v{latest?.number}
                     </Button>
+                  ) : (
+                    <p className="text-xs text-ink/60">
+                      Lecture réservée à l&apos;équipe de production.
+                    </p>
                   )}
                   <ul className="divide-y divide-[var(--c-border)]">
                     {versions.map((v) => (

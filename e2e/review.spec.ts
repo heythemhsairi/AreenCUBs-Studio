@@ -150,3 +150,78 @@ test.describe("portal player", () => {
     await expect(page.getByText("Teaser gamme bio — montage")).toBeVisible();
   });
 });
+
+test.describe("commercial — read-only review access", () => {
+  // A commercial holds RLS on review_assets/versions/comments for their own
+  // clients, but NO policy on the review-media bucket. The page must therefore
+  // offer them everything they can actually use, and nothing they cannot.
+  test.beforeEach(async ({ page }) => {
+    resetReviewFixture();
+    await login(page, "commercial");
+  });
+
+  test("sees their own client's review and not another's", async ({ page, diagnostics }) => {
+    await page.goto("/dashboard/review", { waitUntil: "networkidle" });
+    const body = await page.locator("body").innerText();
+    expect(body).toContain("Visite Lac 2 — montage");   // Nova is theirs
+    expect(body).not.toContain("Teaser gamme bio — montage"); // Atlas is not
+    expect(diagnostics.significantErrors()).toEqual([]);
+  });
+
+  test("is offered no control that would bounce them off the page", async ({
+    page,
+    diagnostics,
+  }) => {
+    await page.goto(`/dashboard/review/${NOVA_ASSET}`, { waitUntil: "networkidle" });
+    await expect(page.getByText("Visite Lac 2 — montage")).toBeVisible();
+
+    // The defect this pins: the preview button was rendered for every role the
+    // page admits, but getReviewMediaUrlAction is staff-only — so a commercial
+    // clicking it was REDIRECTED to /dashboard, losing the page entirely.
+    await expect(page.getByRole("button", { name: /Prévisualiser/ })).toHaveCount(0);
+    await expect(page.getByText("Lecture réservée")).toBeVisible();
+
+    // And no mutation control either.
+    await expect(page.getByRole("button", { name: "Téléverser" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Marquer approuvé" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Marquer résolu" })).toHaveCount(0);
+
+    // Still on the review page, not redirected.
+    await expect(page).toHaveURL(new RegExp(NOVA_ASSET));
+    expect(diagnostics.significantErrors()).toEqual([]);
+  });
+
+  test("a foreign review is indistinguishable from one that does not exist", async ({
+    page,
+  }) => {
+    // The property that matters is INDISTINGUISHABILITY, not a specific status
+    // code. Asserting 404 here failed while the boundary was working perfectly:
+    // the page rendered Next's not-found screen with no Atlas data, but the
+    // response carried 200, because /dashboard/* streams through a heavy
+    // layout and the status is already committed by the time notFound() runs.
+    // The portal route, which has no such layout, does return 404.
+    //
+    // So compare the two cases against each other. If a forbidden id behaved
+    // differently from an invented one — any status, any text — that difference
+    // would be the oracle letting a commercial enumerate other clients' work.
+    const forbidden = await page.goto(`/dashboard/review/${ATLAS_ASSET}`, {
+      waitUntil: "networkidle",
+    });
+    const forbiddenStatus = forbidden?.status();
+    const forbiddenBody = await page.locator("body").innerText();
+
+    const missing = await page.goto(
+      "/dashboard/review/f1000000-0000-4000-8000-00000000dead",
+      { waitUntil: "networkidle" },
+    );
+    const missingStatus = missing?.status();
+    const missingBody = await page.locator("body").innerText();
+
+    expect(forbiddenStatus).toBe(missingStatus);
+    expect(forbiddenBody).toBe(missingBody);
+
+    // And whatever they render, it is the not-found screen — never the asset.
+    expect(forbiddenBody).not.toContain("Teaser gamme bio");
+    expect(forbiddenBody).toMatch(/404|could not be found|introuvable/i);
+  });
+});

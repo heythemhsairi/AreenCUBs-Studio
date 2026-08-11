@@ -74,6 +74,10 @@ export default async function ReviewDetailPage({
       versions={versions}
       comments={comments}
       canMutate={session.role !== "commercial"}
+      // A commercial may read the review but holds no policy on the media
+      // bucket, so playback is staff-only. Offering the control anyway sent
+      // them through a staff-only action, which redirected them away.
+      canPlayMedia={session.role !== "commercial"}
     />
   );
 }
