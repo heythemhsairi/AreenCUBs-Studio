@@ -136,3 +136,49 @@ Confirmed in-browser across desktop, tablet and mobile with no exclusions (`PHAS
 **Serious:** `color-contrast` on every audited route (12–39 nodes each, more on narrow viewports). This is the design-token problem from Phase 0 confirmed in a browser — `--c-text-2`/`--c-text-3` and brand tints against card surfaces. A token-level fix, not per-element patches.
 
 **Why not fixed here:** the labelling fixes touch high-impact financial and task controls, and the contrast fix is a design-system change. Both want review rather than an unattended sweep.
+
+---
+
+## 11. Phase 2 — three items that need a decision before production
+
+Implemented and verified locally. None has been applied anywhere but the staging
+database on this machine.
+
+### 11a. Self-service role escalation is live in production today
+
+`profiles_update_self` (migration 0002) permits a user to update their own
+profile row, and `role` is a column of that row. Any signed-in account can run
+`update profiles set role = 'admin' where id = auth.uid()` through PostgREST and
+become an administrator. No client-side control prevents it, because the write
+does not go through the application.
+
+Closed locally by `20260811000005_column_privilege_guards.sql`, a BEFORE UPDATE
+trigger. Row Level Security cannot fix this: it decides which rows a statement
+may touch, not which columns may change.
+
+**Decision required:** whether to apply this single migration to production
+ahead of the rest of Phase 2. It is additive, reversible with one `DROP TRIGGER`,
+touches no row, and changes no financial value. It is also the only item in this
+programme that closes a live privilege-escalation path.
+
+### 11b. Workers lose blanket client and project access
+
+The roadmap specifies a worker reaches "assigned projects/tasks and the client
+information those require; no unrelated client data". Today every worker reads
+every client and can read *and write* every project. After Phase 2 a worker
+reaches projects they own, are assigned to or created, and the clients those
+belong to. Creating new work is unaffected.
+
+This is an operational rule change, not a financial one, and existing worker
+workflows that depend on seeing unrelated clients would notice. Recorded here
+rather than shipped quietly. See `PERMISSION-MATRIX.md` §4.
+
+### 11c. Freelancers lose the `clients.notes` column
+
+`clients_freelancer_select_via_tasks` returns the whole client row — including
+the agency's internal commentary — to anyone holding one assigned task. RLS
+cannot withhold a single column, so the policy is dropped and freelancers read
+`public.client_directory`, which exposes `id`, `name`, `email` and `phone`.
+
+**Decision required:** confirmation that no freelancer workflow currently
+depends on reading a client's internal notes, fiscal number or postal address.

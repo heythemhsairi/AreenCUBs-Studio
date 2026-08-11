@@ -1,4 +1,4 @@
-import { requireSession } from "@/lib/auth";
+import { requireInternal } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Topbar } from "@/components/dashboard/topbar";
@@ -14,7 +14,9 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await requireSession();
+  // Internal, not merely authenticated. A client organisation's contact holds a
+  // valid session; the whole of /dashboard is closed to them at this one line.
+  const session = await requireInternal();
 
   // Fetch the latest 20 notifications for the bell. The bell badge reads
   // unread count from this list; older notifications stay accessible but

@@ -158,27 +158,53 @@ describe("non-admin roles cannot reach protected records", () => {
     expect(affected).toBe("0");
   });
 
-  it("freelancer sees only clients reachable through an assigned task", () => {
-    // Not zero — the schema intends narrow, task-scoped visibility
-    // (clients_freelancer_select_via_tasks). Asserting zero would encode the
-    // wrong rule and break the moment the policy works as designed.
-    const visible = Number(sqlAs(USERS.freelancer, "select count(*) from public.clients;"));
+  it("freelancer reads clients only through the reduced directory", () => {
+    // CHANGED IN PHASE 2, deliberately. This previously asserted that a
+    // freelancer sees SOME clients in public.clients, via
+    // clients_freelancer_select_via_tasks. That policy returned the whole row
+    // — including `notes`, the agency's internal commentary about the client
+    // — to anyone holding one assigned task.
+    //
+    // RLS cannot withhold a single column, so the row itself had to go. The
+    // policy is dropped and the freelancer reads public.client_directory,
+    // which has no notes, no fiscal number and no address. See
+    // docs/audit/PERMISSION-MATRIX.md §4.
+    const table = Number(sqlAs(USERS.freelancer, "select count(*) from public.clients;"));
+    expect(table).toBe(0);
+
+    const directory = Number(
+      sqlAs(USERS.freelancer, "select count(*) from public.client_directory;"),
+    );
     const total = Number(sql("select count(*) from public.clients;"));
-    expect(visible).toBeGreaterThan(0);
-    expect(visible).toBeLessThan(total);
+    expect(directory).toBeGreaterThan(0);
+    expect(directory).toBeLessThan(total);
   });
 
   it("no non-admin role can escalate its own profile to admin", () => {
-    for (const who of [USERS.worker, USERS.freelancer]) {
-      const before = sqlAs(who, "select public.current_role();");
-      // Attempt the escalation; the transaction rolls back either way.
+    // REWRITTEN IN PHASE 2. This test could not fail.
+    //
+    // It performed the escalation, then re-read the role "in a fresh
+    // transaction" and asserted it was unchanged. But sqlAs ALWAYS rolls back
+    // — that is what makes the suite safe to run — so the re-read was
+    // guaranteed to show the original value whether the UPDATE was denied or
+    // succeeded. It reported a closed door for a policy that was wide open:
+    // profiles_update_self permits a user to write any column of their own
+    // row, `role` included.
+    //
+    // The measurement has to happen INSIDE the transaction that attempts it.
+    // Rows affected is the only honest signal.
+    for (const who of [USERS.worker, USERS.freelancer, USERS.intern, USERS.commercial, USERS.client]) {
+      let affected;
       try {
-        sqlAs(who, `update public.profiles set role = 'admin' where id = '${who}';`);
+        affected = sqlAs(
+          who,
+          `with u as (update public.profiles set role = 'admin' where id = '${who}' returning 1)
+           select count(*) from u;`,
+        );
       } catch {
-        /* denial is the expected outcome */
+        affected = "0"; // rejected outright — also zero rows changed
       }
-      // Re-read in a fresh transaction: the role must be unchanged.
-      expect(sqlAs(who, "select public.current_role();")).toBe(before);
+      expect(`${who}:${affected}`).toBe(`${who}:0`);
     }
   });
 });

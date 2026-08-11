@@ -6,8 +6,14 @@ import { requireAdmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { usernameToEmail, type UserRole } from "@/lib/utils";
+import { TEAM_ROLES } from "@/lib/roles";
 
-const VALID_ROLES: UserRole[] = ["admin", "worker", "freelancer"];
+// The roles an administrator may assign through the team form. TEAM_ROLES,
+// not every role: a `client` account is a contact at a client organisation and
+// needs a client_members row to mean anything, which this form does not
+// collect. Creating one here would produce an account that can sign in and
+// reach nothing — a support ticket, not a permission.
+const VALID_ROLES: UserRole[] = TEAM_ROLES;
 
 export type ActionResult =
   | { ok: true }
@@ -266,6 +272,11 @@ export async function listTeamMembers() {
   const { data: profiles, error } = await supabase
     .from("profiles")
     .select("id, username, full_name, role, avatar_url, job_title, created_at")
+    // Staff only. A client organisation's contact holds a profiles row too, so
+    // an unfiltered listing would place an external person in the agency's own
+    // team directory — and hand their name to every other client contact the
+    // moment the portal exists.
+    .in("role", TEAM_ROLES)
     .order("created_at", { ascending: true });
   if (error) throw error;
 

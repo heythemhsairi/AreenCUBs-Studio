@@ -8,6 +8,7 @@ import { Avatar } from "@/components/avatar";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { useI18n } from "@/lib/i18n/provider";
+import { ROLE_TONE } from "@/lib/roles";
 import {
   updateMyProfileAction,
   uploadMyAvatarAction,
@@ -25,11 +26,7 @@ type Profile = {
   avatar_url: string | null;
 };
 
-const roleTone: Record<UserRole, "violet" | "blue" | "green"> = {
-  admin: "violet",
-  worker: "blue",
-  freelancer: "green",
-};
+
 
 export function ProfileClient({ profile }: { profile: Profile }) {
   const { t } = useI18n();
@@ -94,7 +91,7 @@ function ProfileSummary({ profile }: { profile: Profile }) {
               <p className="text-sm text-ink/55">
                 @{profile.username} · {profile.email}
               </p>
-              <Badge tone={roleTone[profile.role]} className="mt-1.5">
+              <Badge tone={ROLE_TONE[profile.role]} className="mt-1.5">
                 {t.roles[profile.role]}
               </Badge>
             </div>

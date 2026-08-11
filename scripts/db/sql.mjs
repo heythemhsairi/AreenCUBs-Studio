@@ -211,4 +211,30 @@ export const USERS = {
   freelancer: "33333333-3333-4333-8333-333333333333",
   /** Authenticated but deliberately has NO profiles row. */
   orphan: "44444444-4444-4444-8444-444444444444",
+  commercial: "55555555-5555-4555-8555-555555555555",
+  intern: "66666666-6666-4666-8666-666666666666",
+  /** A contact at a client organisation — not an employee. */
+  client: "77777777-7777-4777-8777-777777777777",
+};
+
+/** Fabricated fixture ids the role matrix is measured against. */
+export const FIXTURES = {
+  /** Atlas Foods — the portal contact's organisation. Worker-linked. */
+  clientAtlas: "c1000000-0000-4000-8000-000000000001",
+  /** Nova Immobilier — assigned to the commercial. Worker-linked. */
+  clientNova: "c1000000-0000-4000-8000-000000000002",
+  /** Zenith Fitness — the intern's only client. Worker-linked. */
+  clientZenith: "c1000000-0000-4000-8000-000000000003",
+  /** Meridian — commercial-authored, no project: outside worker scope. */
+  clientMeridian: "c1000000-0000-4000-8000-000000000004",
+  projectAtlas: "e1000000-0000-4000-8000-000000000001",
+  projectZenith: "e1000000-0000-4000-8000-000000000003",
+  /** Assigned to the freelancer. */
+  taskFreelancer: "7a000000-0000-4000-8000-000000000002",
+  /** Assigned to the intern (and the worker). */
+  taskIntern: "7a000000-0000-4000-8000-000000000005",
+  /** Draft quote for a commercial-owned client. */
+  devisDraft: "d1000000-0000-4000-8000-000000000006",
+  /** Already issued ('sent') — a commercial must not be able to touch it. */
+  devisSent: "d1000000-0000-4000-8000-000000000005",
 };

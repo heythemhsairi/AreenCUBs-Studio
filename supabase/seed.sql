@@ -39,7 +39,9 @@ truncate table
   public.task_comments,
   public.tasks,
   public.projects,
-  public.clients
+  public.client_members,
+  public.clients,
+  public.audit_log
 restart identity cascade;
 
 delete from auth.users where email like '%@staging.local';
@@ -88,6 +90,23 @@ from (values
   ('44444444-4444-4444-8444-444444444444', '00000000-0000-0000-0000-000000000000',
    'authenticated', 'authenticated', 'orphan@staging.local',
    crypt('staging-only-not-a-secret', gen_salt('bf')), now(), now(), now(),
+   '{"provider":"email","providers":["email"]}', '{}'),
+
+  ('55555555-5555-4555-8555-555555555555', '00000000-0000-0000-0000-000000000000',
+   'authenticated', 'authenticated', 'commercial@staging.local',
+   crypt('staging-only-not-a-secret', gen_salt('bf')), now(), now(), now(),
+   '{"provider":"email","providers":["email"]}', '{}'),
+
+  ('66666666-6666-4666-8666-666666666666', '00000000-0000-0000-0000-000000000000',
+   'authenticated', 'authenticated', 'intern@staging.local',
+   crypt('staging-only-not-a-secret', gen_salt('bf')), now(), now(), now(),
+   '{"provider":"email","providers":["email"]}', '{}'),
+
+  -- A person from a client organisation, not an employee. Every internal
+  -- table must be unreachable for this account.
+  ('77777777-7777-4777-8777-777777777777', '00000000-0000-0000-0000-000000000000',
+   'authenticated', 'authenticated', 'client@staging.local',
+   crypt('staging-only-not-a-secret', gen_salt('bf')), now(), now(), now(),
    '{"provider":"email","providers":["email"]}', '{}')
 ) as v(
   id, instance_id, aud, role, email, encrypted_password,
@@ -114,7 +133,10 @@ on conflict do nothing;
 insert into public.profiles (id, username, full_name, role) values
   ('11111111-1111-4111-8111-111111111111', 'admin',      'Staging Admin',      'admin'),
   ('22222222-2222-4222-8222-222222222222', 'worker',     'Staging Worker',     'worker'),
-  ('33333333-3333-4333-8333-333333333333', 'freelancer', 'Staging Freelancer', 'freelancer')
+  ('33333333-3333-4333-8333-333333333333', 'freelancer', 'Staging Freelancer', 'freelancer'),
+  ('55555555-5555-4555-8555-555555555555', 'commercial', 'Staging Commercial', 'commercial'),
+  ('66666666-6666-4666-8666-666666666666', 'intern',     'Staging Intern',     'intern'),
+  ('77777777-7777-4777-8777-777777777777', 'clientuser', 'Staging Client Contact', 'client')
 on conflict (id) do update
   set username = excluded.username,
       full_name = excluded.full_name,
@@ -136,7 +158,18 @@ insert into public.clients (id, name, address, matricule_fiscal, email, phone, n
    '88 Rue Imaginaire, Sfax 3000', 'FAKE-0000003CCC000',
    'team@zenithfit.invalid', '+216 00 000 003',
    'FABRICATED staging client — no content profile, tests the empty state.',
-   '11111111-1111-4111-8111-111111111111');
+   '11111111-1111-4111-8111-111111111111'),
+
+  -- Deliberately outside every worker's scope: no project, no task, and
+  -- created by the commercial user rather than the admin. Without a client
+  -- like this the worker-containment assertions would pass vacuously, because
+  -- the staging worker owns all three projects above and would therefore be
+  -- linked to every other client in the seed.
+  ('c1000000-0000-4000-8000-000000000004', 'Meridian Logistique',
+   '3 Impasse Inventée, Bizerte 7000', 'FAKE-0000004DDD000',
+   'bonjour@meridianlog.invalid', '+216 00 000 004',
+   'FABRICATED staging client — commercial-owned, no delivery work attached.',
+   '55555555-5555-4555-8555-555555555555');
 
 -- ═══ 3. Projects — findings #6 and #7 ══════════════════════════════════════
 insert into public.projects (id, client_id, name, description, status, owner_id, start_date, end_date) values
@@ -176,6 +209,68 @@ insert into public.tasks (id, project_id, title, status, priority, assignee_id, 
   ('7a000000-0000-4000-8000-000000000005', 'e1000000-0000-4000-8000-000000000003',
    'Brief client initial', 'done', 'normal',
    '22222222-2222-4222-8222-222222222222', '11111111-1111-4111-8111-111111111111', '2026-08-05');
+
+-- ═══ 3b. Explicit membership and assignment ════════════════════════════════
+-- The scope rows every Phase 2 policy resolves through. Access is never
+-- inferred from an email domain or a name, so without these rows the
+-- commercial, intern and client accounts reach nothing at all — which is
+-- itself one of the assertions.
+
+insert into public.client_members (client_id, profile_id, relation, created_by) values
+  -- Commercial owns Nova by assignment, and Meridian by authorship.
+  ('c1000000-0000-4000-8000-000000000002', '55555555-5555-4555-8555-555555555555',
+   'commercial_owner', '11111111-1111-4111-8111-111111111111'),
+
+  -- The portal contact belongs to Atlas Foods. Atlas is deliberately NOT the
+  -- commercial's client, so "client sees own organisation" and "commercial
+  -- sees own clients" cannot accidentally overlap and mask a leak.
+  ('c1000000-0000-4000-8000-000000000001', '77777777-7777-4777-8777-777777777777',
+   'client_contact', '11111111-1111-4111-8111-111111111111')
+on conflict do nothing;
+
+update public.clients
+   set owner_id = '55555555-5555-4555-8555-555555555555'
+ where id in ('c1000000-0000-4000-8000-000000000002',
+              'c1000000-0000-4000-8000-000000000004');
+
+-- The multi-assignee tables are the source of truth for visibility. Migration
+-- 0015 backfills them from tasks.assignee_id / projects.owner_id at migration
+-- time, which is BEFORE this seed runs, so seeded rows need explicit entries.
+insert into public.task_assignees (task_id, user_id)
+select id, assignee_id from public.tasks where assignee_id is not null
+on conflict do nothing;
+
+insert into public.project_assignees (project_id, user_id)
+select id, owner_id from public.projects where owner_id is not null
+on conflict do nothing;
+
+-- The intern gets exactly one task, on the Zenith project. Their entire world
+-- is therefore client #3 — every other client, project and task must be
+-- invisible to them.
+insert into public.task_assignees (task_id, user_id) values
+  ('7a000000-0000-4000-8000-000000000005', '66666666-6666-4666-8666-666666666666')
+on conflict do nothing;
+
+-- A draft quote for a commercial-owned client, so the draft-only rule has
+-- something to act on. Devis #9005 above is already 'sent' for Nova, which
+-- gives the "cannot edit an issued document" case its fixture.
+insert into public.devis (
+  id, devis_number, kind, client_id, date, due_date, object,
+  status, payment_status, subtotal_dt, discount_dt, tva_rate, tva_dt, stamp_dt, total_dt, created_by
+) values
+  ('d1000000-0000-4000-8000-000000000006', 9006, 'devis',
+   'c1000000-0000-4000-8000-000000000004', '2026-08-05', '2026-08-19',
+   'FABRICATED — commercial-authored draft quote',
+   'draft', 'unpaid', 1500.00, 0.00, 19.00, 285.00, 0.00, 1785.00,
+   '55555555-5555-4555-8555-555555555555')
+on conflict do nothing;
+
+-- Its line item. Without this the document's stored subtotal would not
+-- reconcile against its lines, and finance.dbtest.mjs asserts — correctly —
+-- that no seeded document is internally inconsistent.
+insert into public.devis_items (devis_id, description, quantity, unit_price_dt, line_total_dt, position, is_bonus) values
+  ('d1000000-0000-4000-8000-000000000006', 'Refonte réseaux sociaux', 1, 1500.00, 1500.00, 0, false)
+on conflict do nothing;
 
 -- ═══ 4. Services — finding #18 (case-only duplicate categories) ════════════
 insert into public.services (name_fr, name_en, category, default_price_dt, default_unit) values

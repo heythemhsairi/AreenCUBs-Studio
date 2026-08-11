@@ -956,6 +956,9 @@ export const dict = {
       admin: "Administrateur",
       worker: "Collaborateur",
       freelancer: "Freelance",
+      commercial: "Commercial",
+      intern: "Stagiaire",
+      client: "Client",
     },
     dashboard: {
       welcome: "Bienvenue",
@@ -2344,6 +2347,9 @@ export const dict = {
       admin: "Administrator",
       worker: "Team member",
       freelancer: "Freelancer",
+      commercial: "Sales",
+      intern: "Intern",
+      client: "Client",
     },
     dashboard: {
       welcome: "Welcome",

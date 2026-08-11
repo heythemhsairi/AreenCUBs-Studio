@@ -9,6 +9,7 @@ import { Avatar } from "@/components/avatar";
 import { Table, THead, TBody, TR, TH, TD, EmptyState } from "@/components/ui/table";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { cn } from "@/lib/utils";
+import { ROLE_TONE, TEAM_ROLES } from "@/lib/roles";
 import type { UserRole } from "@/lib/utils";
 
 type Member = {
@@ -22,11 +23,7 @@ type Member = {
   created_at: string;
 };
 
-const roleTone: Record<UserRole, "blue" | "green" | "violet"> = {
-  admin: "violet",
-  worker: "blue",
-  freelancer: "green",
-};
+
 
 type RoleFilter = "all" | UserRole;
 
@@ -53,12 +50,11 @@ export function TeamListClient({
   }, [members, search, roleFilter]);
 
   const counts = useMemo(() => {
-    const base: Record<RoleFilter, number> = {
-      all: members.length,
-      admin: 0,
-      worker: 0,
-      freelancer: 0,
-    };
+    // Built from TEAM_ROLES rather than listed by hand: a new role must not
+    // be able to reach this component without a counter, which would leave
+    // base[m.role]++ incrementing undefined and render NaN.
+    const base = { all: members.length } as Record<RoleFilter, number>;
+    for (const r of TEAM_ROLES) base[r] = 0;
     for (const m of members) base[m.role]++;
     return base;
   }, [members]);
@@ -114,7 +110,7 @@ export function TeamListClient({
             </div>
             {/* Role filter tabs */}
             <div className="inline-flex items-center rounded-lg border border-[#22506F] bg-[#123A5A] p-0.5">
-              {(["all", "admin", "worker", "freelancer"] as RoleFilter[]).map(
+              {(["all", ...TEAM_ROLES] as RoleFilter[]).map(
                 (r) => (
                   <button
                     key={r}
@@ -180,7 +176,7 @@ export function TeamListClient({
                     <TD className="text-[#94A3B8]">@{m.username}</TD>
                     <TD className="text-[#94A3B8]">{m.email}</TD>
                     <TD>
-                      <Badge tone={roleTone[m.role]}>{t.roles[m.role]}</Badge>
+                      <Badge tone={ROLE_TONE[m.role]}>{t.roles[m.role]}</Badge>
                     </TD>
                     <TD className="text-right">
                       <Link
@@ -224,7 +220,7 @@ export function TeamListClient({
                         )}
                       </div>
                     </div>
-                    <Badge tone={roleTone[m.role]}>{t.roles[m.role]}</Badge>
+                    <Badge tone={ROLE_TONE[m.role]}>{t.roles[m.role]}</Badge>
                   </div>
                   <div className="mt-3 space-y-1 border-t border-[#1A3E5C] pt-3">
                     <p className="text-xs text-[#94A3B8]">

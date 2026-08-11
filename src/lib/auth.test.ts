@@ -162,7 +162,8 @@ describe("requireSession — invalid or unknown role", () => {
     ["superuser", "a role that does not exist in this build"],
     ["", "an empty string"],
     ["ADMIN", "a case-mismatched role"],
-    ["commercial", "a role planned but not yet implemented"],
+    ["administrator", "the matrix's English name for a role stored as 'admin'"],
+    ["staff", "a plausible-sounding role that is not in the enum"],
   ])("denies %s (%s)", async (role) => {
     signedInAs({ ...workerProfile, role });
     expect(await redirectTargetOf(requireSession)).toBe(ACCOUNT_UNAVAILABLE_ROUTE);
@@ -255,7 +256,14 @@ describe("requireWorkerOrAdmin", () => {
 
 describe("isValidRole", () => {
   it("accepts exactly the roles in the user_role enum", () => {
-    expect(VALID_ROLES).toEqual(["admin", "worker", "freelancer"]);
+    expect(VALID_ROLES).toEqual([
+      "admin",
+      "worker",
+      "freelancer",
+      "commercial",
+      "intern",
+      "client",
+    ]);
     for (const r of VALID_ROLES) expect(isValidRole(r)).toBe(true);
   });
 

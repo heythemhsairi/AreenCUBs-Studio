@@ -228,7 +228,13 @@ describe("no financial behaviour was changed by this suite", () => {
 
   it("document totals are unchanged from the seeded fixture", () => {
     const total = sql("select round(sum(total_dt),2) from public.devis;");
-    // 1191.00 + 596.00 + 3570.00 + 2381.00 + 4523.00 — fabricated amounts.
-    expect(Number(total)).toBeCloseTo(12261, 2);
+    // 1191.00 + 596.00 + 3570.00 + 2381.00 + 4523.00 + 1785.00 — fabricated.
+    //
+    // The last term is the commercial-authored draft added in Phase 2 so the
+    // draft-only rule has a document to act on. The constant is deliberately
+    // hard-coded rather than derived: this assertion exists to catch a TEST
+    // that mutates money, and a computed expectation would move with the
+    // damage it is supposed to detect. It changes only when the seed does.
+    expect(Number(total)).toBeCloseTo(14046, 2);
   });
 });

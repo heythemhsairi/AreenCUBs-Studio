@@ -8,18 +8,11 @@ import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { WorkCalendar } from "@/components/work-calendar";
 import type { UserRole } from "@/lib/utils";
+import { ROLE_TONE, ROLE_LABEL_FR } from "@/lib/roles";
 
-const roleTone: Record<UserRole, "violet" | "blue" | "green"> = {
-  admin: "violet",
-  worker: "blue",
-  freelancer: "green",
-};
 
-const roleLabel: Record<UserRole, string> = {
-  admin: "Administrateur",
-  worker: "Collaborateur",
-  freelancer: "Freelance",
-};
+
+
 
 export default async function MemberPlanningPage({
   params,
@@ -105,7 +98,7 @@ export default async function MemberPlanningPage({
               <h2 className="text-2xl font-semibold tracking-tight text-ink">
                 {profile.full_name ?? profile.username}
               </h2>
-              <Badge tone={roleTone[role]}>{roleLabel[role]}</Badge>
+              <Badge tone={ROLE_TONE[role]}>{ROLE_LABEL_FR[role]}</Badge>
             </div>
             {profile.job_title && (
               <p className="mt-1 text-sm text-ink/65">{profile.job_title}</p>

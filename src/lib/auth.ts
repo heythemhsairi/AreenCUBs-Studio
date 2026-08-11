@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import type { UserRole } from "@/lib/utils";
+import { INTERNAL_ROLES, type UserRole } from "@/lib/utils";
 
 export type SessionProfile = {
   id: string;
@@ -30,7 +30,14 @@ export const ACCOUNT_UNAVAILABLE_ROUTE = "/account-unavailable";
  * through to callers, which would let an unrecognised role slip past
  * `role === "admin"`-style checks with undefined behaviour.
  */
-export const VALID_ROLES = ["admin", "worker", "freelancer"] as const;
+export const VALID_ROLES = [
+  "admin",
+  "worker",
+  "freelancer",
+  "commercial",
+  "intern",
+  "client",
+] as const;
 
 export function isValidRole(value: unknown): value is UserRole {
   return (
@@ -91,14 +98,57 @@ export async function requireSession(): Promise<SessionProfile> {
   };
 }
 
-export async function requireAdmin(): Promise<SessionProfile> {
+/**
+ * Every guard below is an ALLOW-LIST, and that is the whole point.
+ *
+ * `requireWorkerOrAdmin` used to read `if (session.role === "freelancer")
+ * redirect(...)` — a deny-list naming the one role that existed to exclude.
+ * That is correct exactly until a new role appears, at which point it silently
+ * admits it. Adding `commercial`, `intern` and `client` to the enum would have
+ * handed all three the full internal application, including a client
+ * organisation's contact reaching the agency's task board and price catalog.
+ *
+ * A deny-list fails open when the world changes. An allow-list fails closed.
+ * A role that nobody has thought about yet reaches nothing.
+ */
+
+/** Where a signed-in principal goes when it holds no rights to the surface. */
+function denyTo(role: UserRole): string {
+  // A client has no dashboard to fall back to, so bouncing them to /dashboard
+  // would loop against this same guard. They land on the portal instead, which
+  // Phase 6 fills in; until then it is the account-unavailable page.
+  return role === "client" ? "/portal" : "/dashboard";
+}
+
+export async function requireRoles(allowed: readonly UserRole[]): Promise<SessionProfile> {
   const session = await requireSession();
-  if (session.role !== "admin") redirect("/dashboard");
+  if (!allowed.includes(session.role)) redirect(denyTo(session.role));
   return session;
 }
 
+export async function requireAdmin(): Promise<SessionProfile> {
+  return requireRoles(["admin"]);
+}
+
+/**
+ * Full internal operational access: the roles that run agency delivery.
+ *
+ * Mirrors `public.is_staff()` in the database. The name is kept because 26
+ * call sites use it, but the semantics are now an allow-list.
+ */
 export async function requireWorkerOrAdmin(): Promise<SessionProfile> {
-  const session = await requireSession();
-  if (session.role === "freelancer") redirect("/dashboard");
-  return session;
+  return requireRoles(["admin", "worker"]);
+}
+
+/**
+ * Any agency role. Excludes `client`, which is authenticated but external.
+ * Mirrors `public.is_internal()`.
+ */
+export async function requireInternal(): Promise<SessionProfile> {
+  return requireRoles(INTERNAL_ROLES);
+}
+
+/** The client portal. The inverse of requireInternal. */
+export async function requireClientContact(): Promise<SessionProfile> {
+  return requireRoles(["client"]);
 }

@@ -19,6 +19,31 @@ export function emailToUsername(email: string): string {
   return email.split("@")[0];
 }
 
-export type UserRole = "admin" | "worker" | "freelancer";
+export type UserRole =
+  | "admin"
+  | "worker"
+  | "freelancer"
+  | "commercial"
+  | "intern"
+  | "client";
 
-export const ROLES: UserRole[] = ["admin", "worker", "freelancer"];
+export const ROLES: UserRole[] = [
+  "admin",
+  "worker",
+  "freelancer",
+  "commercial",
+  "intern",
+  "client",
+];
+
+/**
+ * Roles belonging to the agency. `client` is authenticated but external, and
+ * every internal surface must exclude it — see docs/audit/PERMISSION-MATRIX.md.
+ */
+export const INTERNAL_ROLES: UserRole[] = [
+  "admin",
+  "worker",
+  "freelancer",
+  "commercial",
+  "intern",
+];
