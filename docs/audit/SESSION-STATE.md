@@ -190,6 +190,7 @@ Branch `phase-1-data-integrity`. Phases 1–6 are done and committed.
 | 4 — commercial | `a2578c3` | Commercial dashboard, `requireQuoteAccess`, scoped devis/factures |
 | 5 — intern | `d51a64a` | Intern dashboard, `requireClientAccess`, navigation for the new roles |
 | 6 — client portal | `9f77812` | Portal views, `portal_set_approval`, notifications, audit |
+| 7 — video review | `da4d471` | Schema, permissions, portal surface, private bucket — **UI pending** |
 
 ### Where the boundaries actually live
 
@@ -246,25 +247,39 @@ wsl -d Ubuntu -u root -- bash -lc 'bash /root/run.sh <task>.sh'
 instance idles out. `.gitattributes` pins `*.sh` to LF; `extract.sh` normalises
 again on arrival.
 
-### Next: Phase 7 — video review
+### Phase 7 — video review — commit `da4d471`, PARTIAL
 
-Internal upload and attachment, client-specific access, versions, time-coded and
-general comments, comment resolution, review status, audit history, file
-metadata, role-based permissions. Internal staff upload; clients view and
-comment. **No public unauthenticated file URLs.** Local synthetic storage
-provider, file-type and size validation, unauthorized-access tests, never commit
-media.
+**Done and tested:** `review_assets`, `review_versions`, `review_comments`; the
+scope helpers; RLS for all five internal roles; three `portal_review_*` views;
+`portal_add_review_comment()`; a private `review-media` bucket with path-scoped
+policies. 16 tests.
 
-The portal already has the shape to extend: add `portal_review_media` and
-`portal_review_comments` views plus a `portal_add_review_comment()` function,
-following the same owner-run-view + SECURITY-DEFINER-write pattern.
+Storage paths are `<client_id>/<asset_id>/<file>` and the policy reads the first
+segment back as the owning organisation — `storage.objects` has no foreign key
+into this schema, so the path IS the relationship. A malformed path fails the
+uuid guard and is denied.
 
-Then: Phase 8 Drive adapter → 9 optional TVA → 10 Content OS/reporting/security
-review → 11 all gates → 12 completion report.
+**Not built yet — this is where to resume:**
+
+1. **Internal upload page** (`/dashboard/review`). Staff create an asset, upload
+   a version to `review-media` under the path convention above, and see the
+   comment thread. Validate mime (`video/*`) and size server-side; the size
+   check belongs in the action, not only in the input element.
+2. **Portal player** (`/portal/review/[assetId]`). Latest cut only, a short-lived
+   signed URL fetched per request — never a stored URL — a timecode scrubber,
+   and the comment form calling `portal_add_review_comment`.
+3. **Resolution UI** for staff: set `resolved_at`/`resolved_by`, and move the
+   asset back to `in_review` when the next version lands.
+4. **E2E**: a client commenting on the current cut; a client refused on a
+   superseded one; unauthenticated access to a signed URL after expiry.
+
+The Phase 6 portal is the template — owner-run views for reads, one
+`SECURITY DEFINER` function for writes, and the client role holding no table
+policy at all.
 
 ### Totals at this commit
 
-201 unit · 214 database · 81 e2e desktop · axe clean incl. `/portal` ·
+201 unit · 230 database · 81 e2e desktop · axe clean incl. `/portal` ·
 typecheck clean · build clean.
 
 ### Still approval-gated — see DECISIONS-NEEDED.md
