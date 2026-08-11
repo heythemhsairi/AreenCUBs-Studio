@@ -245,4 +245,14 @@ export const FIXTURES = {
   itemOtherOrg: "a1000000-0000-4000-8000-000000000002",
   /** Atlas content still in internal production. */
   itemInternalWip: "a1000000-0000-4000-8000-000000000004",
+  /** Atlas review asset, currently in review. */
+  reviewAssetAtlas: "f1000000-0000-4000-8000-000000000001",
+  /** Nova review asset — the cross-organisation probe. */
+  reviewAssetOther: "f1000000-0000-4000-8000-000000000002",
+  /** Superseded cut of the Atlas asset. */
+  reviewVersionOld: "f2000000-0000-4000-8000-000000000001",
+  /** Current cut of the Atlas asset. */
+  reviewVersionCurrent: "f2000000-0000-4000-8000-000000000002",
+  /** Nova's only cut. */
+  reviewVersionOther: "f2000000-0000-4000-8000-000000000003",
 };

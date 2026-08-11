@@ -776,3 +776,170 @@ describe("client portal — Phase 6 surfaces", () => {
     expect(out).toContain("N=1/1");
   });
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+describe("video review — Phase 7", () => {
+  it("agency staff hold the workflow", () => {
+    expect(count(USERS.admin, "public.review_assets")).toBe(2);
+    expect(count(USERS.worker, "public.review_versions")).toBe(3);
+    expect(count(USERS.worker, "public.review_comments")).toBe(2);
+  });
+
+  it("a commercial sees reviews for their own clients only", () => {
+    // Nova is theirs; Atlas is not.
+    expect(count(USERS.commercial, "public.review_assets")).toBe(1);
+    expect(
+      Number(
+        sqlAs(
+          USERS.commercial,
+          `select count(*) from public.review_assets where id = '${FIXTURES.reviewAssetAtlas}';`,
+        ),
+      ),
+    ).toBe(0);
+  });
+
+  it("interns and freelancers reach no review data at all", () => {
+    for (const who of ["intern", "freelancer"]) {
+      for (const table of [
+        "public.review_assets",
+        "public.review_versions",
+        "public.review_comments",
+      ]) {
+        expect(`${who}:${table}:${count(USERS[who], table)}`).toBe(`${who}:${table}:0`);
+      }
+    }
+  });
+
+  it("the client role holds no policy on the review tables", () => {
+    // Same shape as Phase 6: a client reads views, never a base table, so the
+    // blanket "reads zero from every internal table" assertion stays true.
+    for (const table of [
+      "public.review_assets",
+      "public.review_versions",
+      "public.review_comments",
+    ]) {
+      expect(`${table}:${count(USERS.client, table)}`).toBe(`${table}:0`);
+    }
+  });
+
+  it("the portal offers the client their own asset and the current cut only", () => {
+    expect(count(USERS.client, "public.portal_review_assets")).toBe(1);
+
+    // One version, and it is version 2. Earlier cuts are the agency's working
+    // history; offering them invites comments on something nobody is using.
+    expect(
+      sqlAs(USERS.client, "select version_number::text from public.portal_review_versions;"),
+    ).toBe("2");
+  });
+
+  it("the portal never names which employee replied", () => {
+    const cols = sql(
+      "select string_agg(column_name, ',' order by column_name) from information_schema.columns " +
+        "where table_schema = 'public' and table_name = 'portal_review_comments';",
+    ).split(",");
+    expect(cols).not.toContain("author_id");
+    expect(cols).toContain("author_side");
+  });
+
+  it("another organisation's review is unreachable, even by id", () => {
+    expect(
+      Number(
+        sqlAs(
+          USERS.client,
+          `select count(*) from public.portal_review_assets where id = '${FIXTURES.reviewAssetOther}';`,
+        ),
+      ),
+    ).toBe(0);
+  });
+
+  it("a client may comment on the current cut", () => {
+    const out = sqlAs(
+      USERS.client,
+      `select public.portal_add_review_comment('${FIXTURES.reviewVersionCurrent}', 'Le logo reste trop long', 4.25) is not null;`,
+    );
+    expect(out).toBe("t");
+  });
+
+  it("a client may not comment on a superseded cut", () => {
+    expect(
+      sqlAsExpectError(
+        USERS.client,
+        `select public.portal_add_review_comment('${FIXTURES.reviewVersionOld}', 'trop tard', null);`,
+      ),
+    ).toContain("superseded");
+  });
+
+  it("a client may not comment on another organisation's version", () => {
+    expect(
+      sqlAsExpectError(
+        USERS.client,
+        `select public.portal_add_review_comment('${FIXTURES.reviewVersionOther}', 'probe', null);`,
+      ),
+    ).toContain("Version not found");
+  });
+
+  it("rejects an empty comment and an impossible timecode", () => {
+    expect(
+      sqlAsExpectError(
+        USERS.client,
+        `select public.portal_add_review_comment('${FIXTURES.reviewVersionCurrent}', '   ', null);`,
+      ),
+    ).toContain("cannot be empty");
+    expect(
+      sqlAsExpectError(
+        USERS.client,
+        `select public.portal_add_review_comment('${FIXTURES.reviewVersionCurrent}', 'probe', -1);`,
+      ),
+    ).toContain("Invalid timecode");
+  });
+
+  it("refuses an internal user calling the client function", () => {
+    for (const who of ["admin", "worker", "commercial", "intern", "freelancer"]) {
+      expect(
+        sqlAsExpectError(
+          USERS[who],
+          `select public.portal_add_review_comment('${FIXTURES.reviewVersionCurrent}', 'probe', null);`,
+        ),
+      ).toContain("Only a client contact");
+    }
+  });
+
+  it("a client comment moves the asset to changes_requested", () => {
+    const out = sqlAs(
+      USERS.client,
+      `select public.portal_add_review_comment('${FIXTURES.reviewVersionCurrent}', 'Encore un ajustement', null); ` +
+        `select status from public.portal_review_assets where id = '${FIXTURES.reviewAssetAtlas}';`,
+    );
+    expect(out).toContain("changes_requested");
+  });
+
+  it("the portal views are not writable", () => {
+    expect(
+      rowsUpdated(USERS.client, "public.portal_review_assets", "title = 'probe'", "true"),
+    ).toBe(0);
+    expect(
+      rowsUpdated(USERS.client, "public.portal_review_comments", "body = 'probe'", "true"),
+    ).toBe(0);
+  });
+
+  it("the media bucket is private and has no anonymous read policy", () => {
+    expect(sql("select public::text from storage.buckets where id = 'review-media';")).toBe(
+      "false",
+    );
+    const broad = sql(
+      "select count(*) from pg_policies where schemaname = 'storage' " +
+        "and policyname like 'review_media%' " +
+        "and (coalesce(qual, '') like '%auth.uid() IS NOT NULL%' " +
+        "     or coalesce(qual, '') like '%true%');",
+    );
+    expect(broad).toBe("0");
+  });
+
+  it("clients hold no write policy on the media bucket", () => {
+    const writes = sql(
+      "select count(*) from pg_policies where schemaname = 'storage' " +
+        "and policyname = 'review_media_client_select' and cmd <> 'SELECT';",
+    );
+    expect(writes).toBe("0");
+  });
+});

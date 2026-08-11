@@ -33,6 +33,9 @@ begin;
 
 -- ── Clean slate (local only; order respects foreign keys) ──────────────────
 truncate table
+  public.review_comments,
+  public.review_versions,
+  public.review_assets,
   public.payments,
   public.devis_items,
   public.devis,
@@ -418,6 +421,52 @@ values
    'Nouveau bien — Lac 2', 'post', 'linkedin', 'Bien',
    'FABRICATED caption.', '2026-08-28', '2026-08-26', 'idea', 'normal',
    '22222222-2222-4222-8222-222222222222', '11111111-1111-4111-8111-111111111111');
+
+-- ═══ 6b. Video review ══════════════════════════════════════════════════════
+-- No media is committed. `storage_path` points at a file that does not exist,
+-- which is enough to exercise every permission boundary: what a role may read,
+-- comment on and resolve is decided by these rows, not by the bytes.
+--
+-- Paths follow `<client_id>/<asset_id>/<file>` because the storage policy reads
+-- the first segment back as the owning organisation.
+
+insert into public.review_assets (id, client_id, content_item_id, title, status, created_by) values
+  ('f1000000-0000-4000-8000-000000000001', 'c1000000-0000-4000-8000-000000000001',
+   'a1000000-0000-4000-8000-000000000001', 'Teaser gamme bio — montage',
+   'in_review', '22222222-2222-4222-8222-222222222222'),
+
+  -- Nova's asset: the direct-object-reference target for the Atlas contact.
+  ('f1000000-0000-4000-8000-000000000002', 'c1000000-0000-4000-8000-000000000002',
+   null, 'Visite Lac 2 — montage',
+   'in_review', '22222222-2222-4222-8222-222222222222')
+on conflict do nothing;
+
+insert into public.review_versions
+  (id, asset_id, version_number, storage_path, mime, size_bytes, duration_seconds, uploaded_by) values
+  -- A superseded cut, so "comments only on the current version" has something
+  -- to refuse.
+  ('f2000000-0000-4000-8000-000000000001', 'f1000000-0000-4000-8000-000000000001', 1,
+   'c1000000-0000-4000-8000-000000000001/f1000000-0000-4000-8000-000000000001/v1.mp4',
+   'video/mp4', 10485760, 24.5, '22222222-2222-4222-8222-222222222222'),
+
+  ('f2000000-0000-4000-8000-000000000002', 'f1000000-0000-4000-8000-000000000001', 2,
+   'c1000000-0000-4000-8000-000000000001/f1000000-0000-4000-8000-000000000001/v2.mp4',
+   'video/mp4', 11534336, 25.0, '22222222-2222-4222-8222-222222222222'),
+
+  ('f2000000-0000-4000-8000-000000000003', 'f1000000-0000-4000-8000-000000000002', 1,
+   'c1000000-0000-4000-8000-000000000002/f1000000-0000-4000-8000-000000000002/v1.mp4',
+   'video/mp4', 9437184, 18.0, '22222222-2222-4222-8222-222222222222')
+on conflict do nothing;
+
+insert into public.review_comments
+  (id, version_id, author_id, author_side, body, timecode_seconds) values
+  ('f3000000-0000-4000-8000-000000000001', 'f2000000-0000-4000-8000-000000000002',
+   '22222222-2222-4222-8222-222222222222', 'agency',
+   'FABRICATED — première version envoyée pour retour.', null),
+  ('f3000000-0000-4000-8000-000000000002', 'f2000000-0000-4000-8000-000000000002',
+   '77777777-7777-4777-8777-777777777777', 'client',
+   'FABRICATED — le logo apparaît trop tôt.', 3.5)
+on conflict do nothing;
 
 -- ═══ 7. Publishing — finding #3 (past-dated, still "scheduled") ════════════
 insert into public.social_posts
