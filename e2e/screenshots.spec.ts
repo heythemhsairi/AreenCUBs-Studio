@@ -22,6 +22,9 @@ const ROUTES: [string, string][] = [
   ["projects", "/dashboard/projects"],
   ["finance", "/dashboard/finance"],
   ["content", "/dashboard/content"],
+  ["review", "/dashboard/review"],
+  ["reports", "/dashboard/reports"],
+  ["audit", "/dashboard/audit"],
   ["settings", "/dashboard/settings"],
 ];
 

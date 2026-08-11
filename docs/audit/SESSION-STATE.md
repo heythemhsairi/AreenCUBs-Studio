@@ -179,106 +179,47 @@ Write the permission matrix first. Everything from Phase 3 onward depends on it.
 
 ---
 
-## Continuation point — HEAD c3a74d0
+## Continuation point — HEAD 3d21495, Phase 11 gates running
 
-Branch `phase-1-data-integrity`. Phases 1–6 complete; Phase 7 half done.
-
-### Production: one fix is live, and the ledger is missing
-
-The self-service administrator escalation is **fixed in production** — applied
-by hand through the SQL Editor on 2026-08-11 and validated. Full record in
-`PRODUCTION-HOTFIX-RECORD.md`.
-
-**`supabase_migrations.schema_migrations` does not exist in production.** No
-migration ledger, and there never was one. Consequences, all in
-`DECISIONS-NEEDED.md` §14:
-
-- Production's schema state is **unknown**. The Phase 0 conclusion that it sits
-  at migration `0017` was an inference and cannot be confirmed.
-- **`supabase db push` is unusable**, not merely constrained. With no ledger the
-  CLI treats all thirty-four migrations as unapplied and would rebuild the
-  schema from zero on top of itself.
-- Anything destined for production must be self-contained, dependency-free,
-  rehearsed against a production-shaped replica
-  (`scripts/verify-hotfix-prodshape.sh` is the pattern), and applied by hand
-  with a prepared rollback.
+Branch `phase-1-data-integrity`. Phases 1–10 complete and committed; the
+production escalation hotfix is live and validated.
 
 | Phase | Commit | What landed |
 |---|---|---|
-| 2 — roles and RLS | `b2bc5b9` | Six-role matrix, `client_members`, `client_directory`, audit log |
-| 3 — /dashboard/team | `e146f30` | Was a server-render throw, not a hydration mismatch |
-| 4 — commercial | `a2578c3` | Commercial dashboard, `requireQuoteAccess`, scoped devis/factures |
-| 5 — intern | `d51a64a` | Intern dashboard, `requireClientAccess`, navigation |
-| 6 — client portal | `9f77812` | Portal views, `portal_set_approval`, notifications, audit |
-| 7 — video review | `da4d471` | Schema, permissions, portal surface, private bucket — **UI pending** |
-| hotfix | `353069c`, `c3a74d0` | Prepared, verified, applied to production, recorded |
+| 2 — roles and RLS | `b2bc5b9` | Six-role matrix, membership, audit log, guards |
+| 3 — /dashboard/team | `e146f30` | Server-render throw, not hydration; degraded email read |
+| 4 — commercial | `a2578c3` | Commercial dashboard, scoped quote access |
+| 5 — intern | `d51a64a` | Intern dashboard, nav for new roles, client CRM guard |
+| 6 — client portal | `9f77812` | Portal views, approvals, notifications |
+| hotfix | `353069c`…`c3a74d0` | Escalation closed in production; **no migration ledger exists there** |
+| 7 — video review | `da4d471` + `78e4f09` | Schema+RLS, staff workspace, portal player, upload, resolution |
+| 8 — storage boundary | `dd31fce` | Provider interface, Drive adapter (unconnected), mock, runbook |
+| 9 — optional TVA | `8d9e799` | One calc source, per-doc toggle+rate, issued-doc freeze, shadow log |
+| 10 — reporting/security | `3d21495` | Agency brief, audit surface, SECURITY-REVIEW.md |
 
-### RESUME HERE — Phase 7 UI
+### If the Phase 11 gate run was interrupted
 
-The data layer is done and tested (16 tests). Four pieces remain:
+Re-run: `wsl -d Ubuntu -u root -- bash -lc 'bash /root/run.sh p11.sh'`
+(reset from zero → typecheck → unit → db → full e2e all three viewports,
+including the screenshot matrix). Then Phase 12: the completion report per the
+roadmap's four categories — completed/verified, locally-implemented-but-gated,
+unresolved blockers, required management actions, production rollout plan.
+Close: preview:stop, secret scan, clean tree, SESSION-STATE.
 
-1. **`/dashboard/review`** — staff create an asset, upload a version to the
-   `review-media` bucket under `<client_id>/<asset_id>/<file>` (the storage
-   policy reads that first segment back as the owning organisation), and read
-   the comment thread. Validate mime `video/*` and size **server-side**; an
-   `accept` attribute is not a check. Guard with `requireWorkerOrAdmin`.
-2. **`/portal/review/[assetId]`** — latest cut only, a **short-lived signed URL
-   fetched per request** (never a stored URL), a timecode scrubber, and a
-   comment form calling `portal_add_review_comment`.
-3. **Resolution UI** for staff: set `resolved_at`/`resolved_by`, and return the
-   asset to `in_review` when the next version lands.
-4. **E2E**: a client commenting on the current cut; refused on a superseded one;
-   a signed URL rejected after expiry.
+### The environment traps, still true
 
-Phase 6 is the template — owner-run views for reads, one `SECURITY DEFINER`
-function for writes, the client role holding no table policy at all.
+1. `SECURITY DEFINER` makes `current_user` the owner — identify callers by `auth.uid()`.
+2. Assert rows affected, never "did it throw".
+3. CLI skips future-dated migrations silently.
+4. `git archive` scopes to the shell cwd — run from repo root.
+5. Backslash escapes collapse in Bash heredocs — use the Write tool for scripts with escapes; char-code tricks beat regex classes.
+6. Browser tests persist writes — reset fixtures (incl. `storage.objects` rows; direct deletes need `set local session_replication_role = replica` past the storage extension's protect_delete trigger).
+7. The WSL VM idles out between tool calls; every fresh call cold-boots the stack (~30 s of "database system is starting up" — wait for health, it is not a crash).
+8. The WSL clone is synced by tar; its git HEAD is stale — verify provenance against the Windows repo.
 
-Then: 8 Drive adapter → 9 optional TVA → 10 Content OS, reporting and the
-security review → 11 all gates → 12 completion report.
+### Open items (`DECISIONS-NEEDED.md`)
 
-### Where the boundaries live
-
-Role scope is in the database, never in a component; every dashboard reads
-through the RLS-bound client and does no filtering of its own. The commercial
-and intern dashboards branch **before any query runs**. Guards are allow-lists.
-Column containment uses owner-run views with explicit `REVOKE`, because RLS
-cannot withhold a column.
-
-### Traps this program has already paid for
-
-1. **`SECURITY DEFINER` changes `current_user` to the function's owner.** Use
-   `auth.uid()` to identify the caller — it reads a GUC and is unaffected.
-2. **Assert rows AFFECTED, never whether a statement threw.** RLS denies by
-   filtering. The original escalation test measured after a rollback, so it
-   could not fail.
-3. **Supabase CLI 2.98.2 silently skips migrations dated in the future.**
-4. **`git archive` scopes to the shell's current directory** — run it from the
-   repo root.
-5. **Backslash escapes collapse in Bash-tool heredocs.** `"\n"` lands as a
-   literal newline and produces a JS parse error that removes a whole suite from
-   the run while the summary still reads "passed". Use the Write tool for
-   scripts containing escapes.
-6. **Browser tests are not rolled back.** Restore the fixture or assert a delta.
-7. **The WSL clone is synced by tar, not git** — its own git HEAD is stale, so
-   verify file provenance against the Windows repo.
-
-### Environment
-
-```bash
-bash /c/Users/AreenCubs/mksync.sh
-wsl -d Ubuntu -u root -- bash -lc 'bash /root/run.sh <task>.sh'
-```
-
-`rsync` across `/mnt/c` stalls indefinitely; the tar stream replaces it.
-`run.sh` re-copies helpers each call because WSL clears `/tmp` when idle.
-
-### Totals
-
-201 unit · 251 database · 81 e2e desktop · axe clean incl. `/portal` ·
-typecheck clean · build clean.
-
-### Still open
-
-`DECISIONS-NEEDED.md` §11b (worker scope narrowing), §11c (freelancer losing
-`clients.notes`), §14 (production schema state unknown — blocks all further
-production schema work), money divergence, service-role key rotation.
+§1 service-role key rotation (oldest, owner action) · §11b/§11c worker and
+freelancer scope changes (decided separately) · §14 production schema unknown,
+no ledger — every production change stays hand-applied and self-contained ·
+money-engine activation · Drive account connection.
