@@ -1028,3 +1028,95 @@ describe("profile self-update guard — the production hotfix", () => {
     ).toBe("0");
   });
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+describe("optional TVA — Phase 9", () => {
+  it("historical rows read as TVA-enabled, legacy-calculated", () => {
+    // The backfill is a statement of fact — every existing document WAS
+    // computed with TVA by the legacy engine — not a policy choice.
+    expect(sql("select count(*) from public.devis where tva_enabled = false;")).toBe("0");
+    expect(sql("select count(*) from public.devis where calc_source <> 'legacy-v1';")).toBe("0");
+  });
+
+  it("stored totals are untouched by the migration", () => {
+    // The same hard-coded constant the finance suite pins, for the same
+    // reason: a computed expectation would move with the damage it detects.
+    expect(Number(sql("select round(sum(total_dt),2) from public.devis;"))).toBeCloseTo(
+      14046,
+      2,
+    );
+  });
+
+  it("financial columns freeze when a document is issued — even for admin", () => {
+    // devisSent is 'sent'. The trigger raises, so zero rows change. This is
+    // the database enforcing what the application also refuses: an issued
+    // document's arithmetic is a record, not a draft.
+    expect(
+      rowsUpdated(USERS.admin, "public.devis", "total_dt = total_dt + 1", `id = '${FIXTURES.devisSent}'`),
+    ).toBe(0);
+    expect(
+      rowsUpdated(USERS.admin, "public.devis", "tva_enabled = false", `id = '${FIXTURES.devisSent}'`),
+    ).toBe(0);
+  });
+
+  it("lifecycle columns stay mutable on an issued document", () => {
+    // Moving a document through its life is not editing its arithmetic.
+    expect(
+      rowsUpdated(USERS.admin, "public.devis", "status = 'accepted'", `id = '${FIXTURES.devisSent}'`),
+    ).toBe(1);
+    expect(
+      rowsUpdated(USERS.admin, "public.devis", "payment_status = 'partial'", `id = '${FIXTURES.devisSent}'`),
+    ).toBe(1);
+  });
+
+  it("a draft's financial columns remain fully editable", () => {
+    expect(
+      rowsUpdated(USERS.admin, "public.devis", "tva_enabled = false, tva_dt = 0", `id = '${FIXTURES.devisDraft}'`),
+    ).toBe(1);
+  });
+
+  it("the escape hatch works: back to draft, edit, re-issue", () => {
+    const out = sql(
+      "begin; " +
+        `update public.devis set status = 'draft' where id = '${FIXTURES.devisSent}'; ` +
+        `update public.devis set total_dt = total_dt where id = '${FIXTURES.devisSent}'; ` +
+        "select 'EDITED'; rollback;",
+    );
+    expect(out).toContain("EDITED");
+  });
+
+  it("the shadow log stores structure, never amounts or clients", () => {
+    const cols = sql(
+      "select string_agg(column_name, ',' order by column_name) from information_schema.columns " +
+        "where table_schema = 'public' and table_name = 'money_shadow_log';",
+    ).split(",");
+    for (const sensitive of ["client_id", "devis_id", "total_dt", "legacy_total", "engine_total"]) {
+      expect(cols, `shadow log carries ${sensitive}`).not.toContain(sensitive);
+    }
+    expect(cols).toContain("divergence_millimes");
+  });
+
+  it("the shadow log is writable by the roles whose drafts produce it, and no other", () => {
+    const probe =
+      "insert into public.money_shadow_log " +
+      "(kind, item_count, tva_enabled, tva_rate, stamp_applied, divergence_millimes) " +
+      "values ('devis', 1, true, 19.00, false, 10)";
+    expect(rowsInserted(USERS.admin, probe)).toBe(1);
+    expect(rowsInserted(USERS.commercial, probe)).toBe(1);
+    for (const who of ["worker", "intern", "freelancer", "client"]) {
+      expect(`${who}:${rowsInserted(USERS[who], probe)}`).toBe(`${who}:0`);
+    }
+  });
+
+  it("only the administrator reads the measurement, and nobody rewrites it", () => {
+    for (const who of ["worker", "commercial", "intern", "freelancer", "client"]) {
+      expect(`${who}:${count(USERS[who], "public.money_shadow_log")}`).toBe(`${who}:0`);
+    }
+    expect(
+      sql(
+        "select count(*) from pg_policies where schemaname = 'public' " +
+          "and tablename = 'money_shadow_log' and cmd in ('UPDATE','DELETE');",
+      ),
+    ).toBe("0");
+  });
+});

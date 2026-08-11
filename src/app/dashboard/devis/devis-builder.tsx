@@ -11,6 +11,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { createDevisAction, updateDevisAction } from "./actions";
 import { formatDt } from "@/lib/format";
+import {
+  computeDocumentTotalsLegacy,
+  DEFAULT_TVA_RATE,
+  STAMP_DT,
+} from "@/lib/money/document-calc";
 
 type Service = {
   id: string;
@@ -42,6 +47,8 @@ type Devis = {
   devis_number?: number;
   discount_dt?: number;
   stamp_dt?: number;
+  tva_enabled?: boolean;
+  tva_rate?: number;
   items: Array<{
     service_id: string | null;
     description: string;
@@ -71,10 +78,11 @@ type Props =
       defaultClientId?: undefined;
     };
 
-const TVA_RATE = 19;
-// Tunisian fiscal stamp (timbre fiscal) — fixed fee added on top of the
-// TVA-inclusive total, untaxed. Mirrors STAMP_DT in actions.ts.
-const STAMP_DT = 1;
+// The calculation lives in ONE place — src/lib/money/document-calc.ts — and
+// this preview calls it. Until Phase 9 this file carried its own line-for-line
+// copy of the server's math, which is one financial rule written twice and one
+// future edit away from the preview showing a client a number the server would
+// not store.
 const todayIso = () => new Date().toISOString().slice(0, 10);
 const plus14Iso = () =>
   new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
@@ -129,6 +137,17 @@ export function DevisBuilder(props: Props) {
       ? Number(props.devis.stamp_dt ?? 0) > 0
       : props.kind === "facture",
   );
+  // TVA: an explicit per-document choice, changeable while the document is a
+  // draft. Edit mode reflects the saved choice; a document from before the
+  // toggle existed reads as enabled, which is what its stored totals mean.
+  const [tvaEnabled, setTvaEnabled] = useState<boolean>(
+    props.mode === "edit" ? (props.devis.tva_enabled ?? true) : true,
+  );
+  const [tvaRate, setTvaRate] = useState<number>(
+    props.mode === "edit"
+      ? Number(props.devis.tva_rate ?? DEFAULT_TVA_RATE)
+      : DEFAULT_TVA_RATE,
+  );
 
   const [items, setItems] = useState<LineItem[]>(() =>
     props.mode === "edit"
@@ -145,25 +164,23 @@ export function DevisBuilder(props: Props) {
         ],
   );
 
-  const totals = useMemo(() => {
-    const subtotal = items.reduce(
-      (sum, it) =>
-        sum + (it.is_bonus ? 0 : it.quantity * (it.unit_price_dt || 0)),
-      0,
-    );
-    const discount = Math.max(0, Math.min(subtotal, discountDt || 0));
-    const net = subtotal - discount;
-    const tva = +((net * TVA_RATE) / 100).toFixed(2);
-    const stamp = applyStamp ? STAMP_DT : 0;
-    const total = +(net + tva + stamp).toFixed(2);
-    return {
-      subtotal: +subtotal.toFixed(2),
-      discount: +discount.toFixed(2),
-      tva,
-      stamp: +stamp.toFixed(2),
-      total,
-    };
-  }, [items, discountDt, applyStamp]);
+  const totals = useMemo(
+    () =>
+      computeDocumentTotalsLegacy(
+        items.map((it) => ({
+          quantity: it.quantity,
+          unit_price_dt: it.unit_price_dt || 0,
+          is_bonus: it.is_bonus,
+        })),
+        {
+          tvaEnabled,
+          tvaRate,
+          applyStamp,
+          discountDt: discountDt || 0,
+        },
+      ),
+    [items, discountDt, applyStamp, tvaEnabled, tvaRate],
+  );
 
   const discountPct =
     totals.subtotal > 0 ? (totals.discount / totals.subtotal) * 100 : 0;
@@ -221,6 +238,8 @@ export function DevisBuilder(props: Props) {
     fd.set("devis_number", docNumber.trim());
     fd.set("discount_dt", String(discountDt || 0));
     if (applyStamp) fd.set("apply_stamp", "on");
+    if (tvaEnabled) fd.set("tva_enabled", "on");
+    fd.set("tva_rate", String(tvaRate));
     fd.set(
       "items_json",
       JSON.stringify(
@@ -473,7 +492,41 @@ export function DevisBuilder(props: Props) {
                   value={formatDt(totals.subtotal - totals.discount)}
                 />
               )}
-              <Row label={db.tva} value={formatDt(totals.tva)} />
+              {/* TVA toggle and rate — editable while drafting */}
+              <div className="flex items-center justify-between gap-3 rounded-lg bg-cream-dark/40 p-3">
+                <label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-ink/60">
+                  <input
+                    type="checkbox"
+                    checked={tvaEnabled}
+                    onChange={(e) => setTvaEnabled(e.target.checked)}
+                    className="h-4 w-4 rounded border-ink/30 accent-brand"
+                  />
+                  {db.tva}
+                </label>
+                <span className="flex items-center gap-2">
+                  {tvaEnabled && (
+                    <>
+                      <label htmlFor="tva-rate-input" className="sr-only">
+                        Taux de TVA (%)
+                      </label>
+                      <input
+                        id="tva-rate-input"
+                        type="number"
+                        min={0}
+                        max={100}
+                        step={0.1}
+                        value={tvaRate}
+                        onChange={(e) => setTvaRate(Number(e.target.value))}
+                        className="w-16 rounded border border-ink/20 bg-white px-1.5 py-0.5 text-right text-xs text-ink"
+                      />
+                      <span className="text-xs text-ink/55">%</span>
+                    </>
+                  )}
+                  <span className="text-right text-xs text-ink/55">
+                    {tvaEnabled ? formatDt(totals.tva) : "0,00 DT"}
+                  </span>
+                </span>
+              </div>
 
               {/* Fiscal stamp toggle */}
               <label className="flex items-center justify-between gap-3 rounded-lg bg-cream-dark/40 p-3">
