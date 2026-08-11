@@ -104,7 +104,7 @@ export function AdminTaskDetailClient({
             type="button"
             onClick={handleDelete}
             disabled={deletePending}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-[#F43F5E]/30 bg-[#F43F5E]/10 px-3 py-1.5 text-xs font-medium text-[#F43F5E] hover:bg-[#F43F5E]/20 transition-colors disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-danger/30 bg-danger/10 px-3 py-1.5 text-xs font-medium text-danger hover:bg-danger/20 transition-colors disabled:opacity-50"
           >
             {deletePending ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
             {at.delete}
@@ -140,7 +140,7 @@ export function AdminTaskDetailClient({
           <DetailRow label={at.labelRelatedClient}>
             <Link
               href={`/dashboard/clients/${task.related_client_id}`}
-              className="text-[#22D3EE] hover:underline"
+              className="text-accent2 hover:underline"
             >
               {task.related_client_name}
             </Link>
@@ -150,7 +150,7 @@ export function AdminTaskDetailClient({
           <DetailRow label={at.labelRelatedProject}>
             <Link
               href={`/dashboard/projects/${task.related_project_id}`}
-              className="text-[#22D3EE] hover:underline"
+              className="text-accent2 hover:underline"
             >
               {task.related_project_name}
             </Link>
@@ -160,7 +160,7 @@ export function AdminTaskDetailClient({
           <DetailRow label={at.labelRelatedDevis}>
             <Link
               href={`/dashboard/devis/${task.related_devis_id}`}
-              className="text-[#22D3EE] hover:underline"
+              className="text-accent2 hover:underline"
             >
               {formatDevisNumber(task.related_devis_number, task.related_devis_kind as "devis" | "facture")}
             </Link>
@@ -171,7 +171,7 @@ export function AdminTaskDetailClient({
             value={task.status}
             disabled={statusPending}
             onChange={(e) => handleStatusChange(e.target.value)}
-            className="cursor-pointer rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-2 py-1 text-xs text-[var(--c-text-2)] focus:outline-none focus:border-[#22D3EE] disabled:opacity-50"
+            className="cursor-pointer rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-2 py-1 text-xs text-[var(--c-text-2)] focus:outline-none focus:border-accent2 disabled:opacity-50"
           >
             {ADMIN_TASK_STATUSES.map((s) => (
               <option key={s} value={s}>{at.status[s]}</option>

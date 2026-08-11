@@ -73,11 +73,11 @@ export default async function AuditPage() {
                         {e.actor_id ? (nameById.get(e.actor_id) ?? "—") : "Système"}
                       </span>
                       {e.actor_role && (
-                        <span className="text-ink/60"> ({e.actor_role})</span>
+                        <span className="text-content-3"> ({e.actor_role})</span>
                       )}
-                      {e.summary && <span className="text-ink/80"> — {e.summary}</span>}
+                      {e.summary && <span className="text-content-2"> — {e.summary}</span>}
                     </p>
-                    <p className="text-xs text-ink/60">
+                    <p className="text-xs text-content-3">
                       {e.entity_type}
                       {e.entity_id ? ` · ${e.entity_id.slice(0, 8)}…` : ""}
                       {" · "}

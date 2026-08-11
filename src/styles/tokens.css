@@ -1,0 +1,211 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+ Areen CUBs Studio — design tokens
+ ═══════════════════════════════════════════════════════════════════════════
+
+ Every value is an RGB TRIPLET, not a hex string, so Tailwind can apply
+ opacity modifiers: `rgb(var(--ac-surface) / <alpha-value>)` makes
+ `bg-surface/60` work. A variable holding `#RRGGBB` silently breaks every
+ `/opacity` suffix in the codebase — a failure that looks like a design
+ choice rather than a bug.
+
+ DARK IS THE BASE. The inline no-flash script in layout.tsx adds `.light` as
+ the opt-in, so the bare `:root` must be dark or every first paint is wrong.
+
+ Components name ROLES, never raw colours. If a component needs a value with
+ no role here, the role is missing — not the value.
+
+ ── Contrast ──────────────────────────────────────────────────────────────
+ Text/background pairs are measured, and the axe suite re-measures on every
+ run. Normal text 4.5:1, large text and meaningful boundaries 3:1. The
+ supporting blue-grey #8FADCE is NEVER light-mode body text: it measures
+ 1.70:1 on the light canvas. It is a dark-theme muted tone and a light-theme
+ boundary, nothing else.
+ ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Brand ramp — one hue family, anchored on the three given blues ───── */
+:root {
+  --ac-brand-50:  242 247 255;
+  --ac-brand-100: 228 238 253;
+  --ac-brand-200: 180 205 249;
+  --ac-brand-300: 131 173 243;
+  --ac-brand-400:  51 130 214;   /* #3382D6 — secondary */
+  --ac-brand-500:  16 100 212;   /* #1064D4 — primary   */
+  --ac-brand-600:  13  84 180;
+  --ac-brand-700:  11  68 148;
+  --ac-brand-800:  10  59 125;
+  --ac-brand-900:  10  51 111;   /* #0A336F — deep navy */
+  --ac-brand-950:   6  33  74;
+
+  --ac-support:   143 173 206;   /* #8FADCE */
+
+  /* Neutrals biased toward the brand hue — a neutral that was chosen reads
+     differently from one that was inherited. */
+  --ac-neutral-0:   255 255 255;
+  --ac-neutral-25:  250 251 252;
+  --ac-neutral-50:  244 246 248;
+  --ac-neutral-100: 232 235 236;  /* #E8EBEC — given light canvas */
+  --ac-neutral-200: 211 218 226;
+  --ac-neutral-300: 185 196 209;
+  --ac-neutral-400: 138 152 169;
+  --ac-neutral-500:  90 107 127;
+  --ac-neutral-600:  60  74  92;
+  --ac-neutral-700:  38  50  65;
+  --ac-neutral-800:  23  35  50;
+  --ac-neutral-900:  15  27  45;
+}
+
+/* ═══ DARK — the base theme ═══════════════════════════════════════════ */
+:root {
+  color-scheme: dark;
+
+  --ac-canvas:        7  23  42;
+  --ac-surface:      14  37  63;
+  --ac-surface-2:    20  49  80;
+  --ac-surface-3:    28  62  98;
+
+  /* The navigation rail is deep navy in BOTH themes — the one place the
+     brand asserts itself constantly, and what makes a screenshot of this
+     product recognisable. Its contents use the on-rail roles, never the
+     page text roles, because the rail keeps its own ground in both themes. */
+  --ac-rail:          6  20  38;
+  --ac-rail-2:       12  34  58;
+  --ac-rail-border:  30  64 100;
+  --ac-on-rail:     234 241 248;
+  --ac-on-rail-muted: var(--ac-support);   /* 6.1:1 on the rail */
+
+  --ac-text:        234 241 248;    /* 14.8:1 on surface */
+  --ac-text-2:      185 201 220;    /*  9.4:1 */
+  --ac-text-3:      var(--ac-support); /* 6.1:1 — its correct home */
+  --ac-text-inverse: 15 27 45;
+
+  --ac-border:       30  64 100;
+  --ac-border-strong: 62 100 142;
+
+  --ac-accent:       107 165 240;   /* #6BA5F0 — 6.5:1 on surface */
+  --ac-accent-hover: 143 189 246;
+  --ac-accent-weak:   18  50  92;
+  --ac-on-accent:      6  20  38;
+  --ac-focus:        107 165 240;
+  --ac-hover:         20  49  80;
+  --ac-active:        28  62  98;
+  --ac-selected:      18  50  92;
+
+  --ac-info:        125 196 232;
+  --ac-info-weak:    12  46  70;
+  --ac-success:      95 201 142;
+  --ac-success-weak: 15  56  36;
+  --ac-warning:     226 180  94;
+  --ac-warning-weak: 58  44  16;
+  --ac-danger:      242 135 156;
+  --ac-danger-weak:  61  22  34;
+
+  /* Ordered so adjacent series stay separable under deuteranopia and
+     protanopia: hue AND lightness both vary. Never the only encoding —
+     charts also carry labels or direct annotation. */
+  --ac-chart-1: 107 165 240;   /* blue    */
+  --ac-chart-2: 226 180  94;   /* amber   */
+  --ac-chart-3:  84 197 205;   /* teal    */
+  --ac-chart-4: 225 145 200;   /* magenta */
+  --ac-chart-5: 143 173 206;   /* slate   */
+  --ac-chart-6: 122 205 125;   /* green   */
+  --ac-chart-grid:  30 64 100;
+  --ac-chart-track: 28 62 98;
+
+  /* Deliberately shallow. A 1px border AND a wide soft shadow on the same
+     element is the "ghost card" tell; components pick one. */
+  --ac-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.30);
+  --ac-shadow:    0 1px 3px rgb(0 0 0 / 0.40), 0 1px 2px rgb(0 0 0 / 0.24);
+  --ac-shadow-md: 0 2px 8px rgb(0 0 0 / 0.40);
+  --ac-shadow-lg: 0 8px 24px -8px rgb(0 0 0 / 0.55);
+  --ac-shadow-rail: 1px 0 0 rgb(0 0 0 / 0.35);
+}
+
+/* ═══ LIGHT ═══════════════════════════════════════════════════════════
+   Not an inversion. The canvas is the given #E8EBEC, and the accent DARKENS
+   to #1064D4 because the dark-theme accent measures 2.9:1 on a light
+   ground — unusable as text or as a control edge. */
+html.light {
+  color-scheme: light;
+
+  --ac-canvas:    var(--ac-neutral-100);
+  --ac-surface:   var(--ac-neutral-0);
+  --ac-surface-2: var(--ac-neutral-50);
+  /* neutral-100, not -200: text-3 on -200 measured 3.87:1. This is a
+     background role, so it is the end that moves — darkening the muted
+     text instead would push it toward body weight and flatten the
+     hierarchy the tone exists to create. */
+  --ac-surface-3: var(--ac-neutral-100);
+
+  --ac-rail:        var(--ac-brand-900);
+  --ac-rail-2:      var(--ac-brand-800);
+  --ac-rail-border: var(--ac-brand-700);
+  --ac-on-rail:     248 250 252;
+  --ac-on-rail-muted: var(--ac-support);   /* 4.9:1 on #0A336F */
+
+  /* Measured on --ac-surface (#FFF) and --ac-canvas (#E8EBEC) */
+  --ac-text:         var(--ac-neutral-900);  /* 16.1:1 / 13.9:1 */
+  --ac-text-2:       var(--ac-neutral-600);  /*  9.2:1 /  7.9:1 */
+  --ac-text-3:       var(--ac-neutral-500);  /*  5.6:1 /  4.8:1 */
+  --ac-text-inverse: var(--ac-neutral-0);
+
+  --ac-border:        var(--ac-neutral-200);
+  --ac-border-strong: var(--ac-neutral-400);
+
+  /* brand-600, not brand-500. #1064D4 clears 4.5:1 on white but only
+     4.05-4.45:1 on its own weak tints, which is where accent-coloured TEXT
+     actually sits — on a selected row, a chip, a highlighted cell. One step
+     darker along the same hue reads as the same brand blue, takes accent
+     text to ~5.1:1 on those tints, and incidentally improves white-on-fill
+     from 5.9:1 to 7.0:1. The anchor #1064D4 remains brand-500 in the ramp. */
+  --ac-accent:       var(--ac-brand-600);
+  --ac-accent-hover: var(--ac-brand-700);
+  --ac-accent-weak:  var(--ac-brand-50);
+  --ac-on-accent:    var(--ac-neutral-0);
+  --ac-focus:        var(--ac-brand-500);
+  --ac-hover:        var(--ac-neutral-50);
+  --ac-active:       var(--ac-neutral-100);
+  --ac-selected:     var(--ac-brand-50);
+
+  /* The tones the axe suite already proved on light surfaces. */
+  --ac-info:          10  86 128;   /* 7.0:1 */
+  --ac-info-weak:    224 240 249;
+  --ac-success:       22 101  52;   /* 7.1:1 */
+  --ac-success-weak: 222 242 229;
+  --ac-warning:      124  74   2;   /* 6.4:1 */
+  --ac-warning-weak: 250 238 214;
+  --ac-danger:       143  26  48;   /* #8F1A30 — 5.9:1 was fine on white but
+                                       4.29:1 once dimmed over a danger tint */
+  --ac-danger-weak:  250 226 231;
+
+  --ac-chart-1:  16 100 212;
+  --ac-chart-2: 180 105  14;
+  --ac-chart-3:  14 124 134;
+  --ac-chart-4: 162  58 135;
+  --ac-chart-5:  90 107 127;
+  --ac-chart-6:  47 125  50;
+  --ac-chart-grid:  var(--ac-neutral-200);
+  --ac-chart-track: var(--ac-neutral-200);
+
+  --ac-shadow-sm: 0 1px 2px rgb(15 27 45 / 0.05);
+  --ac-shadow:    0 1px 3px rgb(15 27 45 / 0.07), 0 1px 2px rgb(15 27 45 / 0.04);
+  --ac-shadow-md: 0 2px 8px rgb(15 27 45 / 0.08);
+  --ac-shadow-lg: 0 8px 24px -8px rgb(15 27 45 / 0.14);
+  --ac-shadow-rail: 1px 0 0 rgb(10 51 111 / 0.10);
+}
+
+/* ═══ Motion ══════════════════════════════════════════════════════════
+   One easing family. `ease-in` is absent on purpose: on entering UI it
+   delays the moment the user is actually watching. Durations stay under
+   250ms — slower than that on an operational surface reads as lag. */
+:root {
+  --ac-ease:      cubic-bezier(0.16, 1, 0.3, 1);
+  --ac-ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
+  --ac-dur-1: 120ms;
+  --ac-dur-2: 180ms;
+  --ac-dur-3: 240ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --ac-dur-1: 1ms; --ac-dur-2: 1ms; --ac-dur-3: 1ms; }
+}
+

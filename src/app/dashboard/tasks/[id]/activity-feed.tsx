@@ -106,7 +106,7 @@ export function ActivityFeed({ entries }: { entries: ActivityRow[] }) {
       </CardHeader>
       <CardContent>
         {entries.length === 0 ? (
-          <p className="text-xs text-ink/45">{t.taskDetail.noActivity}</p>
+          <p className="text-xs text-content-3">{t.taskDetail.noActivity}</p>
         ) : (
           <ul className="space-y-3">
             {entries.map((row) => (
@@ -121,18 +121,18 @@ export function ActivityFeed({ entries }: { entries: ActivityRow[] }) {
                     }
                     size="sm"
                   />
-                  <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[10px] shadow-soft dark:bg-[#1c1f29]">
+                  <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-surface text-[10px] shadow-soft dark:bg-[#1c1f29]">
                     {ACTION_ICON[row.action] ?? "•"}
                   </span>
                 </div>
                 <div className="min-w-0 flex-1 pt-0.5">
-                  <p className="text-sm text-ink/80">
+                  <p className="text-sm text-content-2">
                     <span className="font-medium text-ink">
                       {row.actor?.full_name ?? row.actor?.username ?? "—"}
                     </span>{" "}
                     {labelFor(row, t)}
                   </p>
-                  <p className="text-[11px] text-ink/45">
+                  <p className="text-[11px] text-content-3">
                     {relative(row.created_at, t, locale)}
                   </p>
                 </div>

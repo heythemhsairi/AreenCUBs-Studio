@@ -68,7 +68,7 @@ export default async function PortalReviewPage({
     <main className="mx-auto w-full max-w-3xl space-y-6 px-4 py-8 sm:px-6">
       <Link
         href="/portal"
-        className="inline-flex items-center gap-1.5 text-sm text-ink/70 transition-colors hover:text-ink"
+        className="inline-flex items-center gap-1.5 text-sm text-content-2 transition-colors hover:text-ink"
       >
         <ArrowLeft size={16} aria-hidden="true" />
         Retour à votre espace

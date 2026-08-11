@@ -38,7 +38,7 @@ export function TasksList({
       <div className="overflow-x-auto">
         <table className="w-full min-w-[760px] text-sm">
           <thead>
-            <tr className="border-b border-ink/8 bg-white/40 text-left">
+            <tr className="border-b border-ink/8 bg-surface/40 text-left">
               <Th>Tâche</Th>
               <Th>Projet</Th>
               <Th>Assigné</Th>
@@ -63,7 +63,7 @@ export function TasksList({
               return (
                 <tr
                   key={task.id}
-                  className="border-b border-ink/5 transition-colors last:border-0 hover:bg-white/45 dark:hover:bg-white/5"
+                  className="border-b border-ink/5 transition-colors last:border-0 hover:bg-surface/45 dark:hover:bg-surface/5"
                 >
                   <Td>
                     <Link
@@ -97,19 +97,19 @@ export function TasksList({
                     )}
                   </Td>
                   <Td>
-                    <span className="text-ink/65">
+                    <span className="text-content-3">
                       {task.project?.name ?? "—"}
                     </span>
                     {task.client && (
-                      <span className="block text-[11px] text-ink/45">
+                      <span className="block text-[11px] text-content-3">
                         {task.client.name}
                       </span>
                     )}
                   </Td>
                   <Td>
-                    <span className="text-ink/70">
+                    <span className="text-content-2">
                       {task.assignee ?? (
-                        <em className="text-ink/40">
+                        <em className="text-content-3">
                           {t.tasks.form.unassigned}
                         </em>
                       )}
@@ -127,13 +127,13 @@ export function TasksList({
                   </Td>
                   <Td>
                     {task.estimated_minutes != null ? (
-                      <span className="text-xs text-ink/55">
+                      <span className="text-xs text-content-3">
                         {task.estimated_minutes >= 60
                           ? `${Math.round(task.estimated_minutes / 60)}h`
                           : `${task.estimated_minutes}m`}
                       </span>
                     ) : (
-                      <span className="text-ink/25">—</span>
+                      <span className="text-content-3">—</span>
                     )}
                   </Td>
                   <Td>
@@ -143,8 +143,8 @@ export function TasksList({
                           className={cn(
                             "rounded-md px-2 py-0.5 text-xs font-medium",
                             isOverdue
-                              ? "bg-red-50 text-red-700"
-                              : "bg-ink/5 text-ink/65",
+                              ? "bg-danger-weak text-danger"
+                              : "bg-ink/5 text-content-3",
                           )}
                         >
                           {new Date(task.deadline).toLocaleDateString("fr-FR", {
@@ -154,13 +154,13 @@ export function TasksList({
                           })}
                         </span>
                         {isOverdue && (
-                          <span className="text-[10px] font-semibold text-red-600">
+                          <span className="text-[10px] font-semibold text-danger">
                             ⚠ +{overdueDays}j de retard
                           </span>
                         )}
                       </div>
                     ) : (
-                      <span className="text-ink/35">—</span>
+                      <span className="text-content-3">—</span>
                     )}
                   </Td>
                 </tr>
@@ -175,7 +175,7 @@ export function TasksList({
 
 function Th({ children }: { children: React.ReactNode }) {
   return (
-    <th className="px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-ink/55">
+    <th className="px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-content-3">
       {children}
     </th>
   );

@@ -79,7 +79,7 @@ export function MultiAssignee({
               type="button"
               onClick={() => toggle(p.id)}
               aria-label={`Retirer ${p.label}`}
-              className="text-brand-dark/50 transition-colors hover:text-red-600 dark:text-brand/60"
+              className="text-brand-dark/50 transition-colors hover:text-danger dark:text-brand/60"
             >
               ×
             </button>
@@ -93,7 +93,7 @@ export function MultiAssignee({
             "inline-flex items-center gap-1 rounded-full border border-dashed px-2.5 py-1 text-xs font-medium transition-colors",
             open
               ? "border-brand/50 bg-brand/10 text-brand-dark dark:text-brand"
-              : "border-ink/25 text-ink/55 hover:border-brand/40 hover:text-ink",
+              : "border-ink/25 text-content-3 hover:border-brand/40 hover:text-ink",
           )}
         >
           <svg
@@ -113,19 +113,19 @@ export function MultiAssignee({
       </div>
 
       {open && (
-        <div className="absolute left-0 top-full z-30 mt-1.5 w-64 overflow-hidden rounded-xl border border-ink/10 bg-white shadow-lift dark:border-white/10 dark:bg-[#1e2029]">
+        <div className="absolute left-0 top-full z-30 mt-1.5 w-64 overflow-hidden rounded-xl border border-ink/10 bg-surface shadow-lift dark:border-white/10 dark:bg-[#1e2029]">
           <div className="border-b border-ink/8 p-2">
             <input
               autoFocus
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Rechercher…"
-              className="w-full rounded-md border border-ink/10 bg-white/70 px-2.5 py-1.5 text-xs text-ink placeholder:text-ink/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 dark:bg-white/5"
+              className="w-full rounded-md border border-ink/10 bg-surface/70 px-2.5 py-1.5 text-xs text-ink placeholder:text-content-3 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 dark:bg-surface/5"
             />
           </div>
           <ul className="max-h-56 overflow-y-auto py-1">
             {filtered.length === 0 && (
-              <li className="px-3 py-2 text-xs text-ink/40">—</li>
+              <li className="px-3 py-2 text-xs text-content-3">—</li>
             )}
             {filtered.map((p) => {
               const on = selected.includes(p.id);
@@ -138,7 +138,7 @@ export function MultiAssignee({
                       "flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm transition-colors",
                       on
                         ? "bg-brand/10 text-brand-dark dark:text-brand"
-                        : "text-ink/75 hover:bg-ink/5",
+                        : "text-content-2 hover:bg-ink/5",
                     )}
                   >
                     <Avatar

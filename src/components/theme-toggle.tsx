@@ -116,7 +116,7 @@ export function ThemeToggle({ className }: { className?: string }) {
           className={cn(
             "flex h-6 w-6 items-center justify-center rounded transition-all",
             mode === opt.value
-              ? "bg-[#22B8D6] text-[#071B2C] shadow-sm"
+              ? "bg-accent2 text-accent2-fg shadow-sm"
               : "text-[var(--c-text-3)] hover:text-[var(--c-text-1)]",
           )}
         >

@@ -208,7 +208,7 @@ export default async function TaskEditPage({
   return (
     <div className="space-y-6">
       {project && (
-        <p className="text-xs text-ink/55">
+        <p className="text-xs text-content-3">
           {client && <>{client.name} · </>}
           <Link
             href={`/dashboard/projects/${task.project_id}`}

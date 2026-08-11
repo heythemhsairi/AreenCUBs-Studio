@@ -132,7 +132,7 @@ export function FilesCard({
       <CardHeader>
         <CardTitle>
           {t.taskDetail.files}
-          <span className="ml-1.5 text-xs font-medium text-ink/40">
+          <span className="ml-1.5 text-xs font-medium text-content-3">
             {files.length}
           </span>
         </CardTitle>
@@ -148,7 +148,7 @@ export function FilesCard({
           className={`flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-6 text-sm transition-colors ${
             dragOver
               ? "border-brand bg-brand/5 text-brand"
-              : "border-ink/15 bg-white/40 text-ink/55"
+              : "border-ink/15 bg-surface/40 text-content-3"
           }`}
         >
           <p className="text-center">
@@ -170,7 +170,7 @@ export function FilesCard({
               {pending ? "Téléversement…" : "Choisir un fichier"}
             </span>
           </label>
-          <p className="text-xs text-ink/40">Max 25 Mo par fichier</p>
+          <p className="text-xs text-content-3">Max 25 Mo par fichier</p>
         </div>
 
         {files.length > 0 && (
@@ -181,14 +181,14 @@ export function FilesCard({
               return (
                 <li
                   key={f.id}
-                  className="group flex items-center gap-3 rounded-lg border border-white/40 bg-white/60 px-3 py-2 transition-colors hover:bg-white"
+                  className="group flex items-center gap-3 rounded-lg border border-white/40 bg-surface/60 px-3 py-2 transition-colors hover:bg-surface"
                 >
                   <span className="text-xl">{iconFor(f.mime)}</span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-ink">
                       {f.name}
                     </p>
-                    <p className="truncate text-xs text-ink/45">
+                    <p className="truncate text-xs text-content-3">
                       {fmtSize(f.size_bytes)}
                       {f.uploader &&
                         ` · ${f.uploader.full_name ?? "@" + f.uploader.username}`}
@@ -206,7 +206,7 @@ export function FilesCard({
                     <button
                       type="button"
                       onClick={() => onDelete(f)}
-                      className="text-xs text-ink/30 opacity-0 transition-opacity hover:text-red-600 group-hover:opacity-100"
+                      className="text-xs text-content-3 opacity-0 transition-opacity hover:text-danger group-hover:opacity-100"
                       title="Supprimer"
                       aria-label="Supprimer le fichier"
                     >

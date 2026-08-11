@@ -129,13 +129,13 @@ function DarkTooltip({ active, payload, label }: {
 }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-lg border border-[#22506F] bg-[#123A5A] px-3 py-2 text-xs shadow-xl">
-      {label && <p className="mb-1.5 font-semibold text-[#94A3B8]">{label}</p>}
+    <div className="rounded-lg border border-line bg-surface-2 px-3 py-2 text-xs shadow-xl">
+      {label && <p className="mb-1.5 font-semibold text-content-3">{label}</p>}
       {payload.map((p) => (
         <div key={p.name} className="flex items-center gap-2 py-0.5">
           <span className="h-2 w-2 rounded-full flex-shrink-0" style={{ background: p.color }} />
-          <span className="text-[#94A3B8]">{p.name}:</span>
-          <span className="font-semibold text-[#F8FAFC]">{p.value.toLocaleString("fr-TN")} DT</span>
+          <span className="text-content-3">{p.name}:</span>
+          <span className="font-semibold text-content">{p.value.toLocaleString("fr-TN")} DT</span>
         </div>
       ))}
     </div>
@@ -149,11 +149,11 @@ function PieDarkTooltip({ active, payload }: {
   if (!active || !payload?.length) return null;
   const entry = payload[0];
   return (
-    <div className="rounded-lg border border-[#22506F] bg-[#123A5A] px-3 py-2 text-xs shadow-xl">
+    <div className="rounded-lg border border-line bg-surface-2 px-3 py-2 text-xs shadow-xl">
       <div className="flex items-center gap-2">
         <span className="h-2 w-2 rounded-full flex-shrink-0" style={{ background: entry.payload.color }} />
-        <span className="text-[#94A3B8]">{entry.name}:</span>
-        <span className="font-semibold text-[#F8FAFC]">{entry.value.toLocaleString("fr-TN")} DT</span>
+        <span className="text-content-3">{entry.name}:</span>
+        <span className="font-semibold text-content">{entry.value.toLocaleString("fr-TN")} DT</span>
       </div>
     </div>
   );
@@ -170,7 +170,7 @@ function RevenueAreaChart({ series, labels }: {
   const { t } = useI18n();
   if (!series.length) {
     return (
-      <div className="flex h-60 items-center justify-center text-sm text-[#64748B]">
+      <div className="flex h-60 items-center justify-center text-sm text-content-3">
         {t.finance.noData}
       </div>
     );
@@ -246,7 +246,7 @@ function RevenueAreaChart({ series, labels }: {
 function RechartsDonut({ data }: { data: { label: string; value: number; color: string }[] }) {
   const { t } = useI18n();
   if (!data.length) {
-    return <p className="py-8 text-center text-sm text-[#64748B]">{t.finance.noData}</p>;
+    return <p className="py-8 text-center text-sm text-content-3">{t.finance.noData}</p>;
   }
 
   const pieData = data.map((d) => ({ name: d.label, value: d.value, color: d.color }));
@@ -279,9 +279,9 @@ function RechartsDonut({ data }: { data: { label: string; value: number; color: 
           return (
             <div key={d.label} className="flex items-center gap-2 text-xs">
               <span className="h-2 w-2 flex-shrink-0 rounded-full" style={{ background: d.color }} />
-              <span className="min-w-0 flex-1 truncate text-[#94A3B8]">{d.label}</span>
-              <span className="text-[#64748B]">{pctVal}%</span>
-              <span className="font-semibold text-[#F8FAFC]">{d.value.toLocaleString("fr-TN")}</span>
+              <span className="min-w-0 flex-1 truncate text-content-3">{d.label}</span>
+              <span className="text-content-3">{pctVal}%</span>
+              <span className="font-semibold text-content">{d.value.toLocaleString("fr-TN")}</span>
             </div>
           );
         })}
@@ -300,9 +300,9 @@ function MiniDonutCard({ title, subtitle, data }: {
   data: { label: string; value: number; color: string }[];
 }) {
   return (
-    <div className="rounded-xl border border-[#22506F] bg-[#0D2D47] p-5">
-      <div className="mb-1 text-sm font-semibold text-[#F8FAFC]">{title}</div>
-      <div className="mb-4 text-xs text-[#64748B]">{subtitle}</div>
+    <div className="rounded-xl border border-line bg-surface p-5">
+      <div className="mb-1 text-sm font-semibold text-content">{title}</div>
+      <div className="mb-4 text-xs text-content-3">{subtitle}</div>
       <RechartsDonut data={data} />
     </div>
   );
@@ -316,18 +316,18 @@ export function RiskBadge({ risk }: { risk: "good" | "late" | "risky" }) {
   const { t } = useI18n();
   if (risk === "good")
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-950/60 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
+      <span className="inline-flex items-center gap-1 rounded-full bg-success-weak px-2 py-0.5 text-[10px] font-semibold text-success">
         ● {t.finance.riskGood}
       </span>
     );
   if (risk === "late")
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-amber-950/60 px-2 py-0.5 text-[10px] font-semibold text-amber-400">
+      <span className="inline-flex items-center gap-1 rounded-full bg-warning-weak px-2 py-0.5 text-[10px] font-semibold text-warning">
         ● {t.finance.riskLate}
       </span>
     );
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-rose-950/60 px-2 py-0.5 text-[10px] font-semibold text-rose-400">
+    <span className="inline-flex items-center gap-1 rounded-full bg-danger-weak px-2 py-0.5 text-[10px] font-semibold text-danger">
       ● {t.finance.riskRisky}
     </span>
   );
@@ -463,9 +463,9 @@ function DashboardTab(props: Props) {
       </section>
 
       {/* ── MAIN AREA CHART ─────────────────────────────────────── */}
-      <div className="rounded-xl border border-[#22506F] bg-[#0D2D47] p-5">
-        <div className="mb-1 text-sm font-semibold text-[#F8FAFC]">{tf.chartTitle}</div>
-        <div className="mb-4 text-xs text-[#64748B]">{tf.chartSubtitle}</div>
+      <div className="rounded-xl border border-line bg-surface p-5">
+        <div className="mb-1 text-sm font-semibold text-content">{tf.chartTitle}</div>
+        <div className="mb-4 text-xs text-content-3">{tf.chartSubtitle}</div>
         <RevenueAreaChart series={props.monthlySeries} labels={chartLabels} />
       </div>
 
@@ -478,9 +478,9 @@ function DashboardTab(props: Props) {
 
       {/* ── OUTSTANDING + EXPECTED ──────────────────────────────── */}
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-        <div className="rounded-xl border border-[#22506F] bg-[#0D2D47] p-5">
+        <div className="rounded-xl border border-line bg-surface p-5">
           <div className="mb-4 flex items-center justify-between">
-            <div className="text-sm font-semibold text-[#F8FAFC]">{tf.outstandingTitle}</div>
+            <div className="text-sm font-semibold text-content">{tf.outstandingTitle}</div>
             {props.totalOverdue > 0 && (
               <Badge tone="red">{formatDt(props.totalOverdue)} {tf.outstandingInLate}</Badge>
             )}
@@ -488,21 +488,21 @@ function DashboardTab(props: Props) {
           <OutstandingTable rows={props.outstandingRows.slice(0, 10)} />
         </div>
 
-        <div className="rounded-xl border border-[#22506F] bg-[#0D2D47] p-5">
-          <div className="mb-4 text-sm font-semibold text-[#F8FAFC]">{tf.paymentsTitle}</div>
+        <div className="rounded-xl border border-line bg-surface p-5">
+          <div className="mb-4 text-sm font-semibold text-content">{tf.paymentsTitle}</div>
           {props.paymentsSoon.length === 0 ? (
-            <p className="py-6 text-center text-sm text-[#64748B]">{tf.paymentsEmpty}</p>
+            <p className="py-6 text-center text-sm text-content-3">{tf.paymentsEmpty}</p>
           ) : (
-            <ul className="divide-y divide-[#22506F]">
+            <ul className="divide-y divide-line">
               {props.paymentsSoon.map((r) => (
                 <li key={r.devis_id} className="flex items-center justify-between py-2.5">
                   <div>
-                    <p className="text-sm font-medium text-[#F8FAFC]">{r.client_name}</p>
-                    <p className="text-xs text-[#64748B]">
+                    <p className="text-sm font-medium text-content">{r.client_name}</p>
+                    <p className="text-xs text-content-3">
                       {tf.paymentsFacture(r.devis_number)} · {tf.paymentsDue} {formatDate(r.due_date)}
                     </p>
                   </div>
-                  <span className="text-sm font-semibold text-[#22D3EE]">
+                  <span className="text-sm font-semibold text-accent2">
                     {formatDt(r.outstanding_dt)}
                   </span>
                 </li>
@@ -514,26 +514,26 @@ function DashboardTab(props: Props) {
 
       {/* ── TOP CLIENTS TABLE ────────────────────────────────────── */}
       {props.topClients.length > 0 && (
-        <div className="rounded-xl border border-[#22506F] bg-[#0D2D47] p-5">
-          <div className="mb-4 text-sm font-semibold text-[#F8FAFC]">{tf.topClientsTitle}</div>
+        <div className="rounded-xl border border-line bg-surface p-5">
+          <div className="mb-4 text-sm font-semibold text-content">{tf.topClientsTitle}</div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-[#22506F] text-left">
-                  <th className="pb-2.5 text-[10px] font-semibold uppercase tracking-widest text-[#64748B]">{tf.colClient}</th>
-                  <th className="pb-2.5 text-right text-[10px] font-semibold uppercase tracking-widest text-[#64748B]">{tf.colInvoiced}</th>
-                  <th className="pb-2.5 text-right text-[10px] font-semibold uppercase tracking-widest text-[#64748B]">{tf.colCollected}</th>
-                  <th className="pb-2.5 text-right text-[10px] font-semibold uppercase tracking-widest text-[#64748B]">{tf.colUnpaid}</th>
-                  <th className="pb-2.5 text-right text-[10px] font-semibold uppercase tracking-widest text-[#64748B]">{tf.colRisk}</th>
+                <tr className="border-b border-line text-left">
+                  <th className="pb-2.5 text-[10px] font-semibold uppercase tracking-widest text-content-3">{tf.colClient}</th>
+                  <th className="pb-2.5 text-right text-[10px] font-semibold uppercase tracking-widest text-content-3">{tf.colInvoiced}</th>
+                  <th className="pb-2.5 text-right text-[10px] font-semibold uppercase tracking-widest text-content-3">{tf.colCollected}</th>
+                  <th className="pb-2.5 text-right text-[10px] font-semibold uppercase tracking-widest text-content-3">{tf.colUnpaid}</th>
+                  <th className="pb-2.5 text-right text-[10px] font-semibold uppercase tracking-widest text-content-3">{tf.colRisk}</th>
                 </tr>
               </thead>
               <tbody>
                 {props.topClients.map((c) => (
-                  <tr key={c.id} className="border-b border-[#1A3E5C] last:border-0">
-                    <td className="py-2.5 font-medium text-[#F8FAFC]">{c.name}</td>
-                    <td className="py-2.5 text-right text-[#94A3B8]">{formatDt(c.invoiced)}</td>
-                    <td className="py-2.5 text-right font-semibold text-[#22C55E]">{formatDt(c.paid)}</td>
-                    <td className="py-2.5 text-right text-[#94A3B8]">{c.unpaid > 0 ? formatDt(c.unpaid) : "—"}</td>
+                  <tr key={c.id} className="border-b border-surface-2 last:border-0">
+                    <td className="py-2.5 font-medium text-content">{c.name}</td>
+                    <td className="py-2.5 text-right text-content-3">{formatDt(c.invoiced)}</td>
+                    <td className="py-2.5 text-right font-semibold text-success">{formatDt(c.paid)}</td>
+                    <td className="py-2.5 text-right text-content-3">{c.unpaid > 0 ? formatDt(c.unpaid) : "—"}</td>
                     <td className="py-2.5 text-right">
                       <RiskBadge risk={c.risk as "good" | "late" | "risky"} />
                     </td>
@@ -570,7 +570,7 @@ export function FinanceDashboardClient(props: Props) {
       <PageHeader title={t.finance.osTitle} subtitle={t.finance.osSubtitle} />
 
       {/* ── TAB STRIP ───────────────────────────────────────────── */}
-      <div className="bg-[#071B2C] border-b border-[#22506F]">
+      <div className="bg-canvas border-b border-line">
         <div className="flex overflow-x-auto">
           {TABS.map((tabItem) => (
             <button
@@ -580,8 +580,8 @@ export function FinanceDashboardClient(props: Props) {
               className={cn(
                 "flex-shrink-0 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap",
                 tab === tabItem.key
-                  ? "border-b-2 border-[#22D3EE] text-[#22D3EE]"
-                  : "border-b-2 border-transparent text-[#64748B] hover:text-[#94A3B8]",
+                  ? "border-b-2 border-accent2 text-accent2"
+                  : "border-b-2 border-transparent text-content-3 hover:text-content-3",
               )}
             >
               {tabItem.label}

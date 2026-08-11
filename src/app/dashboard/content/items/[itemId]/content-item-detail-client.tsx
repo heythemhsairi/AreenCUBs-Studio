@@ -53,15 +53,15 @@ const ITEM_STATUSES: ContentItemStatus[] = [
 ];
 
 const ITEM_STATUS_BG: Record<string, string> = {
-  idea: "bg-slate-500/15 text-slate-400",
-  copywriting: "bg-blue-500/15 text-blue-400",
+  idea: "bg-surface-3 text-content-3",
+  copywriting: "bg-info-weak text-info",
   design: "bg-violet-500/15 text-violet-400",
-  editing: "bg-orange-500/15 text-orange-400",
-  internal_review: "bg-yellow-500/15 text-yellow-400",
-  client_review: "bg-pink-500/15 text-pink-400",
-  approved: "bg-emerald-500/15 text-emerald-400",
-  scheduled: "bg-cyan-500/15 text-cyan-400",
-  published: "bg-green-500/15 text-green-400",
+  editing: "bg-warning-weak text-warning",
+  internal_review: "bg-warning-weak text-warning",
+  client_review: "bg-danger-weak text-danger",
+  approved: "bg-success-weak text-success",
+  scheduled: "bg-info-weak text-info",
+  published: "bg-success-weak text-success",
 };
 
 export function ContentItemDetailClient({ item, members }: Props) {
@@ -136,7 +136,7 @@ export function ContentItemDetailClient({ item, members }: Props) {
         {item.task_id && (
           <Link
             href={`/dashboard/tasks/${item.task_id}`}
-            className="flex items-center gap-1 rounded-md bg-[#22D3EE]/10 px-2 py-0.5 text-[11px] text-[#22D3EE] hover:bg-[#22D3EE]/20 transition-colors"
+            className="flex items-center gap-1 rounded-md bg-accent2/10 px-2 py-0.5 text-[11px] text-accent2 hover:bg-accent2/20 transition-colors"
           >
             <ExternalLink size={10} />
             {c.linkedTask}
@@ -153,7 +153,7 @@ export function ContentItemDetailClient({ item, members }: Props) {
               <button
                 type="button"
                 onClick={() => setEditing(!editing)}
-                className="text-sm text-[#22D3EE] hover:text-[#22D3EE]/80 transition-colors"
+                className="text-sm text-accent2 hover:text-accent2/80 transition-colors"
               >
                 {editing ? t.common.cancel : t.common.edit}
               </button>
@@ -277,7 +277,7 @@ export function ContentItemDetailClient({ item, members }: Props) {
                   <button
                     type="submit"
                     disabled={isPending}
-                    className="rounded-lg bg-[#22D3EE] px-4 py-2 text-sm font-semibold text-[#071B2C] hover:bg-[#22D3EE]/90 disabled:opacity-60 transition-colors"
+                    className="rounded-lg bg-accent2 px-4 py-2 text-sm font-semibold text-accent2-fg hover:bg-accent2/90 disabled:opacity-60 transition-colors"
                   >
                     {isPending ? t.common.saving : t.common.save}
                   </button>
@@ -308,7 +308,7 @@ export function ContentItemDetailClient({ item, members }: Props) {
                     <h3 className="text-xs font-semibold text-[var(--c-text-3)] uppercase tracking-wider mb-2">
                       {c.itemFields.clientFeedback}
                     </h3>
-                    <p className="text-sm text-[var(--c-text-1)] whitespace-pre-line bg-pink-500/5 rounded-lg p-3 border border-pink-500/15">
+                    <p className="text-sm text-[var(--c-text-1)] whitespace-pre-line bg-danger-weak rounded-lg p-3 border border-danger">
                       {item.client_feedback}
                     </p>
                   </section>
@@ -322,7 +322,7 @@ export function ContentItemDetailClient({ item, members }: Props) {
                       href={item.final_asset_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 text-sm text-[#22D3EE] hover:underline"
+                      className="flex items-center gap-1.5 text-sm text-accent2 hover:underline"
                     >
                       <ExternalLink size={13} />
                       {item.final_asset_url}
@@ -400,9 +400,9 @@ export function ContentItemDetailClient({ item, members }: Props) {
               <span className={cn(
                 "rounded-full px-2 py-0.5 text-[11px] font-semibold",
                 item.approval_status === "approved"
-                  ? "bg-emerald-500/15 text-emerald-400"
+                  ? "bg-success-weak text-success"
                   : item.approval_status === "revision_requested"
-                    ? "bg-red-500/15 text-red-400"
+                    ? "bg-danger-weak text-danger"
                     : "bg-[var(--c-border)] text-[var(--c-text-3)]",
               )}>
                 {c.approvalStatus[
@@ -420,7 +420,7 @@ export function ContentItemDetailClient({ item, members }: Props) {
               </h3>
               <Link
                 href={`/dashboard/content/plans/${plan.id}`}
-                className="flex items-center gap-2 rounded-lg bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] hover:text-[#22D3EE] hover:bg-[#22D3EE]/5 transition-colors"
+                className="flex items-center gap-2 rounded-lg bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] hover:text-accent2 hover:bg-accent2/5 transition-colors"
               >
                 <ExternalLink size={13} className="text-[var(--c-text-3)]" />
                 {monthNames[plan.month - 1]} {plan.year}

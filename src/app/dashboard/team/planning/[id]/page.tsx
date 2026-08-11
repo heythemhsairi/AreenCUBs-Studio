@@ -101,9 +101,9 @@ export default async function MemberPlanningPage({
               <Badge tone={ROLE_TONE[role]}>{ROLE_LABEL_FR[role]}</Badge>
             </div>
             {profile.job_title && (
-              <p className="mt-1 text-sm text-ink/65">{profile.job_title}</p>
+              <p className="mt-1 text-sm text-content-3">{profile.job_title}</p>
             )}
-            <p className="mt-0.5 text-xs text-ink/45">@{profile.username}</p>
+            <p className="mt-0.5 text-xs text-content-3">@{profile.username}</p>
 
             <div className="mt-4 flex flex-wrap justify-center gap-3 sm:justify-start">
               <Stat label="🏢 Bureau (ce mois)" value={officeMonth} tone="brand" />
@@ -121,7 +121,7 @@ export default async function MemberPlanningPage({
       <Card>
         <CardHeader>
           <CardTitle>Calendrier mensuel</CardTitle>
-          <p className="text-xs text-ink/55">
+          <p className="text-xs text-content-3">
             En tant qu&apos;administrateur, vous pouvez modifier les jours
             de {profile.full_name ?? profile.username}. Cliquez un jour pour
             basculer entre Bureau, Maison et vide.
@@ -152,7 +152,7 @@ function Stat({
       ? "bg-brand/10 text-brand-dark ring-brand/20"
       : tone === "accent"
         ? "bg-accent/15 text-accent-dark ring-accent/30"
-        : "bg-ink/5 text-ink/70 ring-ink/10";
+        : "bg-ink/5 text-content-2 ring-ink/10";
   return (
     <span
       className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold ring-1 ${cls}`}

@@ -52,12 +52,12 @@ export function InternDashboardClient({
       {loadError && (
         <div
           role="alert"
-          className="flex items-start gap-3 rounded-lg border border-rose-500/35 bg-rose-500/10 p-4"
+          className="flex items-start gap-3 rounded-lg border border-danger bg-danger-weak p-4"
         >
-          <AlertCircle size={18} className="mt-0.5 shrink-0 text-rose-400" aria-hidden="true" />
+          <AlertCircle size={18} className="mt-0.5 shrink-0 text-danger" aria-hidden="true" />
           <div>
             <p className="text-sm font-medium text-ink">{c.errorTitle}</p>
-            <p className="text-sm text-ink/70">{c.errorHint}</p>
+            <p className="text-sm text-content-2">{c.errorHint}</p>
           </div>
         </div>
       )}
@@ -105,14 +105,14 @@ export function InternDashboardClient({
                   >
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium text-ink">{task.title}</p>
-                      <p className="truncate text-xs text-ink/60">
+                      <p className="truncate text-xs text-content-3">
                         {[task.clientName, task.projectName].filter(Boolean).join(" · ") ||
                           c.noContext}
                       </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
                       {task.deadline && (
-                        <span className="text-xs text-ink/60">
+                        <span className="text-xs text-content-3">
                           {formatDate(task.deadline, displayLocale)}
                         </span>
                       )}
@@ -126,7 +126,7 @@ export function InternDashboardClient({
         </CardContent>
       </Card>
 
-      <p className="text-xs text-ink/60">{c.scopeNote}</p>
+      <p className="text-xs text-content-3">{c.scopeNote}</p>
     </div>
   );
 }

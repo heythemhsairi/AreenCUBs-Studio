@@ -65,21 +65,24 @@ describe("Noto Sans Arabic — loading", () => {
   });
 
   it("attaches the variable to the html element alongside the Latin font", () => {
-    expect(layout).toMatch(/<html[^>]*className=\{`\$\{franklin\.variable\}\s*\$\{notoArabic\.variable\}`\}/);
+    expect(layout).toMatch(/<html[^>]*className=\{`\$\{manrope\.variable\}\s*\$\{notoArabic\.variable\}`\}/);
   });
 });
 
 describe("Latin font is unchanged", () => {
-  it("still loads Libre Franklin with its original static weights", () => {
-    expect(layout).toMatch(/Libre_Franklin\(/);
-    expect(layout).toMatch(/weight:\s*\[\s*["']300["'],\s*["']400["'],\s*["']500["'],\s*["']600["'],\s*["']700["'],\s*["']800["']\s*\]/);
-    expect(layout).toMatch(/variable:\s*["']--font-franklin["']/);
+  it("loads Manrope as a variable axis, not a set of static cuts", () => {
+    expect(layout).toMatch(/Manrope\(/);
+    // No `weight` array: Manrope is variable (200-800), so omitting weights
+    // loads one axis instead of shipping six static files.
+    const block = layout.slice(layout.indexOf("Manrope("), layout.indexOf("Noto_Sans_Arabic("));
+    expect(block).not.toMatch(/weight:/);
+    expect(layout).toMatch(/variable:\s*["']--font-manrope["']/);
   });
 
-  it("keeps Libre Franklin first in the body stack", () => {
+  it("keeps Manrope first in the body stack", () => {
     const stack = bodyRule(globals);
-    expect(stack.indexOf("--font-franklin")).toBeGreaterThan(-1);
-    expect(stack.indexOf("--font-franklin")).toBeLessThan(stack.indexOf("--font-noto-arabic"));
+    expect(stack.indexOf("--font-manrope")).toBeGreaterThan(-1);
+    expect(stack.indexOf("--font-manrope")).toBeLessThan(stack.indexOf("--font-noto-arabic"));
   });
 });
 
@@ -91,12 +94,12 @@ describe("Arabic is a fallback in the global stack", () => {
   it("mirrors the same ordering in the Tailwind sans stack", () => {
     const sans = tailwind.slice(tailwind.indexOf("sans: ["), tailwind.indexOf("]", tailwind.indexOf("sans: [")));
     expect(sans).toContain("var(--font-noto-arabic)");
-    expect(sans.indexOf("var(--font-franklin)")).toBeLessThan(sans.indexOf("var(--font-noto-arabic)"));
+    expect(sans.indexOf("var(--font-manrope)")).toBeLessThan(sans.indexOf("var(--font-noto-arabic)"));
   });
 
   it("offers an opt-in Arabic-first Tailwind stack", () => {
     const arabic = tailwind.slice(tailwind.indexOf("arabic: ["), tailwind.indexOf("]", tailwind.indexOf("arabic: [")));
-    expect(arabic.indexOf("var(--font-noto-arabic)")).toBeLessThan(arabic.indexOf("var(--font-franklin)"));
+    expect(arabic.indexOf("var(--font-noto-arabic)")).toBeLessThan(arabic.indexOf("var(--font-manrope)"));
   });
 });
 
@@ -109,7 +112,7 @@ describe('explicit application to lang="ar"', () => {
     const rule = globals.slice(globals.indexOf('[lang="ar"]'));
     const decl = rule.slice(rule.indexOf("font-family:"), rule.indexOf("}"));
     expect(decl.indexOf("--font-noto-arabic")).toBeGreaterThan(-1);
-    expect(decl.indexOf("--font-noto-arabic")).toBeLessThan(decl.indexOf("--font-franklin"));
+    expect(decl.indexOf("--font-noto-arabic")).toBeLessThan(decl.indexOf("--font-manrope"));
   });
 
   it("does NOT introduce RTL layout — out of scope for this phase", () => {

@@ -15,11 +15,11 @@ const variantClass: Record<CardVariant, string> = {
   elevated: "bg-[var(--c-elevated)] border border-[var(--c-border)] rounded-2xl",
   glass:    "bg-[var(--c-card)]/80 backdrop-blur-xl border border-[var(--c-border)]/80 rounded-2xl",
   ghost:    "bg-transparent border border-[var(--c-border)]/50 rounded-2xl",
-  ring:     "bg-[var(--c-card)] border-2 border-[#22D3EE]/40 rounded-2xl shadow-[0_0_16px_rgba(34,211,238,0.12)]",
+  ring:     "bg-[var(--c-card)] border-2 border-accent2/40 rounded-2xl shadow-[0_0_16px_rgba(34,211,238,0.12)]",
 };
 
 const interactiveClass =
-  "hover:border-[#22D3EE]/30 hover:shadow-[0_0_20px_rgba(34,211,238,0.06)] transition-all duration-200";
+  "hover:border-accent2/30 hover:shadow-[0_0_20px_rgba(34,211,238,0.06)] transition-all duration-200";
 
 export function Card({
   className,

@@ -28,7 +28,7 @@ export function ProjectDetailsCard({
       </CardHeader>
       <CardContent className="space-y-3 text-sm">
         <div>
-          <p className="text-xs uppercase tracking-wide text-ink/55">
+          <p className="text-xs uppercase tracking-wide text-content-3">
             {t.projects.columns.status}
           </p>
           <Badge
@@ -46,16 +46,16 @@ export function ProjectDetailsCard({
           </Badge>
         </div>
         <div>
-          <p className="text-xs uppercase tracking-wide text-ink/55">
+          <p className="text-xs uppercase tracking-wide text-content-3">
             {t.projects.columns.owner}
           </p>
-          <p className="text-ink/85">{ownerName}</p>
+          <p className="text-content-2">{ownerName}</p>
         </div>
         <div>
-          <p className="text-xs uppercase tracking-wide text-ink/55">
+          <p className="text-xs uppercase tracking-wide text-content-3">
             {t.projects.columns.deadline}
           </p>
-          <p className="text-ink/85">
+          <p className="text-content-2">
             {project.end_date
               ? new Date(project.end_date).toLocaleDateString(
                   locale === "en" ? "en-US" : "fr-FR",
@@ -65,10 +65,10 @@ export function ProjectDetailsCard({
         </div>
         {project.description && (
           <div>
-            <p className="text-xs uppercase tracking-wide text-ink/55">
+            <p className="text-xs uppercase tracking-wide text-content-3">
               {t.projects.form.description}
             </p>
-            <p className="whitespace-pre-wrap text-ink/85">
+            <p className="whitespace-pre-wrap text-content-2">
               {project.description}
             </p>
           </div>

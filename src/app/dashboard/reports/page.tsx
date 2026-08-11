@@ -189,14 +189,14 @@ export default async function ReportsPage() {
           </CardHeader>
           <CardContent>
             {overdueTasks.length === 0 && dueToday.length === 0 ? (
-              <p className="text-sm text-ink/60">Aucune tâche en retard ni due aujourd&apos;hui.</p>
+              <p className="text-sm text-content-3">Aucune tâche en retard ni due aujourd&apos;hui.</p>
             ) : (
               <ul className="divide-y divide-[var(--c-border)]">
                 {[...overdueTasks, ...dueToday].map((t) => (
                   <li key={t.id} className="flex items-center justify-between gap-3 py-2">
                     <div className="min-w-0">
                       <p className="truncate text-sm text-ink">{t.title}</p>
-                      <p className="truncate text-xs text-ink/60">
+                      <p className="truncate text-xs text-content-3">
                         {personById.get(t.assignee_id ?? "") ?? "Non assignée"}
                         {" · "}
                         {projectById.get(t.project_id)?.name ?? "—"}
@@ -209,7 +209,7 @@ export default async function ReportsPage() {
                 ))}
               </ul>
             )}
-            <p className="mt-3 text-xs text-ink/50">
+            <p className="mt-3 text-xs text-content-3">
               Dérivé : échéance passée et statut non terminé. Le blocage inter-tâches n&apos;est
               pas suivi dans les données — manquant.
             </p>
@@ -228,18 +228,18 @@ export default async function ReportsPage() {
               <strong>{fmt(overdueInvoices.reduce((s, f) => s + f.balance, 0))}</strong>
             </p>
             {statusContradictions.length > 0 && (
-              <p className="text-sm text-rose-400">
+              <p className="text-sm text-danger">
                 {statusContradictions.length} facture(s) marquée(s) payée(s) alors que les
                 paiements enregistrés laissent un solde — à réconcilier.
               </p>
             )}
             {shadowRecent > 0 && (
-              <p className="text-sm text-ink/70">
+              <p className="text-sm text-content-2">
                 {shadowRecent} divergence(s) de calcul enregistrées par la comparaison des
                 moteurs (montants non stockés, structure seulement).
               </p>
             )}
-            <p className="text-xs text-ink/50">
+            <p className="text-xs text-content-3">
               Dérivé : solde = total facturé − paiements enregistrés. Le statut de paiement
               stocké n&apos;est jamais cru sur parole (constat d&apos;audit n°5).
             </p>
@@ -254,14 +254,14 @@ export default async function ReportsPage() {
           </CardHeader>
           <CardContent>
             {overdueProjects.length === 0 && contradictedProjects.length === 0 ? (
-              <p className="text-sm text-ink/60">Aucune contradiction détectée.</p>
+              <p className="text-sm text-content-3">Aucune contradiction détectée.</p>
             ) : (
               <ul className="space-y-2">
                 {overdueProjects.map((p) => (
                   <li key={p.id} className="flex items-center justify-between gap-3 text-sm">
                     <span className="truncate text-ink">
                       {p.name}
-                      <span className="text-ink/60"> · {nameById.get(p.client_id) ?? "—"}</span>
+                      <span className="text-content-3"> · {nameById.get(p.client_id) ?? "—"}</span>
                     </span>
                     <Badge tone="amber">Échéance dépassée</Badge>
                   </li>
@@ -285,13 +285,13 @@ export default async function ReportsPage() {
           </CardHeader>
           <CardContent>
             {awaitingReply.length === 0 ? (
-              <p className="text-sm text-ink/60">Aucun document en attente de réponse.</p>
+              <p className="text-sm text-content-3">Aucun document en attente de réponse.</p>
             ) : (
               <ul className="divide-y divide-[var(--c-border)]">
                 {awaitingReply.map((d) => (
                   <li key={d.id} className="flex items-center justify-between gap-3 py-2 text-sm">
                     <span className="truncate text-ink">{nameById.get(d.client_id) ?? "—"}</span>
-                    <span className="shrink-0 text-ink/70">
+                    <span className="shrink-0 text-content-2">
                       {fmt(Number(d.total_dt))}
                       {d.due_date !== null && d.due_date < todayKey && (
                         <Badge tone="amber" className="ml-2">
@@ -316,13 +316,13 @@ export default async function ReportsPage() {
         </CardHeader>
         <CardContent>
           {workload.length === 0 ? (
-            <p className="text-sm text-ink/60">Aucune tâche ouverte assignée.</p>
+            <p className="text-sm text-content-3">Aucune tâche ouverte assignée.</p>
           ) : (
             <ul className="divide-y divide-[var(--c-border)]">
               {workload.map((w) => (
                 <li key={w.name} className="flex items-center justify-between gap-3 py-2 text-sm">
                   <span className="text-ink">{w.name}</span>
-                  <span className="text-ink/70">
+                  <span className="text-content-2">
                     score {w.score.toFixed(1)} · {w.open} ouverte(s)
                     {w.overdue > 0 ? ` · ${w.overdue} en retard` : ""}
                   </span>
@@ -330,7 +330,7 @@ export default async function ReportsPage() {
               ))}
             </ul>
           )}
-          <p className="mt-3 text-xs text-ink/50">
+          <p className="mt-3 text-xs text-content-3">
             Score = priorité (urgent ×3, haute ×2, normale ×1, basse ×0,5), majoré ×1,5 si en
             retard. La complexité réelle, les dépendances et le temps passé ne sont pas encore
             saisis — manquant ; le score est une approximation et se présente comme telle.
@@ -345,14 +345,14 @@ export default async function ReportsPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <ul className="list-disc space-y-1 pl-5 text-sm text-ink/80">
+          <ul className="list-disc space-y-1 pl-5 text-sm text-content-2">
             <li>Rotation de la clé service-role exposée (docs/audit/DECISIONS-NEEDED.md §1)</li>
             <li>Restriction du périmètre collaborateurs (§11b) et freelances (§11c)</li>
             <li>État du schéma de production — aucun registre de migrations (§14)</li>
             <li>Activation du moteur de calcul en millimes (divergence documentée)</li>
             <li>Connexion du compte Google Drive réel (docs/GOOGLE-DRIVE-SETUP.md)</li>
           </ul>
-          <p className="mt-3 text-xs text-ink/50">
+          <p className="mt-3 text-xs text-content-3">
             {audit.length} action(s) tracée(s) dans le journal d&apos;audit ces 7 derniers jours —{" "}
             détail sur la page Journal d&apos;audit.
           </p>

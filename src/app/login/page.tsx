@@ -103,7 +103,7 @@ export default function LoginPage() {
 
               {error && (
                 <div
-                  className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2.5 text-sm font-medium text-red-400"
+                  className="rounded-lg border border-danger bg-danger-weak px-3 py-2.5 text-sm font-medium text-danger"
                   role="alert"
                 >
                   {error}
@@ -112,7 +112,7 @@ export default function LoginPage() {
 
               <Button
                 type="submit"
-                className="w-full bg-[#22D3EE] text-[#071B2C] hover:bg-[#06B6D4] font-semibold"
+                className="w-full bg-accent2 text-accent2-fg hover:bg-accent2 font-semibold"
                 disabled={pending}
               >
                 {pending ? "..." : t.login.submit} →

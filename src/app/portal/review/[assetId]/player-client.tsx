@@ -99,7 +99,7 @@ export function PortalPlayerClient({
             {STATUS_LABEL[status] ?? status}
           </Badge>
           {versionNumber !== null && (
-            <span className="text-xs text-ink/60">version {versionNumber}</span>
+            <span className="text-xs text-content-3">version {versionNumber}</span>
           )}
         </div>
       </header>
@@ -109,12 +109,12 @@ export function PortalPlayerClient({
           {mediaUrl ? (
             // eslint-disable-next-line jsx-a11y/media-has-caption -- review cuts
             // are work-in-progress uploads without caption tracks.
-            <video ref={videoRef} src={mediaUrl} controls className="w-full rounded-lg bg-black" />
+            <video ref={videoRef} src={mediaUrl} controls className="w-full rounded-lg bg-canvas" />
           ) : (
             <div className="flex flex-col items-center gap-2 py-10 text-center">
-              <Film className="h-8 w-8 text-ink/40" aria-hidden="true" />
+              <Film className="h-8 w-8 text-content-3" aria-hidden="true" />
               <p className="text-sm font-medium text-ink">Aperçu indisponible</p>
-              <p className="text-sm text-ink/60">
+              <p className="text-sm text-content-3">
                 {versionId
                   ? "La vidéo n'est pas encore accessible. Réessayez dans un instant."
                   : "Aucune version n'a encore été partagée."}
@@ -130,7 +130,7 @@ export function PortalPlayerClient({
         </CardHeader>
         <CardContent className="space-y-4">
           {comments.length === 0 ? (
-            <p className="text-sm text-ink/60">
+            <p className="text-sm text-content-3">
               Aucun commentaire pour le moment. Dites-nous ce que vous en pensez.
             </p>
           ) : (
@@ -145,7 +145,7 @@ export function PortalPlayerClient({
                       <button
                         type="button"
                         onClick={() => seekTo(c.timecode as number)}
-                        className="inline-flex items-center gap-1 rounded text-ink/70 underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#22D3EE]"
+                        className="inline-flex items-center gap-1 rounded text-content-2 underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent2"
                       >
                         <Clock size={12} aria-hidden="true" />
                         {formatTimecode(c.timecode)}
@@ -153,7 +153,7 @@ export function PortalPlayerClient({
                     )}
                     {c.resolved && <Badge tone="green">Traité</Badge>}
                   </div>
-                  <p className="mt-2 whitespace-pre-wrap text-sm text-ink/90">{c.body}</p>
+                  <p className="mt-2 whitespace-pre-wrap text-sm text-content-2">{c.body}</p>
                 </li>
               ))}
             </ul>
@@ -161,7 +161,7 @@ export function PortalPlayerClient({
 
           {versionId && (
             <div className="space-y-2 border-t border-[var(--c-border)] pt-4">
-              <label htmlFor="portal-review-comment" className="block text-xs font-medium text-ink/70">
+              <label htmlFor="portal-review-comment" className="block text-xs font-medium text-content-2">
                 Ajouter un commentaire
               </label>
               <Textarea
@@ -192,7 +192,7 @@ export function PortalPlayerClient({
                 </Button>
               </div>
               {error && (
-                <p role="alert" className="text-sm text-rose-400">
+                <p role="alert" className="text-sm text-danger">
                   {error}
                 </p>
               )}

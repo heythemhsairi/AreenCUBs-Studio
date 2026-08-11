@@ -11,13 +11,13 @@ type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const variantClass: Record<Variant, string> = {
   primary:
-    "bg-[#22D3EE] text-[#071B2C] font-semibold hover:bg-[#22D3EE]/90 active:translate-y-[1px] focus-visible:ring-[#22D3EE] disabled:opacity-50 disabled:hover:bg-[#22D3EE]",
+    "bg-accent2 text-accent2-fg font-semibold hover:bg-accent2/90 active:translate-y-[1px] focus-visible:ring-accent2 disabled:opacity-50 disabled:hover:bg-accent2",
   outline:
-    "border border-[var(--c-border)] text-[var(--c-text-2)] bg-transparent hover:bg-[var(--c-elevated)] hover:text-[var(--c-text-1)] hover:border-[#22D3EE]/40 focus-visible:ring-[var(--c-border)] disabled:opacity-50",
+    "border border-[var(--c-border)] text-[var(--c-text-2)] bg-transparent hover:bg-[var(--c-elevated)] hover:text-[var(--c-text-1)] hover:border-accent2/40 focus-visible:ring-[var(--c-border)] disabled:opacity-50",
   ghost:
     "bg-transparent text-[var(--c-text-2)] hover:bg-[var(--c-elevated)] hover:text-[var(--c-text-1)] focus-visible:ring-[var(--c-border)]/40 disabled:opacity-50",
   danger:
-    "bg-[#F43F5E]/10 text-[#F43F5E] border border-[#F43F5E]/20 hover:bg-[#F43F5E]/20 focus-visible:ring-[#F43F5E]/40 disabled:opacity-50",
+    "bg-danger/10 text-danger border border-danger/20 hover:bg-danger/20 focus-visible:ring-danger/40 disabled:opacity-50",
   accent:
     "bg-gradient-to-b from-accent to-accent-dark text-ink shadow-sm hover:shadow-accent-glow hover:text-ink hover:from-[#ffb24d] hover:to-accent active:translate-y-[1px] focus-visible:ring-accent disabled:opacity-50",
   ink:

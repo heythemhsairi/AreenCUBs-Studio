@@ -124,14 +124,14 @@ export function Donut({
         </svg>
 
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-ink/50">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-content-3">
             {hovered ? hovered.label : (centerSub ?? "Total")}
           </p>
           <p className="mt-0.5 text-xl font-semibold tracking-tight text-ink">
             {hovered ? formatDt(hovered.value) : (centerLabel ?? formatDt(total))}
           </p>
           {hovered && (
-            <p className="text-[11px] text-ink/55">
+            <p className="text-[11px] text-content-3">
               {(hovered.fraction * 100).toFixed(1)}%
             </p>
           )}
@@ -163,13 +163,13 @@ export function DonutLegend({
                 className="h-2.5 w-2.5 shrink-0 rounded-full"
                 style={{ background: d.color }}
               />
-              <span className="truncate text-ink/75">{d.label}</span>
+              <span className="truncate text-content-2">{d.label}</span>
             </div>
             <div className="shrink-0 text-right">
               <span className="text-xs font-semibold text-ink">
                 {formatDt(d.value)}
               </span>
-              <span className="ml-2 text-[11px] text-ink/45">
+              <span className="ml-2 text-[11px] text-content-3">
                 {pct.toFixed(0)}%
               </span>
             </div>

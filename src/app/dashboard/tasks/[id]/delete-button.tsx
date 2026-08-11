@@ -27,15 +27,15 @@ export function TaskDeleteButton({
   }
 
   return (
-    <Card className="max-w-2xl border-red-200">
+    <Card className="max-w-2xl border-danger">
       <CardHeader>
-        <CardTitle className="text-red-700">{t.common.delete}</CardTitle>
+        <CardTitle className="text-danger">{t.common.delete}</CardTitle>
       </CardHeader>
       <CardContent>
         <Button
           type="button"
           variant="outline"
-          className="border-red-300 text-red-700 hover:bg-red-50"
+          className="border-danger text-danger hover:bg-danger-weak"
           onClick={onDelete}
           disabled={pending}
         >

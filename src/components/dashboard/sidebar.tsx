@@ -217,7 +217,7 @@ export function Sidebar({ role }: { role: UserRole }) {
       {/* Logo lockup */}
       <div className="flex items-center gap-2.5 h-16 px-5 border-b border-[var(--c-border)] shrink-0">
         <Link href="/dashboard" className="flex items-center">
-          <BrandLogo width={110} className="text-[#22D3EE]" />
+          <BrandLogo width={110} className="text-accent2" />
         </Link>
       </div>
 
@@ -228,7 +228,7 @@ export function Sidebar({ role }: { role: UserRole }) {
           if (groupItems.length === 0) return null;
           return (
             <div key={group}>
-              <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-[#64748B]">
+              <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-content-3">
                 {t.nav.groups[group]}
               </p>
               <div className="space-y-0.5">
@@ -250,8 +250,8 @@ export function Sidebar({ role }: { role: UserRole }) {
                       className={cn(
                         "relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-150",
                         active
-                          ? "text-[#22D3EE] bg-[#22D3EE]/10 border-l-2 border-[#22D3EE]"
-                          : "text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-white/5 border-l-2 border-transparent",
+                          ? "text-accent2 bg-accent2/10 border-l-2 border-accent2"
+                          : "text-content-3 hover:text-content hover:bg-surface/5 border-l-2 border-transparent",
                       )}
                     >
                       <Icon
@@ -278,7 +278,7 @@ export function MobileNav({ role }: { role: UserRole }) {
   const items = buildNav(role, t).filter((i) => i.rolesAllowed.includes(role));
 
   return (
-    <nav className="flex gap-1 overflow-x-auto border-b border-white/30 bg-white/55 px-3 py-2 backdrop-blur md:hidden">
+    <nav className="flex gap-1 overflow-x-auto border-b border-white/30 bg-surface/55 px-3 py-2 backdrop-blur md:hidden">
       {items.map((item) => {
         const active = isActive(pathname, item.href);
         return (
@@ -289,7 +289,7 @@ export function MobileNav({ role }: { role: UserRole }) {
               "shrink-0 rounded-md px-3 py-1.5 text-xs font-medium transition-all",
               active
                 ? "bg-brand text-white shadow-sm"
-                : "text-ink/65 hover:bg-white/70",
+                : "text-content-3 hover:bg-surface/70",
             )}
           >
             {item.label}

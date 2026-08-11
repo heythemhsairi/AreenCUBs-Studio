@@ -113,7 +113,7 @@ function StatusCell({
               className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-xs transition-colors hover:bg-[var(--c-elevated)]"
             >
               <Badge tone={statusTone[s]}>{t.projects.status[s]}</Badge>
-              {s === status && <Check size={11} className="text-[#22D3EE] shrink-0" />}
+              {s === status && <Check size={11} className="text-accent2 shrink-0" />}
             </button>
           ))}
         </div>
@@ -152,20 +152,20 @@ export function ProjectsTable({
       <TBody>
         {projects.map((p) => (
           <TR key={p.id}>
-            <TD className="font-medium text-[#F4FAFF]">
+            <TD className="font-medium text-content">
               <Link
                 href={`/dashboard/projects/${p.id}`}
-                className="hover:text-[#22D3EE]"
+                className="hover:text-accent2"
               >
                 {p.name}
               </Link>
             </TD>
             {showClient && (
-              <TD className="text-[#B8D0E4]">
+              <TD className="text-content-2">
                 {p.client ? (
                   <Link
                     href={`/dashboard/clients/${p.client.id}`}
-                    className="hover:text-[#22D3EE]"
+                    className="hover:text-accent2"
                   >
                     {p.client.name}
                   </Link>
@@ -181,15 +181,15 @@ export function ProjectsTable({
                 isAdmin={isAdmin ?? false}
               />
             </TD>
-            <TD className="text-[#B8D0E4]">{p.owner}</TD>
-            <TD className="text-[#B8D0E4]">
+            <TD className="text-content-2">{p.owner}</TD>
+            <TD className="text-content-2">
               {/* Bare toLocaleDateString() follows the RUNTIME locale, so the
                   server (en-US/UTC) and the browser (fr-FR/Africa-Tunis) render
                   different text and React fails hydration with #418. Reproduced
                   in the browser on /dashboard/projects. */}
               {formatDate(p.end_date)}
             </TD>
-            <TD className="text-[#B8D0E4]">{p.tasks_count}</TD>
+            <TD className="text-content-2">{p.tasks_count}</TD>
           </TR>
         ))}
       </TBody>

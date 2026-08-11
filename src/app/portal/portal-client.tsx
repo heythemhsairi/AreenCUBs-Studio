@@ -65,7 +65,7 @@ export function PortalClient({
         <h1 className="text-2xl font-semibold text-ink">
           {orgName ?? "Espace client"}
         </h1>
-        <p className="text-sm text-ink/70">
+        <p className="text-sm text-content-2">
           Bonjour {contactName}. Voici vos contenus et ce qui attend votre validation.
         </p>
       </header>
@@ -73,9 +73,9 @@ export function PortalClient({
       {loadError && (
         <div
           role="alert"
-          className="flex items-start gap-3 rounded-lg border border-rose-500/35 bg-rose-500/10 p-4"
+          className="flex items-start gap-3 rounded-lg border border-danger bg-danger-weak p-4"
         >
-          <AlertCircle size={18} className="mt-0.5 shrink-0 text-rose-400" aria-hidden="true" />
+          <AlertCircle size={18} className="mt-0.5 shrink-0 text-danger" aria-hidden="true" />
           <p className="text-sm text-ink">
             Certains contenus n&apos;ont pas pu être chargés. Réessayez dans un instant.
           </p>
@@ -120,7 +120,7 @@ export function PortalClient({
                     className="flex items-center justify-between gap-4 py-3 transition-colors hover:bg-[var(--c-surface-2)]"
                   >
                     <div className="flex min-w-0 items-center gap-2">
-                      <Film size={16} className="shrink-0 text-ink/60" aria-hidden="true" />
+                      <Film size={16} className="shrink-0 text-content-3" aria-hidden="true" />
                       <p className="truncate text-sm font-medium text-ink">{r.title}</p>
                     </div>
                     <Badge tone={r.status === "approved" ? "green" : "amber"}>
@@ -156,7 +156,7 @@ export function PortalClient({
                 <li key={item.id} className="flex items-center justify-between gap-4 py-3">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium text-ink">{item.title}</p>
-                    <p className="truncate text-xs text-ink/60">
+                    <p className="truncate text-xs text-content-3">
                       {item.platform} · {item.contentType}
                       {item.publishDate ? ` · ${item.publishDate}` : ""}
                     </p>
@@ -229,7 +229,7 @@ function ReviewCard({ item }: { item: PortalItem }) {
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
           <h3 className="truncate text-sm font-medium text-ink">{item.title}</h3>
-          <p className="text-xs text-ink/60">
+          <p className="text-xs text-content-3">
             {item.platform} · {item.contentType}
             {item.publishDate ? ` · prévu le ${item.publishDate}` : ""}
           </p>
@@ -238,11 +238,11 @@ function ReviewCard({ item }: { item: PortalItem }) {
       </div>
 
       {item.caption && (
-        <p className="mt-3 whitespace-pre-wrap text-sm text-ink/80">{item.caption}</p>
+        <p className="mt-3 whitespace-pre-wrap text-sm text-content-2">{item.caption}</p>
       )}
 
       <div className="mt-4 space-y-2">
-        <label htmlFor={feedbackId} className="block text-xs font-medium text-ink/70">
+        <label htmlFor={feedbackId} className="block text-xs font-medium text-content-2">
           Commentaire (obligatoire pour demander une modification)
         </label>
         <Textarea
@@ -259,7 +259,7 @@ function ReviewCard({ item }: { item: PortalItem }) {
       </div>
 
       {error && (
-        <p id={errorId} role="alert" className="mt-2 text-sm text-rose-400">
+        <p id={errorId} role="alert" className="mt-2 text-sm text-danger">
           {error}
         </p>
       )}

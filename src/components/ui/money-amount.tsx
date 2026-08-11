@@ -87,10 +87,10 @@ const sizeClasses: Record<Size, { number: string; currency: string }> = {
 
 /** Dark-first palette — white/light text on dark surfaces. */
 const toneClasses: Record<Tone, string> = {
-  positive: "text-[#22C55E]",
-  negative: "text-[#F43F5E]",
-  neutral:  "text-[#F8FAFC]",   // near-white
-  muted:    "text-[#94A3B8]",   // slate-400
+  positive: "text-success",
+  negative: "text-danger",
+  neutral:  "text-content",   // near-white
+  muted:    "text-content-3",   // slate-400
 };
 
 // ---------------------------------------------------------------------------
@@ -147,7 +147,7 @@ export function MoneyAmount({
       <span
         className={[
           currencySizeClass,
-          "font-normal text-[#94A3B8]",
+          "font-normal text-content-3",
         ].join(" ")}
       >
         DT

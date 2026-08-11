@@ -32,14 +32,14 @@ export default function PortalError({
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col items-center justify-center gap-4 px-6 text-center">
       <h1 className="text-xl font-semibold text-ink">Une erreur est survenue</h1>
-      <p className="text-sm text-ink/70">
+      <p className="text-sm text-content-2">
         Votre espace n&apos;a pas pu se charger. Réessayez dans un instant — si le problème
         persiste, votre interlocuteur chez Areen CUBs peut nous le signaler.
       </p>
       <button
         type="button"
         onClick={reset}
-        className="rounded-md bg-[#22D3EE] px-4 py-2 text-sm font-semibold text-[#071B2C] transition-colors hover:bg-[#22D3EE]/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#22D3EE]"
+        className="rounded-md bg-accent2 px-4 py-2 text-sm font-semibold text-accent2-fg transition-colors hover:bg-accent2/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2"
       >
         Réessayer
       </button>

@@ -15,7 +15,7 @@ export function Skeleton({
     <div
       aria-hidden
       className={cn(
-        "animate-pulse rounded-md bg-[#123A5A]",
+        "animate-pulse rounded-md bg-surface-2",
         className,
       )}
       {...rest}
@@ -59,7 +59,7 @@ export function SkeletonCard({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "rounded-2xl bg-[#123A5A] p-5 space-y-4",
+        "rounded-2xl bg-surface-2 p-5 space-y-4",
         className,
       )}
     >
@@ -107,7 +107,7 @@ export function SkeletonKpi({
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className="rounded-2xl bg-[#123A5A] p-5 space-y-3"
+          className="rounded-2xl bg-surface-2 p-5 space-y-3"
         >
           {/* Label */}
           <Skeleton className="h-3 w-24" />
@@ -133,10 +133,10 @@ export function SkeletonTable({
   cols?: number;
 }) {
   return (
-    <div className="rounded-2xl bg-[#123A5A] overflow-hidden">
+    <div className="rounded-2xl bg-surface-2 overflow-hidden">
       {/* Header row */}
       <div
-        className="grid gap-3 px-5 py-3 border-b border-[#22506F]"
+        className="grid gap-3 px-5 py-3 border-b border-line"
         style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
       >
         {Array.from({ length: cols }).map((_, c) => (
@@ -144,7 +144,7 @@ export function SkeletonTable({
         ))}
       </div>
       {/* Body rows */}
-      <div className="divide-y divide-[#22506F]">
+      <div className="divide-y divide-line">
         {Array.from({ length: rows }).map((_, r) => (
           <div
             key={r}
@@ -170,7 +170,7 @@ export function SkeletonTable({
  */
 export function PageHeaderSkeleton() {
   return (
-    <div className="flex flex-col gap-3 border-b border-[#22506F] pb-6">
+    <div className="flex flex-col gap-3 border-b border-line pb-6">
       <Skeleton className="h-3 w-24" />
       <Skeleton className="h-8 w-72" />
       <Skeleton className="h-4 w-96 max-w-full" />
@@ -184,7 +184,7 @@ export function PageHeaderSkeleton() {
  */
 export function CardSkeleton({ rows = 4 }: { rows?: number }) {
   return (
-    <div className="rounded-2xl bg-[#123A5A] space-y-3 p-5">
+    <div className="rounded-2xl bg-surface-2 space-y-3 p-5">
       <div className="flex items-center justify-between">
         <Skeleton className="h-4 w-32" />
         <Skeleton className="h-3 w-20" />

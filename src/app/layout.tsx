@@ -1,14 +1,26 @@
 import type { Metadata } from "next";
-import { Libre_Franklin, Noto_Sans_Arabic } from "next/font/google";
+import { Manrope, Noto_Sans_Arabic } from "next/font/google";
+import "../styles/tokens.css";
 import "./globals.css";
 import { I18nProvider } from "@/lib/i18n/provider";
 import { ToastProvider } from "@/components/toast";
 import { Toaster } from "sonner";
 
-const franklin = Libre_Franklin({
+/**
+ * Interface typeface — Manrope, SIL Open Font License.
+ *
+ * Self-hosted at build time by next/font/google: no runtime request to Google,
+ * no paid service, no licence to accept. Chosen over the previous Libre
+ * Franklin for the geometry this product wants — closed apertures and a tall
+ * x-height keep dense tables legible at 13px, and the semibold has enough
+ * weight contrast against regular to carry hierarchy without going up a size.
+ *
+ * No `weight` array: Manrope is variable (200–800), so omitting it loads the
+ * axis once rather than shipping six static cuts.
+ */
+const manrope = Manrope({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
-  variable: "--font-franklin",
+  variable: "--font-manrope",
   display: "swap",
 });
 
@@ -47,7 +59,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr" className={`${franklin.variable} ${notoArabic.variable}`}>
+    <html lang="fr" className={`${manrope.variable} ${notoArabic.variable}`}>
       <head>
         {/* Inline script: apply theme before first paint to prevent flash */}
         <script

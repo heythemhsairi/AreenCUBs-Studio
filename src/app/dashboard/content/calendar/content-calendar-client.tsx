@@ -40,15 +40,15 @@ type Props = {
 };
 
 const ITEM_STATUS_BG: Record<string, string> = {
-  idea: "bg-slate-500/80",
-  copywriting: "bg-blue-500/80",
+  idea: "bg-surface-3",
+  copywriting: "bg-info-weak",
   design: "bg-violet-500/80",
-  editing: "bg-orange-500/80",
-  internal_review: "bg-yellow-500/80",
-  client_review: "bg-pink-500/80",
-  approved: "bg-emerald-500/80",
-  scheduled: "bg-cyan-500/80",
-  published: "bg-green-500/80",
+  editing: "bg-warning-weak",
+  internal_review: "bg-warning-weak",
+  client_review: "bg-danger-weak",
+  approved: "bg-success-weak",
+  scheduled: "bg-info-weak",
+  published: "bg-success-weak",
 };
 
 const PLATFORM_ICON: Record<string, string> = {
@@ -137,7 +137,7 @@ export function ContentCalendarClient({ items, clients, month, year, clientFilte
           <select
             value={clientFilter ?? ""}
             onChange={handleClientChange}
-            className="rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-3 py-2 text-sm text-[var(--c-text-1)] focus:outline-none focus:border-[#22D3EE]"
+            className="rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-3 py-2 text-sm text-[var(--c-text-1)] focus:outline-none focus:border-accent2"
           >
             <option value="">{c.allClients}</option>
             {clients.map((cl) => (
@@ -176,7 +176,7 @@ export function ContentCalendarClient({ items, clients, month, year, clientFilte
           </span>
         ))}
         <span className="flex items-center gap-1 text-[10px] text-[var(--c-text-3)]">
-          <span className="h-2 w-2 rounded-full bg-[#22D3EE]/80" />
+          <span className="h-2 w-2 rounded-full bg-accent2/80" />
           {c.publishing}
         </span>
       </div>
@@ -222,7 +222,7 @@ export function ContentCalendarClient({ items, clients, month, year, clientFilte
                     className={cn(
                       "flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold",
                       isToday
-                        ? "bg-[#22D3EE] text-[#071B2C]"
+                        ? "bg-accent2 text-accent2-fg"
                         : "text-[var(--c-text-3)]",
                     )}
                   >
@@ -241,7 +241,7 @@ export function ContentCalendarClient({ items, clients, month, year, clientFilte
                     href={`/dashboard/content/items/${item.id}`}
                     className={cn(
                       "group flex items-center gap-1 rounded px-1.5 py-1 text-[10px] leading-tight text-white transition-opacity hover:opacity-80",
-                      ITEM_STATUS_BG[item.status] ?? "bg-slate-500/80",
+                      ITEM_STATUS_BG[item.status] ?? "bg-surface-3",
                     )}
                   >
                     <span className="shrink-0">{PLATFORM_ICON[item.platform] ?? "📄"}</span>
@@ -253,7 +253,7 @@ export function ContentCalendarClient({ items, clients, month, year, clientFilte
                   <Link
                     key={post.id}
                     href="/dashboard/content/publishing"
-                    className="flex items-center gap-1 rounded px-1.5 py-1 text-[10px] leading-tight text-white bg-[#22D3EE]/80 transition-opacity hover:opacity-80"
+                    className="flex items-center gap-1 rounded px-1.5 py-1 text-[10px] leading-tight text-white bg-accent2/80 transition-opacity hover:opacity-80"
                   >
                     <span className="shrink-0">{PLATFORM_ICON[post.platforms[0] ?? ""] ?? "📤"}</span>
                     <span className="truncate flex-1">{post.title}</span>

@@ -7,7 +7,7 @@ type Service = { name: string; total_dt: number; count: number };
 export function TopServicesList({ services }: { services: Service[] }) {
   if (services.length === 0) {
     return (
-      <p className="text-sm text-slate-500">
+      <p className="text-sm text-content-3">
         Aucun devis envoyé ou accepté pour le moment.
       </p>
     );
@@ -22,17 +22,17 @@ export function TopServicesList({ services }: { services: Service[] }) {
         return (
           <li key={s.name} className="space-y-1">
             <div className="flex items-center justify-between gap-3 text-sm">
-              <span className="truncate text-slate-800">{s.name}</span>
-              <span className="shrink-0 text-slate-600">
-                <span className="font-medium text-slate-900">
+              <span className="truncate text-content-3">{s.name}</span>
+              <span className="shrink-0 text-content-3">
+                <span className="font-medium text-content-3">
                   {formatDt(s.total_dt)}
                 </span>
-                <span className="ml-2 text-xs text-slate-500">
+                <span className="ml-2 text-xs text-content-3">
                   ×{s.count}
                 </span>
               </span>
             </div>
-            <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-2">
               <div
                 className="h-full bg-brand"
                 style={{ width: `${pct}%` }}

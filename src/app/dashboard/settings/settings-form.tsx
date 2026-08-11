@@ -42,7 +42,7 @@ export function SettingsForm({ initial }: { initial: AppSettings }) {
         <Card>
           <CardHeader>
             <CardTitle>{t.settings.identity}</CardTitle>
-            <p className="text-xs text-ink/55">{t.settings.identityHint}</p>
+            <p className="text-xs text-content-3">{t.settings.identityHint}</p>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -86,7 +86,7 @@ export function SettingsForm({ initial }: { initial: AppSettings }) {
         <Card>
           <CardHeader>
             <CardTitle>{t.settings.bank}</CardTitle>
-            <p className="text-xs text-ink/55">{t.settings.bankHint}</p>
+            <p className="text-xs text-content-3">{t.settings.bankHint}</p>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -190,7 +190,7 @@ function Field({
     <div className={`space-y-1.5 ${full ? "md:col-span-2" : ""}`}>
       <label
         htmlFor={id}
-        className="text-xs font-semibold uppercase tracking-wider text-ink/55"
+        className="text-xs font-semibold uppercase tracking-wider text-content-3"
       >
         {label}
       </label>

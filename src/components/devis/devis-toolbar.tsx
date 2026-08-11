@@ -89,11 +89,11 @@ export function DevisToolbar({
   ];
 
   return (
-    <div className="rounded-2xl border border-[#22506F] bg-[#0D2D47] px-4 py-3 md:px-5">
+    <div className="rounded-2xl border border-line bg-surface px-4 py-3 md:px-5">
       {/* Search row */}
       <div className="relative mb-3">
         <svg
-          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]"
+          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-content-3"
           width="14"
           height="14"
           viewBox="0 0 24 24"
@@ -111,7 +111,7 @@ export function DevisToolbar({
           value={filters.search}
           onChange={(e) => patch("search", e.target.value)}
           placeholder={t.filters.searchDevis}
-          className="w-full rounded-lg border border-[#22506F] bg-[#123A5A] py-2 pl-9 pr-3 text-sm text-[#F8FAFC] placeholder:text-[#64748B] transition-colors focus:border-[#22D3EE] focus:outline-none focus:ring-2 focus:ring-[#22D3EE]/20"
+          className="w-full rounded-lg border border-line bg-surface-2 py-2 pl-9 pr-3 text-sm text-content placeholder:text-content-3 transition-colors focus:border-accent2 focus:outline-none focus:ring-2 focus:ring-accent2/20"
         />
       </div>
 
@@ -186,12 +186,12 @@ export function DevisToolbar({
             <button
               type="button"
               onClick={() => onChange({ ...DEFAULT_DEVIS_FILTERS })}
-              className="rounded-md px-2 py-1 text-xs font-medium text-[#94A3B8] transition-colors hover:bg-[#22506F] hover:text-[#F8FAFC]"
+              className="rounded-md px-2 py-1 text-xs font-medium text-content-3 transition-colors hover:bg-surface-3 hover:text-content"
             >
               {t.common.clear} ({activeCount})
             </button>
           )}
-          <span className="rounded-md bg-[#22506F] px-2 py-1 text-xs font-medium text-[#94A3B8]">
+          <span className="rounded-md bg-surface-3 px-2 py-1 text-xs font-medium text-content-3">
             {t.devisUi.itemsLabel(resultCount, kind)}
           </span>
         </div>
@@ -223,21 +223,21 @@ function NativeSelect({
         onChange={(e) => onChange(e.target.value)}
         aria-label={label}
         className={cn(
-          "h-8 appearance-none rounded-full border pl-3 pr-6 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-[#22D3EE]/30",
+          "h-8 appearance-none rounded-full border pl-3 pr-6 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-accent2/30",
           active
-            ? "border-[#22D3EE]/40 bg-[#22D3EE]/10 text-[#22D3EE]"
-            : "border-[#22506F] bg-[#123A5A] text-[#94A3B8]",
+            ? "border-accent2/40 bg-accent2/10 text-accent2"
+            : "border-line bg-surface-2 text-content-3",
         )}
       >
         {options.map((opt) => (
-          <option key={opt.value} value={opt.value} className="bg-[#0D2D47] text-[#F8FAFC]">
+          <option key={opt.value} value={opt.value} className="bg-surface text-content">
             {opt.label}
           </option>
         ))}
       </select>
       {/* Chevron overlay */}
       <svg
-        className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-[#64748B]"
+        className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-content-3"
         width="10"
         height="10"
         viewBox="0 0 24 24"
@@ -251,7 +251,7 @@ function NativeSelect({
       </svg>
       {/* Active dot */}
       {active && selected && (
-        <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-[#22D3EE]" />
+        <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-accent2" />
       )}
     </div>
   );
@@ -293,18 +293,18 @@ function FilterMenu({
         className={cn(
           "inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition-colors whitespace-nowrap",
           isActive
-            ? "border-[#22D3EE]/40 bg-[#22D3EE]/10 text-[#22D3EE]"
-            : "border-[#22506F] bg-[#123A5A] text-[#94A3B8] hover:border-[#22D3EE]/20 hover:text-[#F8FAFC]",
+            ? "border-accent2/40 bg-accent2/10 text-accent2"
+            : "border-line bg-surface-2 text-content-3 hover:border-accent2/20 hover:text-content",
         )}
       >
-        <span className="text-[#64748B]">{label}:</span>
+        <span className="text-content-3">{label}:</span>
         <span className="font-semibold">{selected?.label ?? "Tous"}</span>
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="m6 9 6 6 6-6" />
         </svg>
       </button>
       {open && (
-        <div className="absolute right-0 top-full z-40 mt-1.5 min-w-[180px] overflow-hidden rounded-lg border border-[#22506F] bg-[#0D2D47] shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+        <div className="absolute right-0 top-full z-40 mt-1.5 min-w-[180px] overflow-hidden rounded-lg border border-line bg-surface shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
           <ul className="max-h-72 overflow-y-auto py-1">
             {options.map((opt) => (
               <li key={opt.value}>
@@ -317,8 +317,8 @@ function FilterMenu({
                   className={cn(
                     "flex w-full items-center justify-between px-3 py-1.5 text-left text-xs transition-colors",
                     opt.value === value
-                      ? "bg-[#22D3EE]/10 font-semibold text-[#22D3EE]"
-                      : "text-[#94A3B8] hover:bg-[#1A3E5C] hover:text-[#F8FAFC]",
+                      ? "bg-accent2/10 font-semibold text-accent2"
+                      : "text-content-3 hover:bg-surface-2 hover:text-content",
                   )}
                 >
                   <span className="truncate">{opt.label}</span>

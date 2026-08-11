@@ -252,7 +252,7 @@ export function DevisPrintView({
           padding: 0;
           background: #e9eef2;
           color: var(--ink);
-          font-family: var(--font-franklin), ui-sans-serif, system-ui,
+          font-family: var(--font-manrope), ui-sans-serif, system-ui,
             -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
           font-size: var(--base-fs);
           line-height: 1.4;

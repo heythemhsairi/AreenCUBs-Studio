@@ -74,10 +74,10 @@ function getPlatform(id: string) {
 }
 
 const STATUS_COLORS: Record<SocialPostStatus, string> = {
-  draft:     "bg-ink/10 text-ink/60",
+  draft:     "bg-ink/10 text-content-3",
   scheduled: "bg-brand/15 text-brand",
-  published: "bg-green-500/15 text-green-600",
-  cancelled: "bg-red-500/15 text-red-500",
+  published: "bg-success-weak text-success",
+  cancelled: "bg-danger-weak text-danger",
 };
 
 const STATUS_LABELS: Record<SocialPostStatus, string> = {
@@ -141,7 +141,7 @@ function PlatformPicker({
               "flex flex-col items-center gap-1 rounded-xl border py-2 text-[10px] font-medium transition-all",
               active
                 ? `bg-gradient-to-b ${p.color} border-transparent text-white shadow-sm`
-                : "border-ink/10 bg-white/4 text-ink/50 hover:border-ink/20 hover:text-ink",
+                : "border-ink/10 bg-surface/4 text-content-3 hover:border-ink/20 hover:text-ink",
             )}
           >
             <span className="text-base leading-none">{p.icon}</span>
@@ -161,12 +161,12 @@ function CharCounter({ text, platforms }: { text: string; platforms: string[] })
   const minLimit = Math.min(...limits);
   const len = text.length;
   const pct = Math.min(len / minLimit, 1);
-  const color = pct > 0.95 ? "text-red-500" : pct > 0.8 ? "text-amber-500" : "text-ink/40";
+  const color = pct > 0.95 ? "text-danger" : pct > 0.8 ? "text-warning" : "text-content-3";
   return (
     <span className={cn("text-[10px] tabular-nums", color)}>
       {len} / {minLimit}
       {platforms.length > 1 && (
-        <span className="ml-1 text-ink/30">(limite la plus basse)</span>
+        <span className="ml-1 text-content-3">(limite la plus basse)</span>
       )}
     </span>
   );
@@ -273,7 +273,7 @@ function PostForm({
       {post && <input type="hidden" name="id" value={post.id} />}
 
       {/* Tabs */}
-      <div className="mb-4 flex gap-1 rounded-xl bg-white/6 p-0.5">
+      <div className="mb-4 flex gap-1 rounded-xl bg-surface/6 p-0.5">
         {(["main", "extra"] as const).map((t) => (
           <button
             key={t}
@@ -281,7 +281,7 @@ function PostForm({
             onClick={() => setTab(t)}
             className={cn(
               "flex-1 rounded-lg py-1.5 text-xs font-medium transition-all",
-              tab === t ? "bg-brand text-white shadow-sm" : "text-ink/50 hover:text-ink",
+              tab === t ? "bg-brand text-white shadow-sm" : "text-content-3 hover:text-ink",
             )}
           >
             {t === "main" ? "Publication" : "Options avancées"}
@@ -293,8 +293,8 @@ function PostForm({
         <div className="space-y-4">
           {/* Title */}
           <div>
-            <label className="mb-1 block text-xs font-medium text-ink/60">
-              Titre <span className="text-red-400">*</span>
+            <label className="mb-1 block text-xs font-medium text-content-3">
+              Titre <span className="text-danger">*</span>
             </label>
             <Input name="title" required defaultValue={post?.title} placeholder="Ex : Lancement produit été" />
           </div>
@@ -302,14 +302,14 @@ function PostForm({
           {/* Platform picker */}
           <div>
             <div className="mb-2 flex items-center justify-between">
-              <label className="text-xs font-medium text-ink/60">
-                Plateformes <span className="text-red-400">*</span>
+              <label className="text-xs font-medium text-content-3">
+                Plateformes <span className="text-danger">*</span>
               </label>
               {selectedPlatforms.length > 0 && (
                 <button
                   type="button"
                   onClick={() => setSelectedPlatforms([])}
-                  className="text-[10px] text-ink/35 hover:text-ink/60"
+                  className="text-[10px] text-content-3 hover:text-content-3"
                 >
                   Tout désélectionner
                 </button>
@@ -317,7 +317,7 @@ function PostForm({
             </div>
             <PlatformPicker selected={selectedPlatforms} onChange={setSelectedPlatforms} />
             {selectedPlatforms.length > 0 && (
-              <p className="mt-1.5 text-[10px] text-ink/40">
+              <p className="mt-1.5 text-[10px] text-content-3">
                 {selectedPlatforms.length} plateforme{selectedPlatforms.length > 1 ? "s" : ""} sélectionnée{selectedPlatforms.length > 1 ? "s" : ""}
               </p>
             )}
@@ -326,7 +326,7 @@ function PostForm({
           {/* Content */}
           <div>
             <div className="mb-1 flex items-center justify-between">
-              <label className="text-xs font-medium text-ink/60">Contenu</label>
+              <label className="text-xs font-medium text-content-3">Contenu</label>
               <CharCounter text={content} platforms={selectedPlatforms} />
             </div>
             <Textarea
@@ -340,7 +340,7 @@ function PostForm({
 
           {/* Hashtags */}
           <div>
-            <label className="mb-1 block text-xs font-medium text-ink/60">Hashtags</label>
+            <label className="mb-1 block text-xs font-medium text-content-3">Hashtags</label>
             <Input
               name="hashtags"
               defaultValue={post?.hashtags}
@@ -350,7 +350,7 @@ function PostForm({
 
           {/* Schedule */}
           <div>
-            <label className="mb-1 block text-xs font-medium text-ink/60">
+            <label className="mb-1 block text-xs font-medium text-content-3">
               Date & heure de publication
             </label>
             <Input
@@ -370,16 +370,16 @@ function PostForm({
         <div className="space-y-4">
           {/* Media URL */}
           <div>
-            <label className="mb-1 block text-xs font-medium text-ink/60">URL du média</label>
+            <label className="mb-1 block text-xs font-medium text-content-3">URL du média</label>
             <Input name="media_url" type="url" defaultValue={post?.media_url ?? ""} placeholder="https://drive.google.com/…" />
-            <p className="mt-1 text-[10px] text-ink/35">Lien vers l'image ou la vidéo à publier.</p>
+            <p className="mt-1 text-[10px] text-content-3">Lien vers l'image ou la vidéo à publier.</p>
           </div>
 
           {/* First comment */}
           <div>
-            <label className="mb-1 block text-xs font-medium text-ink/60">
+            <label className="mb-1 block text-xs font-medium text-content-3">
               Premier commentaire
-              <span className="ml-1 text-[10px] font-normal text-ink/35">(Instagram, Facebook)</span>
+              <span className="ml-1 text-[10px] font-normal text-content-3">(Instagram, Facebook)</span>
             </label>
             <Textarea
               name="first_comment"
@@ -391,7 +391,7 @@ function PostForm({
 
           {/* Project */}
           <div>
-            <label className="mb-1 block text-xs font-medium text-ink/60">Projet</label>
+            <label className="mb-1 block text-xs font-medium text-content-3">Projet</label>
             <Select name="project_id" value={selectedProject} onChange={(e) => setSelectedProject(e.target.value)}>
               <option value="">— Aucun projet —</option>
               {projects.map((p) => (
@@ -402,7 +402,7 @@ function PostForm({
 
           {/* Task */}
           <div>
-            <label className="mb-1 block text-xs font-medium text-ink/60">Tâche liée</label>
+            <label className="mb-1 block text-xs font-medium text-content-3">Tâche liée</label>
             <Select name="task_id" defaultValue={post?.task_id ?? preselectedTaskId ?? ""}>
               <option value="">— Aucune tâche —</option>
               {filteredTasks.map((tk) => (
@@ -413,7 +413,7 @@ function PostForm({
 
           {/* Internal notes */}
           <div>
-            <label className="mb-1 block text-xs font-medium text-ink/60">Notes internes</label>
+            <label className="mb-1 block text-xs font-medium text-content-3">Notes internes</label>
             <Textarea
               name="notes"
               rows={3}
@@ -425,7 +425,7 @@ function PostForm({
       )}
 
       {error && (
-        <p className="mt-3 rounded-lg bg-red-500/10 px-3 py-2 text-xs text-red-500">{error}</p>
+        <p className="mt-3 rounded-lg bg-danger-weak px-3 py-2 text-xs text-danger">{error}</p>
       )}
 
       <div className="mt-5 flex justify-end gap-2">
@@ -505,19 +505,19 @@ function PostDetail({
           <span>📅</span>
           <span className="font-medium">{fmtDate(post.scheduled_at)}</span>
           {post.published_at && (
-            <span className="ml-auto text-green-600">✓ publié {fmtDateShort(post.published_at)}</span>
+            <span className="ml-auto text-success">✓ publié {fmtDateShort(post.published_at)}</span>
           )}
         </div>
       )}
 
       {/* Content */}
       {post.content && (
-        <div className="group relative rounded-xl bg-white/6 p-3">
-          <p className="whitespace-pre-wrap text-sm text-ink/80">{post.content}</p>
+        <div className="group relative rounded-xl bg-surface/6 p-3">
+          <p className="whitespace-pre-wrap text-sm text-content-2">{post.content}</p>
           <button
             type="button"
             onClick={copyContent}
-            className="absolute right-2 top-2 rounded-md px-2 py-0.5 text-[10px] text-ink/30 opacity-0 transition-all group-hover:opacity-100 hover:bg-white/10 hover:text-ink/70"
+            className="absolute right-2 top-2 rounded-md px-2 py-0.5 text-[10px] text-content-3 opacity-0 transition-all group-hover:opacity-100 hover:bg-surface/10 hover:text-content-2"
           >
             {copied ? "✓ Copié" : "Copier"}
           </button>
@@ -526,14 +526,14 @@ function PostDetail({
 
       {/* Hashtags */}
       {post.hashtags && (
-        <p className="rounded-xl bg-white/4 px-3 py-2 text-xs text-brand/80">{post.hashtags}</p>
+        <p className="rounded-xl bg-surface/4 px-3 py-2 text-xs text-brand/80">{post.hashtags}</p>
       )}
 
       {/* First comment */}
       {post.first_comment && (
         <div className="rounded-xl border border-ink/8 px-3 py-2">
-          <p className="mb-0.5 text-[10px] font-medium text-ink/35 uppercase tracking-wider">Premier commentaire</p>
-          <p className="text-xs text-ink/70 whitespace-pre-wrap">{post.first_comment}</p>
+          <p className="mb-0.5 text-[10px] font-medium text-content-3 uppercase tracking-wider">Premier commentaire</p>
+          <p className="text-xs text-content-2 whitespace-pre-wrap">{post.first_comment}</p>
         </div>
       )}
 
@@ -543,7 +543,7 @@ function PostDetail({
           href={post.media_url}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-1.5 rounded-xl bg-white/4 px-3 py-2 text-xs text-brand hover:underline"
+          className="flex items-center gap-1.5 rounded-xl bg-surface/4 px-3 py-2 text-xs text-brand hover:underline"
         >
           🖼 <span className="truncate">{post.media_url}</span>
         </a>
@@ -551,7 +551,7 @@ function PostDetail({
 
       {/* Project / Task */}
       {(post.project_name || post.task_title) && (
-        <p className="text-xs text-ink/45">
+        <p className="text-xs text-content-3">
           {post.project_name && <>📁 {post.project_name}</>}
           {post.task_title && <> › ✓ {post.task_title}</>}
         </p>
@@ -560,14 +560,14 @@ function PostDetail({
       {/* Notes */}
       {post.notes && (
         <div className="rounded-xl border border-dashed border-ink/15 px-3 py-2">
-          <p className="mb-0.5 text-[10px] font-medium uppercase tracking-wider text-ink/35">Notes internes</p>
-          <p className="text-xs text-ink/60 whitespace-pre-wrap">{post.notes}</p>
+          <p className="mb-0.5 text-[10px] font-medium uppercase tracking-wider text-content-3">Notes internes</p>
+          <p className="text-xs text-content-3 whitespace-pre-wrap">{post.notes}</p>
         </div>
       )}
 
       {/* Creator */}
       {post.creator_name && (
-        <p className="text-[11px] text-ink/35">👤 {post.creator_name}</p>
+        <p className="text-[11px] text-content-3">👤 {post.creator_name}</p>
       )}
 
       {/* Actions */}
@@ -600,7 +600,7 @@ function PostDetail({
           <button
             onClick={handleDelete}
             disabled={isPending}
-            className="rounded-md px-2 py-1 text-xs text-red-500 hover:bg-red-500/10"
+            className="rounded-md px-2 py-1 text-xs text-danger hover:bg-danger-weak"
           >
             Supprimer
           </button>
@@ -634,13 +634,13 @@ function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-canvas/40 p-4 backdrop-blur-sm"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div className={cn("glass flex max-h-[90vh] flex-col rounded-2xl shadow-2xl", wide ? "w-full max-w-2xl" : "w-full max-w-lg")}>
         <div className="flex shrink-0 items-center justify-between border-b border-ink/8 px-6 py-4">
           <h2 className="text-base font-semibold text-ink">{title}</h2>
-          <button onClick={onClose} className="rounded-lg p-1.5 text-ink/40 hover:bg-white/10 hover:text-ink">✕</button>
+          <button onClick={onClose} className="rounded-lg p-1.5 text-content-3 hover:bg-surface/10 hover:text-ink">✕</button>
         </div>
         <div className="flex-1 overflow-y-auto px-6 py-5">{children}</div>
       </div>
@@ -726,12 +726,12 @@ export function SocialMediaView({ posts, projects, tasks, preselectedTaskId }: P
         {[
           { label: "Total",     value: total,     color: "text-ink" },
           { label: "Planifiés", value: scheduled, color: "text-brand" },
-          { label: "Publiés",   value: published, color: "text-green-600" },
-          { label: "Brouillons",value: drafts,    color: "text-ink/50" },
+          { label: "Publiés",   value: published, color: "text-success" },
+          { label: "Brouillons",value: drafts,    color: "text-content-3" },
         ].map((s) => (
           <div key={s.label} className="glass rounded-xl px-4 py-3 text-center">
             <p className={cn("text-2xl font-bold tabular-nums", s.color)}>{s.value}</p>
-            <p className="text-[11px] text-ink/45">{s.label}</p>
+            <p className="text-[11px] text-content-3">{s.label}</p>
           </div>
         ))}
       </div>
@@ -739,14 +739,14 @@ export function SocialMediaView({ posts, projects, tasks, preselectedTaskId }: P
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-2">
         {/* View toggle */}
-        <div className="flex rounded-xl bg-white/6 p-0.5">
+        <div className="flex rounded-xl bg-surface/6 p-0.5">
           {(["calendar", "list"] as const).map((v) => (
             <button
               key={v}
               onClick={() => setView(v)}
               className={cn(
                 "rounded-lg px-4 py-1.5 text-xs font-medium transition-all",
-                view === v ? "bg-brand text-white shadow-sm" : "text-ink/55 hover:text-ink",
+                view === v ? "bg-brand text-white shadow-sm" : "text-content-3 hover:text-ink",
               )}
             >
               {v === "calendar" ? "Calendrier" : "Liste"}
@@ -759,7 +759,7 @@ export function SocialMediaView({ posts, projects, tasks, preselectedTaskId }: P
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Rechercher…"
-          className="h-8 rounded-lg border border-ink/10 bg-white/6 px-3 text-xs text-ink placeholder-ink/35 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15"
+          className="h-8 rounded-lg border border-ink/10 bg-surface/6 px-3 text-xs text-ink placeholder-ink/35 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15"
         />
 
         {/* Platform filter */}
@@ -781,7 +781,7 @@ export function SocialMediaView({ posts, projects, tasks, preselectedTaskId }: P
         {(filterPlatform || filterStatus || search) && (
           <button
             onClick={() => { setFP(""); setFS(""); setSearch(""); }}
-            className="text-xs text-ink/40 hover:text-ink"
+            className="text-xs text-content-3 hover:text-ink"
           >
             ✕ Effacer
           </button>
@@ -792,14 +792,14 @@ export function SocialMediaView({ posts, projects, tasks, preselectedTaskId }: P
       {view === "calendar" && (
         <div className="glass rounded-2xl p-5">
           <div className="mb-4 flex items-center justify-between">
-            <button onClick={prevMonth} className="rounded-lg px-3 py-1.5 text-sm text-ink/60 hover:bg-white/10">‹</button>
+            <button onClick={prevMonth} className="rounded-lg px-3 py-1.5 text-sm text-content-3 hover:bg-surface/10">‹</button>
             <h3 className="font-semibold text-ink">{MONTHS[month]} {year}</h3>
-            <button onClick={nextMonth} className="rounded-lg px-3 py-1.5 text-sm text-ink/60 hover:bg-white/10">›</button>
+            <button onClick={nextMonth} className="rounded-lg px-3 py-1.5 text-sm text-content-3 hover:bg-surface/10">›</button>
           </div>
 
           <div className="mb-1 grid grid-cols-7 gap-1">
             {WEEKDAYS.map((d) => (
-              <div key={d} className="pb-1 text-center text-[10px] font-semibold uppercase tracking-wider text-ink/35">{d}</div>
+              <div key={d} className="pb-1 text-center text-[10px] font-semibold uppercase tracking-wider text-content-3">{d}</div>
             ))}
           </div>
 
@@ -820,14 +820,14 @@ export function SocialMediaView({ posts, projects, tasks, preselectedTaskId }: P
                   className={cn(
                     "min-h-[88px] cursor-pointer rounded-xl p-1.5 transition-colors",
                     isCurrent
-                      ? isToday ? "bg-brand/10 ring-1 ring-brand/40" : "bg-white/4 hover:bg-white/8"
-                      : "bg-white/2 opacity-30",
+                      ? isToday ? "bg-brand/10 ring-1 ring-brand/40" : "bg-surface/4 hover:bg-surface/8"
+                      : "bg-surface/2 opacity-30",
                   )}
                   onClick={() => isCurrent && openCreate(key)}
                 >
                   <span className={cn(
                     "mb-1 flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-medium",
-                    isToday ? "bg-brand text-white" : "text-ink/55",
+                    isToday ? "bg-brand text-white" : "text-content-3",
                   )}>
                     {day.getDate()}
                   </span>
@@ -836,7 +836,7 @@ export function SocialMediaView({ posts, projects, tasks, preselectedTaskId }: P
                       <PostChip key={p.id} post={p} onClick={() => openView(p)} />
                     ))}
                     {dayPosts.length > 3 && (
-                      <p className="px-1 text-[9px] text-ink/40">+{dayPosts.length - 3} de plus</p>
+                      <p className="px-1 text-[9px] text-content-3">+{dayPosts.length - 3} de plus</p>
                     )}
                   </div>
                 </div>
@@ -854,7 +854,7 @@ export function SocialMediaView({ posts, projects, tasks, preselectedTaskId }: P
                   "flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] transition-all",
                   filterPlatform === p.id
                     ? `bg-gradient-to-r ${p.color} text-white`
-                    : "text-ink/45 hover:text-ink",
+                    : "text-content-3 hover:text-ink",
                 )}
               >
                 {p.icon} {p.label}
@@ -869,8 +869,8 @@ export function SocialMediaView({ posts, projects, tasks, preselectedTaskId }: P
         <div className="space-y-2">
           {filtered.length === 0 && (
             <div className="glass rounded-2xl px-6 py-10 text-center">
-              <p className="text-sm text-ink/50">Aucun post trouvé.</p>
-              <p className="mt-1 text-xs text-ink/35">Essayez d'élargir les filtres ou créez un nouveau post.</p>
+              <p className="text-sm text-content-3">Aucun post trouvé.</p>
+              <p className="mt-1 text-xs text-content-3">Essayez d'élargir les filtres ou créez un nouveau post.</p>
             </div>
           )}
           {filtered.map((p) => (
@@ -890,9 +890,9 @@ export function SocialMediaView({ posts, projects, tasks, preselectedTaskId }: P
                     <PlatformChips platforms={p.platforms} size="xs" />
                   </div>
                   {p.content && (
-                    <p className="mt-1.5 line-clamp-2 text-xs text-ink/50">{p.content}</p>
+                    <p className="mt-1.5 line-clamp-2 text-xs text-content-3">{p.content}</p>
                   )}
-                  <div className="mt-1.5 flex flex-wrap items-center gap-3 text-[11px] text-ink/40">
+                  <div className="mt-1.5 flex flex-wrap items-center gap-3 text-[11px] text-content-3">
                     {p.scheduled_at && <span>📅 {fmtDateShort(p.scheduled_at)}</span>}
                     {p.project_name  && <span>📁 {p.project_name}</span>}
                     {p.task_title    && <span>✓ {p.task_title}</span>}
@@ -903,14 +903,14 @@ export function SocialMediaView({ posts, projects, tasks, preselectedTaskId }: P
                 <div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                   <button
                     onClick={() => openEdit(p)}
-                    className="rounded-lg px-2 py-1 text-xs text-ink/50 hover:bg-white/10 hover:text-ink"
+                    className="rounded-lg px-2 py-1 text-xs text-content-3 hover:bg-surface/10 hover:text-ink"
                     title="Modifier"
                   >
                     ✏
                   </button>
                   <button
                     onClick={() => openView(p)}
-                    className="rounded-lg px-2 py-1 text-xs text-ink/50 hover:bg-white/10 hover:text-ink"
+                    className="rounded-lg px-2 py-1 text-xs text-content-3 hover:bg-surface/10 hover:text-ink"
                     title="Voir"
                   >
                     →
@@ -925,24 +925,24 @@ export function SocialMediaView({ posts, projects, tasks, preselectedTaskId }: P
       {/* ── Unscheduled drafts ── */}
       {unscheduledDrafts.length > 0 && (
         <div className="glass rounded-2xl p-5">
-          <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-ink/40">
+          <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-content-3">
             Brouillons non planifiés ({unscheduledDrafts.length})
           </h4>
           <div className="space-y-1.5">
             {unscheduledDrafts.map((p) => (
               <div
                 key={p.id}
-                className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-white/6"
+                className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-surface/6"
               >
                 <div className="flex-1 min-w-0">
-                  <span className="truncate text-sm text-ink/70">{p.title}</span>
+                  <span className="truncate text-sm text-content-2">{p.title}</span>
                   {p.platforms.length > 0 && (
                     <div className="mt-0.5">
                       <PlatformChips platforms={p.platforms} size="xs" />
                     </div>
                   )}
                 </div>
-                <span className="shrink-0 text-xs text-ink/30">{p.project_name}</span>
+                <span className="shrink-0 text-xs text-content-3">{p.project_name}</span>
                 <button
                   onClick={() => openEdit(p)}
                   className="shrink-0 rounded-md px-2 py-0.5 text-xs text-brand hover:bg-brand/10"

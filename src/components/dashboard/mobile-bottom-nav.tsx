@@ -177,7 +177,7 @@ export function MobileBottomNav({ role }: Props) {
       {/* Bottom Nav Bar */}
       <nav
         data-surface="dark"
-        className="fixed bottom-0 left-0 right-0 z-50 md:hidden flex items-center bg-[#0D2D47]/95 backdrop-blur-xl border-t border-[#22506F]"
+        className="fixed bottom-0 left-0 right-0 z-50 md:hidden flex items-center bg-surface/95 backdrop-blur-xl border-t border-line"
         style={{
           height: 64,
           paddingBottom: "env(safe-area-inset-bottom)",
@@ -193,7 +193,7 @@ export function MobileBottomNav({ role }: Props) {
                 href={item.href}
                 className={cn(
                   "flex flex-col items-center justify-center gap-[3px] flex-1 h-full min-w-0 transition-colors",
-                  active ? "text-[#22D3EE]" : "text-[#64748B]",
+                  active ? "text-accent2" : "text-content-3",
                 )}
               >
                 <Icon size={22} strokeWidth={1.8} />
@@ -209,7 +209,7 @@ export function MobileBottomNav({ role }: Props) {
             onClick={() => setSheetOpen(true)}
             className={cn(
               "flex flex-col items-center justify-center gap-[3px] flex-1 h-full min-w-0 transition-colors",
-              sheetOpen ? "text-[#22D3EE]" : "text-[#64748B]",
+              sheetOpen ? "text-accent2" : "text-content-3",
             )}
           >
             <Menu size={22} strokeWidth={1.8} />
@@ -229,7 +229,7 @@ export function MobileBottomNav({ role }: Props) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-40 bg-black/60 md:hidden"
+              className="fixed inset-0 z-40 bg-canvas/60 md:hidden"
               onClick={() => setSheetOpen(false)}
             />
 
@@ -241,24 +241,24 @@ export function MobileBottomNav({ role }: Props) {
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 28, stiffness: 300 }}
               data-surface="dark"
-              className="fixed left-0 right-0 bottom-0 z-50 md:hidden bg-[#0D2D47] border-t border-[#22506F] rounded-t-2xl"
+              className="fixed left-0 right-0 bottom-0 z-50 md:hidden bg-surface border-t border-line rounded-t-2xl"
               style={{
                 paddingBottom: "calc(env(safe-area-inset-bottom) + 16px)",
               }}
             >
               {/* Handle */}
               <div className="flex justify-center pt-3 pb-2">
-                <div className="w-10 h-1 rounded-full bg-[#22506F]" />
+                <div className="w-10 h-1 rounded-full bg-surface-3" />
               </div>
 
               {/* Header */}
               <div className="flex items-center justify-between px-5 pb-3">
-                <span className="text-[13px] font-semibold text-[#94A3B8] uppercase tracking-wider">
+                <span className="text-[13px] font-semibold text-content-3 uppercase tracking-wider">
                   More
                 </span>
                 <button
                   onClick={() => setSheetOpen(false)}
-                  className="text-[#64748B] hover:text-[#94A3B8] transition-colors p-1"
+                  className="text-content-3 hover:text-content-3 transition-colors p-1"
                 >
                   <X size={20} />
                 </button>
@@ -277,8 +277,8 @@ export function MobileBottomNav({ role }: Props) {
                       className={cn(
                         "flex flex-col items-center justify-center gap-[5px] py-4 rounded-xl transition-colors",
                         active
-                          ? "text-[#22D3EE] bg-[#22D3EE]/10"
-                          : "text-[#64748B] hover:text-[#94A3B8] hover:bg-white/5",
+                          ? "text-accent2 bg-accent2/10"
+                          : "text-content-3 hover:text-content-3 hover:bg-surface/5",
                       )}
                     >
                       <Icon size={22} strokeWidth={1.8} />

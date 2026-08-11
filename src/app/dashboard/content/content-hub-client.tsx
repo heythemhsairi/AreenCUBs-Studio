@@ -33,7 +33,7 @@ type Props = {
 
 const STATUS_COLORS: Record<string, string> = {
   draft: "bg-[var(--c-border)] text-[var(--c-text-3)]",
-  approved: "bg-emerald-500/15 text-emerald-400",
+  approved: "bg-success-weak text-success",
   archived: "bg-[var(--c-border)] text-[var(--c-text-3)]",
 };
 
@@ -134,12 +134,12 @@ export function ContentHubClient({ clients, plans, profiles, publishingCount }: 
               <Link
                 key={client.id}
                 href={`/dashboard/content/clients/${client.id}`}
-                className="group flex flex-col gap-3 rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] p-4 transition-all hover:border-[#22D3EE]/40 hover:shadow-md"
+                className="group flex flex-col gap-3 rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] p-4 transition-all hover:border-accent2/40 hover:shadow-md"
               >
                 {/* Client name + chevron */}
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <h2 className="font-semibold text-[var(--c-text-1)] group-hover:text-[#22D3EE] transition-colors">
+                    <h2 className="font-semibold text-[var(--c-text-1)] group-hover:text-accent2 transition-colors">
                       {client.name}
                     </h2>
                     {profile?.posting_frequency && (
@@ -148,7 +148,7 @@ export function ContentHubClient({ clients, plans, profiles, publishingCount }: 
                       </p>
                     )}
                   </div>
-                  <ChevronRight size={16} className="shrink-0 text-[var(--c-text-3)] group-hover:text-[#22D3EE] transition-colors mt-0.5" />
+                  <ChevronRight size={16} className="shrink-0 text-[var(--c-text-3)] group-hover:text-accent2 transition-colors mt-0.5" />
                 </div>
 
                 {/* Profile platforms */}
@@ -157,7 +157,7 @@ export function ContentHubClient({ clients, plans, profiles, publishingCount }: 
                     {profile.platforms.slice(0, 4).map((p) => (
                       <span
                         key={p}
-                        className="rounded-md bg-[#22D3EE]/10 px-1.5 py-0.5 text-[10px] font-medium text-[#22D3EE]"
+                        className="rounded-md bg-accent2/10 px-1.5 py-0.5 text-[10px] font-medium text-accent2"
                       >
                         {p}
                       </span>

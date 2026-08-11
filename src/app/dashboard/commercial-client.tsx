@@ -66,12 +66,12 @@ export function CommercialDashboardClient({
       {loadError && (
         <div
           role="alert"
-          className="flex items-start gap-3 rounded-lg border border-rose-500/35 bg-rose-500/10 p-4"
+          className="flex items-start gap-3 rounded-lg border border-danger bg-danger-weak p-4"
         >
-          <AlertCircle size={18} className="mt-0.5 shrink-0 text-rose-400" aria-hidden="true" />
+          <AlertCircle size={18} className="mt-0.5 shrink-0 text-danger" aria-hidden="true" />
           <div>
             <p className="text-sm font-medium text-ink">{c.errorTitle}</p>
-            <p className="text-sm text-ink/70">{c.errorHint}</p>
+            <p className="text-sm text-content-2">{c.errorHint}</p>
           </div>
         </div>
       )}
@@ -132,7 +132,7 @@ export function CommercialDashboardClient({
                         <p className="truncate text-sm font-medium text-ink">
                           {d.clientName}
                         </p>
-                        <p className="truncate text-xs text-ink/60">
+                        <p className="truncate text-xs text-content-3">
                           {formatDevisNumber(d.number, d.kind)}
                           {d.object ? ` · ${d.object}` : ""}
                         </p>
@@ -171,7 +171,7 @@ export function CommercialDashboardClient({
                         <p className="truncate text-sm font-medium text-ink">
                           {d.clientName}
                         </p>
-                        <p className="truncate text-xs text-ink/60">
+                        <p className="truncate text-xs text-content-3">
                           {d.dueDate
                             ? `${c.dueLabel} ${formatDate(d.dueDate, displayLocale)}`
                             : c.noDeadline}
@@ -209,7 +209,7 @@ export function CommercialDashboardClient({
                     className="block rounded-lg border border-[var(--c-border)] p-3 transition-colors hover:bg-[var(--c-surface-2)]"
                   >
                     <p className="truncate text-sm font-medium text-ink">{cl.name}</p>
-                    <p className="truncate text-xs text-ink/60">
+                    <p className="truncate text-xs text-content-3">
                       {cl.email ?? cl.phone ?? "—"}
                     </p>
                   </Link>
@@ -220,7 +220,7 @@ export function CommercialDashboardClient({
         </CardContent>
       </Card>
 
-      <p className="text-xs text-ink/60">{c.scopeNote}</p>
+      <p className="text-xs text-content-3">{c.scopeNote}</p>
     </div>
   );
 }

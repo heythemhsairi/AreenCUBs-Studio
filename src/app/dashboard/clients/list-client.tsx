@@ -60,10 +60,10 @@ export function ClientsListClient({ clients }: { clients: ClientRow[] }) {
       ) : (
         <>
           {/* Toolbar */}
-          <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-[#22506F] bg-[#0D2D47] px-4 py-3 md:px-5">
+          <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-line bg-surface px-4 py-3 md:px-5">
             <div className="relative min-w-[220px] flex-1">
               <svg
-                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]"
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-content-3"
                 width="14"
                 height="14"
                 viewBox="0 0 24 24"
@@ -81,7 +81,7 @@ export function ClientsListClient({ clients }: { clients: ClientRow[] }) {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={t.filters.searchClient}
-                className="w-full rounded-lg border border-[#22506F] bg-[#123A5A] py-2 pl-9 pr-3 text-sm text-[#F8FAFC] placeholder:text-[#64748B] transition-colors focus:border-[#22D3EE] focus:outline-none focus:ring-2 focus:ring-[#22D3EE]/20"
+                className="w-full rounded-lg border border-line bg-surface-2 py-2 pl-9 pr-3 text-sm text-content placeholder:text-content-3 transition-colors focus:border-accent2 focus:outline-none focus:ring-2 focus:ring-accent2/20"
               />
             </div>
             <select
@@ -91,13 +91,13 @@ export function ClientsListClient({ clients }: { clients: ClientRow[] }) {
               aria-label={t.common.sortBy}
               value={sort}
               onChange={(e) => setSort(e.target.value as Sort)}
-              className="h-9 rounded-lg border border-[#22506F] bg-[#123A5A] px-3 text-xs font-medium text-[#94A3B8] focus:border-[#22D3EE] focus:outline-none focus:ring-2 focus:ring-[#22D3EE]/20"
+              className="h-9 rounded-lg border border-line bg-surface-2 px-3 text-xs font-medium text-content-3 focus:border-accent2 focus:outline-none focus:ring-2 focus:ring-accent2/20"
             >
               <option value="newest">{t.common.newest}</option>
               <option value="name">{t.common.nameAZ}</option>
               <option value="projects">{t.common.mostProjects}</option>
             </select>
-            <span className="ml-auto rounded-md bg-[#22506F] px-2 py-1 text-xs font-medium text-[#94A3B8]">
+            <span className="ml-auto rounded-md bg-surface-3 px-2 py-1 text-xs font-medium text-content-3">
               {t.clientsUi.clients(filtered.length)}
             </span>
           </div>
@@ -120,15 +120,15 @@ export function ClientsListClient({ clients }: { clients: ClientRow[] }) {
                     <TD className="font-medium">
                       <Link
                         href={`/dashboard/clients/${c.id}`}
-                        className="text-[#F8FAFC] hover:text-[#22D3EE] transition-colors"
+                        className="text-content hover:text-accent2 transition-colors"
                       >
                         {c.name}
                       </Link>
                     </TD>
-                    <TD className="text-[#94A3B8]">{c.email ?? "—"}</TD>
-                    <TD className="text-[#94A3B8]">{c.phone ?? "—"}</TD>
-                    <TD className="text-[#94A3B8]">{c.projects_count}</TD>
-                    <TD className="text-[#64748B]">
+                    <TD className="text-content-3">{c.email ?? "—"}</TD>
+                    <TD className="text-content-3">{c.phone ?? "—"}</TD>
+                    <TD className="text-content-3">{c.projects_count}</TD>
+                    <TD className="text-content-3">
                       {new Date(c.created_at).toLocaleDateString("fr-FR")}
                     </TD>
                   </TR>
@@ -146,28 +146,28 @@ export function ClientsListClient({ clients }: { clients: ClientRow[] }) {
                 <Link
                   key={c.id}
                   href={`/dashboard/clients/${c.id}`}
-                  className="block rounded-xl border border-[#22506F] bg-[#0D2D47] p-4 hover:border-[#22D3EE]/30 hover:bg-[#1A3E5C] transition-colors"
+                  className="block rounded-xl border border-line bg-surface p-4 hover:border-accent2/30 hover:bg-surface-2 transition-colors"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="font-semibold text-[#F8FAFC] truncate">{c.name}</p>
+                      <p className="font-semibold text-content truncate">{c.name}</p>
                       {c.email && (
-                        <p className="text-xs text-[#94A3B8] truncate mt-0.5">{c.email}</p>
+                        <p className="text-xs text-content-3 truncate mt-0.5">{c.email}</p>
                       )}
                     </div>
                     {c.projects_count > 0 && (
-                      <span className="shrink-0 rounded-full bg-[#22D3EE]/10 px-2 py-0.5 text-[11px] font-semibold text-[#22D3EE]">
+                      <span className="shrink-0 rounded-full bg-accent2/10 px-2 py-0.5 text-[11px] font-semibold text-accent2">
                         {c.projects_count} projet{c.projects_count !== 1 ? "s" : ""}
                       </span>
                     )}
                   </div>
-                  <div className="mt-3 flex items-center justify-between border-t border-[#1A3E5C] pt-3">
+                  <div className="mt-3 flex items-center justify-between border-t border-surface-2 pt-3">
                     {c.phone ? (
-                      <p className="text-xs text-[#64748B]">{c.phone}</p>
+                      <p className="text-xs text-content-3">{c.phone}</p>
                     ) : (
                       <span />
                     )}
-                    <p className="text-xs text-[#64748B]">
+                    <p className="text-xs text-content-3">
                       {new Date(c.created_at).toLocaleDateString("fr-FR")}
                     </p>
                   </div>

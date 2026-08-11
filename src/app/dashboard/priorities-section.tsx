@@ -70,7 +70,7 @@ export function PriorityPinsSection({ pins }: { pins: Pin[] }) {
             <CardTitle className="flex items-center gap-2">
               <span className="text-accent">⭐</span>
               {t.pins.title}
-              <span className="text-xs font-medium text-ink/40">
+              <span className="text-xs font-medium text-content-3">
                 {items.length}
                 {t.pins.counterMax}
               </span>
@@ -87,7 +87,7 @@ export function PriorityPinsSection({ pins }: { pins: Pin[] }) {
           <ul className="space-y-1.5">
             {items.map((p) => (
               <li key={p.pinId}>
-                <div className="group flex items-center gap-3 rounded-lg border border-white/40 bg-white/70 p-2.5 transition-all hover:shadow-soft dark:border-white/10 dark:bg-white/5">
+                <div className="group flex items-center gap-3 rounded-lg border border-white/40 bg-surface/70 p-2.5 transition-all hover:shadow-soft dark:border-white/10 dark:bg-surface/5">
                   <button
                     type="button"
                     onClick={() => unpin(p)}
@@ -115,7 +115,7 @@ export function PriorityPinsSection({ pins }: { pins: Pin[] }) {
                     <p className="truncate text-sm font-medium text-ink hover:text-brand">
                       {p.title}
                     </p>
-                    <p className="truncate text-xs text-ink/55">
+                    <p className="truncate text-xs text-content-3">
                       {p.client ? `${p.client} · ` : ""}
                       {p.project ?? "—"}
                     </p>
@@ -143,7 +143,7 @@ export function PriorityPinsSection({ pins }: { pins: Pin[] }) {
                           <span
                             className={`rounded-md px-2 py-0.5 font-semibold ${
                               late
-                                ? "bg-red-50 text-red-700"
+                                ? "bg-danger-weak text-danger"
                                 : "bg-accent/15 text-accent-dark"
                             }`}
                           >

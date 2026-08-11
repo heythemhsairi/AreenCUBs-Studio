@@ -51,7 +51,7 @@ export function AdminTaskForm({
 
   const labelCls = "block text-xs font-semibold text-[var(--c-text-2)] mb-1";
   const inputCls =
-    "w-full rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] placeholder:text-[var(--c-text-3)] focus:outline-none focus:border-[#22D3EE] disabled:opacity-50";
+    "w-full rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] placeholder:text-[var(--c-text-3)] focus:outline-none focus:border-accent2 disabled:opacity-50";
   const selectCls = inputCls;
 
   return (
@@ -78,7 +78,7 @@ export function AdminTaskForm({
         {/* Title */}
         <div>
           <label htmlFor="at-title" className={labelCls}>
-            {at.labelTitle} <span className="text-[#F43F5E]">*</span>
+            {at.labelTitle} <span className="text-danger">*</span>
           </label>
           <input
             id="at-title"
@@ -228,7 +228,7 @@ export function AdminTaskForm({
           <button
             type="submit"
             disabled={pending}
-            className="inline-flex items-center gap-2 rounded-lg bg-[#22D3EE]/10 border border-[#22D3EE]/30 px-5 py-2.5 text-sm font-semibold text-[#22D3EE] hover:bg-[#22D3EE]/20 transition-colors disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-lg bg-accent2/10 border border-accent2/30 px-5 py-2.5 text-sm font-semibold text-accent2 hover:bg-accent2/20 transition-colors disabled:opacity-50"
           >
             {pending && <Loader2 size={14} className="animate-spin" />}
             {at.save}

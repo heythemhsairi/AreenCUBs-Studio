@@ -89,7 +89,7 @@ export function ServicesList({ services }: { services: Service[] }) {
       <div className="glass flex flex-wrap items-center gap-2 rounded-2xl px-4 py-3 md:px-5">
         <div className="relative min-w-[220px] flex-1">
           <svg
-            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink/40"
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-content-3"
             width="14"
             height="14"
             viewBox="0 0 24 24"
@@ -107,7 +107,7 @@ export function ServicesList({ services }: { services: Service[] }) {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder={t.filters.searchService}
-            className="w-full rounded-lg border border-ink/10 bg-white/70 py-2 pl-9 pr-3 text-sm text-ink placeholder:text-ink/40 transition-colors focus:border-brand focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20"
+            className="w-full rounded-lg border border-ink/10 bg-surface/70 py-2 pl-9 pr-3 text-sm text-ink placeholder:text-content-3 transition-colors focus:border-brand focus:bg-surface focus:outline-none focus:ring-2 focus:ring-brand/20"
           />
         </div>
 
@@ -115,7 +115,7 @@ export function ServicesList({ services }: { services: Service[] }) {
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="h-9 rounded-lg border border-ink/10 bg-white/70 px-3 text-xs font-medium text-ink/70 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+            className="h-9 rounded-lg border border-ink/10 bg-surface/70 px-3 text-xs font-medium text-content-2 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
           >
             <option value="all">{t.filters.allCategories}</option>
             {categories.map((c) => (
@@ -126,7 +126,7 @@ export function ServicesList({ services }: { services: Service[] }) {
           </select>
         )}
 
-        <div className="inline-flex items-center rounded-lg border border-ink/10 bg-white/60 p-0.5">
+        <div className="inline-flex items-center rounded-lg border border-ink/10 bg-surface/60 p-0.5">
           {(["all", "active", "inactive"] as ActiveFilter[]).map((a) => (
             <button
               key={a}
@@ -137,7 +137,7 @@ export function ServicesList({ services }: { services: Service[] }) {
                 "h-7 rounded-md px-3 text-xs font-medium transition-all",
                 activeFilter === a
                   ? "bg-brand text-white shadow-sm"
-                  : "text-ink/60 hover:bg-white/80 hover:text-ink",
+                  : "text-content-3 hover:bg-surface/80 hover:text-ink",
               )}
             >
               {a === "all"
@@ -152,14 +152,14 @@ export function ServicesList({ services }: { services: Service[] }) {
         <select
           value={sort}
           onChange={(e) => setSort(e.target.value as Sort)}
-          className="h-9 rounded-lg border border-ink/10 bg-white/70 px-3 text-xs font-medium text-ink/70 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+          className="h-9 rounded-lg border border-ink/10 bg-surface/70 px-3 text-xs font-medium text-content-2 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
         >
           <option value="name">{t.common.nameAZ}</option>
           <option value="price_desc">{t.common.priceDesc}</option>
           <option value="price_asc">{t.common.priceAsc}</option>
         </select>
 
-        <span className="ml-auto rounded-md bg-ink/5 px-2 py-1 text-xs font-medium text-ink/65">
+        <span className="ml-auto rounded-md bg-ink/5 px-2 py-1 text-xs font-medium text-content-3">
           {filtered.length} {filtered.length > 1 ? "services" : "service"}
         </span>
       </div>
@@ -170,7 +170,7 @@ export function ServicesList({ services }: { services: Service[] }) {
           <p className="text-sm font-medium text-ink">
             {t.servicesUi.noResults}
           </p>
-          <p className="text-xs text-ink/55">{t.servicesUi.noResultsHint}</p>
+          <p className="text-xs text-content-3">{t.servicesUi.noResultsHint}</p>
         </div>
       ) : (
         <Table className="table-fixed">
@@ -226,16 +226,16 @@ function Row({ svc }: { svc: Service }) {
           {displayName}
         </Link>
         {displayDescription && (
-          <p className="mt-0.5 truncate text-xs text-ink/50">
+          <p className="mt-0.5 truncate text-xs text-content-3">
             {displayDescription}
           </p>
         )}
       </TD>
-      <TD className="truncate text-ink/65">{svc.category ?? "—"}</TD>
+      <TD className="truncate text-content-3">{svc.category ?? "—"}</TD>
       <TD className="whitespace-nowrap text-right font-semibold text-ink">
         {formatDt(svc.default_price_dt)}
       </TD>
-      <TD className="truncate text-ink/65">{svc.default_unit}</TD>
+      <TD className="truncate text-content-3">{svc.default_unit}</TD>
       <TD className="text-right">
         <div className="inline-flex items-center gap-2">
           <button
@@ -251,7 +251,7 @@ function Row({ svc }: { svc: Service }) {
             }
           >
             <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform ${
+              className={`inline-block h-4 w-4 transform rounded-full bg-surface shadow-sm transition-transform ${
                 svc.active ? "translate-x-4" : "translate-x-0.5"
               }`}
             />

@@ -49,30 +49,30 @@ export interface KpiCardProps {
 // ---------------------------------------------------------------------------
 
 const accentBar: Record<KpiTone, string> = {
-  cyan:    "bg-[#22D3EE]",
-  green:   "bg-[#22C55E]",
-  amber:   "bg-[#F59E0B]",
-  red:     "bg-[#F43F5E]",
-  violet:  "bg-[#A78BFA]",
-  neutral: "bg-[#22506F]",
+  cyan:    "bg-accent2",
+  green:   "bg-success",
+  amber:   "bg-warning",
+  red:     "bg-danger",
+  violet:  "bg-chart-4",
+  neutral: "bg-surface-3",
 };
 
 const valueColor: Record<KpiTone, string> = {
-  cyan:    "text-[#22D3EE]",
-  green:   "text-[#22C55E]",
-  amber:   "text-[#F59E0B]",
-  red:     "text-[#F43F5E]",
-  violet:  "text-[#A78BFA]",
-  neutral: "text-[#F8FAFC]",
+  cyan:    "text-accent2",
+  green:   "text-success",
+  amber:   "text-warning",
+  red:     "text-danger",
+  violet:  "text-chart-4",
+  neutral: "text-content",
 };
 
 const iconColor: Record<KpiTone, string> = {
-  cyan:    "text-[#22D3EE]/70",
-  green:   "text-[#22C55E]/70",
-  amber:   "text-[#F59E0B]/70",
-  red:     "text-[#F43F5E]/70",
-  violet:  "text-[#A78BFA]/70",
-  neutral: "text-[#64748B]",
+  cyan:    "text-accent2/70",
+  green:   "text-success/70",
+  amber:   "text-warning/70",
+  red:     "text-danger/70",
+  violet:  "text-chart-4/70",
+  neutral: "text-content-3",
 };
 
 const sizePadding: Record<KpiSize, string> = {
@@ -107,14 +107,14 @@ function KpiSkeleton({ size = "md", className }: { size?: KpiSize; className?: s
       )}
     >
       {/* accent bar */}
-      <div className="h-1 w-full animate-pulse bg-[#22506F]" />
+      <div className="h-1 w-full animate-pulse bg-surface-3" />
       <div className={cn("flex flex-col gap-3", sizePadding[size])}>
         {/* label */}
-        <div className="h-2.5 w-20 animate-pulse rounded bg-[#1A3E5C]" />
+        <div className="h-2.5 w-20 animate-pulse rounded bg-surface-2" />
         {/* value */}
-        <div className="h-8 w-32 animate-pulse rounded bg-[#1A3E5C]" />
+        <div className="h-8 w-32 animate-pulse rounded bg-surface-2" />
         {/* trend */}
-        <div className="h-4 w-24 animate-pulse rounded-full bg-[#1A3E5C]" />
+        <div className="h-4 w-24 animate-pulse rounded-full bg-surface-2" />
       </div>
     </div>
   );
@@ -171,7 +171,7 @@ export function KpiCard({
         <div className="flex items-start justify-between gap-2">
           <span
             className={cn(
-              "font-semibold uppercase tracking-widest text-[#64748B] leading-tight",
+              "font-semibold uppercase tracking-widest text-content-3 leading-tight",
               sizeLabel[size],
             )}
           >
@@ -204,7 +204,7 @@ export function KpiCard({
 
         {/* Tooltip / helper text */}
         {tooltip && (
-          <p className="text-xs text-[#64748B] leading-snug">{tooltip}</p>
+          <p className="text-xs text-content-3 leading-snug">{tooltip}</p>
         )}
 
         {/* Trend row */}
@@ -218,7 +218,7 @@ export function KpiCard({
               labelNew={labelNew}
             />
             {trendLabel && (
-              <span className="text-[11px] text-[#64748B] leading-none">
+              <span className="text-[11px] text-content-3 leading-none">
                 {trendLabel}
               </span>
             )}

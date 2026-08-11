@@ -125,8 +125,8 @@ function AvatarCard({ member }: { member: Member }) {
                 {removePending ? "…" : "Retirer la photo"}
               </Button>
             )}
-            <p className="text-xs text-ink/50">JPG, PNG ou WebP — 4 Mo max.</p>
-            {error && <p className="text-sm text-red-600">{error}</p>}
+            <p className="text-xs text-content-3">JPG, PNG ou WebP — 4 Mo max.</p>
+            {error && <p className="text-sm text-danger">{error}</p>}
           </div>
         </div>
       </CardContent>
@@ -191,14 +191,14 @@ function ProfileForm({ member, isSelf }: { member: Member; isSelf: boolean }) {
               <option value="freelancer">{t.roles.freelancer}</option>
             </Select>
             {isSelf && (
-              <p className="text-xs text-ink/50">
+              <p className="text-xs text-content-3">
                 {t.team.cannotChangeOwnRole}
               </p>
             )}
           </Field>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
-          {saved && <p className="text-sm text-green-600">{t.common.saved}</p>}
+          {error && <p className="text-sm text-danger">{error}</p>}
+          {saved && <p className="text-sm text-success">{t.common.saved}</p>}
 
           <div className="pt-2">
             <Button type="submit" disabled={pending}>
@@ -249,9 +249,9 @@ function PasswordResetCard({ memberId }: { memberId: string }) {
               placeholder="MinimumHuit!"
             />
           </Field>
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-danger">{error}</p>}
           {done && (
-            <p className="text-sm text-green-600">
+            <p className="text-sm text-success">
               {t.team.resetPasswordSuccess}
             </p>
           )}
@@ -281,17 +281,17 @@ function DeleteCard({ memberId }: { memberId: string }) {
   }
 
   return (
-    <Card className="max-w-xl border-red-200">
+    <Card className="max-w-xl border-danger">
       <CardHeader>
-        <CardTitle className="text-red-700">{t.common.delete}</CardTitle>
+        <CardTitle className="text-danger">{t.common.delete}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        <p className="text-sm text-ink/70">{t.team.deleteConfirm}</p>
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        <p className="text-sm text-content-2">{t.team.deleteConfirm}</p>
+        {error && <p className="text-sm text-danger">{error}</p>}
         <Button
           type="button"
           variant="outline"
-          className="border-red-300 text-red-700 hover:bg-red-50"
+          className="border-danger text-danger hover:bg-danger-weak"
           onClick={onClick}
           disabled={pending}
         >
@@ -311,7 +311,7 @@ function Field({
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="text-sm font-medium text-ink/80">{label}</label>
+      <label className="text-sm font-medium text-content-2">{label}</label>
       {children}
     </div>
   );

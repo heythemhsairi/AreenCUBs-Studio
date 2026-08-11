@@ -13,11 +13,11 @@ import { ADMIN_TASK_STATUSES } from "./types";
 import { AlertTriangle, Clock, CheckCircle2, Pause, Ban, Plus } from "lucide-react";
 
 const statusIcon: Record<AdminTaskStatus, React.ReactNode> = {
-  todo:        <Clock size={13} className="text-[#64748B]" />,
-  in_progress: <Clock size={13} className="text-[#22D3EE]" />,
-  waiting:     <Pause size={13} className="text-[#F59E0B]" />,
-  done:        <CheckCircle2 size={13} className="text-[#22C55E]" />,
-  cancelled:   <Ban size={13} className="text-[#64748B]" />,
+  todo:        <Clock size={13} className="text-content-3" />,
+  in_progress: <Clock size={13} className="text-accent2" />,
+  waiting:     <Pause size={13} className="text-warning" />,
+  done:        <CheckCircle2 size={13} className="text-success" />,
+  cancelled:   <Ban size={13} className="text-content-3" />,
 };
 
 type FilterKey = "all" | "active" | "done";
@@ -37,19 +37,19 @@ function DueBadge({ due_date }: { due_date: string | null }) {
   if (days === null) return null;
   if (days < 0)
     return (
-      <span className="rounded-md bg-[#F43F5E]/15 px-2 py-0.5 text-[10px] font-semibold text-[#F43F5E]">
+      <span className="rounded-md bg-danger/15 px-2 py-0.5 text-[10px] font-semibold text-danger">
         {t.overview.relativeOverdueLong(Math.abs(days))}
       </span>
     );
   if (days === 0)
     return (
-      <span className="rounded-md bg-[#F59E0B]/15 px-2 py-0.5 text-[10px] font-semibold text-[#F59E0B]">
+      <span className="rounded-md bg-warning/15 px-2 py-0.5 text-[10px] font-semibold text-warning">
         {t.overview.relativeTodayLong}
       </span>
     );
   if (days <= 7)
     return (
-      <span className="rounded-md bg-[#38BDF8]/15 px-2 py-0.5 text-[10px] font-semibold text-[#38BDF8]">
+      <span className="rounded-md bg-info/15 px-2 py-0.5 text-[10px] font-semibold text-info">
         {t.overview.relativeInLong(days)}
       </span>
     );
@@ -87,7 +87,7 @@ function StatusQuickChange({
       disabled={pending}
       onChange={(e) => handleChange(e.target.value as AdminTaskStatus)}
       onClick={(e) => e.preventDefault()} // don't navigate on click
-      className="cursor-pointer rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-2 py-1 text-[11px] text-[var(--c-text-2)] focus:outline-none focus:border-[#22D3EE] disabled:opacity-50"
+      className="cursor-pointer rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-2 py-1 text-[11px] text-[var(--c-text-2)] focus:outline-none focus:border-accent2 disabled:opacity-50"
       aria-label={at.labelStatus}
     >
       {ADMIN_TASK_STATUSES.map((s) => (
@@ -126,7 +126,7 @@ export function AdminTasksClient({
     return true;
   });
 
-  const SECTION_LABEL = "text-[10px] font-semibold uppercase tracking-widest text-[#64748B]";
+  const SECTION_LABEL = "text-[10px] font-semibold uppercase tracking-widest text-content-3";
 
   return (
     <div className="space-y-6">
@@ -138,7 +138,7 @@ export function AdminTasksClient({
         </div>
         <Link
           href="/dashboard/admin-tasks/new"
-          className="inline-flex items-center gap-2 rounded-lg bg-[#22D3EE]/10 border border-[#22D3EE]/30 px-4 py-2 text-sm font-semibold text-[#22D3EE] hover:bg-[#22D3EE]/20 transition-colors"
+          className="inline-flex items-center gap-2 rounded-lg bg-accent2/10 border border-accent2/30 px-4 py-2 text-sm font-semibold text-accent2 hover:bg-accent2/20 transition-colors"
         >
           <Plus size={14} />
           {at.new}
@@ -156,7 +156,7 @@ export function AdminTasksClient({
               onClick={() => setFilter(f)}
               className={`rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
                 filter === f
-                  ? "bg-[#22D3EE]/10 text-[#22D3EE]"
+                  ? "bg-accent2/10 text-accent2"
                   : "text-[var(--c-text-3)] hover:text-[var(--c-text-1)]"
               }`}
             >
@@ -169,7 +169,7 @@ export function AdminTasksClient({
         <select
           value={priorityFilter}
           onChange={(e) => setPriorityFilter(e.target.value)}
-          className="rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-3 py-1.5 text-xs text-[var(--c-text-2)] focus:outline-none focus:border-[#22D3EE]"
+          className="rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-3 py-1.5 text-xs text-[var(--c-text-2)] focus:outline-none focus:border-accent2"
         >
           <option value="all">{at.labelPriority}: {at.filterAll}</option>
           {(["urgent", "high", "normal", "low"] as const).map((p) => (
@@ -183,7 +183,7 @@ export function AdminTasksClient({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={t.common.search + "…"}
-          className="rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-3 py-1.5 text-xs text-[var(--c-text-1)] placeholder:text-[var(--c-text-3)] focus:outline-none focus:border-[#22D3EE] min-w-[160px]"
+          className="rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-3 py-1.5 text-xs text-[var(--c-text-1)] placeholder:text-[var(--c-text-3)] focus:outline-none focus:border-accent2 min-w-[160px]"
         />
 
         <span className="ml-auto text-xs text-[var(--c-text-3)]">
@@ -213,7 +213,7 @@ export function AdminTasksClient({
                   href={`/dashboard/admin-tasks/${task.id}`}
                   className="min-w-0 flex-1"
                 >
-                  <p className="truncate text-sm font-medium text-[var(--c-text-1)] group-hover:text-[#22D3EE] transition-colors">
+                  <p className="truncate text-sm font-medium text-[var(--c-text-1)] group-hover:text-accent2 transition-colors">
                     {task.title}
                   </p>
                   <div className="mt-0.5 flex flex-wrap items-center gap-2">

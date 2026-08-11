@@ -39,8 +39,8 @@ function LanguageSwitcher({ className }: { className?: string }) {
           className={cn(
             "flex h-6 min-w-[28px] items-center justify-center rounded px-2 text-[11px] font-bold uppercase tracking-wider transition-all",
             locale === l
-              ? "bg-[#22B8D6] text-[#071B2C] shadow-sm"
-              : "text-[#86A8C2] hover:text-[#F4FAFF]",
+              ? "bg-accent2 text-accent2-fg shadow-sm"
+              : "text-content-3 hover:text-content",
           )}
         >
           {l}
@@ -90,7 +90,7 @@ function QuickCreateButton({ role }: { role: UserRole }) {
         aria-expanded={open}
         aria-haspopup="menu"
         onClick={() => setOpen((v) => !v)}
-        className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#22D3EE]/10 border border-[#22D3EE]/25 text-[#22D3EE] hover:bg-[#22D3EE]/20 hover:border-[#22D3EE]/50 transition-colors"
+        className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent2/10 border border-accent2/25 text-accent2 hover:bg-accent2/20 hover:border-accent2/50 transition-colors"
         title={t.topbar.quickCreate}
       >
         <Plus size={16} strokeWidth={2.2} />
@@ -106,7 +106,7 @@ function QuickCreateButton({ role }: { role: UserRole }) {
               onClick={() => setOpen(false)}
               className="flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--c-text-2)] hover:text-[var(--c-text-1)] hover:bg-[var(--c-elevated)] transition-colors"
             >
-              <Plus size={13} className="text-[#22D3EE] shrink-0" />
+              <Plus size={13} className="text-accent2 shrink-0" />
               {item.label}
             </Link>
           ))}
@@ -261,7 +261,7 @@ export function Topbar({
 
         {/* Mobile: logo on left */}
         <Link href="/dashboard" className="md:hidden flex items-center">
-          <BrandLogo width={110} className="text-[#22D3EE]" />
+          <BrandLogo width={110} className="text-accent2" />
         </Link>
 
         {/* Desktop: search pill */}
@@ -270,7 +270,7 @@ export function Topbar({
             type="button"
             onClick={openSearch}
             aria-label={t.common.search}
-            className="flex-1 flex items-center gap-2 h-9 px-3 rounded-lg bg-[var(--c-card)] border border-[var(--c-border)] text-[var(--c-text-3)] text-sm hover:border-[#22D3EE]/40 transition-colors"
+            className="flex-1 flex items-center gap-2 h-9 px-3 rounded-lg bg-[var(--c-card)] border border-[var(--c-border)] text-[var(--c-text-3)] text-sm hover:border-accent2/40 transition-colors"
           >
             <Search size={14} />
             <span>{t.common.search}...</span>

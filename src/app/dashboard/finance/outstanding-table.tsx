@@ -27,11 +27,11 @@ type TF = ReturnType<typeof useI18n>["t"]["finance"];
 type TC = ReturnType<typeof useI18n>["t"]["common"];
 
 function agingBucket(tf: TF, days: number): { label: string; cls: string } {
-  if (days <= 0)  return { label: tf.outstandingAgingUpcoming(Math.abs(days)), cls: "text-[#94A3B8] bg-[#1A3E5C]" };
-  if (days <= 7)  return { label: tf.outstandingAgingWarning(days),            cls: "text-amber-400 bg-amber-900/30" };
-  if (days <= 30) return { label: tf.outstandingAgingLate(days),               cls: "text-orange-400 bg-orange-900/30" };
-  if (days <= 60) return { label: tf.outstandingAgingLate(days),               cls: "text-red-400 bg-red-900/30" };
-  return               { label: tf.outstandingAgingCritical(days),             cls: "text-red-300 bg-red-900/50 font-bold" };
+  if (days <= 0)  return { label: tf.outstandingAgingUpcoming(Math.abs(days)), cls: "text-content-3 bg-surface-2" };
+  if (days <= 7)  return { label: tf.outstandingAgingWarning(days),            cls: "text-warning bg-warning-weak" };
+  if (days <= 30) return { label: tf.outstandingAgingLate(days),               cls: "text-warning bg-warning-weak" };
+  if (days <= 60) return { label: tf.outstandingAgingLate(days),               cls: "text-danger bg-danger-weak" };
+  return               { label: tf.outstandingAgingCritical(days),             cls: "text-danger bg-danger-weak font-bold" };
 }
 
 export function OutstandingTable({ rows }: { rows: OutstandingRow[] }) {
@@ -40,7 +40,7 @@ export function OutstandingTable({ rows }: { rows: OutstandingRow[] }) {
 
   if (rows.length === 0) {
     return (
-      <p className="py-6 text-center text-sm text-[#64748B]">
+      <p className="py-6 text-center text-sm text-content-3">
         {tf.outstandingEmpty}
       </p>
     );
@@ -59,7 +59,7 @@ export function OutstandingTable({ rows }: { rows: OutstandingRow[] }) {
       <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-sm border-collapse">
           <thead>
-            <tr className="border-b border-[#22506F]">
+            <tr className="border-b border-line">
               <Th>{tf.colClient}</Th>
               <Th>{tf.outstandingColFacture}</Th>
               <Th>{tf.colDue}</Th>
@@ -68,7 +68,7 @@ export function OutstandingTable({ rows }: { rows: OutstandingRow[] }) {
               <Th center>{tf.outstandingColActions}</Th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#22506F]">
+          <tbody className="divide-y divide-line">
             {rows.map((r) => (
               <OutstandingTableRow key={r.devis_id} row={r} />
             ))}
@@ -82,7 +82,7 @@ export function OutstandingTable({ rows }: { rows: OutstandingRow[] }) {
 function Th({ children, right, center }: { children: React.ReactNode; right?: boolean; center?: boolean }) {
   return (
     <th className={cn(
-      "py-3 px-4 text-xs font-semibold uppercase tracking-wider text-[#64748B]",
+      "py-3 px-4 text-xs font-semibold uppercase tracking-wider text-content-3",
       right ? "text-right" : center ? "text-center" : "text-left",
     )}>
       {children}
@@ -134,17 +134,17 @@ function OutstandingCard({ row: r }: { row: OutstandingRow }) {
   }
 
   return (
-    <li className="bg-[#0D2D47] border border-[#22506F] rounded-xl p-4 mb-2 list-none">
+    <li className="bg-surface border border-line rounded-xl p-4 mb-2 list-none">
       {/* Top row: client name + aging badge */}
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5 min-w-0">
-          <span className="font-medium text-[#F8FAFC] truncate">
+          <span className="font-medium text-content truncate">
             {r.client_id
               ? <Link href={`/dashboard/clients/${r.client_id}`} className="hover:text-brand">{r.client_name}</Link>
               : r.client_name}
           </span>
           {r.contacted && (
-            <span className="shrink-0 rounded-full bg-emerald-900/40 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-400">
+            <span className="shrink-0 rounded-full bg-success-weak px-1.5 py-0.5 text-[10px] font-semibold text-success">
               {tf.outstandingContacted}
             </span>
           )}
@@ -156,10 +156,10 @@ function OutstandingCard({ row: r }: { row: OutstandingRow }) {
 
       {/* Invoice + amount */}
       <div className="mt-2 flex items-center justify-between gap-2">
-        <Link href={`/dashboard/factures/${r.devis_id}`} className="text-[#64748B] text-xs hover:text-brand">
+        <Link href={`/dashboard/factures/${r.devis_id}`} className="text-content-3 text-xs hover:text-brand">
           {tf.outstandingColFacture} #{r.devis_number}
         </Link>
-        <span className="text-[#22C55E] font-mono font-bold text-sm">
+        <span className="text-success font-mono font-bold text-sm">
           {formatDt(r.outstanding_dt)}
         </span>
       </div>
@@ -167,16 +167,16 @@ function OutstandingCard({ row: r }: { row: OutstandingRow }) {
       {/* Progress bar */}
       {r.paid_dt > 0 && (
         <div className="mt-2 flex items-center gap-2">
-          <div className="h-1 flex-1 overflow-hidden rounded-full bg-[#22506F]">
-            <div className="h-full rounded-full bg-emerald-500" style={{ width: `${paidPct}%` }} />
+          <div className="h-1 flex-1 overflow-hidden rounded-full bg-surface-3">
+            <div className="h-full rounded-full bg-success" style={{ width: `${paidPct}%` }} />
           </div>
-          <span className="text-[10px] text-[#64748B]">{formatDt(r.paid_dt)} {tf.outstandingPaid}</span>
+          <span className="text-[10px] text-content-3">{formatDt(r.paid_dt)} {tf.outstandingPaid}</span>
         </div>
       )}
 
       {/* Follow-up info */}
       {r.last_followup_at && (
-        <p className="mt-1 text-[11px] text-[#64748B]">
+        <p className="mt-1 text-[11px] text-content-3">
           {tf.outstandingLastFollowup}{" "}
           {fmtFollowup(r.last_followup_at)}
           {r.next_followup_at && (
@@ -187,7 +187,7 @@ function OutstandingCard({ row: r }: { row: OutstandingRow }) {
 
       {/* Due date + action button */}
       <div className="mt-3 flex items-center justify-between gap-2">
-        <span className="text-xs text-[#64748B]">
+        <span className="text-xs text-content-3">
           {tf.outstandingDueLabel} {formatDate(r.due_date)}
         </span>
         <button
@@ -253,23 +253,23 @@ function OutstandingTableRow({ row: r }: { row: OutstandingRow }) {
 
   return (
     <>
-      <tr className="hover:bg-[#123A5A]/50 transition-colors">
+      <tr className="hover:bg-surface-2/50 transition-colors">
         {/* Client */}
         <td className="py-3 px-4">
           <div className="flex items-center gap-1.5">
-            <span className="font-medium text-[#F8FAFC]">
+            <span className="font-medium text-content">
               {r.client_id
                 ? <Link href={`/dashboard/clients/${r.client_id}`} className="hover:text-brand">{r.client_name}</Link>
                 : r.client_name}
             </span>
             {r.contacted && (
-              <span className="rounded-full bg-emerald-900/40 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-400">
+              <span className="rounded-full bg-success-weak px-1.5 py-0.5 text-[10px] font-semibold text-success">
                 {tf.outstandingContacted}
               </span>
             )}
           </div>
           {r.last_followup_at && (
-            <p className="mt-0.5 text-[11px] text-[#64748B]">
+            <p className="mt-0.5 text-[11px] text-content-3">
               {tf.outstandingLastFollowup}{" "}
               {fmtFollowup(r.last_followup_at)}
               {r.next_followup_at && (
@@ -280,23 +280,23 @@ function OutstandingTableRow({ row: r }: { row: OutstandingRow }) {
         </td>
 
         <td className="py-3 px-4">
-          <Link href={`/dashboard/factures/${r.devis_id}`} className="text-[#94A3B8] text-xs hover:text-brand">
+          <Link href={`/dashboard/factures/${r.devis_id}`} className="text-content-3 text-xs hover:text-brand">
             #{r.devis_number}
           </Link>
         </td>
 
-        <td className="py-3 px-4 text-xs text-[#94A3B8]">
+        <td className="py-3 px-4 text-xs text-content-3">
           {formatDate(r.due_date)}
         </td>
 
         <td className="py-3 px-4 text-right">
-          <span className="font-mono font-bold text-[#22C55E]">{formatDt(r.outstanding_dt)}</span>
+          <span className="font-mono font-bold text-success">{formatDt(r.outstanding_dt)}</span>
           {r.paid_dt > 0 && (
             <div className="mt-1 flex items-center justify-end gap-2">
-              <div className="h-1 w-20 overflow-hidden rounded-full bg-[#22506F]">
-                <div className="h-full rounded-full bg-emerald-500" style={{ width: `${paidPct}%` }} />
+              <div className="h-1 w-20 overflow-hidden rounded-full bg-surface-3">
+                <div className="h-full rounded-full bg-success" style={{ width: `${paidPct}%` }} />
               </div>
-              <span className="text-[10px] text-[#64748B]">{formatDt(r.paid_dt)} {tf.outstandingPaid}</span>
+              <span className="text-[10px] text-content-3">{formatDt(r.paid_dt)} {tf.outstandingPaid}</span>
             </div>
           )}
         </td>
@@ -341,34 +341,34 @@ function FollowUpForm({
   nextDate: string; setNextDate: (v: string) => void;
   dark?: boolean;
 }) {
-  const bg = dark ? "bg-[#0D1117]" : "bg-[#0D2D47]";
-  const inputBg = dark ? "bg-[#0D2D47]" : "bg-[#0D1117]";
-  const inputCls = `mt-1 w-full rounded-lg border border-[#22506F] ${inputBg} px-3 py-2 text-xs text-[#F8FAFC] placeholder:text-[#64748B] focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20`;
+  const bg = dark ? "bg-[#0D1117]" : "bg-surface";
+  const inputBg = dark ? "bg-surface" : "bg-[#0D1117]";
+  const inputCls = `mt-1 w-full rounded-lg border border-line ${inputBg} px-3 py-2 text-xs text-content placeholder:text-content-3 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20`;
 
   return (
-    <div className={`mt-3 space-y-3 rounded-xl border border-[#22506F] ${bg} p-3.5`}>
+    <div className={`mt-3 space-y-3 rounded-xl border border-line ${bg} p-3.5`}>
       <div className="grid grid-cols-2 gap-2 max-w-md">
         <button type="button" onClick={onCreateTask}
           className="flex items-center justify-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-dark">
           {tf.outstandingCreateTask}
         </button>
         <Link href={`/dashboard/factures/${r.devis_id}`}
-          className="flex items-center justify-center rounded-lg border border-[#22506F] bg-[#0D2D47] px-3 py-1.5 text-xs font-medium text-[#94A3B8] hover:border-brand/30 hover:text-brand">
+          className="flex items-center justify-center rounded-lg border border-line bg-surface px-3 py-1.5 text-xs font-medium text-content-3 hover:border-brand/30 hover:text-brand">
           {tf.outstandingViewInvoice}
         </Link>
       </div>
       <div className="max-w-md">
-        <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">{tf.outstandingNoteLabel}</label>
+        <label className="text-[11px] font-semibold uppercase tracking-wider text-content-3">{tf.outstandingNoteLabel}</label>
         <input type="text" value={note} onChange={(e) => setNote(e.target.value)}
           placeholder={tf.outstandingNotePlaceholder} className={inputCls} />
       </div>
       <div className="flex items-end gap-2 max-w-md">
         <div className="flex-1">
-          <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">{tf.outstandingNextLabel}</label>
+          <label className="text-[11px] font-semibold uppercase tracking-wider text-content-3">{tf.outstandingNextLabel}</label>
           <input type="date" value={nextDate} onChange={(e) => setNextDate(e.target.value)} className={inputCls} />
         </div>
         <button type="button" onClick={onMarkContacted}
-          className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-700">
+          className="rounded-lg bg-success px-3 py-2 text-xs font-semibold text-white hover:bg-success">
           {tf.outstandingMarkContacted}
         </button>
       </div>

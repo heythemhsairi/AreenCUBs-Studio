@@ -68,9 +68,9 @@ export function ReviewListClient({
       {loadError && (
         <div
           role="alert"
-          className="flex items-start gap-3 rounded-lg border border-rose-500/35 bg-rose-500/10 p-4"
+          className="flex items-start gap-3 rounded-lg border border-danger bg-danger-weak p-4"
         >
-          <AlertCircle size={18} className="mt-0.5 shrink-0 text-rose-400" aria-hidden="true" />
+          <AlertCircle size={18} className="mt-0.5 shrink-0 text-danger" aria-hidden="true" />
           <p className="text-sm text-ink">Certaines données n&apos;ont pas pu être chargées.</p>
         </div>
       )}
@@ -90,13 +90,13 @@ export function ReviewListClient({
               <CardContent>
                 <form action={submit} className="flex flex-col gap-3 sm:flex-row sm:items-end">
                   <div className="flex-1 space-y-1">
-                    <label htmlFor="review-title" className="text-xs font-medium text-ink/70">
+                    <label htmlFor="review-title" className="text-xs font-medium text-content-2">
                       Titre
                     </label>
                     <Input id="review-title" name="title" required maxLength={200} />
                   </div>
                   <div className="space-y-1">
-                    <label htmlFor="review-client" className="text-xs font-medium text-ink/70">
+                    <label htmlFor="review-client" className="text-xs font-medium text-content-2">
                       Client
                     </label>
                     <Select id="review-client" name="client_id" required>
@@ -118,7 +118,7 @@ export function ReviewListClient({
                   </div>
                 </form>
                 {error && (
-                  <p role="alert" className="mt-2 text-sm text-rose-400">
+                  <p role="alert" className="mt-2 text-sm text-danger">
                     {error}
                   </p>
                 )}
@@ -150,7 +150,7 @@ export function ReviewListClient({
                   >
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium text-ink">{a.title}</p>
-                      <p className="truncate text-xs text-ink/60">
+                      <p className="truncate text-xs text-content-3">
                         {a.clientName}
                         {a.latestVersion > 0 ? ` · v${a.latestVersion}` : " · aucune version"}
                       </p>

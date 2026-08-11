@@ -96,7 +96,7 @@ export function ReviewDetailClient({
     <div className="space-y-6">
       <Link
         href="/dashboard/review"
-        className="inline-flex items-center gap-1.5 text-sm text-ink/70 transition-colors hover:text-ink"
+        className="inline-flex items-center gap-1.5 text-sm text-content-2 transition-colors hover:text-ink"
       >
         <ArrowLeft size={16} aria-hidden="true" />
         Révision vidéo
@@ -146,7 +146,7 @@ export function ReviewDetailClient({
       </div>
 
       {error && (
-        <p role="alert" className="text-sm text-rose-400">
+        <p role="alert" className="text-sm text-danger">
           {error}
         </p>
       )}
@@ -170,14 +170,14 @@ export function ReviewDetailClient({
                   {previewUrl && canPlayMedia ? (
                     // eslint-disable-next-line jsx-a11y/media-has-caption -- review
                     // cuts are work-in-progress uploads without caption tracks.
-                    <video src={previewUrl} controls className="w-full rounded-lg bg-black" />
+                    <video src={previewUrl} controls className="w-full rounded-lg bg-canvas" />
                   ) : canPlayMedia ? (
                     <Button type="button" variant="outline" onClick={loadPreview} disabled={pending}>
                       <Film size={16} aria-hidden="true" />
                       Prévisualiser v{latest?.number}
                     </Button>
                   ) : (
-                    <p className="text-xs text-ink/60">
+                    <p className="text-xs text-content-3">
                       Lecture réservée à l&apos;équipe de production.
                     </p>
                   )}
@@ -187,10 +187,10 @@ export function ReviewDetailClient({
                         <p className="text-sm text-ink">
                           v{v.number}
                           {v.id === latest?.id && (
-                            <span className="ml-2 text-xs text-ink/60">version actuelle</span>
+                            <span className="ml-2 text-xs text-content-3">version actuelle</span>
                           )}
                         </p>
-                        <p className="text-xs text-ink/60">
+                        <p className="text-xs text-content-3">
                           {v.mime} · {formatSize(v.sizeBytes)}
                         </p>
                       </li>
@@ -202,7 +202,7 @@ export function ReviewDetailClient({
               {canMutate && (
                 <form action={(fd) => run(uploadReviewVersionAction, fd)} className="space-y-2">
                   <input type="hidden" name="asset_id" value={asset.id} />
-                  <label htmlFor="review-file" className="block text-xs font-medium text-ink/70">
+                  <label htmlFor="review-file" className="block text-xs font-medium text-content-2">
                     Nouvelle version (vidéo, 200 Mo max)
                   </label>
                   <input
@@ -211,7 +211,7 @@ export function ReviewDetailClient({
                     type="file"
                     accept="video/*"
                     required
-                    className="block w-full text-sm text-ink/80 file:mr-3 file:rounded-md file:border-0 file:bg-[#22D3EE] file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-[#071B2C]"
+                    className="block w-full text-sm text-content-2 file:mr-3 file:rounded-md file:border-0 file:bg-accent2 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-accent2-fg"
                   />
                   <Button type="submit" size="sm" disabled={pending}>
                     <Upload size={14} aria-hidden="true" />
@@ -246,7 +246,7 @@ export function ReviewDetailClient({
                         c.resolved ? "opacity-60" : ""
                       }`}
                     >
-                      <div className="flex flex-wrap items-center gap-2 text-xs text-ink/60">
+                      <div className="flex flex-wrap items-center gap-2 text-xs text-content-3">
                         <Badge tone={c.side === "client" ? "amber" : "cyan"}>
                           {c.side === "client" ? "Client" : "Agence"}
                         </Badge>
@@ -254,7 +254,7 @@ export function ReviewDetailClient({
                         {c.timecode !== null && <span>à {formatTimecode(c.timecode)}</span>}
                         {c.resolved && <Badge tone="green">Résolu</Badge>}
                       </div>
-                      <p className="mt-2 whitespace-pre-wrap text-sm text-ink/90">{c.body}</p>
+                      <p className="mt-2 whitespace-pre-wrap text-sm text-content-2">{c.body}</p>
                       {canMutate && (
                         <Button
                           type="button"
@@ -283,7 +283,7 @@ export function ReviewDetailClient({
               <form action={(fd) => run(addAgencyReviewCommentAction, fd)} className="space-y-2">
                 <input type="hidden" name="version_id" value={latest.id} />
                 <input type="hidden" name="asset_id" value={asset.id} />
-                <label htmlFor="agency-comment" className="block text-xs font-medium text-ink/70">
+                <label htmlFor="agency-comment" className="block text-xs font-medium text-content-2">
                   Répondre (v{latest.number})
                 </label>
                 <Textarea id="agency-comment" name="body" rows={2} required maxLength={2000} />

@@ -84,10 +84,10 @@ export function TeamListClient({
       ) : (
         <>
           {/* Toolbar */}
-          <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-[#22506F] bg-[#0D2D47] px-4 py-3 md:px-5">
+          <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-line bg-surface px-4 py-3 md:px-5">
             <div className="relative min-w-[220px] flex-1">
               <svg
-                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]"
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-content-3"
                 width="14"
                 height="14"
                 viewBox="0 0 24 24"
@@ -105,11 +105,11 @@ export function TeamListClient({
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={t.filters.searchMember}
-                className="w-full rounded-lg border border-[#22506F] bg-[#123A5A] py-2 pl-9 pr-3 text-sm text-[#F8FAFC] placeholder:text-[#64748B] transition-colors focus:border-[#22D3EE] focus:outline-none focus:ring-2 focus:ring-[#22D3EE]/20"
+                className="w-full rounded-lg border border-line bg-surface-2 py-2 pl-9 pr-3 text-sm text-content placeholder:text-content-3 transition-colors focus:border-accent2 focus:outline-none focus:ring-2 focus:ring-accent2/20"
               />
             </div>
             {/* Role filter tabs */}
-            <div className="inline-flex items-center rounded-lg border border-[#22506F] bg-[#123A5A] p-0.5">
+            <div className="inline-flex items-center rounded-lg border border-line bg-surface-2 p-0.5">
               {(["all", ...TEAM_ROLES] as RoleFilter[]).map(
                 (r) => (
                   <button
@@ -120,8 +120,8 @@ export function TeamListClient({
                     className={cn(
                       "h-7 rounded-md px-3 text-xs font-medium transition-all",
                       roleFilter === r
-                        ? "bg-[#22D3EE] text-[#071B2C] shadow-sm"
-                        : "text-[#94A3B8] hover:bg-[#22506F] hover:text-[#F8FAFC]",
+                        ? "bg-accent2 text-accent2-fg shadow-sm"
+                        : "text-content-3 hover:bg-surface-3 hover:text-content",
                     )}
                   >
                     {r === "all" ? t.common.all : t.roles[r as UserRole]}
@@ -132,7 +132,7 @@ export function TeamListClient({
                 ),
               )}
             </div>
-            <span className="ml-auto rounded-md bg-[#22506F] px-2 py-1 text-xs font-medium text-[#94A3B8]">
+            <span className="ml-auto rounded-md bg-surface-3 px-2 py-1 text-xs font-medium text-content-3">
               {t.teamUi.members(filtered.length)}
             </span>
           </div>
@@ -159,29 +159,29 @@ export function TeamListClient({
                           name={m.full_name ?? m.username}
                         />
                         <div>
-                          <p className="font-medium text-[#F8FAFC]">
+                          <p className="font-medium text-content">
                             {m.full_name ?? m.username}
                           </p>
                           {m.job_title && (
-                            <p className="text-xs text-[#64748B]">{m.job_title}</p>
+                            <p className="text-xs text-content-3">{m.job_title}</p>
                           )}
                           {m.id === currentUserId && (
-                            <p className="text-xs text-[#22D3EE]/70">
+                            <p className="text-xs text-accent2/70">
                               {t.dashboard.welcome}
                             </p>
                           )}
                         </div>
                       </div>
                     </TD>
-                    <TD className="text-[#94A3B8]">@{m.username}</TD>
-                    <TD className="text-[#94A3B8]">{m.email}</TD>
+                    <TD className="text-content-3">@{m.username}</TD>
+                    <TD className="text-content-3">{m.email}</TD>
                     <TD>
                       <Badge tone={ROLE_TONE[m.role]}>{t.roles[m.role]}</Badge>
                     </TD>
                     <TD className="text-right">
                       <Link
                         href={`/dashboard/team/${m.id}`}
-                        className="text-sm font-medium text-[#22D3EE] hover:text-[#06B6D4]"
+                        className="text-sm font-medium text-accent2 hover:text-accent2"
                       >
                         {t.common.edit}
                       </Link>
@@ -200,7 +200,7 @@ export function TeamListClient({
               filtered.map((m) => (
                 <div
                   key={m.id}
-                  className="rounded-xl border border-[#22506F] bg-[#0D2D47] p-4"
+                  className="rounded-xl border border-line bg-surface p-4"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">
@@ -209,29 +209,29 @@ export function TeamListClient({
                         name={m.full_name ?? m.username}
                       />
                       <div className="min-w-0">
-                        <p className="font-semibold text-[#F8FAFC] truncate">
+                        <p className="font-semibold text-content truncate">
                           {m.full_name ?? m.username}
                         </p>
                         {m.job_title && (
-                          <p className="text-xs text-[#64748B] truncate">{m.job_title}</p>
+                          <p className="text-xs text-content-3 truncate">{m.job_title}</p>
                         )}
                         {m.id === currentUserId && (
-                          <p className="text-xs text-[#22D3EE]/70">Vous</p>
+                          <p className="text-xs text-accent2/70">Vous</p>
                         )}
                       </div>
                     </div>
                     <Badge tone={ROLE_TONE[m.role]}>{t.roles[m.role]}</Badge>
                   </div>
-                  <div className="mt-3 space-y-1 border-t border-[#1A3E5C] pt-3">
-                    <p className="text-xs text-[#94A3B8]">
-                      <span className="text-[#64748B]">@</span>{m.username}
+                  <div className="mt-3 space-y-1 border-t border-surface-2 pt-3">
+                    <p className="text-xs text-content-3">
+                      <span className="text-content-3">@</span>{m.username}
                     </p>
-                    <p className="text-xs text-[#94A3B8] truncate">{m.email}</p>
+                    <p className="text-xs text-content-3 truncate">{m.email}</p>
                   </div>
                   <div className="mt-3">
                     <Link
                       href={`/dashboard/team/${m.id}`}
-                      className="inline-flex h-8 items-center rounded-lg border border-[#22D3EE]/30 bg-[#22D3EE]/10 px-3 text-xs font-semibold text-[#22D3EE] hover:bg-[#22D3EE]/20 transition-colors"
+                      className="inline-flex h-8 items-center rounded-lg border border-accent2/30 bg-accent2/10 px-3 text-xs font-semibold text-accent2 hover:bg-accent2/20 transition-colors"
                     >
                       {t.common.edit}
                     </Link>

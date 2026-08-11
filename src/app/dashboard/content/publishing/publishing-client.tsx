@@ -89,9 +89,9 @@ function getPlatform(id: string) {
 
 const STATUS_COLORS: Record<SocialPostStatus, string> = {
   draft: "bg-[var(--c-border)] text-[var(--c-text-3)]",
-  scheduled: "bg-[#22D3EE]/15 text-[#22D3EE]",
-  published: "bg-emerald-500/15 text-emerald-400",
-  cancelled: "bg-red-500/15 text-red-500",
+  scheduled: "bg-accent2/15 text-accent2",
+  published: "bg-success-weak text-success",
+  cancelled: "bg-danger-weak text-danger",
 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -162,7 +162,7 @@ function PlatformPicker({ selected, onChange }: { selected: string[]; onChange: 
               "flex flex-col items-center gap-1 rounded-xl border py-2 text-[10px] font-medium transition-all",
               active
                 ? `bg-gradient-to-b ${p.color} border-transparent text-white shadow-sm`
-                : "border-[var(--c-border)] bg-[var(--c-elevated)] text-[var(--c-text-3)] hover:border-[#22D3EE]/40 hover:text-[var(--c-text-1)]",
+                : "border-[var(--c-border)] bg-[var(--c-elevated)] text-[var(--c-text-3)] hover:border-accent2/40 hover:text-[var(--c-text-1)]",
             )}
           >
             <span className="text-base leading-none">{p.icon}</span>
@@ -190,7 +190,7 @@ function CharCounter({
   const minLimit = Math.min(...limits);
   const len = text.length;
   const pct = Math.min(len / minLimit, 1);
-  const color = pct > 0.95 ? "text-red-500" : pct > 0.8 ? "text-amber-500" : "text-[var(--c-text-3)]";
+  const color = pct > 0.95 ? "text-danger" : pct > 0.8 ? "text-warning" : "text-[var(--c-text-3)]";
   return (
     <span className={cn("text-[10px] tabular-nums", color)}>
       {len} / {minLimit}
@@ -310,14 +310,14 @@ function PostForm({
         {/* Title */}
         <div>
           <label className="mb-1 block text-xs font-medium text-[var(--c-text-3)]">
-            {c.itemFields.title} <span className="text-red-400">*</span>
+            {c.itemFields.title} <span className="text-danger">*</span>
           </label>
           <input
             name="title"
             required
             defaultValue={post?.title}
             placeholder="E.g. Summer launch"
-            className="w-full rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] placeholder-[var(--c-text-3)] focus:border-[#22D3EE] focus:outline-none"
+            className="w-full rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] placeholder-[var(--c-text-3)] focus:border-accent2 focus:outline-none"
           />
         </div>
 
@@ -325,7 +325,7 @@ function PostForm({
         <div>
           <div className="mb-2 flex items-center justify-between">
             <label className="text-xs font-medium text-[var(--c-text-3)]">
-              {c.pub_platforms} <span className="text-red-400">*</span>
+              {c.pub_platforms} <span className="text-danger">*</span>
             </label>
             {selectedPlatforms.length > 0 && (
               <button
@@ -352,7 +352,7 @@ function PostForm({
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="Post text, call to action…"
-            className="w-full resize-none rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] placeholder-[var(--c-text-3)] focus:border-[#22D3EE] focus:outline-none"
+            className="w-full resize-none rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] placeholder-[var(--c-text-3)] focus:border-accent2 focus:outline-none"
           />
         </div>
 
@@ -363,7 +363,7 @@ function PostForm({
             name="hashtags"
             defaultValue={post?.hashtags}
             placeholder="#marketing #branding"
-            className="w-full rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] placeholder-[var(--c-text-3)] focus:border-[#22D3EE] focus:outline-none"
+            className="w-full rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] placeholder-[var(--c-text-3)] focus:border-accent2 focus:outline-none"
           />
         </div>
 
@@ -380,7 +380,7 @@ function PostForm({
                 ? new Date(post.scheduled_at).toISOString().slice(0, 16)
                 : defaultDate ? `${defaultDate}T09:00` : ""
             }
-            className="w-full rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] focus:border-[#22D3EE] focus:outline-none"
+            className="w-full rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] focus:border-accent2 focus:outline-none"
           />
         </div>
 
@@ -391,7 +391,7 @@ function PostForm({
             name="project_id"
             value={selectedProject}
             onChange={(e) => setSelectedProject(e.target.value)}
-            className="w-full rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] focus:border-[#22D3EE] focus:outline-none"
+            className="w-full rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] focus:border-accent2 focus:outline-none"
           >
             <option value="">{c.pub_noProject}</option>
             {projects.map((p) => (
@@ -406,7 +406,7 @@ function PostForm({
             <label className="mb-1 block text-xs font-medium text-[var(--c-text-3)]">{c.pub_client}</label>
             <div className="flex items-center gap-2 rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-3 py-2">
               <span className="text-[10px] text-[var(--c-text-3)]">{c.pub_clientFromProject}:</span>
-              <span className="rounded-full bg-[#22D3EE]/15 px-2 py-0.5 text-xs font-medium text-[#22D3EE]">
+              <span className="rounded-full bg-accent2/15 px-2 py-0.5 text-xs font-medium text-accent2">
                 {inferredClient}
               </span>
             </div>
@@ -419,7 +419,7 @@ function PostForm({
           <select
             name="task_id"
             defaultValue={post?.task_id ?? preselectedTaskId ?? ""}
-            className="w-full rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] focus:border-[#22D3EE] focus:outline-none"
+            className="w-full rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] focus:border-accent2 focus:outline-none"
           >
             <option value="">{c.pub_noTask}</option>
             {filteredTasks.map((tk) => (
@@ -436,7 +436,7 @@ function PostForm({
             type="url"
             defaultValue={post?.media_url ?? ""}
             placeholder="https://drive.google.com/…"
-            className="w-full rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] placeholder-[var(--c-text-3)] focus:border-[#22D3EE] focus:outline-none"
+            className="w-full rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] placeholder-[var(--c-text-3)] focus:border-accent2 focus:outline-none"
           />
         </div>
 
@@ -451,7 +451,7 @@ function PostForm({
             rows={2}
             defaultValue={post?.first_comment}
             placeholder="Hashtags or CTA as first comment…"
-            className="w-full resize-none rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] placeholder-[var(--c-text-3)] focus:border-[#22D3EE] focus:outline-none"
+            className="w-full resize-none rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] placeholder-[var(--c-text-3)] focus:border-accent2 focus:outline-none"
           />
         </div>
 
@@ -463,13 +463,13 @@ function PostForm({
             rows={3}
             defaultValue={post?.notes}
             placeholder="Team instructions, reminders, context…"
-            className="w-full resize-none rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] placeholder-[var(--c-text-3)] focus:border-[#22D3EE] focus:outline-none"
+            className="w-full resize-none rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] placeholder-[var(--c-text-3)] focus:border-accent2 focus:outline-none"
           />
         </div>
       </div>
 
       {error && (
-        <p className="mt-3 rounded-lg bg-red-500/10 px-3 py-2 text-xs text-red-500">{error}</p>
+        <p className="mt-3 rounded-lg bg-danger-weak px-3 py-2 text-xs text-danger">{error}</p>
       )}
 
       <div className="mt-5 flex justify-end gap-2 border-t border-[var(--c-border)] pt-4">
@@ -484,7 +484,7 @@ function PostForm({
         <button
           type="submit"
           disabled={isPending}
-          className="rounded-lg bg-[#22D3EE] px-4 py-2 text-sm font-medium text-[#071B2C] hover:bg-[#22D3EE]/90 transition-colors disabled:opacity-50"
+          className="rounded-lg bg-accent2 px-4 py-2 text-sm font-medium text-accent2-fg hover:bg-accent2/90 transition-colors disabled:opacity-50"
         >
           {isPending ? t.common.saving : t.common.save}
         </button>
@@ -565,11 +565,11 @@ function PostDetail({
       </div>
 
       {post.scheduled_at && (
-        <div className="flex items-center gap-2 rounded-xl bg-[#22D3EE]/8 px-3 py-2 text-xs text-[#22D3EE]">
+        <div className="flex items-center gap-2 rounded-xl bg-accent2/8 px-3 py-2 text-xs text-accent2">
           <span>📅</span>
           <span className="font-medium">{fmtDate(post.scheduled_at)}</span>
           {post.published_at && (
-            <span className="ml-auto text-emerald-400">
+            <span className="ml-auto text-success">
               ✓ {c.pub_publishedAt} {fmtDateShort(post.published_at)}
             </span>
           )}
@@ -590,7 +590,7 @@ function PostDetail({
       )}
 
       {post.hashtags && (
-        <p className="rounded-xl bg-[var(--c-card)] px-3 py-2 text-xs text-[#22D3EE]/80">{post.hashtags}</p>
+        <p className="rounded-xl bg-[var(--c-card)] px-3 py-2 text-xs text-accent2/80">{post.hashtags}</p>
       )}
 
       {post.first_comment && (
@@ -607,7 +607,7 @@ function PostDetail({
           href={post.media_url}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-1.5 rounded-xl bg-[var(--c-elevated)] px-3 py-2 text-xs text-[#22D3EE] hover:underline"
+          className="flex items-center gap-1.5 rounded-xl bg-[var(--c-elevated)] px-3 py-2 text-xs text-accent2 hover:underline"
         >
           🖼 <span className="truncate">{post.media_url}</span>
         </a>
@@ -648,7 +648,7 @@ function PostDetail({
             <button
               onClick={() => handleStatusChange("published")}
               disabled={isPending}
-              className="rounded-lg bg-emerald-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-600 disabled:opacity-50"
+              className="rounded-lg bg-success px-3 py-1.5 text-sm font-medium text-white hover:bg-success disabled:opacity-50"
             >
               ✓ {c.pub_markPublished}
             </button>
@@ -695,7 +695,7 @@ function PostDetail({
           <button
             onClick={handleDelete}
             disabled={isPending}
-            className="rounded-lg px-2 py-1 text-xs text-red-500 hover:bg-red-500/10"
+            className="rounded-lg px-2 py-1 text-xs text-danger hover:bg-danger-weak"
           >
             {t.common.delete}
           </button>
@@ -728,7 +728,7 @@ function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-canvas/60 p-4 backdrop-blur-sm"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div
@@ -851,7 +851,7 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
         </div>
         <button
           onClick={() => openCreate()}
-          className="rounded-lg bg-[#22D3EE] px-3 py-2 text-sm font-medium text-[#071B2C] hover:bg-[#22D3EE]/90 transition-colors"
+          className="rounded-lg bg-accent2 px-3 py-2 text-sm font-medium text-accent2-fg hover:bg-accent2/90 transition-colors"
         >
           {c.newPost}
         </button>
@@ -881,7 +881,7 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
             className={cn(
               "rounded-lg px-4 py-1.5 text-xs font-medium transition-all",
               view === "list"
-                ? "bg-[#22D3EE] text-[#071B2C] shadow-sm"
+                ? "bg-accent2 text-accent2-fg shadow-sm"
                 : "text-[var(--c-text-3)] hover:text-[var(--c-text-1)]",
             )}
           >
@@ -892,7 +892,7 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
             className={cn(
               "rounded-lg px-4 py-1.5 text-xs font-medium transition-all",
               view === "calendar"
-                ? "bg-[#22D3EE] text-[#071B2C] shadow-sm"
+                ? "bg-accent2 text-accent2-fg shadow-sm"
                 : "text-[var(--c-text-3)] hover:text-[var(--c-text-1)]",
             )}
           >
@@ -904,13 +904,13 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={t.common.search + "…"}
-          className="h-8 rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-3 text-xs text-[var(--c-text-1)] placeholder-[var(--c-text-3)] focus:border-[#22D3EE] focus:outline-none"
+          className="h-8 rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-3 text-xs text-[var(--c-text-1)] placeholder-[var(--c-text-3)] focus:border-accent2 focus:outline-none"
         />
 
         <select
           value={filterPlatform}
           onChange={(e) => setFP(e.target.value)}
-          className="h-8 rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-2 text-xs text-[var(--c-text-1)] focus:border-[#22D3EE] focus:outline-none"
+          className="h-8 rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-2 text-xs text-[var(--c-text-1)] focus:border-accent2 focus:outline-none"
         >
           <option value="">{t.socialMedia.allPlatforms}</option>
           {ALL_PLATFORMS.map((p) => (
@@ -921,7 +921,7 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
         <select
           value={filterStatus}
           onChange={(e) => setFS(e.target.value)}
-          className="h-8 rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-2 text-xs text-[var(--c-text-1)] focus:border-[#22D3EE] focus:outline-none"
+          className="h-8 rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-2 text-xs text-[var(--c-text-1)] focus:border-accent2 focus:outline-none"
         >
           <option value="">{t.socialMedia.allStatuses}</option>
           {(["draft", "scheduled", "published", "cancelled"] as SocialPostStatus[]).map((s) => (
@@ -933,7 +933,7 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
           <select
             value={filterClient}
             onChange={(e) => setFC(e.target.value)}
-            className="h-8 rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-2 text-xs text-[var(--c-text-1)] focus:border-[#22D3EE] focus:outline-none"
+            className="h-8 rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-2 text-xs text-[var(--c-text-1)] focus:border-accent2 focus:outline-none"
           >
             <option value="">{c.pub_allClients}</option>
             {clients.map((cl) => (
@@ -1004,12 +1004,12 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
                   className={cn(
                     "min-h-[88px] cursor-pointer p-1.5 border-b border-[var(--c-border)] flex flex-col gap-1 transition-colors hover:bg-[var(--c-elevated)]/50",
                     !isLastCol && "border-r",
-                    isToday && "bg-[#22D3EE]/5",
+                    isToday && "bg-accent2/5",
                   )}
                 >
                   <span className={cn(
                     "flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold",
-                    isToday ? "bg-[#22D3EE] text-[#071B2C]" : "text-[var(--c-text-3)]",
+                    isToday ? "bg-accent2 text-accent2-fg" : "text-[var(--c-text-3)]",
                   )}>
                     {day.getDate()}
                   </span>
@@ -1059,7 +1059,7 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
             return (
               <div
                 key={p.id}
-                className="group rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] px-4 py-3 transition-all hover:border-[#22D3EE]/30"
+                className="group rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] px-4 py-3 transition-all hover:border-accent2/30"
               >
                 <div className="flex items-start gap-3">
                   <div className="min-w-0 flex-1">
@@ -1078,7 +1078,7 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
                     <div className="mt-1.5 flex flex-wrap items-center gap-3 text-[11px] text-[var(--c-text-3)]">
                       {p.scheduled_at && <span>📅 {fmtDateShort(p.scheduled_at)}</span>}
                       {clientName && (
-                        <span className="rounded-full bg-[#22D3EE]/10 px-1.5 py-0.5 text-[#22D3EE]">
+                        <span className="rounded-full bg-accent2/10 px-1.5 py-0.5 text-accent2">
                           👥 {clientName}
                         </span>
                       )}
@@ -1131,7 +1131,7 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
                   </div>
                   <button
                     onClick={() => openEdit(p)}
-                    className="shrink-0 rounded-md px-2 py-0.5 text-xs text-[#22D3EE] hover:bg-[#22D3EE]/10"
+                    className="shrink-0 rounded-md px-2 py-0.5 text-xs text-accent2 hover:bg-accent2/10"
                   >
                     {c.pub_schedule}
                   </button>

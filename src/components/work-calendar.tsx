@@ -131,14 +131,14 @@ export function WorkCalendar({
             {t.overview.months[viewedMonth.getMonth()]}{" "}
             {viewedMonth.getFullYear()}
           </p>
-          <p className="text-xs text-ink/55">{t.workCalendar.hint}</p>
+          <p className="text-xs text-content-3">{t.workCalendar.hint}</p>
         </div>
         <div className="flex items-center gap-1">
           <NavButton onClick={prevMonth} label="‹" />
           <button
             type="button"
             onClick={thisMonth}
-            className="rounded-md px-2 py-1 text-xs font-semibold text-ink/65 hover:bg-ink/5"
+            className="rounded-md px-2 py-1 text-xs font-semibold text-content-3 hover:bg-ink/5"
           >
             {t.workCalendar.today}
           </button>
@@ -147,7 +147,7 @@ export function WorkCalendar({
       </div>
 
       {/* Weekday header */}
-      <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-semibold uppercase tracking-wider text-ink/40">
+      <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-semibold uppercase tracking-wider text-content-3">
         {t.workCalendar.weekdays.map((d) => (
           <div key={d}>{d}</div>
         ))}
@@ -196,7 +196,7 @@ function NavButton({
     <button
       type="button"
       onClick={onClick}
-      className="flex h-7 w-7 items-center justify-center rounded-md text-base font-semibold text-ink/60 transition-colors hover:bg-ink/5 hover:text-ink"
+      className="flex h-7 w-7 items-center justify-center rounded-md text-base font-semibold text-content-3 transition-colors hover:bg-ink/5 hover:text-ink"
     >
       {label}
     </button>
@@ -220,8 +220,8 @@ function DayButton({
       : day.location === "home"
         ? "bg-[#7c4dff] text-white shadow-sm"
         : day.isWeekend
-          ? "bg-white/4 text-ink/35"
-          : "bg-white/8 text-ink/70 hover:bg-white/14";
+          ? "bg-surface/4 text-content-3"
+          : "bg-surface/8 text-content-2 hover:bg-surface/14";
 
   return (
     <button
@@ -264,7 +264,7 @@ function LegendItem({
   suffix: string;
 }) {
   return (
-    <span className="inline-flex items-center gap-1.5 text-ink/70">
+    <span className="inline-flex items-center gap-1.5 text-content-2">
       <span className={cn("h-2.5 w-2.5 rounded-full", color)} />
       {label}
       <strong className="text-ink">{count}</strong> {suffix}

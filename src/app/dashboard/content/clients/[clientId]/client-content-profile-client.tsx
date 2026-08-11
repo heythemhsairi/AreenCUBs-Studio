@@ -51,7 +51,7 @@ const PLATFORMS = ["instagram", "facebook", "linkedin", "twitter", "tiktok", "yo
 
 const STATUS_COLORS: Record<string, string> = {
   draft: "bg-[var(--c-border)] text-[var(--c-text-3)]",
-  approved: "bg-emerald-500/15 text-emerald-400",
+  approved: "bg-success-weak text-success",
   archived: "bg-[var(--c-border)] text-[var(--c-text-3)]",
 };
 
@@ -148,7 +148,7 @@ export function ClientContentProfileClient({ client, profile, plans, members: _m
             className={cn(
               "px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px",
               tab === tabKey
-                ? "border-[#22D3EE] text-[#22D3EE]"
+                ? "border-accent2 text-accent2"
                 : "border-transparent text-[var(--c-text-3)] hover:text-[var(--c-text-1)]",
             )}
           >
@@ -166,7 +166,7 @@ export function ClientContentProfileClient({ client, profile, plans, members: _m
               <button
                 type="button"
                 onClick={() => setEditingProfile(true)}
-                className="text-sm text-[#22D3EE] hover:text-[#22D3EE]/80 transition-colors"
+                className="text-sm text-accent2 hover:text-accent2/80 transition-colors"
               >
                 {c.editProfile}
               </button>
@@ -282,7 +282,7 @@ export function ClientContentProfileClient({ client, profile, plans, members: _m
                       className={cn(
                         "rounded-lg px-3 py-1.5 text-xs font-semibold transition-all capitalize",
                         selectedPlatforms.includes(p)
-                          ? "bg-[#22D3EE] text-[#071B2C]"
+                          ? "bg-accent2 text-accent2-fg"
                           : "bg-[var(--c-elevated)] text-[var(--c-text-2)] hover:bg-[var(--c-border)]",
                       )}
                     >
@@ -305,7 +305,7 @@ export function ClientContentProfileClient({ client, profile, plans, members: _m
                 <button
                   type="submit"
                   disabled={isPending}
-                  className="rounded-lg bg-[#22D3EE] px-4 py-2 text-sm font-semibold text-[#071B2C] hover:bg-[#22D3EE]/90 disabled:opacity-60 transition-colors"
+                  className="rounded-lg bg-accent2 px-4 py-2 text-sm font-semibold text-accent2-fg hover:bg-accent2/90 disabled:opacity-60 transition-colors"
                 >
                   {isPending ? t.common.saving : c.saveProfile}
                 </button>
@@ -324,7 +324,7 @@ export function ClientContentProfileClient({ client, profile, plans, members: _m
                   <span className="text-xs font-medium text-[var(--c-text-3)]">{c.profileFields.contentPillars}</span>
                   <div className="mt-1.5 flex flex-wrap gap-1.5">
                     {profile.content_pillars.map((p) => (
-                      <span key={p} className="rounded-md bg-[#A78BFA]/15 px-2 py-0.5 text-xs font-medium text-[#A78BFA]">{p}</span>
+                      <span key={p} className="rounded-md bg-chart-4/15 px-2 py-0.5 text-xs font-medium text-chart-4">{p}</span>
                     ))}
                   </div>
                 </div>
@@ -334,7 +334,7 @@ export function ClientContentProfileClient({ client, profile, plans, members: _m
                   <span className="text-xs font-medium text-[var(--c-text-3)]">{c.profileFields.platforms}</span>
                   <div className="mt-1.5 flex flex-wrap gap-1.5">
                     {profile.platforms.map((p) => (
-                      <span key={p} className="rounded-md bg-[#22D3EE]/10 px-2 py-0.5 text-xs font-medium text-[#22D3EE] capitalize">{p}</span>
+                      <span key={p} className="rounded-md bg-accent2/10 px-2 py-0.5 text-xs font-medium text-accent2 capitalize">{p}</span>
                     ))}
                   </div>
                 </div>
@@ -362,7 +362,7 @@ export function ClientContentProfileClient({ client, profile, plans, members: _m
             <button
               type="button"
               onClick={() => setShowNewPlan(true)}
-              className="flex items-center gap-1.5 rounded-lg bg-[#22D3EE]/10 border border-[#22D3EE]/25 text-[#22D3EE] px-3 py-2 text-sm font-medium hover:bg-[#22D3EE]/20 transition-colors"
+              className="flex items-center gap-1.5 rounded-lg bg-accent2/10 border border-accent2/25 text-accent2 px-3 py-2 text-sm font-medium hover:bg-accent2/20 transition-colors"
             >
               <Plus size={14} />
               {c.newPlan}
@@ -373,7 +373,7 @@ export function ClientContentProfileClient({ client, profile, plans, members: _m
           {showNewPlan && (
             <form
               onSubmit={handleCreatePlan}
-              className="rounded-xl border border-[#22D3EE]/30 bg-[var(--c-card)] p-4 flex flex-col gap-4"
+              className="rounded-xl border border-accent2/30 bg-[var(--c-card)] p-4 flex flex-col gap-4"
             >
               <h3 className="font-semibold text-sm text-[var(--c-text-1)]">
                 {c.newPlan}
@@ -420,7 +420,7 @@ export function ClientContentProfileClient({ client, profile, plans, members: _m
                 <button
                   type="submit"
                   disabled={isPending}
-                  className="rounded-lg bg-[#22D3EE] px-4 py-2 text-sm font-semibold text-[#071B2C] hover:bg-[#22D3EE]/90 disabled:opacity-60 transition-colors"
+                  className="rounded-lg bg-accent2 px-4 py-2 text-sm font-semibold text-accent2-fg hover:bg-accent2/90 disabled:opacity-60 transition-colors"
                 >
                   {isPending ? t.common.saving : t.common.create}
                 </button>
@@ -434,7 +434,7 @@ export function ClientContentProfileClient({ client, profile, plans, members: _m
               <button
                 type="button"
                 onClick={() => setShowNewPlan(true)}
-                className="mt-3 text-sm text-[#22D3EE] hover:underline"
+                className="mt-3 text-sm text-accent2 hover:underline"
               >
                 {c.createFirstPlan}
               </button>
@@ -451,11 +451,11 @@ export function ClientContentProfileClient({ client, profile, plans, members: _m
                   <Link
                     key={plan.id}
                     href={`/dashboard/content/plans/${plan.id}`}
-                    className="group flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] p-4 hover:border-[#22D3EE]/40 transition-all"
+                    className="group flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] p-4 hover:border-accent2/40 transition-all"
                   >
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-semibold text-[var(--c-text-1)] group-hover:text-[#22D3EE] transition-colors">
+                        <span className="font-semibold text-[var(--c-text-1)] group-hover:text-accent2 transition-colors">
                           {monthNames[plan.month - 1]} {plan.year}
                         </span>
                         {plan.theme && (
@@ -475,7 +475,7 @@ export function ClientContentProfileClient({ client, profile, plans, members: _m
                         {c.statsItems(total)}
                       </span>
                       <span className="flex items-center gap-1">
-                        <CheckCircle2 size={11} className="text-emerald-400" />
+                        <CheckCircle2 size={11} className="text-success" />
                         {c.statsApproved(approved)}
                       </span>
                       <span className="flex items-center gap-1">

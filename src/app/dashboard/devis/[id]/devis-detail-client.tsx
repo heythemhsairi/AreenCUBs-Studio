@@ -59,7 +59,7 @@ type Props = {
 function Row({ label, value, bold }: { label: string; value: string; bold?: boolean }) {
   return (
     <div className="flex items-center justify-between">
-      <span className={bold ? "font-semibold text-ink" : "text-ink/60"}>{label}</span>
+      <span className={bold ? "font-semibold text-ink" : "text-content-3"}>{label}</span>
       <span className={bold ? "font-semibold text-ink" : "text-ink"}>{value}</span>
     </div>
   );
@@ -142,13 +142,13 @@ export function DevisDetailClient({
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardContent className="p-4">
-            <p className="text-xs uppercase tracking-wide text-ink/50">{t.devis.labelClient}</p>
+            <p className="text-xs uppercase tracking-wide text-content-3">{t.devis.labelClient}</p>
             <p className="mt-1 font-medium text-ink">{clientName ?? "—"}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
-            <p className="text-xs uppercase tracking-wide text-ink/50">{t.devis.labelDateDue}</p>
+            <p className="text-xs uppercase tracking-wide text-content-3">{t.devis.labelDateDue}</p>
             <p className="mt-1 text-sm text-ink">
               {formatDate(date)} → {dueDate ? formatDate(dueDate) : "—"}
             </p>
@@ -156,7 +156,7 @@ export function DevisDetailClient({
         </Card>
         <Card>
           <CardContent className="p-4">
-            <p className="text-xs uppercase tracking-wide text-ink/50">{t.devis.labelStatus}</p>
+            <p className="text-xs uppercase tracking-wide text-content-3">{t.devis.labelStatus}</p>
             <div className="mt-1 flex items-center gap-2">
               <StatusBadge status={status} type="devis" />
               <StatusBadge status={paymentStatus} type="finance" />
@@ -165,7 +165,7 @@ export function DevisDetailClient({
         </Card>
         <Card>
           <CardContent className="p-4">
-            <p className="text-xs uppercase tracking-wide text-ink/50">{t.devis.totalTtc}</p>
+            <p className="text-xs uppercase tracking-wide text-content-3">{t.devis.totalTtc}</p>
             <p className="mt-1 text-lg font-semibold text-ink">{formatDt(totalDt)}</p>
           </CardContent>
         </Card>
@@ -194,10 +194,10 @@ export function DevisDetailClient({
               {items.map((it) => (
                 <TR key={it.id}>
                   <TD>{it.description}</TD>
-                  <TD className="text-right text-ink/60">
+                  <TD className="text-right text-content-3">
                     {it.is_bonus ? t.devisBuilder.colBonus : formatDt(it.unit_price_dt)}
                   </TD>
-                  <TD className="text-right text-ink/60">{it.quantity}</TD>
+                  <TD className="text-right text-content-3">{it.quantity}</TD>
                   <TD className="text-right font-medium text-ink">
                     {it.is_bonus ? t.devisBuilder.colBonus : formatDt(it.line_total_dt)}
                   </TD>
@@ -252,14 +252,14 @@ export function DevisDetailClient({
                   >
                     <span>
                       {formatDate(p.paid_at)}{" "}
-                      {p.method && <span className="text-ink/50">· {p.method}</span>}
+                      {p.method && <span className="text-content-3">· {p.method}</span>}
                     </span>
                     <span className="font-medium text-ink">{formatDt(p.amount_dt)}</span>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-ink/50">{t.devis.noPayments}</p>
+              <p className="text-sm text-content-3">{t.devis.noPayments}</p>
             )}
           </CardContent>
         </Card>

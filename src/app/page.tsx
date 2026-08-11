@@ -20,8 +20,8 @@ export default async function RootPage() {
 
 function SetupNotice() {
   return (
-    <main className="grid min-h-screen place-items-center bg-slate-50 px-4">
-      <div className="max-w-lg space-y-4 rounded-lg border border-amber-300 bg-amber-50 p-6 text-sm text-amber-900">
+    <main className="grid min-h-screen place-items-center bg-surface-2 px-4">
+      <div className="max-w-lg space-y-4 rounded-lg border border-warning bg-warning-weak p-6 text-sm text-warning">
         <h1 className="text-base font-semibold">
           Configuration incomplète — Setup incomplete
         </h1>
@@ -29,7 +29,7 @@ function SetupNotice() {
           Les variables d'environnement Supabase ne sont pas définies sur
           Vercel.
         </p>
-        <p className="text-amber-800">
+        <p className="text-warning">
           Add the following env vars in <strong>Vercel → Project Settings → Environment Variables</strong>, then redeploy:
         </p>
         <ul className="list-disc space-y-1 pl-5 font-mono text-xs">

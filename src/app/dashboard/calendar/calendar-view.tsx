@@ -36,7 +36,7 @@ export type CompletedEntry = {
 type View = "month" | "week" | "agenda";
 
 const PRIORITY_COLOR: Record<Priority, string> = {
-  urgent: "bg-red-500 text-white",
+  urgent: "bg-danger text-white",
   high: "bg-accent text-white",
   normal: "bg-brand text-white",
   low: "bg-ink/40 text-white",
@@ -255,7 +255,7 @@ export function CalendarView({
               <button
                 type="button"
                 onClick={goToday}
-                className="rounded-md border border-ink/10 bg-white/70 px-3 py-1.5 text-xs font-medium text-ink/75 transition-colors hover:border-brand/30 hover:bg-white"
+                className="rounded-md border border-ink/10 bg-surface/70 px-3 py-1.5 text-xs font-medium text-content-2 transition-colors hover:border-brand/30 hover:bg-surface"
               >
                 {t.calendar.today}
               </button>
@@ -274,7 +274,7 @@ export function CalendarView({
                 onChange={(e) =>
                   setPriorityFilter(e.target.value as "all" | Priority)
                 }
-                className="h-9 rounded-lg border border-ink/10 bg-white/70 px-2 text-xs font-medium text-ink/70 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+                className="h-9 rounded-lg border border-ink/10 bg-surface/70 px-2 text-xs font-medium text-content-2 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
               >
                 <option value="all">{t.filters.allPriorities}</option>
                 <option value="urgent">{t.tasks.priority.urgent}</option>
@@ -282,7 +282,7 @@ export function CalendarView({
                 <option value="normal">{t.tasks.priority.normal}</option>
                 <option value="low">{t.tasks.priority.low}</option>
               </select>
-              <div className="inline-flex items-center rounded-lg border border-ink/10 bg-white/60 p-0.5">
+              <div className="inline-flex items-center rounded-lg border border-ink/10 bg-surface/60 p-0.5">
                 <ViewBtn
                   active={view === "month"}
                   onClick={() => setView("month")}
@@ -332,11 +332,11 @@ export function CalendarView({
           ) : (
             <div className="glass overflow-hidden rounded-2xl">
               {/* Weekday header */}
-              <div className="grid grid-cols-7 border-b border-ink/8 bg-white/40">
+              <div className="grid grid-cols-7 border-b border-ink/8 bg-surface/40">
                 {weekdays.map((wd) => (
                   <div
                     key={wd}
-                    className="px-2 py-2 text-center text-[11px] font-semibold uppercase tracking-[0.08em] text-ink/55"
+                    className="px-2 py-2 text-center text-[11px] font-semibold uppercase tracking-[0.08em] text-content-3"
                   >
                     {wd}
                   </div>
@@ -391,7 +391,7 @@ export function CalendarView({
                       PRIORITY_COLOR[p].split(" ")[0],
                     )}
                   />
-                  <span className="text-ink/75">{t.tasks.priority[p]}</span>
+                  <span className="text-content-2">{t.tasks.priority[p]}</span>
                 </div>
               ))}
             </CardContent>
@@ -401,13 +401,13 @@ export function CalendarView({
           <Card>
             <CardHeader>
               <CardTitle>
-                <span className="mr-1.5 text-emerald-500">✓</span>
+                <span className="mr-1.5 text-success">✓</span>
                 {t.calendar.recentlyCompleted}
               </CardTitle>
             </CardHeader>
             <CardContent>
               {completed.length === 0 ? (
-                <p className="text-xs text-ink/45">
+                <p className="text-xs text-content-3">
                   {t.calendar.noCompleted}
                 </p>
               ) : (
@@ -416,12 +416,12 @@ export function CalendarView({
                     <li key={c.id}>
                       <Link
                         href={`/dashboard/tasks/${c.taskId}`}
-                        className="block rounded-lg border border-ink/5 bg-white/60 p-2.5 transition-all hover:border-brand/25 hover:bg-white/90 hover:shadow-soft"
+                        className="block rounded-lg border border-ink/5 bg-surface/60 p-2.5 transition-all hover:border-brand/25 hover:bg-surface/90 hover:shadow-soft"
                       >
                         <p className="truncate text-sm font-medium text-ink line-through opacity-75">
                           {c.title}
                         </p>
-                        <p className="mt-0.5 truncate text-[11px] text-ink/55">
+                        <p className="mt-0.5 truncate text-[11px] text-content-3">
                           {c.project ?? "—"}
                           {c.actor && <> · {c.actor}</>}
                           {" · "}
@@ -471,7 +471,7 @@ function AgendaView({
         <p className="text-sm font-medium text-ink">
           {t.calendar.noScheduled}
         </p>
-        <p className="text-xs text-ink/55">{t.calendar.noScheduledHint}</p>
+        <p className="text-xs text-content-3">{t.calendar.noScheduledHint}</p>
       </div>
     );
   }
@@ -499,8 +499,8 @@ function AgendaView({
                 isToday
                   ? "bg-brand/8"
                   : isPast
-                    ? "bg-red-50/40 dark:bg-red-500/8"
-                    : "bg-white/30",
+                    ? "bg-danger-weak dark:bg-danger-weak"
+                    : "bg-surface/30",
               )}
             >
               <div className="mb-2 flex items-center gap-2">
@@ -510,8 +510,8 @@ function AgendaView({
                     isToday
                       ? "bg-brand text-white"
                       : isPast
-                        ? "bg-red-100 text-red-700"
-                        : "bg-ink/5 text-ink/65",
+                        ? "bg-danger-weak text-danger"
+                        : "bg-ink/5 text-content-3",
                   )}
                 >
                   {isToday
@@ -521,9 +521,9 @@ function AgendaView({
                       : dayLabel}
                 </span>
                 {!isToday && !isPast && (
-                  <span className="text-[11px] text-ink/45">{dayLabel}</span>
+                  <span className="text-[11px] text-content-3">{dayLabel}</span>
                 )}
-                <span className="ml-auto text-[11px] font-semibold text-ink/45">
+                <span className="ml-auto text-[11px] font-semibold text-content-3">
                   {t.calendar.tasksOfDay(items.length)}
                 </span>
               </div>
@@ -569,7 +569,7 @@ function AgendaRow({
         })
       }
       className={cn(
-        "group flex items-center gap-3 rounded-lg border border-ink/8 bg-white p-2.5 transition-all hover:border-brand/30 hover:shadow-soft dark:bg-white/5 cursor-grab active:cursor-grabbing",
+        "group flex items-center gap-3 rounded-lg border border-ink/8 bg-surface p-2.5 transition-all hover:border-brand/30 hover:shadow-soft dark:bg-surface/5 cursor-grab active:cursor-grabbing",
         dragging && "opacity-50",
         STATUS_OPACITY[task.status],
       )}
@@ -584,7 +584,7 @@ function AgendaRow({
         <p className="truncate text-sm font-medium text-ink group-hover:text-brand">
           {task.title}
         </p>
-        <p className="truncate text-[11px] text-ink/55">
+        <p className="truncate text-[11px] text-content-3">
           {task.project?.name ?? "—"}
           {task.assignee && <> · {task.assignee}</>}
         </p>
@@ -646,7 +646,7 @@ function DayCell({
       className={cn(
         "relative flex flex-col gap-1 border-b border-r border-ink/8 p-1.5 transition-colors",
         isWeek ? "min-h-[440px]" : "min-h-[110px]",
-        isOutsideMonth ? "bg-white/15 text-ink/35" : "bg-white/40",
+        isOutsideMonth ? "bg-surface/15 text-content-3" : "bg-surface/40",
         isOver && "bg-brand/8 ring-2 ring-inset ring-brand/40",
         pending && "opacity-90",
       )}
@@ -658,14 +658,14 @@ function DayCell({
             isToday
               ? "bg-brand text-white"
               : isOutsideMonth
-                ? "text-ink/40"
-                : "text-ink/70",
+                ? "text-content-3"
+                : "text-content-2",
           )}
         >
           {date.getDate()}
         </span>
         {tasks.length > 0 && (
-          <span className="text-[10px] font-semibold text-ink/45">
+          <span className="text-[10px] font-semibold text-content-3">
             {tasks.length}
           </span>
         )}
@@ -677,7 +677,7 @@ function DayCell({
           </li>
         ))}
         {!isWeek && tasks.length > 4 && (
-          <li className="px-1 text-[10px] font-medium text-ink/50">
+          <li className="px-1 text-[10px] font-medium text-content-3">
             {t.calendar.moreOf(tasks.length - 4)}
           </li>
         )}
@@ -739,7 +739,7 @@ function NavBtn({
       onClick={onClick}
       title={label}
       aria-label={label}
-      className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-ink/10 bg-white/70 text-ink/65 transition-colors hover:border-brand/30 hover:bg-white hover:text-brand"
+      className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-ink/10 bg-surface/70 text-content-3 transition-colors hover:border-brand/30 hover:bg-surface hover:text-brand"
     >
       <svg
         width="14"
@@ -775,7 +775,7 @@ function ViewBtn({
         "h-7 rounded-md px-3 text-xs font-medium transition-all",
         active
           ? "bg-brand text-white shadow-sm"
-          : "text-ink/60 hover:bg-white/80 hover:text-ink",
+          : "text-content-3 hover:bg-surface/80 hover:text-ink",
       )}
     >
       {label}
@@ -796,8 +796,8 @@ function Stat({
     tone === "brand"
       ? "from-brand/15 to-brand/5 text-brand-dark"
       : tone === "green"
-        ? "from-emerald-100 to-emerald-50 text-emerald-700"
-        : "from-red-100 to-red-50 text-red-700";
+        ? "from-emerald-100 to-emerald-50 text-success"
+        : "from-red-100 to-red-50 text-danger";
   return (
     <div
       className={cn(

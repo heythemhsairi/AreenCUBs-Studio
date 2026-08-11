@@ -35,7 +35,7 @@ export function AvatarStack({
 }: Props) {
   if (items.length === 0) {
     return (
-      <span className="text-xs text-ink/35">—</span>
+      <span className="text-xs text-content-3">—</span>
     );
   }
   const shown = items.slice(0, max);
@@ -59,7 +59,7 @@ export function AvatarStack({
       {extra > 0 && (
         <span
           className={cn(
-            "inline-flex items-center justify-center rounded-full bg-ink/10 font-semibold text-ink/70 ring-2 ring-white",
+            "inline-flex items-center justify-center rounded-full bg-ink/10 font-semibold text-content-2 ring-2 ring-white",
             overflowSize[size],
             offset,
           )}

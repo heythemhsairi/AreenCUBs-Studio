@@ -88,7 +88,7 @@ function ProfileSummary({ profile }: { profile: Profile }) {
               <p className="text-lg font-semibold text-ink">
                 {profile.full_name ?? profile.username}
               </p>
-              <p className="text-sm text-ink/55">
+              <p className="text-sm text-content-3">
                 @{profile.username} · {profile.email}
               </p>
               <Badge tone={ROLE_TONE[profile.role]} className="mt-1.5">
@@ -125,8 +125,8 @@ function ProfileSummary({ profile }: { profile: Profile }) {
                 </Button>
               )}
             </div>
-            <p className="text-xs text-ink/45">{t.profile.photoHint}</p>
-            {error && <p className="text-sm text-red-600">{error}</p>}
+            <p className="text-xs text-content-3">{t.profile.photoHint}</p>
+            {error && <p className="text-sm text-danger">{error}</p>}
           </div>
         </div>
       </CardContent>
@@ -160,9 +160,9 @@ function NameForm({ initial }: { initial: string }) {
       <CardContent>
         <form className="space-y-4" onSubmit={onSubmit}>
           <Input name="full_name" defaultValue={initial} required />
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-danger">{error}</p>}
           {saved && (
-            <p className="text-sm text-green-700">{t.profile.savedTick}</p>
+            <p className="text-sm text-success">{t.profile.savedTick}</p>
           )}
           <Button type="submit" disabled={pending}>
             {pending ? "…" : t.common.save}
@@ -202,7 +202,7 @@ function PasswordForm() {
       <CardContent>
         <form className="space-y-4" onSubmit={onSubmit}>
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold uppercase tracking-wider text-ink/55">
+            <label className="text-xs font-semibold uppercase tracking-wider text-content-3">
               {t.profile.newPassword}
             </label>
             <Input
@@ -212,11 +212,11 @@ function PasswordForm() {
               required
               autoComplete="new-password"
             />
-            <p className="text-xs text-ink/45">{t.profile.passwordHint}</p>
+            <p className="text-xs text-content-3">{t.profile.passwordHint}</p>
           </div>
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-danger">{error}</p>}
           {done && (
-            <p className="text-sm text-green-700">
+            <p className="text-sm text-success">
               {t.profile.passwordChanged}
             </p>
           )}

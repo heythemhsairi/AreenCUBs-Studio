@@ -66,27 +66,27 @@ const ITEM_STATUSES: ContentItemStatus[] = [
 
 const STATUS_BG: Record<string, string> = {
   draft: "bg-[var(--c-border)] text-[var(--c-text-3)]",
-  approved: "bg-emerald-500/15 text-emerald-400",
+  approved: "bg-success-weak text-success",
   archived: "bg-[var(--c-border)] text-[var(--c-text-3)]",
 };
 
 const ITEM_STATUS_BG: Record<string, string> = {
-  idea: "bg-slate-500/15 text-slate-400",
-  copywriting: "bg-blue-500/15 text-blue-400",
+  idea: "bg-surface-3 text-content-3",
+  copywriting: "bg-info-weak text-info",
   design: "bg-violet-500/15 text-violet-400",
-  editing: "bg-orange-500/15 text-orange-400",
-  internal_review: "bg-yellow-500/15 text-yellow-400",
-  client_review: "bg-pink-500/15 text-pink-400",
-  approved: "bg-emerald-500/15 text-emerald-400",
-  scheduled: "bg-cyan-500/15 text-cyan-400",
-  published: "bg-green-500/15 text-green-400",
+  editing: "bg-warning-weak text-warning",
+  internal_review: "bg-warning-weak text-warning",
+  client_review: "bg-danger-weak text-danger",
+  approved: "bg-success-weak text-success",
+  scheduled: "bg-info-weak text-info",
+  published: "bg-success-weak text-success",
 };
 
 const PRIORITY_COLORS: Record<string, string> = {
-  low: "text-slate-400",
+  low: "text-content-3",
   normal: "text-[var(--c-text-3)]",
-  high: "text-amber-400",
-  urgent: "text-red-400",
+  high: "text-warning",
+  urgent: "text-danger",
 };
 
 export function ContentPlanDetailClient({ plan, items, members }: Props) {
@@ -218,7 +218,7 @@ export function ContentPlanDetailClient({ plan, items, members }: Props) {
                 type="button"
                 onClick={handleApprovePlan}
                 disabled={isPending}
-                className="flex items-center gap-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 px-3 py-2 text-sm font-medium hover:bg-emerald-500/20 disabled:opacity-60 transition-colors"
+                className="flex items-center gap-1.5 rounded-lg bg-success-weak border border-success text-success px-3 py-2 text-sm font-medium hover:bg-success-weak disabled:opacity-60 transition-colors"
               >
                 <CheckCircle2 size={14} />
                 {c.approvePlan}
@@ -257,7 +257,7 @@ export function ContentPlanDetailClient({ plan, items, members }: Props) {
                   className={cn(
                     "flex flex-col items-center gap-1 px-3 py-2 rounded-lg text-xs transition-all",
                     filterStatus === s
-                      ? "bg-[#22D3EE]/15 text-[#22D3EE] ring-1 ring-[#22D3EE]/40"
+                      ? "bg-accent2/15 text-accent2 ring-1 ring-accent2/40"
                       : "text-[var(--c-text-3)] hover:bg-[var(--c-elevated)]",
                   )}
                 >
@@ -281,7 +281,7 @@ export function ContentPlanDetailClient({ plan, items, members }: Props) {
               <button
                 type="button"
                 onClick={() => setFilterStatus("all")}
-                className="ml-2 text-xs text-[#22D3EE] hover:underline"
+                className="ml-2 text-xs text-accent2 hover:underline"
               >
                 {c.showAll}
               </button>
@@ -290,7 +290,7 @@ export function ContentPlanDetailClient({ plan, items, members }: Props) {
           <button
             type="button"
             onClick={() => setShowNewItem(true)}
-            className="flex items-center gap-1.5 rounded-lg bg-[#22D3EE]/10 border border-[#22D3EE]/25 text-[#22D3EE] px-3 py-2 text-sm font-medium hover:bg-[#22D3EE]/20 transition-colors"
+            className="flex items-center gap-1.5 rounded-lg bg-accent2/10 border border-accent2/25 text-accent2 px-3 py-2 text-sm font-medium hover:bg-accent2/20 transition-colors"
           >
             <Plus size={14} />
             {c.newItem}
@@ -301,7 +301,7 @@ export function ContentPlanDetailClient({ plan, items, members }: Props) {
         {showNewItem && (
           <form
             onSubmit={handleCreateItem}
-            className="rounded-xl border border-[#22D3EE]/30 bg-[var(--c-card)] p-4 flex flex-col gap-4"
+            className="rounded-xl border border-accent2/30 bg-[var(--c-card)] p-4 flex flex-col gap-4"
           >
             <h3 className="text-sm font-semibold text-[var(--c-text-1)]">{c.createItem}</h3>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -384,7 +384,7 @@ export function ContentPlanDetailClient({ plan, items, members }: Props) {
               <button
                 type="submit"
                 disabled={isPending}
-                className="rounded-lg bg-[#22D3EE] px-4 py-2 text-sm font-semibold text-[#071B2C] hover:bg-[#22D3EE]/90 disabled:opacity-60 transition-colors"
+                className="rounded-lg bg-accent2 px-4 py-2 text-sm font-semibold text-accent2-fg hover:bg-accent2/90 disabled:opacity-60 transition-colors"
               >
                 {isPending ? t.common.saving : c.createItem}
               </button>
@@ -399,7 +399,7 @@ export function ContentPlanDetailClient({ plan, items, members }: Props) {
             <button
               type="button"
               onClick={() => setShowNewItem(true)}
-              className="mt-3 text-sm text-[#22D3EE] hover:underline"
+              className="mt-3 text-sm text-accent2 hover:underline"
             >
               {c.addFirstItem}
             </button>
@@ -428,7 +428,7 @@ export function ContentPlanDetailClient({ plan, items, members }: Props) {
                     <td className="px-4 py-3 max-w-[200px]">
                       <Link
                         href={`/dashboard/content/items/${item.id}`}
-                        className="font-medium text-[var(--c-text-1)] hover:text-[#22D3EE] transition-colors line-clamp-1"
+                        className="font-medium text-[var(--c-text-1)] hover:text-accent2 transition-colors line-clamp-1"
                       >
                         {item.title}
                       </Link>
@@ -478,7 +478,7 @@ export function ContentPlanDetailClient({ plan, items, members }: Props) {
                       <div className="flex items-center gap-1">
                         <Link
                           href={`/dashboard/content/items/${item.id}`}
-                          className="rounded p-1 text-[var(--c-text-3)] hover:text-[#22D3EE] hover:bg-[#22D3EE]/10 transition-colors"
+                          className="rounded p-1 text-[var(--c-text-3)] hover:text-accent2 hover:bg-accent2/10 transition-colors"
                         >
                           <ExternalLink size={13} />
                         </Link>
@@ -486,7 +486,7 @@ export function ContentPlanDetailClient({ plan, items, members }: Props) {
                           type="button"
                           onClick={() => handleDeleteItem(item.id)}
                           disabled={isPending}
-                          className="rounded p-1 text-[var(--c-text-3)] hover:text-red-400 hover:bg-red-400/10 transition-colors"
+                          className="rounded p-1 text-[var(--c-text-3)] hover:text-danger hover:bg-danger-weak transition-colors"
                         >
                           <Trash2 size={13} />
                         </button>

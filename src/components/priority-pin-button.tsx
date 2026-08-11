@@ -48,7 +48,7 @@ export function PriorityPinButton({
         "inline-flex h-7 w-7 items-center justify-center rounded-md transition-all hover:scale-110",
         pinned
           ? "text-accent hover:text-accent-dark"
-          : "text-ink/30 hover:text-accent",
+          : "text-content-3 hover:text-accent",
         pending && "opacity-60",
         className,
       )}

@@ -181,7 +181,7 @@ export function CommentsCard({
       <CardHeader>
         <CardTitle>
           {t.taskDetail.comments}
-          <span className="ml-1.5 text-xs font-medium text-ink/40">
+          <span className="ml-1.5 text-xs font-medium text-content-3">
             {comments.length}
           </span>
         </CardTitle>
@@ -205,8 +205,8 @@ export function CommentsCard({
 
           {/* Mention autocomplete popover */}
           {mentionQuery !== null && mentionHits.length > 0 && (
-            <div className="absolute left-2 right-2 top-full z-30 mt-1 max-w-xs overflow-hidden rounded-xl border border-ink/10 bg-white shadow-lift dark:border-white/10 dark:bg-[#1e2029]">
-              <p className="border-b border-ink/5 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-ink/45">
+            <div className="absolute left-2 right-2 top-full z-30 mt-1 max-w-xs overflow-hidden rounded-xl border border-ink/10 bg-surface shadow-lift dark:border-white/10 dark:bg-[#1e2029]">
+              <p className="border-b border-ink/5 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-content-3">
                 {t.taskDetail.mention}
               </p>
               <ul>
@@ -220,7 +220,7 @@ export function CommentsCard({
                       className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors ${
                         i === mentionIdx
                           ? "bg-brand/10 text-brand-dark dark:bg-brand/20 dark:text-brand"
-                          : "hover:bg-cream-dark/40 dark:hover:bg-white/5"
+                          : "hover:bg-cream-dark/40 dark:hover:bg-surface/5"
                       }`}
                     >
                       <Avatar
@@ -232,7 +232,7 @@ export function CommentsCard({
                         <p className="truncate font-medium text-ink">
                           {h.full_name ?? h.username}
                         </p>
-                        <p className="truncate text-[11px] text-ink/45">
+                        <p className="truncate text-[11px] text-content-3">
                           @{h.username}
                         </p>
                       </div>
@@ -244,7 +244,7 @@ export function CommentsCard({
           )}
 
           <div className="flex items-center justify-between">
-            <p className="text-[11px] text-ink/40">
+            <p className="text-[11px] text-content-3">
               <kbd className="rounded border border-ink/15 bg-cream-dark/50 px-1 py-px text-[10px] font-semibold">
                 Ctrl
               </kbd>
@@ -264,13 +264,13 @@ export function CommentsCard({
               {pending ? "…" : t.taskDetail.publish}
             </Button>
           </div>
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-danger">{error}</p>}
         </form>
 
         <div className="my-5 h-px bg-ink/5" />
 
         {comments.length === 0 ? (
-          <p className="py-6 text-center text-sm text-ink/40">
+          <p className="py-6 text-center text-sm text-content-3">
             {t.taskDetail.noComments}
           </p>
         ) : (
@@ -319,8 +319,8 @@ function Item({
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 text-xs">
             <span className="font-semibold text-ink">{name}</span>
-            <span className="text-ink/40">·</span>
-            <time className="text-ink/45">
+            <span className="text-content-3">·</span>
+            <time className="text-content-3">
               {formatRelative(comment.created_at, t, locale)}
             </time>
           </div>
@@ -328,7 +328,7 @@ function Item({
             <button
               type="button"
               onClick={onDelete}
-              className="text-xs text-ink/30 opacity-0 transition-opacity hover:text-red-600 group-hover:opacity-100"
+              className="text-xs text-content-3 opacity-0 transition-opacity hover:text-danger group-hover:opacity-100"
               title={t.common.delete}
               aria-label={t.taskDetail.deleteCommentTitle}
             >
@@ -336,7 +336,7 @@ function Item({
             </button>
           )}
         </div>
-        <p className="mt-1 whitespace-pre-wrap text-sm text-ink/85">
+        <p className="mt-1 whitespace-pre-wrap text-sm text-content-2">
           {renderWithMentions(comment.body)}
         </p>
       </div>

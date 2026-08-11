@@ -47,7 +47,7 @@ export function StaleDevisBanner({ rows }: { rows: StaleDevisRow[] }) {
               type="button"
               onClick={() => setDismissed(true)}
               aria-label={t.devisUi.hide}
-              className="text-xs text-ink/40 hover:text-ink/70"
+              className="text-xs text-content-3 hover:text-content-2"
             >
               ×
             </button>
@@ -60,11 +60,11 @@ export function StaleDevisBanner({ rows }: { rows: StaleDevisRow[] }) {
               >
                 <Link
                   href={`/dashboard/${d.kind === "facture" ? "factures" : "devis"}/${d.id}`}
-                  className="truncate font-medium text-ink/85 hover:text-brand dark:text-cream/90"
+                  className="truncate font-medium text-content-2 hover:text-brand dark:text-cream/90"
                 >
                   {num(d.devis_number)} · {d.client_name}
                 </Link>
-                <span className="shrink-0 text-ink/55 dark:text-cream/55">
+                <span className="shrink-0 text-content-3 dark:text-cream/55">
                   {formatDt(d.total_dt)}
                   <span className="ml-2 rounded-md bg-accent/20 px-1.5 py-0.5 font-semibold text-accent-dark dark:text-accent">
                     {t.devisUi.daysSuffix(d.days_since_sent)}
@@ -73,7 +73,7 @@ export function StaleDevisBanner({ rows }: { rows: StaleDevisRow[] }) {
               </li>
             ))}
             {rows.length > 4 && (
-              <li className="text-[11px] text-ink/45">
+              <li className="text-[11px] text-content-3">
                 <Link
                   href="/dashboard/devis"
                   className="hover:underline"

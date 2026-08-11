@@ -184,8 +184,8 @@ export function ProjectForm(props: Props) {
               </Field>
             </div>
 
-            {error && <p className="text-sm text-red-600">{error}</p>}
-            {saved && <p className="text-sm text-green-600">{t.common.saved}</p>}
+            {error && <p className="text-sm text-danger">{error}</p>}
+            {saved && <p className="text-sm text-success">{t.common.saved}</p>}
 
             <div className="flex items-center gap-3 pt-2">
               <Button type="submit" disabled={pending}>
@@ -201,7 +201,7 @@ export function ProjectForm(props: Props) {
                     ? "/dashboard/projects"
                     : `/dashboard/projects/${p?.id}`
                 }
-                className="text-sm text-slate-500 hover:text-slate-800"
+                className="text-sm text-content-3 hover:text-content-3"
               >
                 {t.common.cancel}
               </Link>
@@ -222,7 +222,7 @@ function Field({
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="text-sm font-medium text-slate-700">{label}</label>
+      <label className="text-sm font-medium text-content-3">{label}</label>
       {children}
     </div>
   );

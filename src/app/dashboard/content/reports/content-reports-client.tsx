@@ -37,7 +37,7 @@ type Props = { plans: Plan[]; socialStats?: SocialStats };
 
 const STATUS_BG: Record<string, string> = {
   draft: "bg-[var(--c-border)] text-[var(--c-text-3)]",
-  approved: "bg-emerald-500/15 text-emerald-400",
+  approved: "bg-success-weak text-success",
   archived: "bg-[var(--c-border)] text-[var(--c-text-3)]",
 };
 
@@ -100,7 +100,7 @@ export function ContentReportsClient({ plans, socialStats }: Props) {
         <select
           value={clientFilter}
           onChange={(e) => setClientFilter(e.target.value)}
-          className="rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-3 py-2 text-sm text-[var(--c-text-1)] focus:outline-none focus:border-[#22D3EE]"
+          className="rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-3 py-2 text-sm text-[var(--c-text-1)] focus:outline-none focus:border-accent2"
         >
           <option value="all">{c.allClients}</option>
           {clientOptions.map(([id, name]) => (
@@ -133,14 +133,14 @@ export function ContentReportsClient({ plans, socialStats }: Props) {
         <div className="rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] p-4">
           <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Share2 size={14} className="text-[#22D3EE]" />
+              <Share2 size={14} className="text-accent2" />
               <h3 className="text-sm font-semibold text-[var(--c-text-1)]">
                 {c.publishingTitle}
               </h3>
             </div>
             <Link
               href="/dashboard/content/publishing"
-              className="text-xs text-[#22D3EE] hover:underline"
+              className="text-xs text-accent2 hover:underline"
             >
               {c.showAll} →
             </Link>
@@ -181,7 +181,7 @@ export function ContentReportsClient({ plans, socialStats }: Props) {
                       <span className="w-20 text-xs text-[var(--c-text-2)] capitalize shrink-0">{platform}</span>
                       <div className="flex-1 h-2 rounded-full bg-[var(--c-elevated)] overflow-hidden">
                         <div
-                          className="h-full rounded-full bg-[#22D3EE]"
+                          className="h-full rounded-full bg-accent2"
                           style={{ width: `${pct}%` }}
                         />
                       </div>
@@ -213,7 +213,7 @@ export function ContentReportsClient({ plans, socialStats }: Props) {
                       </span>
                       <div className="flex-1 h-2 rounded-full bg-[var(--c-elevated)] overflow-hidden">
                         <div
-                          className="h-full rounded-full bg-[#A78BFA]"
+                          className="h-full rounded-full bg-chart-4"
                           style={{ width: `${pct}%` }}
                         />
                       </div>
@@ -276,7 +276,7 @@ export function ContentReportsClient({ plans, socialStats }: Props) {
                       <td className="px-4 py-3 text-right text-[var(--c-text-2)]">{total}</td>
                       <td className="px-4 py-3 text-right text-[var(--c-text-2)]">{approved}</td>
                       <td className="px-4 py-3 text-right">
-                        <span className="flex items-center justify-end gap-1 text-emerald-400">
+                        <span className="flex items-center justify-end gap-1 text-success">
                           <CheckCircle2 size={12} />
                           {published}
                         </span>
@@ -285,7 +285,7 @@ export function ContentReportsClient({ plans, socialStats }: Props) {
                         <div className="flex items-center justify-end gap-2">
                           <div className="w-16 h-1.5 rounded-full bg-[var(--c-elevated)] overflow-hidden">
                             <div
-                              className="h-full rounded-full bg-[#22D3EE]"
+                              className="h-full rounded-full bg-accent2"
                               style={{ width: `${pct}%` }}
                             />
                           </div>
@@ -295,7 +295,7 @@ export function ContentReportsClient({ plans, socialStats }: Props) {
                       <td className="px-4 py-3">
                         <Link
                           href={`/dashboard/content/plans/${plan.id}`}
-                          className="flex items-center gap-1 text-[var(--c-text-3)] hover:text-[#22D3EE] transition-colors"
+                          className="flex items-center gap-1 text-[var(--c-text-3)] hover:text-accent2 transition-colors"
                         >
                           <ExternalLink size={13} />
                         </Link>

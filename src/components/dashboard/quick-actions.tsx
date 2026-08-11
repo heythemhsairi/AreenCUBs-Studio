@@ -92,7 +92,7 @@ const ACTIONS: Action[] = [
 
 const TONE_CLASS: Record<Action["tone"], string> = {
   brand:
-    "from-brand to-brand-dark text-white shadow-brand-glow hover:shadow-lift",
+    "from-brand to-brand-dark text-accent2-fg shadow-brand-glow hover:shadow-lift",
   accent:
     "from-accent to-accent-dark text-white shadow-accent-glow hover:shadow-lift",
   ink: "from-ink to-ink-soft text-cream shadow-soft hover:shadow-lift",

@@ -347,7 +347,7 @@ export function DevisBuilder(props: Props) {
             <CardTitle>{db.linesCard}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="hidden grid-cols-12 gap-2 text-xs font-medium uppercase tracking-wide text-ink/50 md:grid">
+            <div className="hidden grid-cols-12 gap-2 text-xs font-medium uppercase tracking-wide text-content-3 md:grid">
               <div className="col-span-5">{db.colDescription}</div>
               <div className="col-span-2">{db.colUnit}</div>
               <div className="col-span-1">{db.colQty}</div>
@@ -420,7 +420,7 @@ export function DevisBuilder(props: Props) {
                     ? db.bonus
                     : formatDt(item.quantity * (item.unit_price_dt || 0))}
                 </div>
-                <label className="flex items-center justify-center gap-1.5 text-xs text-ink/60 md:col-span-1">
+                <label className="flex items-center justify-center gap-1.5 text-xs text-content-3 md:col-span-1">
                   <input
                     type="checkbox"
                     checked={item.is_bonus}
@@ -439,7 +439,7 @@ export function DevisBuilder(props: Props) {
                   <button
                     type="button"
                     onClick={() => removeRow(item.key)}
-                    className="text-xs text-red-600 hover:underline"
+                    className="text-xs text-danger hover:underline"
                     title={db.deleteLineTitle}
                   >
                     {db.deleteLine}
@@ -468,7 +468,7 @@ export function DevisBuilder(props: Props) {
               <Row label={db.subtotal} value={formatDt(totals.subtotal)} />
 
               <div className="grid grid-cols-1 gap-2 rounded-lg bg-cream-dark/40 p-3 sm:grid-cols-[1fr_120px_100px] sm:items-center">
-                <label className="text-xs font-semibold uppercase tracking-wider text-ink/60">
+                <label className="text-xs font-semibold uppercase tracking-wider text-content-3">
                   {db.discount}
                 </label>
                 <Input
@@ -479,7 +479,7 @@ export function DevisBuilder(props: Props) {
                   onChange={(e) => setDiscountDt(Number(e.target.value) || 0)}
                   placeholder="0.00"
                 />
-                <span className="text-right text-xs text-ink/55">
+                <span className="text-right text-xs text-content-3">
                   {totals.discount > 0
                     ? `−${discountPct.toFixed(1)}%`
                     : db.discountUnit}
@@ -494,7 +494,7 @@ export function DevisBuilder(props: Props) {
               )}
               {/* TVA toggle and rate — editable while drafting */}
               <div className="flex items-center justify-between gap-3 rounded-lg bg-cream-dark/40 p-3">
-                <label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-ink/60">
+                <label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-content-3">
                   <input
                     type="checkbox"
                     checked={tvaEnabled}
@@ -517,12 +517,12 @@ export function DevisBuilder(props: Props) {
                         step={0.1}
                         value={tvaRate}
                         onChange={(e) => setTvaRate(Number(e.target.value))}
-                        className="w-16 rounded border border-ink/20 bg-white px-1.5 py-0.5 text-right text-xs text-ink"
+                        className="w-16 rounded border border-ink/20 bg-surface px-1.5 py-0.5 text-right text-xs text-ink"
                       />
-                      <span className="text-xs text-ink/55">%</span>
+                      <span className="text-xs text-content-3">%</span>
                     </>
                   )}
-                  <span className="text-right text-xs text-ink/55">
+                  <span className="text-right text-xs text-content-3">
                     {tvaEnabled ? formatDt(totals.tva) : "0,00 DT"}
                   </span>
                 </span>
@@ -530,7 +530,7 @@ export function DevisBuilder(props: Props) {
 
               {/* Fiscal stamp toggle */}
               <label className="flex items-center justify-between gap-3 rounded-lg bg-cream-dark/40 p-3">
-                <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-ink/60">
+                <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-content-3">
                   <input
                     type="checkbox"
                     checked={applyStamp}
@@ -539,7 +539,7 @@ export function DevisBuilder(props: Props) {
                   />
                   {db.stamp}
                 </span>
-                <span className="text-right text-xs text-ink/55">
+                <span className="text-right text-xs text-content-3">
                   {applyStamp ? formatDt(totals.stamp) : formatDt(STAMP_DT)}
                 </span>
               </label>
@@ -568,7 +568,7 @@ export function DevisBuilder(props: Props) {
           </CardContent>
         </Card>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-danger">{error}</p>}
 
         <div className="flex items-center gap-3">
           <Button type="submit" disabled={pending}>
@@ -586,7 +586,7 @@ export function DevisBuilder(props: Props) {
                 ? baseListUrl
                 : `${baseListUrl}/${props.devis.id}`
             }
-            className="text-sm text-ink/50 hover:text-ink"
+            className="text-sm text-content-3 hover:text-ink"
           >
             {t.common.cancel}
           </Link>
@@ -605,7 +605,7 @@ function Field({
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="text-sm font-medium text-ink/80">{label}</label>
+      <label className="text-sm font-medium text-content-2">{label}</label>
       {children}
     </div>
   );
@@ -622,7 +622,7 @@ function Row({
 }) {
   return (
     <div className="flex items-center justify-between">
-      <span className={bold ? "font-semibold text-ink" : "text-ink/60"}>
+      <span className={bold ? "font-semibold text-ink" : "text-content-3"}>
         {label}
       </span>
       <span
