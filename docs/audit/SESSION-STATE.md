@@ -179,112 +179,106 @@ Write the permission matrix first. Everything from Phase 3 onward depends on it.
 
 ---
 
-## Continuation point — Phase 6 complete, HEAD 9f77812
+## Continuation point — HEAD c3a74d0
 
-Branch `phase-1-data-integrity`. Phases 1–6 are done and committed.
+Branch `phase-1-data-integrity`. Phases 1–6 complete; Phase 7 half done.
+
+### Production: one fix is live, and the ledger is missing
+
+The self-service administrator escalation is **fixed in production** — applied
+by hand through the SQL Editor on 2026-08-11 and validated. Full record in
+`PRODUCTION-HOTFIX-RECORD.md`.
+
+**`supabase_migrations.schema_migrations` does not exist in production.** No
+migration ledger, and there never was one. Consequences, all in
+`DECISIONS-NEEDED.md` §14:
+
+- Production's schema state is **unknown**. The Phase 0 conclusion that it sits
+  at migration `0017` was an inference and cannot be confirmed.
+- **`supabase db push` is unusable**, not merely constrained. With no ledger the
+  CLI treats all thirty-four migrations as unapplied and would rebuild the
+  schema from zero on top of itself.
+- Anything destined for production must be self-contained, dependency-free,
+  rehearsed against a production-shaped replica
+  (`scripts/verify-hotfix-prodshape.sh` is the pattern), and applied by hand
+  with a prepared rollback.
 
 | Phase | Commit | What landed |
 |---|---|---|
-| 2 — roles and RLS | `b2bc5b9` | Six-role matrix, `client_members`, `client_directory`, audit log, column guards |
+| 2 — roles and RLS | `b2bc5b9` | Six-role matrix, `client_members`, `client_directory`, audit log |
 | 3 — /dashboard/team | `e146f30` | Was a server-render throw, not a hydration mismatch |
 | 4 — commercial | `a2578c3` | Commercial dashboard, `requireQuoteAccess`, scoped devis/factures |
-| 5 — intern | `d51a64a` | Intern dashboard, `requireClientAccess`, navigation for the new roles |
+| 5 — intern | `d51a64a` | Intern dashboard, `requireClientAccess`, navigation |
 | 6 — client portal | `9f77812` | Portal views, `portal_set_approval`, notifications, audit |
 | 7 — video review | `da4d471` | Schema, permissions, portal surface, private bucket — **UI pending** |
+| hotfix | `353069c`, `c3a74d0` | Prepared, verified, applied to production, recorded |
 
-### Where the boundaries actually live
+### RESUME HERE — Phase 7 UI
 
-**Role scope is in the database, never in a component.** Every dashboard reads
-through the RLS-bound client and does no filtering of its own — if a page had to
-filter, the policy would not be doing its job. `commercial_owns_client()`,
-`assigned_to_task()`, `client_contact_of()` are the definitions.
+The data layer is done and tested (16 tests). Four pieces remain:
 
-**The commercial and intern dashboards branch BEFORE any query runs**, in
-`src/app/dashboard/page.tsx`. The surest way not to show agency finance is never
-to ask for it; a conditional around markup leaves the number one refactor from
-being rendered.
+1. **`/dashboard/review`** — staff create an asset, upload a version to the
+   `review-media` bucket under `<client_id>/<asset_id>/<file>` (the storage
+   policy reads that first segment back as the owning organisation), and read
+   the comment thread. Validate mime `video/*` and size **server-side**; an
+   `accept` attribute is not a check. Guard with `requireWorkerOrAdmin`.
+2. **`/portal/review/[assetId]`** — latest cut only, a **short-lived signed URL
+   fetched per request** (never a stored URL), a timecode scrubber, and a
+   comment form calling `portal_add_review_comment`.
+3. **Resolution UI** for staff: set `resolved_at`/`resolved_by`, and return the
+   asset to `in_review` when the next version lands.
+4. **E2E**: a client commenting on the current cut; refused on a superseded one;
+   a signed URL rejected after expiry.
 
-**Guards are allow-lists.** `requireInternal`, `requireQuoteAccess`,
-`requireClientAccess`, `requireClientContact`. A role nobody has thought of yet
-reaches nothing.
+Phase 6 is the template — owner-run views for reads, one `SECURITY DEFINER`
+function for writes, the client role holding no table policy at all.
 
-**Column containment is done with views, because RLS cannot do it.**
-`client_directory` for intern/freelancer, `portal_*` for the client role. Each
-is owner-run, carries its own membership filter, and is explicitly
-`REVOKE`d — a single-table view is auto-updatable and Supabase grants ALL to
-`authenticated` by default, which made `client_directory` writable until a test
-tried it.
+Then: 8 Drive adapter → 9 optional TVA → 10 Content OS, reporting and the
+security review → 11 all gates → 12 completion report.
+
+### Where the boundaries live
+
+Role scope is in the database, never in a component; every dashboard reads
+through the RLS-bound client and does no filtering of its own. The commercial
+and intern dashboards branch **before any query runs**. Guards are allow-lists.
+Column containment uses owner-run views with explicit `REVOKE`, because RLS
+cannot withhold a column.
 
 ### Traps this program has already paid for
 
-1. **`SECURITY DEFINER` changes `current_user` to the function's owner.** Both
-   Phase 2 guard triggers silently permitted every write they existed to stop
-   until they were made invoker-rights.
-2. **Assert rows AFFECTED, never whether a statement threw.** RLS denies writes
-   by filtering. The pre-existing escalation test measured after a rollback and
-   therefore could not fail.
-3. **Supabase CLI 2.98.2 silently skips migrations dated in the future.** Files
-   named `20260812*` were ignored with no warning while `20260811*` applied.
-4. **`git archive` scopes to the shell's current directory.** Run it from the
-   repo root or it silently archives a subtree.
-5. **Backslash escapes collapse in Bash-tool heredocs.** `"\n"` inside a Python
-   heredoc lands as a literal newline in the output file — twice this produced a
-   JS parse error that took a whole suite out of the run while the summary still
-   read "passed". Write such scripts with the Write tool instead.
-6. **Browser tests are not rolled back.** Anything an e2e test writes persists;
-   restore the fixture or assert a delta.
+1. **`SECURITY DEFINER` changes `current_user` to the function's owner.** Use
+   `auth.uid()` to identify the caller — it reads a GUC and is unaffected.
+2. **Assert rows AFFECTED, never whether a statement threw.** RLS denies by
+   filtering. The original escalation test measured after a rollback, so it
+   could not fail.
+3. **Supabase CLI 2.98.2 silently skips migrations dated in the future.**
+4. **`git archive` scopes to the shell's current directory** — run it from the
+   repo root.
+5. **Backslash escapes collapse in Bash-tool heredocs.** `"\n"` lands as a
+   literal newline and produces a JS parse error that removes a whole suite from
+   the run while the summary still reads "passed". Use the Write tool for
+   scripts containing escapes.
+6. **Browser tests are not rolled back.** Restore the fixture or assert a delta.
+7. **The WSL clone is synced by tar, not git** — its own git HEAD is stale, so
+   verify file provenance against the Windows repo.
 
-### Environment — syncing to the WSL clone
-
-`rsync` across `/mnt/c` stalls indefinitely. Use the tar stream:
+### Environment
 
 ```bash
-bash /c/Users/AreenCubs/mksync.sh                    # git archive of the staged tree
+bash /c/Users/AreenCubs/mksync.sh
 wsl -d Ubuntu -u root -- bash -lc 'bash /root/run.sh <task>.sh'
 ```
 
-`run.sh` re-copies its helpers each call because WSL clears `/tmp` when the
-instance idles out. `.gitattributes` pins `*.sh` to LF; `extract.sh` normalises
-again on arrival.
+`rsync` across `/mnt/c` stalls indefinitely; the tar stream replaces it.
+`run.sh` re-copies helpers each call because WSL clears `/tmp` when idle.
 
-### Phase 7 — video review — commit `da4d471`, PARTIAL
+### Totals
 
-**Done and tested:** `review_assets`, `review_versions`, `review_comments`; the
-scope helpers; RLS for all five internal roles; three `portal_review_*` views;
-`portal_add_review_comment()`; a private `review-media` bucket with path-scoped
-policies. 16 tests.
-
-Storage paths are `<client_id>/<asset_id>/<file>` and the policy reads the first
-segment back as the owning organisation — `storage.objects` has no foreign key
-into this schema, so the path IS the relationship. A malformed path fails the
-uuid guard and is denied.
-
-**Not built yet — this is where to resume:**
-
-1. **Internal upload page** (`/dashboard/review`). Staff create an asset, upload
-   a version to `review-media` under the path convention above, and see the
-   comment thread. Validate mime (`video/*`) and size server-side; the size
-   check belongs in the action, not only in the input element.
-2. **Portal player** (`/portal/review/[assetId]`). Latest cut only, a short-lived
-   signed URL fetched per request — never a stored URL — a timecode scrubber,
-   and the comment form calling `portal_add_review_comment`.
-3. **Resolution UI** for staff: set `resolved_at`/`resolved_by`, and move the
-   asset back to `in_review` when the next version lands.
-4. **E2E**: a client commenting on the current cut; a client refused on a
-   superseded one; unauthenticated access to a signed URL after expiry.
-
-The Phase 6 portal is the template — owner-run views for reads, one
-`SECURITY DEFINER` function for writes, and the client role holding no table
-policy at all.
-
-### Totals at this commit
-
-201 unit · 230 database · 81 e2e desktop · axe clean incl. `/portal` ·
+201 unit · 251 database · 81 e2e desktop · axe clean incl. `/portal` ·
 typecheck clean · build clean.
 
-### Still approval-gated — see DECISIONS-NEEDED.md
+### Still open
 
-Service-role key rotation; the live self-escalation fix (§11a) — **any signed-in
-user can currently make themselves an administrator in production**; worker
-scope narrowing (§11b); freelancer losing `clients.notes` (§11c); money
-divergence; everything touching production.
+`DECISIONS-NEEDED.md` §11b (worker scope narrowing), §11c (freelancer losing
+`clients.notes`), §14 (production schema state unknown — blocks all further
+production schema work), money divergence, service-role key rotation.
