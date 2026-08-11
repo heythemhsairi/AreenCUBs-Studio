@@ -179,44 +179,70 @@ Write the permission matrix first. Everything from Phase 3 onward depends on it.
 
 ---
 
-## Continuation point — Phase 1 COMPLETE
+## Continuation point — Phase 3 complete, HEAD e146f30
 
-### Phase 1 — contrast and semantic design tokens: DONE
+Branch `phase-1-data-integrity`. Phases 1, 2 and 3 are done and committed.
 
-**Axe: 30 passed, 0 failed, zero violations of any rule**, across desktop 1280×720, tablet 768×1024 and mobile 390×844, rules `wcag2a wcag2aa wcag21a wcag21aa`, **no exclusions**. Session start was 9 failing / 1 passing on desktop alone.
+### Phase 2 — six-role matrix and RLS — commit b2bc5b9
 
-Everything was corrected in the light-theme override block in `globals.css`. Components were not restyled except where an element had no accessible name, so hierarchy, badge shape and brand identity are unchanged.
+`docs/audit/PERMISSION-MATRIX.md` is the specification; four forward-only
+migrations (`20260811000002`–`000005`) implement it and
+`scripts/db/role-matrix.dbtest.mjs` asserts it. Roles: admin, worker,
+freelancer, commercial, intern, client.
 
-Colours corrected (all axe-measured): muted text, accent, six badge tones, three Tailwind hex tints, six Tailwind *named* status colours at 300/400 weights, `text-ink/40`–`/70` blends, rose-at-opacity, and per-theme brand text.
+`client_members` is the only source of client scope for commercial and client
+roles. `client_directory` is a reduced view — RLS is row-level, so a role that
+must not read `clients.notes` must not be given the row.
 
-Brand text is now theme-aware from the approved palette: **light `#1064D4`** (primary, 5.53:1), **dark `#8FADCE`** (supporting, 6.09:1). `#8FADCE` is unusable as light-mode body text at 1.70:1 on `#E8EBEC` and excellent on dark — the palette used where each colour works.
+**Three defects the first test run exposed.** Any user could set their own
+`profiles.role` to `'admin'`; the test guarding it could not fail, because it
+measured after a rollback. A commercial could mark their own draft **paid** —
+the policy pinned `status` and had no opinion on `payment_status`. And
+`client_directory` was writable, because a single-table view is auto-updatable
+and Supabase grants ALL to `authenticated` by default.
 
-### Chart palettes: no change needed
+**Trap worth carrying forward:** inside a `SECURITY DEFINER` function
+`current_user` is the function's OWNER, not the caller. Both guard triggers
+silently permitted every write they existed to stop until they were made
+invoker-rights. A guard that cannot be observed to fire is indistinguishable
+from one that is absent — assert rows affected, always.
 
-The final contrast failure looked like it required theme-aware chart palettes. It did not. `#34d399` on `#ceedec` was `text-emerald-400` on `bg-emerald-500/15` — **legend/label text, never a chart mark**. Status identity lives in the tint, which is untouched; only the label took a readable tone. `PIE_PALETTE`, donut swatches and all series colours are exactly as before.
+### Phase 3 — /dashboard/team — commit e146f30
 
-If a future failure genuinely involves a chart *mark*, that is when theme-aware palettes become necessary — `src/components/charts/palette.ts` is the natural home.
+**It was never a hydration mismatch.** Reproduced under a production build:
+the server component throws. `listTeamMembers()` built the Auth admin client to
+attach member emails and the constructor raises without
+`SUPABASE_SERVICE_ROLE_KEY`, which the default e2e run deliberately omits. Fixed
+with `createAdminClientOrNull()` — reads degrade, writes still fail loudly.
 
-### Screenshot matrix: captured
+### Environment note — syncing to the WSL clone
 
-`e2e/screenshots.spec.ts` writes 27 full-page captures (9 screens × 3 viewports) to `e2e/.artifacts/screens/`, which is gitignored — evidence for review, not repository content. All show synthetic seed data.
+`rsync` across `/mnt/c` stalls indefinitely (20+ minutes, no progress). Use a
+single tar stream instead:
 
 ```bash
-cd ~/AreenCUBs-Studio-staging
-npx playwright test screenshots
+bash /c/Users/AreenCubs/mksync.sh          # git archive of the staged tree
+wsl -d Ubuntu -u root -- bash -lc 'cp /mnt/c/Users/AreenCubs/extract.sh /tmp/x.sh && sed -i "s/$//" /tmp/x.sh && bash /tmp/x.sh'
 ```
 
-Reviewed by eye: hierarchy, typography, spacing and brand identity intact. The dashboard greeting renders the correct Africa/Tunis hour, confirming the hydration-safe time source. Finance shows `N/A` for a zero-denominator margin, which is the behaviour audit finding #15 asked for.
+Two hazards, both hit: run `git archive` from the **repo root** — with the shell
+inside a subdirectory it silently archives only that subtree. And `.sh` files
+need LF; `.gitattributes` now pins it, and `extract.sh` normalises on arrival.
 
-### Two traps worth remembering
+Supabase CLI 2.98.2 **silently skips migrations dated in the future**. Files
+named `20260812*` were ignored with no warning while `20260811*` applied. Name
+new migrations with today's date.
 
-1. **A theme override is only safe on surfaces that belong to that theme.** Light-mode corrections landed on the mobile navigation, which is `bg-[#0D2D47]/95` in *both* themes, giving 2.05:1 across nine nodes. It is `md:hidden`, so desktop runs could never show it. Persistently-dark containers are now marked `data-surface="dark"` and the light corrections are scoped around them. Mark any new such surface the same way.
-2. **A green suite can mean nothing ran.** One run reported "zero violations" only because the build had failed on a transient `next/font` fetch. Always confirm the pass count and a successful build, not just the absence of violations.
+### Next: Phase 4 — commercial dashboard
 
-### Next: Phase 2 — role schema and complete RLS matrix
+Personal pipeline, clients created and assigned, draft quotes and invoices,
+follow-up status, upcoming actions. No global finance totals, no unrelated
+clients, no worker-performance data, no final payment or destructive actions.
+The RLS is already in place and tested; this phase is the surface on top of it.
 
-Per the roadmap. **Write the permission matrix document first** — administrator, worker, freelancer, commercial, intern, client — then the forward-only migration adding roles and membership/assignment relationships, then RLS tests per role asserting rows visible *and* rows affected. Everything from Phase 3 onward depends on it.
+Then: intern dashboard → client portal → video review → Drive adapter →
+optional TVA → Content OS and reporting → final design/QA → gates → report.
 
 ### Totals
 
-200 unit · 103 database · 30 axe · typecheck clean · build clean, 52 routes.
+201 unit · 201 database · 63 e2e desktop · typecheck clean · build 53 routes.
