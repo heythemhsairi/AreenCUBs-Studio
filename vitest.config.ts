@@ -15,6 +15,11 @@ export default defineConfig({
     restoreMocks: true,
   },
   resolve: {
-    alias: { "@": path.resolve(__dirname, "./src") },
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+      // The marker package throws outside a Server Component, which is right
+      // in the app and wrong in a node test runner.
+      "server-only": path.resolve(__dirname, "./src/test/server-only-stub.ts"),
+    },
   },
 });
