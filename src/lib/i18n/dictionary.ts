@@ -885,6 +885,8 @@ export const dict = {
     nav: {
       overview: "Aperçu",
       review: "Révision vidéo",
+      reports: "Brief d'agence",
+      audit: "Journal d'audit",
       team: "Équipe",
       clients: "Clients",
       projects: "Projets",
@@ -2323,6 +2325,8 @@ export const dict = {
     nav: {
       overview: "Overview",
       review: "Video review",
+      reports: "Agency brief",
+      audit: "Audit log",
       team: "Team",
       clients: "Clients",
       projects: "Projects",

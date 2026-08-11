@@ -24,6 +24,8 @@ import {
   Layers,
   ClipboardList,
   Clapperboard,
+  FileBarChart,
+  ScrollText,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -146,6 +148,20 @@ function buildNav(
       icon: CalendarDays,
       rolesAllowed: ["admin"],
       group: "team",
+    },
+    {
+      href: "/dashboard/reports",
+      label: t.nav.reports,
+      icon: FileBarChart,
+      rolesAllowed: ["admin"],
+      group: "system",
+    },
+    {
+      href: "/dashboard/audit",
+      label: t.nav.audit,
+      icon: ScrollText,
+      rolesAllowed: ["admin"],
+      group: "system",
     },
     {
       href: "/dashboard/admin-tasks",

@@ -99,6 +99,9 @@ test.describe("axe — authenticated routes", () => {
     "/dashboard/projects",
     "/dashboard/finance",
     "/dashboard/content",
+    "/dashboard/review",
+    "/dashboard/reports",
+    "/dashboard/audit",
     "/dashboard/settings",
   ]) {
     test(`${route} has no serious or critical violations`, async ({ page }) => {
