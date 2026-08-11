@@ -173,6 +173,12 @@ export function TasksView({
           {/* Filter button */}
           <button
             type="button"
+            // axe `button-name`: the visible label is `hidden sm:inline`, so
+            // below the sm breakpoint this control is icon-only and has no
+            // discernible text. The name is always present; the visible span
+            // still carries it on wider viewports.
+            aria-label={t.tasksUi.filters}
+            aria-expanded={showFilters}
             onClick={() => setShowFilters((v) => !v)}
             className={cn(
               "inline-flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium transition-all",
@@ -245,13 +251,16 @@ export function TasksView({
       {/* Mobile sticky "Add task" button */}
       {!isFreelancer && (
         <div className="fixed bottom-6 right-5 z-50 md:hidden">
-          <Link href="/dashboard/tasks/new">
-            <button
-              type="button"
-              className="flex h-12 w-12 items-center justify-center rounded-full bg-[#22D3EE] text-[#071B2C] shadow-lg shadow-[#22D3EE]/25 transition-all hover:scale-105 hover:bg-[#06B6D4] active:scale-95"
-            >
-              <Plus size={20} />
-            </button>
+          {/* axe `link-name`: the anchor's only content was an icon, leaving
+              both the link and the button it wrapped without a name. A button
+              nested inside a link is also invalid — the anchor already is the
+              control, so the wrapper is gone and the styles moved onto it. */}
+          <Link
+            href="/dashboard/tasks/new"
+            aria-label={t.tasksUi.newTaskCta}
+            className="flex h-12 w-12 items-center justify-center rounded-full bg-[#22D3EE] text-[#071B2C] shadow-lg shadow-[#22D3EE]/25 transition-all hover:scale-105 hover:bg-[#06B6D4] active:scale-95"
+          >
+            <Plus size={20} aria-hidden="true" />
           </Link>
         </div>
       )}

@@ -928,3 +928,31 @@ html.light [data-surface="dark"] .text-ink\/65,
 html.light [data-surface="dark"] .text-ink\/70 { color: #8FADCE !important; }
 
 html.light [data-surface="dark"] .text-\[\#22D3EE\] { color: #7DD3FC !important; }
+
+/* -------------------------------------------------------------------------
+   Tailwind named status colours used as LABEL TEXT on their own tint
+   (e.g. `bg-emerald-500/15 text-emerald-400`). In light mode the tint
+   resolves to a pale wash and the 400-weight text fails badly — axe measured
+   emerald-400 on #CEEDEC at 1.55:1.
+
+   Status identity is carried by the TINT, which is unchanged. Only the label
+   takes a readable tone, reusing the values already established in this
+   phase rather than adding new ones. Dark mode is untouched, where the
+   400 weights already pass.
+   ------------------------------------------------------------------------- */
+html.light .text-emerald-300,
+html.light .text-emerald-400 { color: #166534 !important; }  /* 5.75:1 on #CEEDEC */
+html.light .text-rose-300,
+html.light .text-rose-400    { color: #A11D36 !important; }
+html.light .text-amber-300,
+html.light .text-amber-400   { color: #7C4A02 !important; }
+html.light .text-sky-300,
+html.light .text-sky-400     { color: #0A5680 !important; }
+html.light .text-violet-300,
+html.light .text-violet-400  { color: #6D28D9 !important; }
+html.light .text-cyan-300,
+html.light .text-cyan-400    { color: #0E6C87 !important; }
+
+/* Same treatment inside persistently-dark surfaces is NOT wanted — there the
+   400 weights are correct. The [data-surface="dark"] scope above already
+   handles the mobile navigation; extend it if another such surface appears. */
