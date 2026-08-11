@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createAdminClient, createAdminClientOrNull } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { usernameToEmail, type UserRole } from "@/lib/utils";
 import { TEAM_ROLES } from "@/lib/roles";
@@ -280,11 +280,27 @@ export async function listTeamMembers() {
     .order("created_at", { ascending: true });
   if (error) throw error;
 
-  const admin = createAdminClient();
-  const { data: usersList } = await admin.auth.admin.listUsers({ perPage: 200 });
-  const emailById = new Map(
-    (usersList?.users ?? []).map((u) => [u.id, u.email ?? ""]),
-  );
+  // Email lives in auth.users and is reachable only through the Auth admin
+  // API. It is one column of a directory that is otherwise fully readable
+  // through RLS, so its absence must not cost the page: without the guard the
+  // constructor threw during the server render and /dashboard/team returned a
+  // 500 with the message suppressed by the production build.
+  //
+  // That 500 is what three sessions recorded as a "hydration defect". It was
+  // never a hydration mismatch — the server component itself was throwing, and
+  // React's production error text ("An error occurred in the Server Components
+  // render") reads enough like a client-side failure to send a diagnosis down
+  // the wrong path.
+  const admin = createAdminClientOrNull();
+  let emailById = new Map<string, string>();
+  if (admin) {
+    const { data: usersList } = await admin.auth.admin.listUsers({ perPage: 200 });
+    emailById = new Map((usersList?.users ?? []).map((u) => [u.id, u.email ?? ""]));
+  } else {
+    console.warn(
+      "[team] SUPABASE_SERVICE_ROLE_KEY absent — member emails omitted from the directory.",
+    );
+  }
 
   return (profiles ?? []).map((p) => ({
     ...p,

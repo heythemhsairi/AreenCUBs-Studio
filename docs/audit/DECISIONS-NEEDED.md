@@ -182,3 +182,32 @@ cannot withhold a single column, so the policy is dropped and freelancers read
 
 **Decision required:** confirmation that no freelancer workflow currently
 depends on reading a client's internal notes, fiscal number or postal address.
+
+---
+
+## 12. Phase 3 — a note, not a decision
+
+**The `/dashboard/team` "hydration defect" did not exist.** Three sessions
+recorded it as React error #418. Reproducing it under a production build showed
+the server component itself throwing: `listTeamMembers()` built the Auth admin
+client to attach each member's email address, and the constructor raised when
+`SUPABASE_SERVICE_ROLE_KEY` was absent — which it deliberately is in the default
+end-to-end run.
+
+React's production wording, "An error occurred in the Server Components render",
+reads enough like a client-side failure to send a diagnosis down the wrong path,
+and the roadmap's Phase 3 plan (component bisection, invalid table nesting,
+`localeCompare`, generated IDs) was written against that wrong premise. None of
+it applied. Fixed by degrading the email enrichment instead of failing the route.
+
+### Carried into the Phase 10 security review, not urgent
+
+Four admin-only pages — `team/[id]`, `team/planning`, `team/planning/[id]`,
+`team/workload` — read `profiles`, `tasks`, `work_schedule` and `time_entries`
+through the **service-role** client. An administrator can already read all of
+that through RLS, so the elevated client buys nothing and widens the surface on
+which a future scoping bug becomes unbounded.
+
+Not changed now: switching them requires confirming an admin SELECT policy on
+each of those tables first, and a silent switch that returned empty data would
+be a worse regression than the 500 this phase removed.

@@ -41,6 +41,48 @@ test.describe("core navigation", () => {
   }
 });
 
+test.describe("service-role degradation", () => {
+  test.beforeEach(async ({ page }) => {
+    await login(page, "admin");
+  });
+
+  test("the team directory renders without a service-role key", async ({
+    page,
+    diagnostics,
+  }) => {
+    // The default e2e run writes no SUPABASE_SERVICE_ROLE_KEY on purpose: a
+    // suite that needs the most privileged credential in the system to pass is
+    // a suite that will one day leak it. Only `--with-service-role` supplies it.
+    //
+    // /dashboard/team used to return a 500 under that default, because it
+    // built the Auth admin client to attach each member's email address and
+    // the constructor threw when the key was missing. The whole directory was
+    // lost to one display column, and React's production wording — "An error
+    // occurred in the Server Components render" — made it look like a client
+    // hydration fault for three sessions running.
+    //
+    // The assertion is that the page renders and stays silent. Emails are
+    // present or absent depending on how the suite was invoked, so they are
+    // deliberately not asserted here.
+    const res = await page.goto("/dashboard/team", { waitUntil: "networkidle" });
+    expect(res?.status()).toBeLessThan(400);
+    // Asserted through visible body text rather than a locator, for two
+    // reasons that each broke an earlier attempt. The signed-in admin's name
+    // also sits in the topbar account menu, so it stays present even when the
+    // directory fails entirely; and the page renders BOTH a table and a card
+    // list, hiding one by breakpoint, so every getByText matches twice and
+    // trips strict mode. innerText returns only what is actually displayed.
+    const body = await page.locator("body").innerText();
+    expect(body).toContain("Staging Commercial");
+
+    // And the Phase 2 boundary, pinned here because it is a rendering
+    // property: a client organisation's contact holds a profiles row but is
+    // not an employee, and must never appear in the agency's team directory.
+    expect(body).not.toContain("Staging Client Contact");
+    expect(diagnostics.significantErrors()).toEqual([]);
+  });
+});
+
 test.describe("Publishing hydration — the #418 regression", () => {
   test.beforeEach(async ({ page }) => {
     await login(page, "admin");
