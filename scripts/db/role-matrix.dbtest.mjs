@@ -4,6 +4,7 @@ import {
   sqlAs,
   sqlAsExpectDeniedOrZero,
   sqlAsExpectError,
+  sqlAsAnon,
   dbAvailable,
   USERS,
   FIXTURES,
@@ -1142,5 +1143,96 @@ describe("optional TVA — Phase 9", () => {
           "and tablename = 'money_shadow_log' and cmd in ('UPDATE','DELETE');",
       ),
     ).toBe("0");
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+describe("owner-run views — the boundary they are", () => {
+  // These seven views deliberately bypass RLS: they run as their owner so they
+  // can project safe columns out of tables the caller holds no policy on. That
+  // makes each one a security boundary in its own right, and the grant list is
+  // the whole of its access control.
+  //
+  // The tests are written over ALL current views by pattern rather than a
+  // hard-coded list, so a view added later is covered the day it appears —
+  // which matters, because Supabase grants ALL on new objects in `public` to
+  // `authenticated` by default. A new portal view without an explicit REVOKE
+  // would be writable from the browser, and a single-table view is
+  // auto-updatable. That exact hole existed in client_directory until a test
+  // tried it.
+
+  const viewList = () =>
+    sql(
+      "select coalesce(string_agg(viewname, ',' order by viewname), '') from pg_views " +
+        "where schemaname = 'public' and (viewname like 'portal_%' or viewname = 'client_directory');",
+    )
+      .split(",")
+      .filter(Boolean);
+
+  it("there are owner-run views to check", () => {
+    expect(viewList().length).toBeGreaterThan(0);
+  });
+
+  it("grant nothing to anon or PUBLIC", () => {
+    const leaked = sql(
+      "select coalesce(string_agg(table_name || '/' || grantee || '/' || privilege_type, ', '), 'none') " +
+        "from information_schema.role_table_grants " +
+        "where table_schema = 'public' " +
+        "  and (table_name like 'portal_%' or table_name = 'client_directory') " +
+        "  and grantee in ('anon', 'PUBLIC');",
+    );
+    expect(leaked).toBe("none");
+  });
+
+  it("grant authenticated nothing beyond SELECT", () => {
+    // INSERT/UPDATE/DELETE here would write straight through to the base
+    // table, past the policy the view exists to enforce.
+    const writable = sql(
+      "select coalesce(string_agg(table_name || '/' || privilege_type, ', '), 'none') " +
+        "from information_schema.role_table_grants " +
+        "where table_schema = 'public' " +
+        "  and (table_name like 'portal_%' or table_name = 'client_directory') " +
+        "  and grantee = 'authenticated' and privilege_type <> 'SELECT';",
+    );
+    expect(writable).toBe("none");
+  });
+
+  it("are unreadable by the anon role — denied by grant, not merely empty", () => {
+    // sqlAsAnon, NOT sqlAs(null, ...). The two are different callers and the
+    // difference is the point: sqlAs(null) still presents role=authenticated
+    // with no `sub`, so it HOLDS the SELECT grant and simply matches no rows.
+    // The anon role holds no grant at all and is refused outright. Asserting
+    // the wrong one passes for the wrong reason.
+    for (const v of viewList()) {
+      let denied = false;
+      try {
+        sqlAsAnon(`select count(*) from public.${v};`);
+      } catch {
+        denied = true;
+      }
+      // psql may surface the refusal as output rather than a throw.
+      if (!denied) {
+        denied = /permission denied/i.test(sqlAsAnon(`select count(*) from public.${v};`));
+      }
+      expect(`${v}:${denied}`).toBe(`${v}:true`);
+    }
+  });
+
+  it("return nothing to an authenticated session carrying no identity", () => {
+    // The other half: a caller that DOES hold the grant but has no `sub`.
+    // Every view resolves membership from auth.uid(), so the answer is zero
+    // rows rather than an error — belt to the anon braces above.
+    for (const v of viewList()) {
+      expect(`${v}:${sqlAs(null, `select count(*) from public.${v};`)}`).toBe(`${v}:0`);
+    }
+  });
+
+  it("return nothing to an authenticated user with no membership", () => {
+    // The orphan account: a real session, no profile, no client_members row.
+    // Every view resolves membership from auth.uid(), so all seven must be
+    // empty rather than merely filtered by something the caller controls.
+    for (const v of viewList()) {
+      expect(`${v}:${count(USERS.orphan, "public." + v)}`).toBe(`${v}:0`);
+    }
   });
 });
