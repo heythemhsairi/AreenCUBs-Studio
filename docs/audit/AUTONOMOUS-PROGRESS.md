@@ -186,3 +186,19 @@ With the true output shape, `pick()` in `scripts/run-e2e.sh` is a one-line chang
 ## Phase 2f — dashboard quality audit — **NOT STARTED**
 
 Depends on Phase 2d for browser evidence. Producing a quality report without it would mean inventing findings, which the brief explicitly forbids.
+
+---
+
+## Phase 1 — contrast and semantic design tokens
+
+**Status: complete.**
+
+Axe: **30 passed, 0 failed, zero violations** across desktop, tablet and mobile; rules wcag2a/wcag2aa/wcag21a/wcag21aa with **no exclusions**. Started at 9 failing / 1 passing on desktop alone.
+
+All corrections sit in the light-theme override block in globals.css; components were restyled only where an element had no accessible name. Hierarchy, badge shape and brand identity are unchanged, confirmed by reviewing the 27-image screenshot matrix.
+
+Brand text became theme-aware from the approved palette — light #1064D4 (5.53:1), dark #8FADCE (6.09:1). The supporting colour is unusable as light-mode body text at 1.70:1 and excellent on dark, so it is used where it works.
+
+**No theme-aware chart palette was needed.** The last failure looked structural but was legend text (text-emerald-400 on its own tint), not a chart mark. Series colours and swatches are untouched.
+
+Two traps recorded in SESSION-STATE: a theme override landing on a surface that keeps the other theme (the md:hidden mobile nav, invisible to desktop runs), and a green suite that only looked green because the build had failed and nothing ran.

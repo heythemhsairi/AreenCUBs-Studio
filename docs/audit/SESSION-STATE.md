@@ -179,46 +179,44 @@ Write the permission matrix first. Everything from Phase 3 onward depends on it.
 
 ---
 
-## Continuation point — b62b41c
+## Continuation point — Phase 1 COMPLETE
 
-### Phase 1 (contrast) — one item left, and it is structural
+### Phase 1 — contrast and semantic design tokens: DONE
 
-**Verified across desktop + tablet + mobile: 4 failing axe checks, 26 passing.** The 4 are a single colour pair counted once per viewport.
+**Axe: 30 passed, 0 failed, zero violations of any rule**, across desktop 1280×720, tablet 768×1024 and mobile 390×844, rules `wcag2a wcag2aa wcag21a wcag21aa`, **no exclusions**. Session start was 9 failing / 1 passing on desktop alone.
 
-All corrections live in the light-theme override block in `globals.css`. Components were not restyled, so hierarchy, badge shape and brand identity are unchanged — only text colours moved.
+Everything was corrected in the light-theme override block in `globals.css`. Components were not restyled except where an element had no accessible name, so hierarchy, badge shape and brand identity are unchanged.
 
-### The one remaining failure
+Colours corrected (all axe-measured): muted text, accent, six badge tones, three Tailwind hex tints, six Tailwind *named* status colours at 300/400 weights, `text-ink/40`–`/70` blends, rose-at-opacity, and per-theme brand text.
 
-`#34d399` on `#ceedec` = **1.55:1**, from `PIE_PALETTE` in `src/app/dashboard/finance/finance-client.tsx:116`, rendered as donut legend text.
+Brand text is now theme-aware from the approved palette: **light `#1064D4`** (primary, 5.53:1), **dark `#8FADCE`** (supporting, 6.09:1). `#8FADCE` is unusable as light-mode body text at 1.70:1 on `#E8EBEC` and excellent on dark — the palette used where each colour works.
 
-**It cannot be fixed by changing the value.** The palette is shared by both themes:
+### Chart palettes: no change needed
 
-| Candidate | Light on `#ceedec` | Dark on `#0d2d47` |
-|---|---|---|
-| `#34D399` (current) | 1.55 ✗ | passes |
-| `#166534` | 5.75 ✓ | 1.99 ✗ |
-| `#047857` | 4.43 ✗ | 2.58 ✗ |
+The final contrast failure looked like it required theme-aware chart palettes. It did not. `#34d399` on `#ceedec` was `text-emerald-400` on `bg-emerald-500/15` — **legend/label text, never a chart mark**. Status identity lives in the tint, which is untouched; only the label took a readable tone. `PIE_PALETTE`, donut swatches and all series colours are exactly as before.
 
-**Chart palettes must become theme-aware** — series colours resolved per theme rather than a shared constant array. `src/components/charts/palette.ts` already centralises one palette and is the natural place. `PIE_PALETTE` in `finance-client.tsx` and the `expenses` / `profit` constants above it should move there too.
+If a future failure genuinely involves a chart *mark*, that is when theme-aware palettes become necessary — `src/components/charts/palette.ts` is the natural home.
 
-This is a real refactor of how chart colour is resolved, not a value swap. It was deliberately not forced, because any single value that fixes light mode breaks dark-mode data visualisation.
+### Screenshot matrix: captured
 
-### Regression worth remembering
+`e2e/screenshots.spec.ts` writes 27 full-page captures (9 screens × 3 viewports) to `e2e/.artifacts/screens/`, which is gitignored — evidence for review, not repository content. All show synthetic seed data.
 
-Running only desktop hid a regression I introduced. My light-mode replacements landed on the mobile bottom navigation, which is painted `bg-[#0D2D47]/95` in **both** themes, giving `#556575` on `#193750` at 2.05:1 across nine nodes. The nav is `md:hidden`, so desktop could never see it.
+```bash
+cd ~/AreenCUBs-Studio-staging
+npx playwright test screenshots
+```
 
-Fixed by marking persistently-dark containers with `data-surface="dark"` and scoping the light-theme corrections around them. **Any future theme override must be checked against every surface it can land on, on every viewport.** If another always-dark surface appears, mark it the same way.
+Reviewed by eye: hierarchy, typography, spacing and brand identity intact. The dashboard greeting renders the correct Africa/Tunis hour, confirming the hydration-safe time source. Finance shows `N/A` for a zero-denominator margin, which is the behaviour audit finding #15 asked for.
 
-### Still outstanding for Phase 1
+### Two traps worth remembering
 
-- Fabricated-data screenshots at 1280×720, 768×1024, 390×844
-- Theme-aware chart palettes (the item above)
+1. **A theme override is only safe on surfaces that belong to that theme.** Light-mode corrections landed on the mobile navigation, which is `bg-[#0D2D47]/95` in *both* themes, giving 2.05:1 across nine nodes. It is `md:hidden`, so desktop runs could never show it. Persistently-dark containers are now marked `data-surface="dark"` and the light corrections are scoped around them. Mark any new such surface the same way.
+2. **A green suite can mean nothing ran.** One run reported "zero violations" only because the build had failed on a transient `next/font` fetch. Always confirm the pass count and a successful build, not just the absence of violations.
 
-### Then: Phase 2 — role schema and complete RLS matrix
+### Next: Phase 2 — role schema and complete RLS matrix
 
-Write the permission matrix first. Everything from Phase 3 onward depends on it.
+Per the roadmap. **Write the permission matrix document first** — administrator, worker, freelancer, commercial, intern, client — then the forward-only migration adding roles and membership/assignment relationships, then RLS tests per role asserting rows visible *and* rows affected. Everything from Phase 3 onward depends on it.
 
-### Totals at this commit
+### Totals
 
-200 unit · 103 database · typecheck clean · build clean, 52 routes.
-Axe: 4 failing / 26 passing across all three viewports.
+200 unit · 103 database · 30 axe · typecheck clean · build clean, 52 routes.
