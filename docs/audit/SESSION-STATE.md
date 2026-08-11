@@ -179,70 +179,97 @@ Write the permission matrix first. Everything from Phase 3 onward depends on it.
 
 ---
 
-## Continuation point — Phase 3 complete, HEAD e146f30
+## Continuation point — Phase 6 complete, HEAD 9f77812
 
-Branch `phase-1-data-integrity`. Phases 1, 2 and 3 are done and committed.
+Branch `phase-1-data-integrity`. Phases 1–6 are done and committed.
 
-### Phase 2 — six-role matrix and RLS — commit b2bc5b9
+| Phase | Commit | What landed |
+|---|---|---|
+| 2 — roles and RLS | `b2bc5b9` | Six-role matrix, `client_members`, `client_directory`, audit log, column guards |
+| 3 — /dashboard/team | `e146f30` | Was a server-render throw, not a hydration mismatch |
+| 4 — commercial | `a2578c3` | Commercial dashboard, `requireQuoteAccess`, scoped devis/factures |
+| 5 — intern | `d51a64a` | Intern dashboard, `requireClientAccess`, navigation for the new roles |
+| 6 — client portal | `9f77812` | Portal views, `portal_set_approval`, notifications, audit |
 
-`docs/audit/PERMISSION-MATRIX.md` is the specification; four forward-only
-migrations (`20260811000002`–`000005`) implement it and
-`scripts/db/role-matrix.dbtest.mjs` asserts it. Roles: admin, worker,
-freelancer, commercial, intern, client.
+### Where the boundaries actually live
 
-`client_members` is the only source of client scope for commercial and client
-roles. `client_directory` is a reduced view — RLS is row-level, so a role that
-must not read `clients.notes` must not be given the row.
+**Role scope is in the database, never in a component.** Every dashboard reads
+through the RLS-bound client and does no filtering of its own — if a page had to
+filter, the policy would not be doing its job. `commercial_owns_client()`,
+`assigned_to_task()`, `client_contact_of()` are the definitions.
 
-**Three defects the first test run exposed.** Any user could set their own
-`profiles.role` to `'admin'`; the test guarding it could not fail, because it
-measured after a rollback. A commercial could mark their own draft **paid** —
-the policy pinned `status` and had no opinion on `payment_status`. And
-`client_directory` was writable, because a single-table view is auto-updatable
-and Supabase grants ALL to `authenticated` by default.
+**The commercial and intern dashboards branch BEFORE any query runs**, in
+`src/app/dashboard/page.tsx`. The surest way not to show agency finance is never
+to ask for it; a conditional around markup leaves the number one refactor from
+being rendered.
 
-**Trap worth carrying forward:** inside a `SECURITY DEFINER` function
-`current_user` is the function's OWNER, not the caller. Both guard triggers
-silently permitted every write they existed to stop until they were made
-invoker-rights. A guard that cannot be observed to fire is indistinguishable
-from one that is absent — assert rows affected, always.
+**Guards are allow-lists.** `requireInternal`, `requireQuoteAccess`,
+`requireClientAccess`, `requireClientContact`. A role nobody has thought of yet
+reaches nothing.
 
-### Phase 3 — /dashboard/team — commit e146f30
+**Column containment is done with views, because RLS cannot do it.**
+`client_directory` for intern/freelancer, `portal_*` for the client role. Each
+is owner-run, carries its own membership filter, and is explicitly
+`REVOKE`d — a single-table view is auto-updatable and Supabase grants ALL to
+`authenticated` by default, which made `client_directory` writable until a test
+tried it.
 
-**It was never a hydration mismatch.** Reproduced under a production build:
-the server component throws. `listTeamMembers()` built the Auth admin client to
-attach member emails and the constructor raises without
-`SUPABASE_SERVICE_ROLE_KEY`, which the default e2e run deliberately omits. Fixed
-with `createAdminClientOrNull()` — reads degrade, writes still fail loudly.
+### Traps this program has already paid for
 
-### Environment note — syncing to the WSL clone
+1. **`SECURITY DEFINER` changes `current_user` to the function's owner.** Both
+   Phase 2 guard triggers silently permitted every write they existed to stop
+   until they were made invoker-rights.
+2. **Assert rows AFFECTED, never whether a statement threw.** RLS denies writes
+   by filtering. The pre-existing escalation test measured after a rollback and
+   therefore could not fail.
+3. **Supabase CLI 2.98.2 silently skips migrations dated in the future.** Files
+   named `20260812*` were ignored with no warning while `20260811*` applied.
+4. **`git archive` scopes to the shell's current directory.** Run it from the
+   repo root or it silently archives a subtree.
+5. **Backslash escapes collapse in Bash-tool heredocs.** `"\n"` inside a Python
+   heredoc lands as a literal newline in the output file — twice this produced a
+   JS parse error that took a whole suite out of the run while the summary still
+   read "passed". Write such scripts with the Write tool instead.
+6. **Browser tests are not rolled back.** Anything an e2e test writes persists;
+   restore the fixture or assert a delta.
 
-`rsync` across `/mnt/c` stalls indefinitely (20+ minutes, no progress). Use a
-single tar stream instead:
+### Environment — syncing to the WSL clone
+
+`rsync` across `/mnt/c` stalls indefinitely. Use the tar stream:
 
 ```bash
-bash /c/Users/AreenCubs/mksync.sh          # git archive of the staged tree
-wsl -d Ubuntu -u root -- bash -lc 'cp /mnt/c/Users/AreenCubs/extract.sh /tmp/x.sh && sed -i "s/$//" /tmp/x.sh && bash /tmp/x.sh'
+bash /c/Users/AreenCubs/mksync.sh                    # git archive of the staged tree
+wsl -d Ubuntu -u root -- bash -lc 'bash /root/run.sh <task>.sh'
 ```
 
-Two hazards, both hit: run `git archive` from the **repo root** — with the shell
-inside a subdirectory it silently archives only that subtree. And `.sh` files
-need LF; `.gitattributes` now pins it, and `extract.sh` normalises on arrival.
+`run.sh` re-copies its helpers each call because WSL clears `/tmp` when the
+instance idles out. `.gitattributes` pins `*.sh` to LF; `extract.sh` normalises
+again on arrival.
 
-Supabase CLI 2.98.2 **silently skips migrations dated in the future**. Files
-named `20260812*` were ignored with no warning while `20260811*` applied. Name
-new migrations with today's date.
+### Next: Phase 7 — video review
 
-### Next: Phase 4 — commercial dashboard
+Internal upload and attachment, client-specific access, versions, time-coded and
+general comments, comment resolution, review status, audit history, file
+metadata, role-based permissions. Internal staff upload; clients view and
+comment. **No public unauthenticated file URLs.** Local synthetic storage
+provider, file-type and size validation, unauthorized-access tests, never commit
+media.
 
-Personal pipeline, clients created and assigned, draft quotes and invoices,
-follow-up status, upcoming actions. No global finance totals, no unrelated
-clients, no worker-performance data, no final payment or destructive actions.
-The RLS is already in place and tested; this phase is the surface on top of it.
+The portal already has the shape to extend: add `portal_review_media` and
+`portal_review_comments` views plus a `portal_add_review_comment()` function,
+following the same owner-run-view + SECURITY-DEFINER-write pattern.
 
-Then: intern dashboard → client portal → video review → Drive adapter →
-optional TVA → Content OS and reporting → final design/QA → gates → report.
+Then: Phase 8 Drive adapter → 9 optional TVA → 10 Content OS/reporting/security
+review → 11 all gates → 12 completion report.
 
-### Totals
+### Totals at this commit
 
-201 unit · 201 database · 63 e2e desktop · typecheck clean · build 53 routes.
+201 unit · 214 database · 81 e2e desktop · axe clean incl. `/portal` ·
+typecheck clean · build clean.
+
+### Still approval-gated — see DECISIONS-NEEDED.md
+
+Service-role key rotation; the live self-escalation fix (§11a) — **any signed-in
+user can currently make themselves an administrator in production**; worker
+scope narrowing (§11b); freelancer losing `clients.notes` (§11c); money
+divergence; everything touching production.
