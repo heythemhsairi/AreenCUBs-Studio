@@ -133,3 +133,46 @@ Open **http://127.0.0.1:3000/dashboard**. Synthetic logins (fabricated, local DB
 3. **Phase 1A hydration** — use production-build component bisection; the dev-server harness failed three times.
 
 Phases 4–7 and 10 are each multi-session features. Do not start one without room to finish and verify it.
+
+---
+
+## Continuation point — 37a015a
+
+**Program is now persistent.** A session needs only: `Continue.` See `CLAUDE.md` and `docs/audit/MASTER-IMPLEMENTATION-ROADMAP.md`.
+
+### In progress: Phase 1 — contrast and semantic design tokens
+
+**Done:** the two largest light-theme offenders fixed at their true source (the light-theme override block in globals.css, NOT the custom properties — a first attempt at the tokens changed nothing, because those elements do not consume them).
+
+- `#6C8298` → `#556575` (30+ nodes; 3.97 → 5.99:1 on white)
+- `#1A9DBF` → `#0E6C87` (13 nodes; 2.92 → 5.50:1 on #F0F6FF)
+
+**Next, immediately:** the remaining long tail, each 1–7 nodes, all on light surfaces:
+
+| Pair | Ratio | Source |
+|---|---|---|
+| `#7c848f` on `#ffffff` | 3.78 | `text-ink/NN` opacity blend |
+| `#74767c` on `#f5f9ff` | 4.29 | `text-ink/NN` opacity blend |
+| `#f43f5e` on `#feecef` | 3.22 | danger badge |
+| `#7dd3fc` on `#e1f5fe` | 1.48 | info badge |
+| `#22c55e` on `#ffffff` | 2.27 | success (24px, needs 3:1) |
+| `#fcd34d` on `#fdecce` | 1.24 | warning badge |
+| `#fb7185` / `#f4627d` / `#a78bfa` | 2.0–2.7 | badge tints |
+
+Badges need a per-tone foreground/background token pair (one darkened foreground per tint), not a single global change. The opacity-derived greys need the `ink` blends raising or replacing with solid tokens.
+
+**How to get the evidence:** `e2e/axe.spec.ts` now prints the exact failing colour pairs with ratios and font sizes. Run:
+
+```bash
+cd ~/AreenCUBs-Studio-staging && bash scripts/run-e2e.sh --project=desktop -g axe
+```
+
+Still outstanding for Phase 1: light AND dark theme verification, and fabricated-data screenshots at all three viewports.
+
+### Then: Phase 2 — role schema and complete RLS matrix
+
+Write the permission matrix first. Everything from Phase 3 onward depends on it.
+
+### Totals at this commit
+
+200 unit · 103 database · typecheck clean · build clean 52 routes. Axe still fails on the remaining tail (deliberately — real defects, not suppressed).
