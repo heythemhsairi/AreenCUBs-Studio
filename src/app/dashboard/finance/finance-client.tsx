@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useChartColors } from "@/components/charts/use-chart-colors";
 import { cn } from "@/lib/utils";
 import { formatDt, formatDate } from "@/lib/format";
 import { KpiCard } from "@/components/ui/kpi-card";
@@ -106,17 +107,29 @@ function noData(c: number, _p: number): boolean {
 // Chart palette
 // ---------------------------------------------------------------------------
 
-const CHART_COLORS = {
-  paid:     "#22C55E",
-  invoiced: "#22D3EE",
-  expenses: "#F43F5E",
-  profit:   "#A78BFA",
-};
-
-const PIE_PALETTE = [
-  "#22D3EE", "#22C55E", "#A78BFA", "#F59E0B",
-  "#F43F5E", "#FB923C", "#34D399", "#818CF8",
-];
+/*
+ * Chart colour now comes from the tokens at runtime, via useChartColors().
+ * These constants were theme-blind: the same eight hexes painted in both
+ * themes, so a series that cleared contrast on the dark canvas failed on the
+ * light one, and the "profit" violet was a colour that appears nowhere else in
+ * the product.
+ *
+ * The semantic four keep their MEANING (paid is the success role, expenses the
+ * danger role) rather than being flattened into the categorical ramp — in this
+ * chart the colour is information, not a series index.
+ */
+function useFinanceColors() {
+  const c = useChartColors();
+  return {
+    palette: c,
+    semantic: {
+      paid: c.success,
+      invoiced: c.info,
+      expenses: c.danger,
+      profit: c.accent,
+    },
+  };
+}
 
 // ---------------------------------------------------------------------------
 // Custom Recharts Tooltip
@@ -167,6 +180,7 @@ function RevenueAreaChart({ series, labels }: {
   series: MonthlySeries[];
   labels: { collected: string; invoiced: string; expenses: string; profit: string };
 }) {
+  const chart = useFinanceColors();
   const { t } = useI18n();
   if (!series.length) {
     return (
@@ -189,33 +203,33 @@ function RevenueAreaChart({ series, labels }: {
       <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 8 }}>
         <defs>
           <linearGradient id="gradPaid" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%"  stopColor={CHART_COLORS.paid}     stopOpacity={0.3} />
-            <stop offset="95%" stopColor={CHART_COLORS.paid}     stopOpacity={0} />
+            <stop offset="5%"  stopColor={chart.semantic.paid}     stopOpacity={0.3} />
+            <stop offset="95%" stopColor={chart.semantic.paid}     stopOpacity={0} />
           </linearGradient>
           <linearGradient id="gradInvoiced" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%"  stopColor={CHART_COLORS.invoiced} stopOpacity={0.25} />
-            <stop offset="95%" stopColor={CHART_COLORS.invoiced} stopOpacity={0} />
+            <stop offset="5%"  stopColor={chart.semantic.invoiced} stopOpacity={0.25} />
+            <stop offset="95%" stopColor={chart.semantic.invoiced} stopOpacity={0} />
           </linearGradient>
           <linearGradient id="gradExpenses" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%"  stopColor={CHART_COLORS.expenses} stopOpacity={0.25} />
-            <stop offset="95%" stopColor={CHART_COLORS.expenses} stopOpacity={0} />
+            <stop offset="5%"  stopColor={chart.semantic.expenses} stopOpacity={0.25} />
+            <stop offset="95%" stopColor={chart.semantic.expenses} stopOpacity={0} />
           </linearGradient>
           <linearGradient id="gradProfit" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%"  stopColor={CHART_COLORS.profit}   stopOpacity={0.25} />
-            <stop offset="95%" stopColor={CHART_COLORS.profit}   stopOpacity={0} />
+            <stop offset="5%"  stopColor={chart.semantic.profit}   stopOpacity={0.25} />
+            <stop offset="95%" stopColor={chart.semantic.profit}   stopOpacity={0} />
           </linearGradient>
         </defs>
 
-        <CartesianGrid stroke="#22506F" strokeDasharray="4 2" vertical={false} />
+        <CartesianGrid stroke={chart.palette.grid} strokeDasharray="4 2" vertical={false} />
 
         <XAxis
           dataKey="name"
-          tick={{ fill: "#64748B", fontSize: 11 }}
+          tick={{ fill: chart.palette.text, fontSize: 11 }}
           axisLine={false}
           tickLine={false}
         />
         <YAxis
-          tick={{ fill: "#64748B", fontSize: 11 }}
+          tick={{ fill: chart.palette.text, fontSize: 11 }}
           axisLine={false}
           tickLine={false}
           tickFormatter={(v: number) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`}
@@ -230,10 +244,10 @@ function RevenueAreaChart({ series, labels }: {
           iconSize={8}
         />
 
-        <Area type="monotone" dataKey={labels.collected} stroke={CHART_COLORS.paid}     strokeWidth={2} fill="url(#gradPaid)"      dot={false} activeDot={{ r: 4, fill: CHART_COLORS.paid }} />
-        <Area type="monotone" dataKey={labels.invoiced}  stroke={CHART_COLORS.invoiced} strokeWidth={2} fill="url(#gradInvoiced)"  dot={false} activeDot={{ r: 4, fill: CHART_COLORS.invoiced }} />
-        <Area type="monotone" dataKey={labels.expenses}  stroke={CHART_COLORS.expenses} strokeWidth={2} fill="url(#gradExpenses)"  dot={false} activeDot={{ r: 4, fill: CHART_COLORS.expenses }} />
-        <Area type="monotone" dataKey={labels.profit}    stroke={CHART_COLORS.profit}   strokeWidth={2} fill="url(#gradProfit)"    dot={false} activeDot={{ r: 4, fill: CHART_COLORS.profit }} />
+        <Area type="monotone" dataKey={labels.collected} stroke={chart.semantic.paid}     strokeWidth={2} fill="url(#gradPaid)"      dot={false} activeDot={{ r: 4, fill: chart.semantic.paid }} />
+        <Area type="monotone" dataKey={labels.invoiced}  stroke={chart.semantic.invoiced} strokeWidth={2} fill="url(#gradInvoiced)"  dot={false} activeDot={{ r: 4, fill: chart.semantic.invoiced }} />
+        <Area type="monotone" dataKey={labels.expenses}  stroke={chart.semantic.expenses} strokeWidth={2} fill="url(#gradExpenses)"  dot={false} activeDot={{ r: 4, fill: chart.semantic.expenses }} />
+        <Area type="monotone" dataKey={labels.profit}    stroke={chart.semantic.profit}   strokeWidth={2} fill="url(#gradProfit)"    dot={false} activeDot={{ r: 4, fill: chart.semantic.profit }} />
       </AreaChart>
     </ResponsiveContainer>
   );
@@ -373,22 +387,22 @@ function DashboardTab(props: Props) {
     ...topSlices.map((s, i) => ({
       label: serviceLabel(s),
       value: s.total_dt,
-      color: PIE_PALETTE[i % PIE_PALETTE.length],
+      color: chart.palette.series[i % 6],
     })),
-    ...(restTotal > 0 ? [{ label: tf.donutOthers, value: restTotal, color: PIE_PALETTE[6 % PIE_PALETTE.length] }] : []),
+    ...(restTotal > 0 ? [{ label: tf.donutOthers, value: restTotal, color: chart.palette.series[6 % 6] }] : []),
   ];
 
   // Expense donut
   const expDonut = Object.entries(props.expByCategory)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 7)
-    .map(([k, v], i) => ({ label: CATEGORY_LABELS[k] ?? k, value: v, color: PIE_PALETTE[i % PIE_PALETTE.length] }));
+    .map(([k, v], i) => ({ label: CATEGORY_LABELS[k] ?? k, value: v, color: chart.palette.series[i % 6] }));
 
   // Top clients donut
   const clientDonut = props.topClients.slice(0, 6).map((c, i) => ({
     label: c.name,
     value: c.paid,
-    color: PIE_PALETTE[i % PIE_PALETTE.length],
+    color: chart.palette.series[i % 6],
   }));
 
   return (
@@ -625,3 +639,5 @@ export function FinanceDashboardClient(props: Props) {
     </div>
   );
 }
+
+  const chart = useFinanceColors();
