@@ -108,6 +108,31 @@ The old matrix only ever photographed the administrator in the default theme —
 exactly the blind spot a redesign creates, since the light theme and four roles
 were being changed with nobody looking at them.
 
+### The new matrix DOES NOT WORK YET — 117 failed / 15 passed, 1.3 hours
+
+Measured, not assumed. Two full runs finished with the same shape: most tests
+failing in `beforeEach` on `page.fill` against `/login`, after a runtime of
+about eighty minutes.
+
+The filter collision with the old spec was real but was **not** the main cause.
+The design of `shots.spec.ts` is: roughly 174 tests (6 roles × their routes ×
+3 viewports), each performing its **own full sign-in**, then two full-page
+screenshots with a 600 ms settle. That is ~174 logins against one dev server,
+and once it saturates, the login form stops rendering inside the timeout and
+every subsequent test fails the hook rather than the assertion — which is why
+the failures look like a login bug rather than a load problem.
+
+**The fix is to stop logging in per test.** Either:
+
+- capture one Playwright `storageState` per role once, and have each test reuse
+  it (`test.use({ storageState })`), or
+- collapse each role into a SINGLE test that signs in once and walks its routes
+  in a loop, taking both themes at each stop.
+
+The second is simpler here and cuts the run to six logins. Either way, re-run
+and **review the images** before marking any route ✅ — the point of the matrix
+is human inspection, and no one has inspected these.
+
 ---
 
 ## OPEN DEFECT — axe is RED, and it is a regression from this work

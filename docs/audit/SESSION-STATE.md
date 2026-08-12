@@ -241,10 +241,19 @@ on. Only the heading structure was fixed.
 ### Screenshot matrix
 
 `e2e/shots.spec.ts` — 6 roles × their reachable routes × both themes × 3
-viewports, plus unauthenticated states. **It has not completed a clean run
-yet**: the old `screenshots.spec.ts` matched the same `-g "design evidence"`
-filter, so both suites ran at once and competed for one dev server. The old
-spec is now deleted; re-run and review before marking any route done.
+viewports, plus unauthenticated states. **It is BROKEN: 117 failed / 15 passed
+over 1.3 hours**, measured across two full runs.
+
+The filter collision with the old spec was real but secondary. The spec runs
+~174 tests and each performs its **own sign-in**; the dev server saturates, the
+login form stops rendering inside the timeout, and every later test fails in
+`beforeEach` — which makes a load problem look like a login bug.
+
+Fix: sign in **once per role**, not once per test. Either reuse a Playwright
+`storageState` per role, or collapse each role into a single test that walks
+its routes in a loop taking both themes at each stop. That is six logins
+instead of 174. Then re-run and actually **look at the images** — the matrix
+exists for human inspection, and nobody has inspected these.
 
 
 
