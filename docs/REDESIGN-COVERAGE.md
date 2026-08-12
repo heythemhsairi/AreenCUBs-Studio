@@ -92,90 +92,160 @@ layouts are unchanged.
 
 ---
 
-## Screenshot matrix
+## Screenshot matrix — REPAIRED, GREEN, AND REVIEWED
 
-`e2e/shots.spec.ts` replaces the old 12-screen set (`screenshots.spec.ts`,
-now deleted — both matched the same `-g "design evidence"` filter and ran
-simultaneously, competing for one dev server):
+`e2e/shots.spec.ts`. **21 passed / 0 failed in 11.7 minutes**, 420 screenshots.
 
-- **6 roles** across their own reachable routes (admin 17, commercial 4,
-  worker 3, intern 2, freelancer 2, client 1)
-- **both themes** per shot
-- **3 viewports** — 1280×720, 768×1024, 390×844
-- plus unauthenticated states (login, 404, account-unavailable)
+Previously: 117 failed / 15 passed in ~80 minutes, never reviewed.
 
-The old matrix only ever photographed the administrator in the default theme —
-exactly the blind spot a redesign creates, since the light theme and four roles
-were being changed with nobody looking at them.
+### What was wrong, and what fixed it
 
-### The new matrix DOES NOT WORK YET — 117 failed / 15 passed, 1.3 hours
+The old spec declared a test per (role x route) and signed in inside
+`beforeEach` — roughly **174 full authentications per project**. The suite runs
+`workers: 1`, so this was never parallel contention; it was 174 sequential
+sign-ins, and once the server fell behind, tests failed in the HOOK rather than
+on an assertion, which made a cost problem look like a login bug.
 
-Measured, not assumed. Two full runs finished with the same shape: most tests
-failing in `beforeEach` on `page.fill` against `/login`, after a runtime of
-about eighty minutes.
+Now: **one test per role**, signing in once and walking every route it can
+reach. Six sign-ins per project instead of 174.
 
-The filter collision with the old spec was real but was **not** the main cause.
-The design of `shots.spec.ts` is: roughly 174 tests (6 roles × their routes ×
-3 viewports), each performing its **own full sign-in**, then two full-page
-screenshots with a 600 ms settle. That is ~174 logins against one dev server,
-and once it saturates, the login form stops rendering inside the timeout and
-every subsequent test fails the hook rather than the assertion — which is why
-the failures look like a login bug rather than a load problem.
+Three further defects were found while repairing it, each of which had been
+silently degrading the evidence:
 
-**The fix is to stop logging in per test.** Either:
+1. **`fullPage: true` was capturing only the fold.** Every screenshot in the
+   first green run came back exactly 1280x720. The shell is `h-screen` with
+   `<main className="flex-1 overflow-y-auto">` — the DOCUMENT never scrolls, so
+   there was nothing for `fullPage` to extend to. The capture now releases the
+   height/overflow constraints on `main` and its ancestors for the duration of
+   the shot. Finance went from 720 to 1998px, a task detail from 720 to 2526px.
+2. **The `not-found` capture was photographing the login page.** It ran after
+   the failed-login capture, so the session was gone and middleware bounced
+   `/dashboard/*` to `/login`. The login page has a `main`, so nothing failed
+   and a mislabelled file would have been reviewed as if it were the 404.
+3. **Pages outside the app shell hung the readiness wait.** Now reported by
+   name with their URL, title and first line of text, and still photographed.
 
-- capture one Playwright `storageState` per role once, and have each test reuse
-  it (`test.use({ storageState })`), or
-- collapse each role into a SINGLE test that signs in once and walks its routes
-  in a loop, taking both themes at each stop.
+### Scope
 
-The second is simpler here and cuts the run to six logins. Either way, re-run
-and **review the images** before marking any route ✅ — the point of the matrix
-is human inspection, and no one has inspected these.
+- **6 roles** over their own reachable routes; admin covers 25 route families
+- **detail pages are reached by CLICKING the first row**, not by hard-coded
+  UUIDs, so devis -> detail -> edit -> print is walked as a user would and the
+  seed stays the single owner of its ids
+- **both themes** at every stop · **3 viewports** — 1280x720, 768x1024, 390x844
+- login, login error state, 404, `/dashboard` malformed id, `/portal` malformed
+  id, account-unavailable
+
+### Contact sheets
+
+`node scripts/contact-sheet.mjs <screens-dir> <out-dir>` builds 60 labelled
+grids. Each cell is captioned with its route and TRUE full-page height, because
+the thumbnail shows only the top band and a page rendering 9000px tall is
+usually the defect you are looking for.
 
 ---
 
-## OPEN DEFECT — axe is RED, and it is a regression from this work
+## VISUAL FINDINGS — from actually looking at the screenshots
 
-**14 axe failures**, one repeated colour pair on every route including `/login`
-and `/account-unavailable`:
+Recorded per route family. **None of these are marked done**; they are the
+input to phases 4-8.
 
-```
-#ffffff on #3b8bba = 3.75:1  (10pt / 13.33px)
-```
+### Confirmed working (visual)
 
-`#3B8BBA` is the **pre-token brand colour**. axe passed 14/14 at `198d9fc`, so
-this was introduced by phases 1–4 (`7c564b1`, `6b3f47b`, `f8ef8fc`, `2270f5a`)
-— most likely uncovered rather than created, since deleting the override tables
-stopped a patch from repainting it.
+- The rail is deep navy in **both** themes on every route.
+- `/dashboard/finance` renders fully — KPI grid, 12-month area chart, three
+  donuts, unpaid table — confirming the crash fix visually, not just by exit
+  code.
+- **Print views are correct and unaffected**: `devis-print` and
+  `factures-print` render the document with logo, sender/client blocks, line
+  table, `TVA (19%)`, `Timbre fiscal`, `Total TTC` and the signature block,
+  correctly OUTSIDE the app shell.
 
-### What has been ruled out, with evidence
+### Defects to fix in the remaining phases
 
-- **Not a Tailwind class.** `grep` over the built CSS in `.next/static/css`
-  finds no rule emitting `3b8bba`.
-- **Not `theme.backgroundImage`.** The `brand-gradient` literal did run to
-  `#3B8BBA` and was tokenised — the failure count and the reported pair are
-  **unchanged**, so that was not the source.
-- **Not `brand.DEFAULT`.** It resolves to `rgb(var(--ac-accent))`.
-- Remaining source literals are in `tasks/tags` (a colour picker, legitimately
-  literal data), `charts/palette.ts`, `print-view.tsx` and `error.tsx` — none of
-  which render on `/login`.
+| # | Surface | Finding | Phase |
+|---|---|---|---|
+| 1 | every route | The "Nouveautés disponibles" banner renders ABOVE the page header on every single route, so the first thing on every page is not what the page is. | 4 |
+| 2 | `/dashboard` | Alert cards and a decorative gradient panel render BEFORE the "ESPACE ADMIN / Bonsoir..." page header. The header sits mid-page. | 4 |
+| 3 | 404 — all three paths | `/dashboard/this-route-does-not-exist`, `/dashboard/clients/<bad-id>` and `/portal/review/<bad-id>` all render **Next's raw unstyled default 404** — black page, tiny "404 This page could not be found.", no brand, no shell, no way back. The portal one does not even get the root layout title. **There is no `not-found.tsx` anywhere in the app.** | 8 |
+| 4 | devis/factures builders | The form occupies a narrow left column with a large empty right side at 1280px. Line items and totals could sit side by side. | 5 |
+| 5 | `/dashboard/profile` | Single narrow column of cards against a large empty right side. | 8 |
+| 6 | `/dashboard/projects/<id>` | Sparse: a small details card plus a mostly-empty task board, using little of the width. | 4 |
+| 7 | `admin-tasks`, `audit` | Empty states are a centred icon and one line inside a large bordered box; they do not offer the action that would resolve the emptiness. | 4 |
 
-### The next diagnostic, exactly
+### Not yet exercised
 
-The axe spec prints the failing node's selector to **stdout**, not into
-`error-context.md` (that file contains the spec source, which is why grepping
-it returned the template string). Capture it:
+The `error.tsx` boundaries are still **unphotographed**. Malformed ids produce
+`notFound()`, not a thrown error, so they render the 404 above instead. Forcing
+a real boundary needs a fault injected at the data layer; no test-only hook was
+added to the application to do it.
 
-```bash
-bash scripts/run-e2e.sh --project=desktop -g "login page has no serious" 2>&1   | grep -A6 "\[axe\]"
-```
+## RESOLVED — the axe regression, and the diagnosis that was wrong
 
-The `e.g. [...]` line names the element. Since it renders on `/login`, which
-has no shell, look at the root layout, `LanguageToggle`, `ThemeToggle` and the
-`Toaster` — and at any **inline `style`**, since the colour is not in the CSS.
+Fixed in `e486a03`. Recorded in full because the earlier record sent three
+sessions after a colour that was never involved.
 
-**Do not add a route to the done column until axe is green again.**
+### What was recorded vs. what was measured
+
+| | recorded | measured |
+|---|---|---|
+| pair | `#ffffff on #3b8bba = 3.75:1` | `#5a6b7f on #d8e6f7 = 4.31:1` |
+| size | 10pt / 13.33px | 7.5pt / 10px |
+| count | 14 failures | 10 failures |
+| scope | "every route incl. `/login`" | authenticated dashboard routes only |
+
+`/login`, the login error state, `/account-unavailable` and `/portal` were
+**green the whole time**. `#3B8BBA` appears nowhere in the failure. The
+selector — `.ml-auto.px-1\.5.bg-\[var\(--c-border\)\]` — was on stdout from
+the first run; the earlier sessions grepped `error-context.md`, which holds the
+spec source, and then reasoned from a colour they had never confirmed.
+
+The lesson worth keeping: *ruling things out* ("not a Tailwind class", "not
+`theme.backgroundImage`", "not `brand.DEFAULT`") felt like progress but could
+never converge, because the premise was false. One captured stdout line ended
+it.
+
+### The actual cause
+
+The legacy `--c-border` used as a **surface**. It sits outside the neutral
+ramp, and both its definitions in `globals.css` are keyed on the pre-redesign
+`.dark` selector — which no longer exists, since the theme switch is now
+`html.light` opting out of a dark base. So `--c-border` resolved to its LIGHT
+value, `#D8E6F7`, *underneath the dark theme*, and `text-content-3` over it
+measured 4.31:1 against a 4.5:1 requirement.
+
+Fixed at source: every use of that token as a surface now names a semantic role
+(`text-content-2` on `bg-surface-3`, 7.9:1), separators use `bg-line`, and the
+topbar shortcut hint became a `<kbd>`.
+
+Two further literals surfaced once the first stopped masking them —
+`text-[#3D5068]` on the tasks board at **1.87:1** in dark, never reported,
+because axe had only ever scanned ONE theme.
+
+### axe now scans both themes
+
+`axe.spec.ts` scans every screen in dark and light and tags each finding with
+its theme. A single-theme scan could not distinguish a correct page from one
+whose light values were leaking under the dark theme.
+
+**Evidence: 42 passed / 0 failed** — 14 screens × 3 viewports, both themes each
+(84 scans), no violation at any impact level, no rule excluded.
+
+---
+
+## RESOLVED — `/dashboard/finance` was crashing
+
+Fixed in `8a324cd`. The route had been down since `f8ef8fc`: the chart
+tokenisation left `const chart = useFinanceColors()` at **module scope**, so
+importing the client bundle threw "Invalid hook call" and every visit rendered
+the error boundary.
+
+It survived typecheck (valid TS), the build (fails at import evaluation), and
+the browser suite — the boundary IS the HTTP 200 response, so
+`expect(status).toBeLessThan(400)` passed on a dead page. axe reported it only
+obliquely, as `scrollable-region-focusable` on the boundary's `<pre>`.
+
+The core-navigation loop now asserts no dashboard route renders the boundary,
+verified in both directions.
 
 ## Known follow-ups
 
