@@ -35,6 +35,21 @@ test.describe("core navigation", () => {
       expect(res?.status(), `HTTP status for ${route}`).toBeLessThan(400);
       await expect(page).not.toHaveURL(/\/login/);
 
+      // The error boundary, explicitly.
+      //
+      // /dashboard/finance shipped broken for three commits: a chart refactor
+      // left `const chart = useFinanceColors()` at MODULE scope, so importing
+      // the client bundle threw "Invalid hook call" and every visit rendered
+      // this boundary instead of the page. It typechecked, the build passed,
+      // and the route still answered 200 — the boundary IS the response.
+      //
+      // Asserting on console noise alone was not enough to make that visible,
+      // so the rendered outcome is asserted directly.
+      await expect(
+        page.getByText("Une erreur est survenue"),
+        `${route} rendered the error boundary instead of the page`,
+      ).toHaveCount(0);
+
       expect(diagnostics.significantErrors(), `console errors on ${route}`).toEqual([]);
       expect(diagnostics.failedRequests, `failed requests on ${route}`).toEqual([]);
     });

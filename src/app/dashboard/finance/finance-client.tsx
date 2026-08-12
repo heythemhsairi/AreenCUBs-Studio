@@ -353,6 +353,7 @@ export function RiskBadge({ risk }: { risk: "good" | "late" | "risky" }) {
 
 function DashboardTab(props: Props) {
   const { t, locale } = useI18n();
+  const chart = useFinanceColors();
   const tf = t.finance;
 
   // Category labels from i18n
@@ -639,5 +640,3 @@ export function FinanceDashboardClient(props: Props) {
     </div>
   );
 }
-
-  const chart = useFinanceColors();
