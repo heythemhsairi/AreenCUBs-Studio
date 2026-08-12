@@ -179,13 +179,20 @@ const config: Config = {
       },
 
       backgroundImage: {
-        // legacy
+        // These were literal, so they painted the same three hexes in both
+        // themes. `brand-gradient` ran to #3B8BBA, the pre-token brand, and
+        // white text on it measured 3.75:1 -- a failure on every surface that
+        // used it, which axe found once the override tables stopped hiding it.
+        //
+        // Now token-driven, and the range is narrowed: a gradient that travels
+        // from a mid blue to near-black cannot hold legible text across its
+        // whole length, so it stays inside one step of the ramp.
         "brand-gradient":
-          "linear-gradient(135deg, #3B8BBA 0%, #2C6E96 50%, #1E1E24 100%)",
+          "linear-gradient(135deg, rgb(var(--ac-brand-600)) 0%, rgb(var(--ac-brand-800)) 100%)",
         "accent-gradient":
-          "linear-gradient(135deg, #FF9E1F 0%, #E08800 100%)",
+          "linear-gradient(135deg, rgb(var(--ac-warning)) 0%, rgb(var(--ac-warning)) 100%)",
         "hero-mesh":
-          "radial-gradient(ellipse 80% 60% at 20% 0%, rgba(59,139,186,0.18), transparent 60%), radial-gradient(ellipse 70% 60% at 100% 0%, rgba(255,158,31,0.12), transparent 60%)",
+          "radial-gradient(ellipse 80% 60% at 20% 0%, rgb(var(--ac-accent) / 0.10), transparent 60%)",
       },
 
       keyframes: {
