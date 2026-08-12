@@ -179,6 +179,64 @@ Write the permission matrix first. Everything from Phase 3 onward depends on it.
 
 ---
 
+## UI/UX REDESIGN IN PROGRESS — foundation landed, routes pending
+
+The implementation programme and the independent audit are complete
+(`COMPLETION-REPORT.md`, `INDEPENDENT-AUDIT.md`). A full visual redesign began
+on top of them. **Two phases are committed; the route-level pass is not done.**
+
+| Phase | Commit | What landed |
+|---|---|---|
+| Token foundation | `198d9fc` | Areen palette, both themes, Manrope, codemod, both override tables deleted |
+| Primitives | `7c564b1` | Button/Card, touch targets, and a latent #418 fix |
+
+Specification: **`docs/DESIGN-SYSTEM.md`** — tokens, type, depth, motion, touch
+targets, the skills synthesised, and the deliberate deviations.
+
+### What is DONE
+
+- `src/styles/tokens.css`: one role-based system, RGB triplets so opacity
+  modifiers work, dark as the base and `.light` as the opt-in.
+- **~560 lines of `!important` theme patches deleted.** Components name roles;
+  the legacy names (`ink`, `cream`, `brand`, `accent`) point at the same tokens,
+  which fixed 419 `text-ink` uses without a 419-site edit.
+- 1,189 hex classes + 362 named-palette classes migrated by codemod.
+- Manrope (SIL OFL, variable axis) with Noto Sans Arabic kept **inside** the
+  sans stack — dropping that fallback breaks every Arabic glyph.
+- Button/Card visual layer, `pointer-coarse:` variant registered.
+- **axe 14/14, zero violations, both themes.**
+
+### RESUME HERE — the route-level pass
+
+The foundation propagates colour and type everywhere automatically, so no route
+is broken — but no route has had its **layout** redesigned yet. In priority
+order:
+
+1. **Shell** — sidebar, topbar, mobile nav, page header. The rail is already
+   navy in both themes via `--ac-rail`; the layout and density are untouched.
+2. **Dense tables** — desktop density and the intentional conversion to mobile
+   cards rather than horizontal overflow.
+3. **KPI cards, charts** — the six-colour chart ramp exists in tokens but the
+   chart components still pass their own colours in places.
+4. **Per-route layout** — dashboards, finance, Content OS, portal, review.
+
+### Known follow-ups
+
+- **20+ ambient `toLocale*` calls** remain (`grep -rn "toLocale" src | grep -v
+  timeZone`). Most operate on date-only strings, which are safe at UTC+1;
+  timestamps are not. One caused a deterministic #418 on `/dashboard/clients`
+  the moment this session crossed midnight. Fix with `formatDate` from
+  `src/lib/format.ts`, and verify by running the test **twice** — a
+  time-dependent failure that passes once proves nothing.
+- ~160 hex literals remain in `.tsx`, mostly in charts and print views.
+- `globals.css` still holds legacy `--c-*` variables and component classes that
+  the `--ac-*` roles supersede; safe to retire incrementally.
+
+### Gate baseline for this work
+
+Baseline screenshots (pre-redesign) are in `/root/baseline` inside the runner,
+36 PNGs. The redesign matrix regenerates to `e2e/.artifacts/screens`.
+
 ## PROGRAMME COMPLETE — then independently audited
 
 All twelve phases are done (`COMPLETION-REPORT.md`). A fresh evidence-based
