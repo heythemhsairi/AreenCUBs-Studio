@@ -179,7 +179,74 @@ Write the permission matrix first. Everything from Phase 3 onward depends on it.
 
 ---
 
-## UI/UX REDESIGN IN PROGRESS — foundation landed, routes pending
+## UI/UX REDESIGN — PHASES 1-4 DONE, 5-8 NOT STARTED, AXE IS RED
+
+**REDESIGN INCOMPLETE.** Per-surface status with ✅/◐/⬜ is in
+`docs/REDESIGN-COVERAGE.md`; the specification is `docs/DESIGN-SYSTEM.md`.
+
+| Phase | Commit | State |
+|---|---|---|
+| Token foundation, Manrope, override tables deleted | `198d9fc` | ✅ |
+| Primitives, touch targets, latent #418 fix | `7c564b1` | ✅ |
+| 1-2 Shell + dense shared components | `6b3f47b` | ✅ |
+| 3 Charts read tokens at runtime | `f8ef8fc` | ✅ |
+| 4 Dashboards: real headings, twitch removed | `2270f5a` | ◐ partial |
+| Config gradients tokenised; open defect recorded | `97bbf5c` | — |
+| 5 Finance and documents | — | ⬜ |
+| 6 Content OS and review | — | ⬜ |
+| 7 Client portal and external states | — | ⬜ |
+| 8 Settings, profile, remaining routes | — | ⬜ |
+
+### FIX THIS FIRST — axe regression, 14 failures
+
+```
+#ffffff on #3b8bba = 3.75:1   (10pt / 13.33px)
+```
+
+`#3B8BBA` is the pre-token brand colour. axe was **14/14 green at `198d9fc`**,
+so phases 1-4 introduced it — most likely *uncovered* it, since deleting the
+override tables stopped a patch from repainting it. It appears on every route
+**including `/login` and `/account-unavailable`**, which have no shell.
+
+Already ruled out, with evidence (see `REDESIGN-COVERAGE.md`): not a Tailwind
+class — the built CSS in `.next/static/css` emits no such rule; not
+`theme.backgroundImage` — tokenising it changed nothing; not `brand.DEFAULT`.
+
+**The next command**, and it matters because the obvious approach is a trap —
+the failing selector goes to **stdout**, not into `error-context.md`, which
+holds the spec source:
+
+```bash
+bash scripts/run-e2e.sh --project=desktop -g "login page has no serious" 2>&1 | grep -A6 "\[axe\]"
+```
+
+The `e.g. [...]` line names the element. Because it renders on `/login`, look at
+the root layout, `LanguageToggle`, `ThemeToggle`, `Toaster` — and at any inline
+`style`, since the colour is not in the stylesheet.
+
+### THEN — resume at phase 5
+
+1. **Finance and documents**: finance, quotes, invoices, builders, detail/edit,
+   print. Must not alter TVA behaviour, totals, millime compatibility or
+   issued-document immutability.
+2. **Content OS and review**, preserving signed-URL and storage boundaries.
+3. **Client portal** — must become visibly *simpler* than the internal
+   dashboards, with no internal notes, people, finance or diagnostics.
+4. **Settings, profile, login, account-unavailable, 404, error states.**
+
+Also unfinished in phase 4: genuine per-role information hierarchy — what a
+commercial, intern or freelancer should see *first*, based on what they can act
+on. Only the heading structure was fixed.
+
+### Screenshot matrix
+
+`e2e/shots.spec.ts` — 6 roles × their reachable routes × both themes × 3
+viewports, plus unauthenticated states. **It has not completed a clean run
+yet**: the old `screenshots.spec.ts` matched the same `-g "design evidence"`
+filter, so both suites ran at once and competed for one dev server. The old
+spec is now deleted; re-run and review before marking any route done.
+
+
 
 The implementation programme and the independent audit are complete
 (`COMPLETION-REPORT.md`, `INDEPENDENT-AUDIT.md`). A full visual redesign began
