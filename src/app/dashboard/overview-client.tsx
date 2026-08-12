@@ -242,13 +242,13 @@ export function OverviewClient({
             {/* Overdue */}
             <Link
               href="/dashboard/tasks"
-              className={`flex flex-col gap-1.5 rounded-xl p-4 transition-all hover:-translate-y-px ${overdueWorkerTasks.length > 0 ? "bg-danger/10 border border-danger/25 hover:bg-danger/15" : "bg-[var(--c-card)] border border-[var(--c-border)]"}`}
+              className={`flex flex-col gap-1.5 rounded-xl p-4 transition-all hover:-translate-y-px ${overdueWorkerTasks.length > 0 ? "bg-danger/10 border border-danger/25 hover:bg-danger/15" : "bg-surface border border-line"}`}
             >
               <div className="flex items-center gap-1.5">
-                <AlertTriangle className={`h-3.5 w-3.5 ${overdueWorkerTasks.length > 0 ? "text-danger" : "text-[var(--c-text-3)]"}`} />
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--c-text-3)]">{t.overview.workerOverdue}</span>
+                <AlertTriangle className={`h-3.5 w-3.5 ${overdueWorkerTasks.length > 0 ? "text-danger" : "text-content-3"}`} />
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-content-3">{t.overview.workerOverdue}</span>
               </div>
-              <p className={`text-3xl font-bold leading-none ${overdueWorkerTasks.length > 0 ? "text-danger" : "text-[var(--c-text-3)]"}`}>
+              <p className={`text-3xl font-bold leading-none ${overdueWorkerTasks.length > 0 ? "text-danger" : "text-content-3"}`}>
                 {overdueWorkerTasks.length}
               </p>
             </Link>
@@ -259,10 +259,10 @@ export function OverviewClient({
               className={`due-today-card flex flex-col gap-1.5 rounded-xl p-4 transition-all hover:-translate-y-px ${todayTasks.length > 0 ? "due-today-active" : "due-today-empty"}`}
             >
               <div className="flex items-center gap-1.5">
-                <Clock className={`h-3.5 w-3.5 ${todayTasks.length > 0 ? "due-today-icon" : "text-[var(--c-text-3)]"}`} />
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--c-text-3)]">{t.overview.workerDueToday}</span>
+                <Clock className={`h-3.5 w-3.5 ${todayTasks.length > 0 ? "due-today-icon" : "text-content-3"}`} />
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-content-3">{t.overview.workerDueToday}</span>
               </div>
-              <p className={`text-3xl font-bold leading-none ${todayTasks.length > 0 ? "due-today-number" : "text-[var(--c-text-3)]"}`}>
+              <p className={`text-3xl font-bold leading-none ${todayTasks.length > 0 ? "due-today-number" : "text-content-3"}`}>
                 {todayTasks.length}
               </p>
             </Link>
@@ -277,7 +277,7 @@ export function OverviewClient({
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent2 opacity-60" />
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-accent2" />
                 </span>
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--c-text-3)]">{t.tasks.status.in_progress}</span>
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-content-3">{t.tasks.status.in_progress}</span>
               </div>
               <p className="text-3xl font-bold leading-none text-accent2">{inProgressTasks.length}</p>
             </Link>
@@ -285,13 +285,13 @@ export function OverviewClient({
             {/* Waiting review */}
             <Link
               href="/dashboard/tasks"
-              className={`flex flex-col gap-1.5 rounded-xl p-4 transition-all hover:-translate-y-px ${reviewTasks.length > 0 ? "bg-chart-4/10 border border-chart-4/25 hover:bg-chart-4/15" : "bg-[var(--c-card)] border border-[var(--c-border)]"}`}
+              className={`flex flex-col gap-1.5 rounded-xl p-4 transition-all hover:-translate-y-px ${reviewTasks.length > 0 ? "bg-chart-4/10 border border-chart-4/25 hover:bg-chart-4/15" : "bg-surface border border-line"}`}
             >
               <div className="flex items-center gap-1.5">
-                <CheckCircle2 className={`h-3.5 w-3.5 ${reviewTasks.length > 0 ? "text-chart-4" : "text-[var(--c-text-3)]"}`} />
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--c-text-3)]">{t.tasks.status.review}</span>
+                <CheckCircle2 className={`h-3.5 w-3.5 ${reviewTasks.length > 0 ? "text-chart-4" : "text-content-3"}`} />
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-content-3">{t.tasks.status.review}</span>
               </div>
-              <p className={`text-3xl font-bold leading-none ${reviewTasks.length > 0 ? "text-chart-4" : "text-[var(--c-text-3)]"}`}>
+              <p className={`text-3xl font-bold leading-none ${reviewTasks.length > 0 ? "text-chart-4" : "text-content-3"}`}>
                 {reviewTasks.length}
               </p>
             </Link>
@@ -302,11 +302,11 @@ export function OverviewClient({
         {totalUrgent > 0 && (
           <section>
             <p className={SECTION_LABEL}>{t.overview.workerUrgentTasks}</p>
-            <div className="mt-3 rounded-xl border-l-2 border-danger bg-[var(--c-card)] ring-1 ring-[var(--c-border)] overflow-hidden">
-              <div className="flex items-center justify-between border-b border-[var(--c-border)] px-5 py-3">
+            <div className="mt-3 rounded-xl border-l-2 border-danger bg-surface ring-1 ring-line overflow-hidden">
+              <div className="flex items-center justify-between border-b border-line px-5 py-3">
                 <div className="flex items-center gap-2">
                   <AlertTriangle className="h-4 w-4 text-danger" />
-                  <span className="text-sm font-semibold text-[var(--c-text-1)]">{t.overview.attentionRequired}</span>
+                  <span className="text-sm font-semibold text-content">{t.overview.attentionRequired}</span>
                   <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-danger px-1.5 text-[10px] font-bold text-white">
                     {totalUrgent}
                   </span>
@@ -315,7 +315,7 @@ export function OverviewClient({
                   {t.overview.seeAllLink}
                 </Link>
               </div>
-              <div className="divide-y divide-[var(--c-border)]">
+              <div className="divide-y divide-line">
                 {overdueWorkerTasks.slice(0, 3).map((task) => {
                   const due = new Date(task.deadline);
                   const daysLate = Math.floor((today.getTime() - due.getTime()) / (1000 * 60 * 60 * 24));
@@ -323,8 +323,8 @@ export function OverviewClient({
                     <Link key={task.id} href={`/dashboard/tasks/${task.id}`} className="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-surface/4">
                       <Clock className="h-3.5 w-3.5 shrink-0 text-danger" />
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium text-[var(--c-text-1)]">{task.title}</p>
-                        <p className="truncate text-[11px] text-[var(--c-text-3)]">{task.client} · {task.project}</p>
+                        <p className="truncate text-sm font-medium text-content">{task.title}</p>
+                        <p className="truncate text-[11px] text-content-3">{task.client} · {task.project}</p>
                       </div>
                       <div className="flex shrink-0 items-center gap-2">
                         <StatusBadge status={task.priority} type="priority" label={t.tasks.priority[task.priority as keyof typeof t.tasks.priority] ?? task.priority} />
@@ -339,8 +339,8 @@ export function OverviewClient({
                   <Link key={task.id} href={`/dashboard/tasks/${task.id}`} className="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-surface/4">
                     <Clock className="h-3.5 w-3.5 shrink-0 text-warning" />
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-[var(--c-text-1)]">{task.title}</p>
-                      <p className="truncate text-[11px] text-[var(--c-text-3)]">{task.client} · {task.project}</p>
+                      <p className="truncate text-sm font-medium text-content">{task.title}</p>
+                      <p className="truncate text-[11px] text-content-3">{task.client} · {task.project}</p>
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
                       <StatusBadge status={task.priority} type="priority" label={t.tasks.priority[task.priority as keyof typeof t.tasks.priority] ?? task.priority} />
@@ -388,7 +388,7 @@ export function OverviewClient({
                 {t.calendar.title}
               </Link>
             </div>
-            <div className="mt-3 rounded-xl bg-[var(--c-card)] ring-1 ring-[var(--c-border)] overflow-hidden">
+            <div className="mt-3 rounded-xl bg-surface ring-1 ring-line overflow-hidden">
               <UpcomingDeadlinesList rows={thisWeekTasks.slice(0, 5)} today={today} />
             </div>
           </section>
@@ -397,8 +397,8 @@ export function OverviewClient({
         {/* Office/Home planning */}
         <section>
           <p className={SECTION_LABEL}>{t.overview.myPlanning}</p>
-          <div className="mt-3 rounded-xl bg-[var(--c-card)] ring-1 ring-[var(--c-border)] p-5">
-            <p className="mb-3 text-xs text-[var(--c-text-3)]">{t.overview.myPlanningHint}</p>
+          <div className="mt-3 rounded-xl bg-surface ring-1 ring-line p-5">
+            <p className="mb-3 text-xs text-content-3">{t.overview.myPlanningHint}</p>
             <WorkCalendar initial={workSchedule} />
           </div>
         </section>
@@ -450,11 +450,11 @@ export function OverviewClient({
       {hasPriorities && (
         <section>
           <p className={SECTION_LABEL}>{t.overview.todayPriorities}</p>
-          <div className="mt-3 rounded-xl border-l-2 border-danger bg-[var(--c-card)] ring-1 ring-[var(--c-border)]">
-            <div className="flex items-center justify-between border-b border-[var(--c-border)] px-5 py-3">
+          <div className="mt-3 rounded-xl border-l-2 border-danger bg-surface ring-1 ring-line">
+            <div className="flex items-center justify-between border-b border-line px-5 py-3">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4 text-danger" />
-                <span className="text-sm font-semibold text-[var(--c-text-1)]">
+                <span className="text-sm font-semibold text-content">
                   {t.overview.attentionRequired}
                 </span>
                 {(overdueTasks.length + urgentInvoices.length) > 0 && (
@@ -471,7 +471,7 @@ export function OverviewClient({
               </Link>
             </div>
 
-            <div className="divide-y divide-[var(--c-border)]">
+            <div className="divide-y divide-line">
               {overdueTasks.map((task) => {
                 const due = new Date(task.deadline);
                 const daysLate = Math.floor(
@@ -485,10 +485,10 @@ export function OverviewClient({
                   >
                     <Clock className="h-3.5 w-3.5 shrink-0 text-danger" />
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-[var(--c-text-1)]">
+                      <p className="truncate text-sm font-medium text-content">
                         {task.title}
                       </p>
-                      <p className="truncate text-[11px] text-[var(--c-text-3)]">
+                      <p className="truncate text-[11px] text-content-3">
                         {task.client} · {task.project}
                       </p>
                     </div>
@@ -528,10 +528,10 @@ export function OverviewClient({
                   >
                     <FileText className={`h-3.5 w-3.5 shrink-0 ${iconColor}`} />
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-[var(--c-text-1)]">
+                      <p className="truncate text-sm font-medium text-content">
                         {doc.client_name}
                       </p>
-                      <p className="truncate text-[11px] text-[var(--c-text-3)]">
+                      <p className="truncate text-[11px] text-content-3">
                         {formatDevisNumber(doc.devis_number, doc.kind)} · {due ? formatDate(doc.due_date!) : formatDate(doc.date)}
                       </p>
                     </div>
@@ -614,14 +614,14 @@ export function OverviewClient({
             />
 
             {/* Voir Finance OS */}
-            <div className="flex flex-col items-start justify-between rounded-xl bg-[var(--c-card)] border border-[var(--c-border)] p-5 gap-3">
+            <div className="flex flex-col items-start justify-between rounded-xl bg-surface border border-line p-5 gap-3">
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-accent2" />
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--c-text-3)]">{t.overview.fullAnalysis}</p>
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-content-3">{t.overview.fullAnalysis}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-[var(--c-text-1)]">{t.overview.financeOS}</p>
-                <p className="mt-0.5 text-xs text-[var(--c-text-3)]">{t.overview.financeOSDesc}</p>
+                <p className="text-sm font-medium text-content">{t.overview.financeOS}</p>
+                <p className="mt-0.5 text-xs text-content-3">{t.overview.financeOSDesc}</p>
               </div>
               <Link
                 href="/dashboard/finance"
@@ -732,7 +732,7 @@ export function OverviewClient({
             {t.overview.seeAllLink}
           </Link>
         </div>
-        <div className="mt-3 rounded-xl bg-[var(--c-card)] ring-1 ring-[var(--c-border)] overflow-hidden">
+        <div className="mt-3 rounded-xl bg-surface ring-1 ring-line overflow-hidden">
           <UpcomingDeadlinesList rows={upcomingTasks.slice(0, 5)} today={today} />
         </div>
       </section>
@@ -750,7 +750,7 @@ export function OverviewClient({
             {t.overview.seeAllLink}
           </Link>
         </div>
-        <div className="mt-3 rounded-xl bg-[var(--c-card)] ring-1 ring-[var(--c-border)] overflow-hidden">
+        <div className="mt-3 rounded-xl bg-surface ring-1 ring-line overflow-hidden">
           <RecentDocsFeed rows={recentDevis} />
         </div>
       </section>
@@ -770,14 +770,14 @@ export function OverviewClient({
             </Link>
           </div>
           <div className="mt-3 grid grid-cols-1 gap-4 lg:grid-cols-3">
-            <div className="lg:col-span-2 rounded-xl bg-[var(--c-card)] ring-1 ring-[var(--c-border)] p-5">
+            <div className="lg:col-span-2 rounded-xl bg-surface ring-1 ring-line p-5">
               <MonthlyBars series={monthlySeries} />
             </div>
-            <div className="rounded-xl bg-[var(--c-card)] ring-1 ring-[var(--c-border)] p-5">
-              <p className="mb-4 text-sm font-semibold text-[var(--c-text-1)]">
+            <div className="rounded-xl bg-surface ring-1 ring-line p-5">
+              <p className="mb-4 text-sm font-semibold text-content">
                 {t.overview.serviceMix}
               </p>
-              <p className="mb-4 text-[11px] text-[var(--c-text-3)]">
+              <p className="mb-4 text-[11px] text-content-3">
                 {t.overview.serviceMixHint}
               </p>
               {localizedDonutData.length > 0 ? (
@@ -786,7 +786,7 @@ export function OverviewClient({
                   <DonutLegend data={localizedDonutData.slice(0, 5)} />
                 </div>
               ) : (
-                <p className="py-6 text-center text-sm text-[var(--c-text-3)]">
+                <p className="py-6 text-center text-sm text-content-3">
                   {t.overview.noServiceMix}
                 </p>
               )}
@@ -844,10 +844,10 @@ export function OverviewClient({
               {t.overview.manageLink}
             </Link>
           </div>
-          <div className="mt-3 flex items-center gap-4 rounded-xl bg-[var(--c-card)] px-5 py-4 ring-1 ring-[var(--c-border)]">
+          <div className="mt-3 flex items-center gap-4 rounded-xl bg-surface px-5 py-4 ring-1 ring-line">
             <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-[var(--c-text-3)]" />
-              <span className="text-sm font-semibold text-[var(--c-text-1)]">
+              <Users className="h-4 w-4 text-content-3" />
+              <span className="text-sm font-semibold text-content">
                 {t.overview.membersCount(counts.teamSize ?? 0)}
               </span>
             </div>
@@ -858,7 +858,7 @@ export function OverviewClient({
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent2 opacity-75" />
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-accent2" />
                 </span>
-                <span className="text-sm text-[var(--c-text-2)]">
+                <span className="text-sm text-content-2">
                   {t.overview.activeTasks(counts.activeTasks)}
                 </span>
               </div>
@@ -866,7 +866,7 @@ export function OverviewClient({
             {counts.activeProjects > 0 && (
               <>
                 <div className="h-4 w-px bg-[var(--c-border)]" />
-                <span className="text-sm text-[var(--c-text-2)]">
+                <span className="text-sm text-content-2">
                   {t.overview.activeProjects(counts.activeProjects)}
                 </span>
               </>
@@ -874,7 +874,7 @@ export function OverviewClient({
             {counts.clients !== null && counts.clients > 0 && (
               <>
                 <div className="h-4 w-px bg-[var(--c-border)]" />
-                <span className="text-sm text-[var(--c-text-2)]">
+                <span className="text-sm text-content-2">
                   {t.overview.clientsCount(counts.clients)}
                 </span>
               </>
@@ -882,7 +882,7 @@ export function OverviewClient({
             <div className="ml-auto">
               <Link
                 href="/dashboard/team/planning"
-                className="inline-flex items-center gap-1.5 rounded-lg bg-surface/5 px-3 py-1.5 text-[11px] font-semibold text-[var(--c-text-2)] ring-1 ring-[var(--c-border)] transition-all hover:bg-surface/10 hover:text-[var(--c-text-1)]"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-surface/5 px-3 py-1.5 text-[11px] font-semibold text-content-2 ring-1 ring-line transition-all hover:bg-surface/10 hover:text-content"
               >
                 <span>{t.overview.teamPlanning}</span>
                 <span aria-hidden>→</span>
@@ -907,27 +907,27 @@ export function OverviewClient({
             </Link>
           </div>
           <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <Link href="/dashboard/admin-tasks?f=overdue" className="group rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] p-4 hover:border-danger/50 transition-colors">
+            <Link href="/dashboard/admin-tasks?f=overdue" className="group rounded-xl border border-line bg-surface p-4 hover:border-danger/50 transition-colors">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-content-3">{t.adminTasks.widgetOverdue}</p>
-              <p className={`mt-1 text-2xl font-bold ${adminTaskCounts.overdue > 0 ? "text-danger" : "text-[var(--c-text-3)]"}`}>
+              <p className={`mt-1 text-2xl font-bold ${adminTaskCounts.overdue > 0 ? "text-danger" : "text-content-3"}`}>
                 {adminTaskCounts.overdue}
               </p>
             </Link>
-            <Link href="/dashboard/admin-tasks?f=today" className="group rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] p-4 hover:border-warning/50 transition-colors">
+            <Link href="/dashboard/admin-tasks?f=today" className="group rounded-xl border border-line bg-surface p-4 hover:border-warning/50 transition-colors">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-content-3">{t.adminTasks.widgetToday}</p>
-              <p className={`mt-1 text-2xl font-bold ${adminTaskCounts.dueToday > 0 ? "text-warning" : "text-[var(--c-text-3)]"}`}>
+              <p className={`mt-1 text-2xl font-bold ${adminTaskCounts.dueToday > 0 ? "text-warning" : "text-content-3"}`}>
                 {adminTaskCounts.dueToday}
               </p>
             </Link>
-            <Link href="/dashboard/admin-tasks?f=week" className="group rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] p-4 hover:border-accent2/50 transition-colors">
+            <Link href="/dashboard/admin-tasks?f=week" className="group rounded-xl border border-line bg-surface p-4 hover:border-accent2/50 transition-colors">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-content-3">{t.adminTasks.widgetThisWeek}</p>
-              <p className="mt-1 text-2xl font-bold text-[var(--c-text-1)]">
+              <p className="mt-1 text-2xl font-bold text-content">
                 {adminTaskCounts.thisWeek}
               </p>
             </Link>
-            <Link href="/dashboard/admin-tasks?f=waiting" className="group rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] p-4 hover:border-warning/30 transition-colors">
+            <Link href="/dashboard/admin-tasks?f=waiting" className="group rounded-xl border border-line bg-surface p-4 hover:border-warning/30 transition-colors">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-content-3">{t.adminTasks.widgetWaiting}</p>
-              <p className={`mt-1 text-2xl font-bold ${adminTaskCounts.waiting > 0 ? "text-warning" : "text-[var(--c-text-3)]"}`}>
+              <p className={`mt-1 text-2xl font-bold ${adminTaskCounts.waiting > 0 ? "text-warning" : "text-content-3"}`}>
                 {adminTaskCounts.waiting}
               </p>
             </Link>
@@ -1379,7 +1379,7 @@ function FeaturedCard({
   const name = featured.full_name ?? featured.username;
   const { t } = useI18n();
   return (
-    <div className="featured-card relative overflow-hidden rounded-2xl border border-[var(--c-border)]">
+    <div className="featured-card relative overflow-hidden rounded-2xl border border-line">
       {/* Glow blobs — visible in dark, harmless in light (light bg washes them out) */}
       <div aria-hidden className="pointer-events-none absolute -left-20 -top-20 h-72 w-72 rounded-full bg-[#2C6E96]/30 blur-3xl" />
       <div aria-hidden className="pointer-events-none absolute -bottom-24 right-1/4 h-64 w-64 rounded-full bg-[#7c4dff]/20 blur-3xl" />

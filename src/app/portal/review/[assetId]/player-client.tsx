@@ -136,7 +136,7 @@ export function PortalPlayerClient({
           ) : (
             <ul className="space-y-3">
               {comments.map((c) => (
-                <li key={c.id} className="rounded-lg border border-[var(--c-border)] p-3">
+                <li key={c.id} className="rounded-lg border border-line p-3">
                   <div className="flex flex-wrap items-center gap-2 text-xs">
                     <Badge tone={c.side === "client" ? "amber" : "cyan"}>
                       {c.side === "client" ? "Vous" : "Areen CUBs"}
@@ -160,7 +160,7 @@ export function PortalPlayerClient({
           )}
 
           {versionId && (
-            <div className="space-y-2 border-t border-[var(--c-border)] pt-4">
+            <div className="space-y-2 border-t border-line pt-4">
               <label htmlFor="portal-review-comment" className="block text-xs font-medium text-content-2">
                 Ajouter un commentaire
               </label>

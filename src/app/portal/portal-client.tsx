@@ -112,12 +112,12 @@ export function PortalClient({
             <CardTitle>Vidéos à visionner</CardTitle>
           </CardHeader>
           <CardContent>
-            <ul className="divide-y divide-[var(--c-border)]">
+            <ul className="divide-y divide-line">
               {reviews.map((r) => (
                 <li key={r.id}>
                   <Link
                     href={`/portal/review/${r.id}`}
-                    className="flex items-center justify-between gap-4 py-3 transition-colors hover:bg-[var(--c-surface-2)]"
+                    className="flex items-center justify-between gap-4 py-3 transition-colors hover:bg-surface-2"
                   >
                     <div className="flex min-w-0 items-center gap-2">
                       <Film size={16} className="shrink-0 text-content-3" aria-hidden="true" />
@@ -151,7 +151,7 @@ export function PortalClient({
               size="sm"
             />
           ) : (
-            <ul className="divide-y divide-[var(--c-border)]">
+            <ul className="divide-y divide-line">
               {settled.map((item) => (
                 <li key={item.id} className="flex items-center justify-between gap-4 py-3">
                   <div className="min-w-0">
@@ -225,7 +225,7 @@ function ReviewCard({ item }: { item: PortalItem }) {
   const errorId = `error-${item.id}`;
 
   return (
-    <div className="rounded-lg border border-[var(--c-border)] p-4">
+    <div className="rounded-lg border border-line p-4">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
           <h3 className="truncate text-sm font-medium text-ink">{item.title}</h3>

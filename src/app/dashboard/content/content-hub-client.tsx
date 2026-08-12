@@ -32,9 +32,9 @@ type Props = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  draft: "bg-[var(--c-border)] text-[var(--c-text-3)]",
+  draft: "bg-[var(--c-border)] text-content-3",
   approved: "bg-success-weak text-success",
-  archived: "bg-[var(--c-border)] text-[var(--c-text-3)]",
+  archived: "bg-[var(--c-border)] text-content-3",
 };
 
 export function ContentHubClient({ clients, plans, profiles, publishingCount }: Props) {
@@ -63,27 +63,27 @@ export function ContentHubClient({ clients, plans, profiles, publishingCount }: 
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--c-text-1)]">{c.title}</h1>
-          <p className="mt-0.5 text-sm text-[var(--c-text-3)]">{c.description}</p>
+          <h1 className="text-2xl font-bold text-content">{c.title}</h1>
+          <p className="mt-0.5 text-sm text-content-3">{c.description}</p>
         </div>
         <div className="flex items-center gap-2">
           <Link
             href="/dashboard/content/calendar"
-            className="flex items-center gap-1.5 rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-3 py-2 text-sm text-[var(--c-text-2)] hover:text-[var(--c-text-1)] hover:bg-[var(--c-elevated)] transition-colors"
+            className="flex items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-2 text-sm text-content-2 hover:text-content hover:bg-surface-2 transition-colors"
           >
             <CalendarDays size={14} />
             {t.calendar.title}
           </Link>
           <Link
             href="/dashboard/content/publishing"
-            className="flex items-center gap-1.5 rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-3 py-2 text-sm text-[var(--c-text-2)] hover:text-[var(--c-text-1)] hover:bg-[var(--c-elevated)] transition-colors"
+            className="flex items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-2 text-sm text-content-2 hover:text-content hover:bg-surface-2 transition-colors"
           >
             <Share2 size={14} />
             {c.publishingLink}
           </Link>
           <Link
             href="/dashboard/content/reports"
-            className="flex items-center gap-1.5 rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-3 py-2 text-sm text-[var(--c-text-2)] hover:text-[var(--c-text-1)] hover:bg-[var(--c-elevated)] transition-colors"
+            className="flex items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-2 text-sm text-content-2 hover:text-content hover:bg-surface-2 transition-colors"
           >
             <BarChart2 size={14} />
             {c.reportsTitle}
@@ -101,22 +101,22 @@ export function ContentHubClient({ clients, plans, profiles, publishingCount }: 
         ].map(({ icon: Icon, label, value, accent }) => (
           <div
             key={label}
-            className="flex flex-col gap-2 rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] p-4"
+            className="flex flex-col gap-2 rounded-xl border border-line bg-surface p-4"
           >
             <div className="flex items-center gap-2">
               <Icon size={14} style={{ color: accent }} />
-              <span className="text-xs text-[var(--c-text-3)]">{label}</span>
+              <span className="text-xs text-content-3">{label}</span>
             </div>
-            <span className="text-2xl font-bold text-[var(--c-text-1)]">{value}</span>
+            <span className="text-2xl font-bold text-content">{value}</span>
           </div>
         ))}
       </div>
 
       {/* Clients grid */}
       {clients.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-[var(--c-border)] bg-[var(--c-card)] py-16 text-center">
-          <Users size={32} className="mx-auto mb-3 text-[var(--c-text-3)]" />
-          <p className="text-sm text-[var(--c-text-3)]">{c.noClients}</p>
+        <div className="rounded-xl border border-dashed border-line bg-surface py-16 text-center">
+          <Users size={32} className="mx-auto mb-3 text-content-3" />
+          <p className="text-sm text-content-3">{c.noClients}</p>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -134,21 +134,21 @@ export function ContentHubClient({ clients, plans, profiles, publishingCount }: 
               <Link
                 key={client.id}
                 href={`/dashboard/content/clients/${client.id}`}
-                className="group flex flex-col gap-3 rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] p-4 transition-all hover:border-accent2/40 hover:shadow-md"
+                className="group flex flex-col gap-3 rounded-xl border border-line bg-surface p-4 transition-all hover:border-accent2/40 hover:shadow-md"
               >
                 {/* Client name + chevron */}
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <h2 className="font-semibold text-[var(--c-text-1)] group-hover:text-accent2 transition-colors">
+                    <h2 className="font-semibold text-content group-hover:text-accent2 transition-colors">
                       {client.name}
                     </h2>
                     {profile?.posting_frequency && (
-                      <p className="text-xs text-[var(--c-text-3)] mt-0.5">
+                      <p className="text-xs text-content-3 mt-0.5">
                         {profile.posting_frequency}
                       </p>
                     )}
                   </div>
-                  <ChevronRight size={16} className="shrink-0 text-[var(--c-text-3)] group-hover:text-accent2 transition-colors mt-0.5" />
+                  <ChevronRight size={16} className="shrink-0 text-content-3 group-hover:text-accent2 transition-colors mt-0.5" />
                 </div>
 
                 {/* Profile platforms */}
@@ -167,8 +167,8 @@ export function ContentHubClient({ clients, plans, profiles, publishingCount }: 
 
                 {/* Latest plan */}
                 {latestPlan ? (
-                  <div className="flex items-center justify-between rounded-lg bg-[var(--c-elevated)] px-3 py-2 text-xs">
-                    <span className="text-[var(--c-text-2)]">
+                  <div className="flex items-center justify-between rounded-lg bg-surface-2 px-3 py-2 text-xs">
+                    <span className="text-content-2">
                       {monthNames[latestPlan.month - 1]} {latestPlan.year}
                       {latestPlan.theme ? ` — ${latestPlan.theme}` : ""}
                     </span>
@@ -177,11 +177,11 @@ export function ContentHubClient({ clients, plans, profiles, publishingCount }: 
                     </span>
                   </div>
                 ) : (
-                  <p className="text-xs text-[var(--c-text-3)]">{c.noPlans}</p>
+                  <p className="text-xs text-content-3">{c.noPlans}</p>
                 )}
 
                 {/* Stats */}
-                <div className="flex items-center gap-3 text-xs text-[var(--c-text-3)]">
+                <div className="flex items-center gap-3 text-xs text-content-3">
                   <span className="flex items-center gap-1">
                     <Layers size={11} />
                     {c.statsPlans(clientPlans.length)}

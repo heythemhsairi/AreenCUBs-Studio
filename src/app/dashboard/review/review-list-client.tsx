@@ -141,12 +141,12 @@ export function ReviewListClient({
               size="sm"
             />
           ) : (
-            <ul className="divide-y divide-[var(--c-border)]">
+            <ul className="divide-y divide-line">
               {assets.map((a) => (
                 <li key={a.id}>
                   <Link
                     href={`/dashboard/review/${a.id}`}
-                    className="flex flex-col gap-1 py-3 transition-colors hover:bg-[var(--c-surface-2)] sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+                    className="flex flex-col gap-1 py-3 transition-colors hover:bg-surface-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
                   >
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium text-ink">{a.title}</p>

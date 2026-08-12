@@ -49,9 +49,9 @@ export function AdminTaskForm({
     });
   }
 
-  const labelCls = "block text-xs font-semibold text-[var(--c-text-2)] mb-1";
+  const labelCls = "block text-xs font-semibold text-content-2 mb-1";
   const inputCls =
-    "w-full rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] placeholder:text-[var(--c-text-3)] focus:outline-none focus:border-accent2 disabled:opacity-50";
+    "w-full rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm text-content placeholder:text-content-3 focus:outline-none focus:border-accent2 disabled:opacity-50";
   const selectCls = inputCls;
 
   return (
@@ -60,14 +60,14 @@ export function AdminTaskForm({
       <div className="flex items-center gap-3">
         <Link
           href={isEdit ? `/dashboard/admin-tasks/${task!.id}` : "/dashboard/admin-tasks"}
-          className="flex items-center gap-1.5 text-sm text-[var(--c-text-3)] hover:text-[var(--c-text-1)] transition-colors"
+          className="flex items-center gap-1.5 text-sm text-content-3 hover:text-content transition-colors"
         >
           <ArrowLeft size={14} />
           {at.backToList}
         </Link>
       </div>
       <div>
-        <h1 className="text-2xl font-bold text-[var(--c-text-1)]">
+        <h1 className="text-2xl font-bold text-content">
           {isEdit ? at.editTitle : at.newTitle}
         </h1>
       </div>
@@ -235,7 +235,7 @@ export function AdminTaskForm({
           </button>
           <Link
             href={isEdit ? `/dashboard/admin-tasks/${task!.id}` : "/dashboard/admin-tasks"}
-            className="text-sm text-[var(--c-text-3)] hover:text-[var(--c-text-1)] transition-colors"
+            className="text-sm text-content-3 hover:text-content transition-colors"
           >
             {t.common.cancel}
           </Link>

@@ -61,7 +61,7 @@ export function ThemeToggle({ className }: { className?: string }) {
 
   if (!mounted) {
     return (
-      <div className={cn("flex h-7 w-[60px] rounded-md border border-[var(--c-border)] bg-[var(--c-elevated)] animate-pulse", className)} />
+      <div className={cn("flex h-7 w-[60px] rounded-md border border-line bg-surface-2 animate-pulse", className)} />
     );
   }
 
@@ -100,7 +100,7 @@ export function ThemeToggle({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "flex items-center rounded-md border border-[var(--c-border)]/60 bg-[var(--c-card)] p-0.5 gap-0.5",
+        "flex items-center rounded-md border border-line/60 bg-surface p-0.5 gap-0.5",
         className,
       )}
       role="group"
@@ -117,7 +117,7 @@ export function ThemeToggle({ className }: { className?: string }) {
             "flex h-6 w-6 items-center justify-center rounded transition-all",
             mode === opt.value
               ? "bg-accent2 text-accent2-fg shadow-sm"
-              : "text-[var(--c-text-3)] hover:text-[var(--c-text-1)]",
+              : "text-content-3 hover:text-content",
           )}
         >
           {opt.icon}

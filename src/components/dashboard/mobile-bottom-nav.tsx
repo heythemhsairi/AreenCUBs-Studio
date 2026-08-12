@@ -177,7 +177,7 @@ export function MobileBottomNav({ role }: Props) {
       {/* Bottom Nav Bar */}
       <nav
         data-surface="dark"
-        className="fixed bottom-0 left-0 right-0 z-50 md:hidden flex items-center bg-surface/95 backdrop-blur-xl border-t border-line"
+        className="fixed bottom-0 left-0 right-0 z-50 flex items-center border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] md:hidden"
         style={{
           height: 64,
           paddingBottom: "env(safe-area-inset-bottom)",
@@ -277,8 +277,8 @@ export function MobileBottomNav({ role }: Props) {
                       className={cn(
                         "flex flex-col items-center justify-center gap-[5px] py-4 rounded-xl transition-colors",
                         active
-                          ? "text-accent2 bg-accent2/10"
-                          : "text-content-3 hover:text-content-3 hover:bg-surface/5",
+                          ? "bg-accent2-weak text-accent2"
+                          : "text-content-3 hover:bg-surface-2 hover:text-content",
                       )}
                     >
                       <Icon size={22} strokeWidth={1.8} />

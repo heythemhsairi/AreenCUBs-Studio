@@ -102,7 +102,8 @@ function KpiSkeleton({ size = "md", className }: { size?: KpiSize; className?: s
     <div
       aria-hidden
       className={cn(
-        "bg-[var(--c-card)] border border-[var(--c-border)] rounded-xl overflow-hidden",
+        "overflow-hidden rounded-xl border border-line bg-surface",
+        "transition-colors duration-2 ease-ac",
         className,
       )}
     >
@@ -157,7 +158,8 @@ export function KpiCard({
   return (
     <div
       className={cn(
-        "bg-[var(--c-card)] border border-[var(--c-border)] rounded-xl overflow-hidden",
+        "overflow-hidden rounded-xl border border-line bg-surface",
+        "transition-colors duration-2 ease-ac",
         "flex flex-col",
         className,
       )}

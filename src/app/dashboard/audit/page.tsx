@@ -64,7 +64,7 @@ export default async function AuditPage() {
               size="sm"
             />
           ) : (
-            <ul className="divide-y divide-[var(--c-border)]">
+            <ul className="divide-y divide-line">
               {entries.map((e) => (
                 <li key={e.id} className="flex flex-col gap-1 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                   <div className="min-w-0">

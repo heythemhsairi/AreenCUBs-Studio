@@ -88,7 +88,7 @@ function getPlatform(id: string) {
 }
 
 const STATUS_COLORS: Record<SocialPostStatus, string> = {
-  draft: "bg-[var(--c-border)] text-[var(--c-text-3)]",
+  draft: "bg-[var(--c-border)] text-content-3",
   scheduled: "bg-accent2/15 text-accent2",
   published: "bg-success-weak text-success",
   cancelled: "bg-danger-weak text-danger",
@@ -162,7 +162,7 @@ function PlatformPicker({ selected, onChange }: { selected: string[]; onChange: 
               "flex flex-col items-center gap-1 rounded-xl border py-2 text-[10px] font-medium transition-all",
               active
                 ? `bg-gradient-to-b ${p.color} border-transparent text-white shadow-sm`
-                : "border-[var(--c-border)] bg-[var(--c-elevated)] text-[var(--c-text-3)] hover:border-accent2/40 hover:text-[var(--c-text-1)]",
+                : "border-line bg-surface-2 text-content-3 hover:border-accent2/40 hover:text-content",
             )}
           >
             <span className="text-base leading-none">{p.icon}</span>
@@ -190,12 +190,12 @@ function CharCounter({
   const minLimit = Math.min(...limits);
   const len = text.length;
   const pct = Math.min(len / minLimit, 1);
-  const color = pct > 0.95 ? "text-danger" : pct > 0.8 ? "text-warning" : "text-[var(--c-text-3)]";
+  const color = pct > 0.95 ? "text-danger" : pct > 0.8 ? "text-warning" : "text-content-3";
   return (
     <span className={cn("text-[10px] tabular-nums", color)}>
       {len} / {minLimit}
       {platforms.length > 1 && (
-        <span className="ml-1 text-[var(--c-text-3)]">{lowestLimitLabel}</span>
+        <span className="ml-1 text-content-3">{lowestLimitLabel}</span>
       )}
     </span>
   );
@@ -309,7 +309,7 @@ function PostForm({
       <div className="space-y-4">
         {/* Title */}
         <div>
-          <label className="mb-1 block text-xs font-medium text-[var(--c-text-3)]">
+          <label className="mb-1 block text-xs font-medium text-content-3">
             {c.itemFields.title} <span className="text-danger">*</span>
           </label>
           <input
@@ -317,21 +317,21 @@ function PostForm({
             required
             defaultValue={post?.title}
             placeholder="E.g. Summer launch"
-            className="w-full rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] placeholder-[var(--c-text-3)] focus:border-accent2 focus:outline-none"
+            className="w-full rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm text-content placeholder-[var(--c-text-3)] focus:border-accent2 focus:outline-none"
           />
         </div>
 
         {/* Platforms */}
         <div>
           <div className="mb-2 flex items-center justify-between">
-            <label className="text-xs font-medium text-[var(--c-text-3)]">
+            <label className="text-xs font-medium text-content-3">
               {c.pub_platforms} <span className="text-danger">*</span>
             </label>
             {selectedPlatforms.length > 0 && (
               <button
                 type="button"
                 onClick={() => setSelectedPlatforms([])}
-                className="text-[10px] text-[var(--c-text-3)] hover:text-[var(--c-text-1)]"
+                className="text-[10px] text-content-3 hover:text-content"
               >
                 {c.pub_clearAll}
               </button>
@@ -343,7 +343,7 @@ function PostForm({
         {/* Content */}
         <div>
           <div className="mb-1 flex items-center justify-between">
-            <label className="text-xs font-medium text-[var(--c-text-3)]">{c.pub_content}</label>
+            <label className="text-xs font-medium text-content-3">{c.pub_content}</label>
             <CharCounter text={content} platforms={selectedPlatforms} lowestLimitLabel={c.pub_lowestLimit} />
           </div>
           <textarea
@@ -352,24 +352,24 @@ function PostForm({
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="Post text, call to action…"
-            className="w-full resize-none rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] placeholder-[var(--c-text-3)] focus:border-accent2 focus:outline-none"
+            className="w-full resize-none rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm text-content placeholder-[var(--c-text-3)] focus:border-accent2 focus:outline-none"
           />
         </div>
 
         {/* Hashtags */}
         <div>
-          <label className="mb-1 block text-xs font-medium text-[var(--c-text-3)]">{c.pub_hashtags}</label>
+          <label className="mb-1 block text-xs font-medium text-content-3">{c.pub_hashtags}</label>
           <input
             name="hashtags"
             defaultValue={post?.hashtags}
             placeholder="#marketing #branding"
-            className="w-full rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] placeholder-[var(--c-text-3)] focus:border-accent2 focus:outline-none"
+            className="w-full rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm text-content placeholder-[var(--c-text-3)] focus:border-accent2 focus:outline-none"
           />
         </div>
 
         {/* Scheduled date & time */}
         <div>
-          <label className="mb-1 block text-xs font-medium text-[var(--c-text-3)]">
+          <label className="mb-1 block text-xs font-medium text-content-3">
             {c.pub_scheduledAt}
           </label>
           <input
@@ -380,18 +380,18 @@ function PostForm({
                 ? new Date(post.scheduled_at).toISOString().slice(0, 16)
                 : defaultDate ? `${defaultDate}T09:00` : ""
             }
-            className="w-full rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] focus:border-accent2 focus:outline-none"
+            className="w-full rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm text-content focus:border-accent2 focus:outline-none"
           />
         </div>
 
         {/* Project */}
         <div>
-          <label className="mb-1 block text-xs font-medium text-[var(--c-text-3)]">{c.pub_project}</label>
+          <label className="mb-1 block text-xs font-medium text-content-3">{c.pub_project}</label>
           <select
             name="project_id"
             value={selectedProject}
             onChange={(e) => setSelectedProject(e.target.value)}
-            className="w-full rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] focus:border-accent2 focus:outline-none"
+            className="w-full rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm text-content focus:border-accent2 focus:outline-none"
           >
             <option value="">{c.pub_noProject}</option>
             {projects.map((p) => (
@@ -403,9 +403,9 @@ function PostForm({
         {/* Client (inferred — read-only) */}
         {inferredClient && (
           <div>
-            <label className="mb-1 block text-xs font-medium text-[var(--c-text-3)]">{c.pub_client}</label>
-            <div className="flex items-center gap-2 rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-3 py-2">
-              <span className="text-[10px] text-[var(--c-text-3)]">{c.pub_clientFromProject}:</span>
+            <label className="mb-1 block text-xs font-medium text-content-3">{c.pub_client}</label>
+            <div className="flex items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2">
+              <span className="text-[10px] text-content-3">{c.pub_clientFromProject}:</span>
               <span className="rounded-full bg-accent2/15 px-2 py-0.5 text-xs font-medium text-accent2">
                 {inferredClient}
               </span>
@@ -415,11 +415,11 @@ function PostForm({
 
         {/* Linked task */}
         <div>
-          <label className="mb-1 block text-xs font-medium text-[var(--c-text-3)]">{c.pub_task}</label>
+          <label className="mb-1 block text-xs font-medium text-content-3">{c.pub_task}</label>
           <select
             name="task_id"
             defaultValue={post?.task_id ?? preselectedTaskId ?? ""}
-            className="w-full rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] focus:border-accent2 focus:outline-none"
+            className="w-full rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm text-content focus:border-accent2 focus:outline-none"
           >
             <option value="">{c.pub_noTask}</option>
             {filteredTasks.map((tk) => (
@@ -430,40 +430,40 @@ function PostForm({
 
         {/* Media URL */}
         <div>
-          <label className="mb-1 block text-xs font-medium text-[var(--c-text-3)]">{c.pub_mediaUrl}</label>
+          <label className="mb-1 block text-xs font-medium text-content-3">{c.pub_mediaUrl}</label>
           <input
             name="media_url"
             type="url"
             defaultValue={post?.media_url ?? ""}
             placeholder="https://drive.google.com/…"
-            className="w-full rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] placeholder-[var(--c-text-3)] focus:border-accent2 focus:outline-none"
+            className="w-full rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm text-content placeholder-[var(--c-text-3)] focus:border-accent2 focus:outline-none"
           />
         </div>
 
         {/* First comment */}
         <div>
-          <label className="mb-1 block text-xs font-medium text-[var(--c-text-3)]">
+          <label className="mb-1 block text-xs font-medium text-content-3">
             {c.pub_firstComment}{" "}
-            <span className="ml-1 text-[10px] font-normal text-[var(--c-text-3)]">{c.pub_firstCommentHint}</span>
+            <span className="ml-1 text-[10px] font-normal text-content-3">{c.pub_firstCommentHint}</span>
           </label>
           <textarea
             name="first_comment"
             rows={2}
             defaultValue={post?.first_comment}
             placeholder="Hashtags or CTA as first comment…"
-            className="w-full resize-none rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] placeholder-[var(--c-text-3)] focus:border-accent2 focus:outline-none"
+            className="w-full resize-none rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm text-content placeholder-[var(--c-text-3)] focus:border-accent2 focus:outline-none"
           />
         </div>
 
         {/* Notes */}
         <div>
-          <label className="mb-1 block text-xs font-medium text-[var(--c-text-3)]">{c.pub_notes}</label>
+          <label className="mb-1 block text-xs font-medium text-content-3">{c.pub_notes}</label>
           <textarea
             name="notes"
             rows={3}
             defaultValue={post?.notes}
             placeholder="Team instructions, reminders, context…"
-            className="w-full resize-none rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] placeholder-[var(--c-text-3)] focus:border-accent2 focus:outline-none"
+            className="w-full resize-none rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm text-content placeholder-[var(--c-text-3)] focus:border-accent2 focus:outline-none"
           />
         </div>
       </div>
@@ -472,12 +472,12 @@ function PostForm({
         <p className="mt-3 rounded-lg bg-danger-weak px-3 py-2 text-xs text-danger">{error}</p>
       )}
 
-      <div className="mt-5 flex justify-end gap-2 border-t border-[var(--c-border)] pt-4">
+      <div className="mt-5 flex justify-end gap-2 border-t border-line pt-4">
         <button
           type="button"
           onClick={onClose}
           disabled={isPending}
-          className="rounded-lg border border-[var(--c-border)] px-4 py-2 text-sm text-[var(--c-text-2)] hover:bg-[var(--c-elevated)] transition-colors disabled:opacity-50"
+          className="rounded-lg border border-line px-4 py-2 text-sm text-content-2 hover:bg-surface-2 transition-colors disabled:opacity-50"
         >
           {t.common.cancel}
         </button>
@@ -577,12 +577,12 @@ function PostDetail({
       )}
 
       {post.content && (
-        <div className="group relative rounded-xl bg-[var(--c-elevated)] p-3">
-          <p className="whitespace-pre-wrap text-sm text-[var(--c-text-2)]">{post.content}</p>
+        <div className="group relative rounded-xl bg-surface-2 p-3">
+          <p className="whitespace-pre-wrap text-sm text-content-2">{post.content}</p>
           <button
             type="button"
             onClick={copyContent}
-            className="absolute right-2 top-2 rounded-md px-2 py-0.5 text-[10px] text-[var(--c-text-3)] opacity-0 transition-all group-hover:opacity-100 hover:bg-[var(--c-card)] hover:text-[var(--c-text-1)]"
+            className="absolute right-2 top-2 rounded-md px-2 py-0.5 text-[10px] text-content-3 opacity-0 transition-all group-hover:opacity-100 hover:bg-surface hover:text-content"
           >
             {copied ? c.pub_copied : c.pub_copy}
           </button>
@@ -590,15 +590,15 @@ function PostDetail({
       )}
 
       {post.hashtags && (
-        <p className="rounded-xl bg-[var(--c-card)] px-3 py-2 text-xs text-accent2/80">{post.hashtags}</p>
+        <p className="rounded-xl bg-surface px-3 py-2 text-xs text-accent2/80">{post.hashtags}</p>
       )}
 
       {post.first_comment && (
-        <div className="rounded-xl border border-[var(--c-border)] px-3 py-2">
-          <p className="mb-0.5 text-[10px] font-medium uppercase tracking-wider text-[var(--c-text-3)]">
+        <div className="rounded-xl border border-line px-3 py-2">
+          <p className="mb-0.5 text-[10px] font-medium uppercase tracking-wider text-content-3">
             {c.pub_firstCommentLabel}
           </p>
-          <p className="whitespace-pre-wrap text-xs text-[var(--c-text-2)]">{post.first_comment}</p>
+          <p className="whitespace-pre-wrap text-xs text-content-2">{post.first_comment}</p>
         </div>
       )}
 
@@ -607,7 +607,7 @@ function PostDetail({
           href={post.media_url}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-1.5 rounded-xl bg-[var(--c-elevated)] px-3 py-2 text-xs text-accent2 hover:underline"
+          className="flex items-center gap-1.5 rounded-xl bg-surface-2 px-3 py-2 text-xs text-accent2 hover:underline"
         >
           🖼 <span className="truncate">{post.media_url}</span>
         </a>
@@ -616,12 +616,12 @@ function PostDetail({
       {(post.project_name || post.task_title || inferredClient) && (
         <div className="space-y-1">
           {inferredClient && (
-            <p className="text-xs text-[var(--c-text-3)]">
-              👥 <span className="font-medium text-[var(--c-text-2)]">{inferredClient}</span>
+            <p className="text-xs text-content-3">
+              👥 <span className="font-medium text-content-2">{inferredClient}</span>
             </p>
           )}
           {post.project_name && (
-            <p className="text-xs text-[var(--c-text-3)]">
+            <p className="text-xs text-content-3">
               📁 {post.project_name}
               {post.task_title && <> › ✓ {post.task_title}</>}
             </p>
@@ -630,19 +630,19 @@ function PostDetail({
       )}
 
       {post.notes && (
-        <div className="rounded-xl border border-dashed border-[var(--c-border)] px-3 py-2">
-          <p className="mb-0.5 text-[10px] font-medium uppercase tracking-wider text-[var(--c-text-3)]">
+        <div className="rounded-xl border border-dashed border-line px-3 py-2">
+          <p className="mb-0.5 text-[10px] font-medium uppercase tracking-wider text-content-3">
             {c.pub_internalNotes}
           </p>
-          <p className="whitespace-pre-wrap text-xs text-[var(--c-text-2)]">{post.notes}</p>
+          <p className="whitespace-pre-wrap text-xs text-content-2">{post.notes}</p>
         </div>
       )}
 
       {post.creator_name && (
-        <p className="text-[11px] text-[var(--c-text-3)]">👤 {post.creator_name}</p>
+        <p className="text-[11px] text-content-3">👤 {post.creator_name}</p>
       )}
 
-      <div className="flex flex-wrap items-center gap-2 border-t border-[var(--c-border)] pt-3">
+      <div className="flex flex-wrap items-center gap-2 border-t border-line pt-3">
         {post.status !== "published" && post.status !== "cancelled" && (
           <>
             <button
@@ -655,14 +655,14 @@ function PostDetail({
             <button
               onClick={() => handleStatusChange("scheduled")}
               disabled={isPending || post.status === "scheduled"}
-              className="rounded-lg border border-[var(--c-border)] px-3 py-1.5 text-sm text-[var(--c-text-2)] hover:bg-[var(--c-elevated)] disabled:opacity-50"
+              className="rounded-lg border border-line px-3 py-1.5 text-sm text-content-2 hover:bg-surface-2 disabled:opacity-50"
             >
               📅 {c.pub_schedule}
             </button>
             <button
               onClick={() => handleStatusChange("cancelled")}
               disabled={isPending}
-              className="rounded-lg border border-[var(--c-border)] px-3 py-1.5 text-sm text-[var(--c-text-2)] hover:bg-[var(--c-elevated)] disabled:opacity-50"
+              className="rounded-lg border border-line px-3 py-1.5 text-sm text-content-2 hover:bg-surface-2 disabled:opacity-50"
             >
               {t.common.cancel}
             </button>
@@ -672,7 +672,7 @@ function PostDetail({
           <button
             onClick={() => handleStatusChange("draft")}
             disabled={isPending}
-            className="rounded-lg border border-[var(--c-border)] px-3 py-1.5 text-sm text-[var(--c-text-2)] hover:bg-[var(--c-elevated)] disabled:opacity-50"
+            className="rounded-lg border border-line px-3 py-1.5 text-sm text-content-2 hover:bg-surface-2 disabled:opacity-50"
           >
             ↩ {c.pub_backToDraft}
           </button>
@@ -681,14 +681,14 @@ function PostDetail({
           <button
             onClick={handleDuplicate}
             disabled={isPending}
-            className="rounded-lg px-2 py-1 text-xs text-[var(--c-text-3)] hover:bg-[var(--c-elevated)] hover:text-[var(--c-text-1)]"
+            className="rounded-lg px-2 py-1 text-xs text-content-3 hover:bg-surface-2 hover:text-content"
           >
             ⧉ {c.pub_duplicate}
           </button>
           <button
             onClick={onEdit}
             disabled={isPending}
-            className="rounded-lg px-2 py-1 text-xs text-[var(--c-text-3)] hover:bg-[var(--c-elevated)] hover:text-[var(--c-text-1)]"
+            className="rounded-lg px-2 py-1 text-xs text-content-3 hover:bg-surface-2 hover:text-content"
           >
             ✏ {t.common.edit}
           </button>
@@ -733,15 +733,15 @@ function Modal({
     >
       <div
         className={cn(
-          "flex max-h-[90vh] flex-col rounded-2xl border border-[var(--c-border)] bg-[var(--c-card)] shadow-2xl",
+          "flex max-h-[90vh] flex-col rounded-2xl border border-line bg-surface shadow-2xl",
           wide ? "w-full max-w-2xl" : "w-full max-w-lg",
         )}
       >
-        <div className="flex shrink-0 items-center justify-between border-b border-[var(--c-border)] px-6 py-4">
-          <h2 className="text-base font-semibold text-[var(--c-text-1)]">{title}</h2>
+        <div className="flex shrink-0 items-center justify-between border-b border-line px-6 py-4">
+          <h2 className="text-base font-semibold text-content">{title}</h2>
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-[var(--c-text-3)] hover:bg-[var(--c-elevated)] hover:text-[var(--c-text-1)]"
+            className="rounded-lg p-1.5 text-content-3 hover:bg-surface-2 hover:text-content"
           >
             ✕
           </button>
@@ -842,12 +842,12 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
         <div className="flex items-center gap-3">
           <Link
             href="/dashboard/content"
-            className="flex items-center gap-1 text-sm text-[var(--c-text-3)] hover:text-[var(--c-text-1)] transition-colors"
+            className="flex items-center gap-1 text-sm text-content-3 hover:text-content transition-colors"
           >
             <ChevronLeft size={14} />
             {c.title}
           </Link>
-          <h1 className="text-xl font-bold text-[var(--c-text-1)]">{c.publishingTitle}</h1>
+          <h1 className="text-xl font-bold text-content">{c.publishingTitle}</h1>
         </div>
         <button
           onClick={() => openCreate()}
@@ -865,8 +865,8 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
           { label: c.publishedPosts, value: published, accent: "#22C55E" },
           { label: c.draftPosts, value: drafts, accent: "#64748B" },
         ].map((s) => (
-          <div key={s.label} className="flex flex-col gap-2 rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] p-4">
-            <span className="text-xs text-[var(--c-text-3)]">{s.label}</span>
+          <div key={s.label} className="flex flex-col gap-2 rounded-xl border border-line bg-surface p-4">
+            <span className="text-xs text-content-3">{s.label}</span>
             <span className="text-2xl font-bold" style={{ color: s.accent }}>{s.value}</span>
           </div>
         ))}
@@ -875,14 +875,14 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-2">
         {/* View toggle */}
-        <div className="flex rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] p-0.5">
+        <div className="flex rounded-xl border border-line bg-surface p-0.5">
           <button
             onClick={() => setView("list")}
             className={cn(
               "rounded-lg px-4 py-1.5 text-xs font-medium transition-all",
               view === "list"
                 ? "bg-accent2 text-accent2-fg shadow-sm"
-                : "text-[var(--c-text-3)] hover:text-[var(--c-text-1)]",
+                : "text-content-3 hover:text-content",
             )}
           >
             {c.pub_listView}
@@ -893,7 +893,7 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
               "rounded-lg px-4 py-1.5 text-xs font-medium transition-all",
               view === "calendar"
                 ? "bg-accent2 text-accent2-fg shadow-sm"
-                : "text-[var(--c-text-3)] hover:text-[var(--c-text-1)]",
+                : "text-content-3 hover:text-content",
             )}
           >
             {c.calendar}
@@ -904,13 +904,13 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={t.common.search + "…"}
-          className="h-8 rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-3 text-xs text-[var(--c-text-1)] placeholder-[var(--c-text-3)] focus:border-accent2 focus:outline-none"
+          className="h-8 rounded-lg border border-line bg-surface px-3 text-xs text-content placeholder-[var(--c-text-3)] focus:border-accent2 focus:outline-none"
         />
 
         <select
           value={filterPlatform}
           onChange={(e) => setFP(e.target.value)}
-          className="h-8 rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-2 text-xs text-[var(--c-text-1)] focus:border-accent2 focus:outline-none"
+          className="h-8 rounded-lg border border-line bg-surface px-2 text-xs text-content focus:border-accent2 focus:outline-none"
         >
           <option value="">{t.socialMedia.allPlatforms}</option>
           {ALL_PLATFORMS.map((p) => (
@@ -921,7 +921,7 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
         <select
           value={filterStatus}
           onChange={(e) => setFS(e.target.value)}
-          className="h-8 rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-2 text-xs text-[var(--c-text-1)] focus:border-accent2 focus:outline-none"
+          className="h-8 rounded-lg border border-line bg-surface px-2 text-xs text-content focus:border-accent2 focus:outline-none"
         >
           <option value="">{t.socialMedia.allStatuses}</option>
           {(["draft", "scheduled", "published", "cancelled"] as SocialPostStatus[]).map((s) => (
@@ -933,7 +933,7 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
           <select
             value={filterClient}
             onChange={(e) => setFC(e.target.value)}
-            className="h-8 rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-2 text-xs text-[var(--c-text-1)] focus:border-accent2 focus:outline-none"
+            className="h-8 rounded-lg border border-line bg-surface px-2 text-xs text-content focus:border-accent2 focus:outline-none"
           >
             <option value="">{c.pub_allClients}</option>
             {clients.map((cl) => (
@@ -945,7 +945,7 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
         {hasActiveFilters && (
           <button
             onClick={() => { setFP(""); setFS(""); setFC(""); setSearch(""); }}
-            className="text-xs text-[var(--c-text-3)] hover:text-[var(--c-text-1)]"
+            className="text-xs text-content-3 hover:text-content"
           >
             ✕ {t.common.clear}
           </button>
@@ -954,28 +954,28 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
 
       {/* ── Calendar view ── */}
       {view === "calendar" && (
-        <div className="rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] overflow-hidden">
-          <div className="flex items-center justify-between border-b border-[var(--c-border)] px-5 py-4">
+        <div className="rounded-xl border border-line bg-surface overflow-hidden">
+          <div className="flex items-center justify-between border-b border-line px-5 py-4">
             <button
               onClick={() => month === 0 ? (setMonth(11), setYear((y) => y - 1)) : setMonth((m) => m - 1)}
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--c-border)] text-[var(--c-text-2)] hover:bg-[var(--c-elevated)] transition-colors"
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-line text-content-2 hover:bg-surface-2 transition-colors"
             >
               <ChevronLeft size={14} />
             </button>
-            <h3 className="text-sm font-semibold text-[var(--c-text-1)]">
+            <h3 className="text-sm font-semibold text-content">
               {monthNames[month]} {year}
             </h3>
             <button
               onClick={() => month === 11 ? (setMonth(0), setYear((y) => y + 1)) : setMonth((m) => m + 1)}
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--c-border)] text-[var(--c-text-2)] hover:bg-[var(--c-elevated)] transition-colors"
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-line text-content-2 hover:bg-surface-2 transition-colors"
             >
               <ChevronRight size={14} />
             </button>
           </div>
 
-          <div className="grid grid-cols-7 border-b border-[var(--c-border)]">
+          <div className="grid grid-cols-7 border-b border-line">
             {c.weekdaysShort.map((d) => (
-              <div key={d} className="py-2.5 text-center text-[10px] font-semibold uppercase tracking-wider text-[var(--c-text-3)]">
+              <div key={d} className="py-2.5 text-center text-[10px] font-semibold uppercase tracking-wider text-content-3">
                 {d}
               </div>
             ))}
@@ -984,7 +984,7 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
           <div className="grid grid-cols-7">
             {calDays.map((day, i) => {
               if (!day) {
-                return <div key={`e-${i}`} className="min-h-[88px] border-b border-r border-[var(--c-border)] bg-[var(--c-elevated)]/30" />;
+                return <div key={`e-${i}`} className="min-h-[88px] border-b border-r border-line bg-surface-2/30" />;
               }
               const key = toDateKey(day);
               const dayPosts = (postsByDate[key] ?? []).filter(
@@ -1002,14 +1002,14 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
                   key={key}
                   onClick={() => openCreate(key)}
                   className={cn(
-                    "min-h-[88px] cursor-pointer p-1.5 border-b border-[var(--c-border)] flex flex-col gap-1 transition-colors hover:bg-[var(--c-elevated)]/50",
+                    "min-h-[88px] cursor-pointer p-1.5 border-b border-line flex flex-col gap-1 transition-colors hover:bg-surface-2/50",
                     !isLastCol && "border-r",
                     isToday && "bg-accent2/5",
                   )}
                 >
                   <span className={cn(
                     "flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold",
-                    isToday ? "bg-accent2 text-accent2-fg" : "text-[var(--c-text-3)]",
+                    isToday ? "bg-accent2 text-accent2-fg" : "text-content-3",
                   )}>
                     {day.getDate()}
                   </span>
@@ -1018,7 +1018,7 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
                       <PostChip key={p.id} post={p} onClick={() => openView(p)} />
                     ))}
                     {dayPosts.length > 3 && (
-                      <p className="px-1 text-[9px] text-[var(--c-text-3)]">+{dayPosts.length - 3}</p>
+                      <p className="px-1 text-[9px] text-content-3">+{dayPosts.length - 3}</p>
                     )}
                   </div>
                 </div>
@@ -1027,7 +1027,7 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
           </div>
 
           {/* Platform legend */}
-          <div className="flex flex-wrap gap-2 border-t border-[var(--c-border)] px-4 py-3">
+          <div className="flex flex-wrap gap-2 border-t border-line px-4 py-3">
             {ALL_PLATFORMS.map((p) => (
               <button
                 key={p.id}
@@ -1036,7 +1036,7 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
                   "flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] transition-all",
                   filterPlatform === p.id
                     ? `bg-gradient-to-r ${p.color} text-white`
-                    : "text-[var(--c-text-3)] hover:text-[var(--c-text-1)]",
+                    : "text-content-3 hover:text-content",
                 )}
               >
                 {p.icon} {p.label}
@@ -1050,8 +1050,8 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
       {view === "list" && (
         <div className="space-y-2">
           {filtered.length === 0 && (
-            <div className="rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] px-6 py-10 text-center">
-              <p className="text-sm text-[var(--c-text-3)]">{c.noPostsMonth}</p>
+            <div className="rounded-xl border border-line bg-surface px-6 py-10 text-center">
+              <p className="text-sm text-content-3">{c.noPostsMonth}</p>
             </div>
           )}
           {filtered.map((p) => {
@@ -1059,12 +1059,12 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
             return (
               <div
                 key={p.id}
-                className="group rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] px-4 py-3 transition-all hover:border-accent2/30"
+                className="group rounded-xl border border-line bg-surface px-4 py-3 transition-all hover:border-accent2/30"
               >
                 <div className="flex items-start gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="truncate text-sm font-medium text-[var(--c-text-1)]">{p.title}</span>
+                      <span className="truncate text-sm font-medium text-content">{p.title}</span>
                       <span className={cn("shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium", STATUS_COLORS[p.status])}>
                         {statusLabel[p.status]}
                       </span>
@@ -1073,9 +1073,9 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
                       <PlatformChips platforms={p.platforms} size="xs" />
                     </div>
                     {p.content && (
-                      <p className="mt-1.5 line-clamp-2 text-xs text-[var(--c-text-3)]">{p.content}</p>
+                      <p className="mt-1.5 line-clamp-2 text-xs text-content-3">{p.content}</p>
                     )}
-                    <div className="mt-1.5 flex flex-wrap items-center gap-3 text-[11px] text-[var(--c-text-3)]">
+                    <div className="mt-1.5 flex flex-wrap items-center gap-3 text-[11px] text-content-3">
                       {p.scheduled_at && <span>📅 {fmtDateShort(p.scheduled_at)}</span>}
                       {clientName && (
                         <span className="rounded-full bg-accent2/10 px-1.5 py-0.5 text-accent2">
@@ -1090,13 +1090,13 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
                   <div className="flex shrink-0 items-center gap-1 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100">
                     <button
                       onClick={() => openEdit(p)}
-                      className="rounded-lg border border-[var(--c-border)] px-2.5 py-1 text-xs text-[var(--c-text-2)] hover:bg-[var(--c-elevated)] hover:text-[var(--c-text-1)] transition-colors"
+                      className="rounded-lg border border-line px-2.5 py-1 text-xs text-content-2 hover:bg-surface-2 hover:text-content transition-colors"
                     >
                       {t.common.edit}
                     </button>
                     <button
                       onClick={() => openView(p)}
-                      className="rounded-lg border border-[var(--c-border)] px-2.5 py-1 text-xs text-[var(--c-text-2)] hover:bg-[var(--c-elevated)] hover:text-[var(--c-text-1)] transition-colors"
+                      className="rounded-lg border border-line px-2.5 py-1 text-xs text-content-2 hover:bg-surface-2 hover:text-content transition-colors"
                     >
                       View
                     </button>
@@ -1110,22 +1110,22 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
 
       {/* Unscheduled drafts */}
       {unscheduledDrafts.length > 0 && (
-        <div className="rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] p-4">
-          <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-[var(--c-text-3)]">
+        <div className="rounded-xl border border-line bg-surface p-4">
+          <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-content-3">
             {c.pub_unscheduledDrafts} ({unscheduledDrafts.length})
           </h4>
           <div className="space-y-1.5">
             {unscheduledDrafts.map((p) => {
               const clientName = p.project_id ? projectClientMap.get(p.project_id) : undefined;
               return (
-                <div key={p.id} className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-[var(--c-elevated)]">
+                <div key={p.id} className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-surface-2">
                   <div className="min-w-0 flex-1">
-                    <span className="truncate text-sm text-[var(--c-text-2)]">{p.title}</span>
+                    <span className="truncate text-sm text-content-2">{p.title}</span>
                     {p.platforms.length > 0 && (
                       <div className="mt-0.5"><PlatformChips platforms={p.platforms} size="xs" /></div>
                     )}
                   </div>
-                  <div className="flex shrink-0 items-center gap-2 text-xs text-[var(--c-text-3)]">
+                  <div className="flex shrink-0 items-center gap-2 text-xs text-content-3">
                     {clientName && <span>{clientName}</span>}
                     {p.project_name && <span>{p.project_name}</span>}
                   </div>

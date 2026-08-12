@@ -54,7 +54,7 @@ function DueBadge({ due_date }: { due_date: string | null }) {
       </span>
     );
   return (
-    <span className="text-[10px] text-[var(--c-text-3)]">{formatDate(due_date!)}</span>
+    <span className="text-[10px] text-content-3">{formatDate(due_date!)}</span>
   );
 }
 
@@ -87,7 +87,7 @@ function StatusQuickChange({
       disabled={pending}
       onChange={(e) => handleChange(e.target.value as AdminTaskStatus)}
       onClick={(e) => e.preventDefault()} // don't navigate on click
-      className="cursor-pointer rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-2 py-1 text-[11px] text-[var(--c-text-2)] focus:outline-none focus:border-accent2 disabled:opacity-50"
+      className="cursor-pointer rounded-lg border border-line bg-surface-2 px-2 py-1 text-[11px] text-content-2 focus:outline-none focus:border-accent2 disabled:opacity-50"
       aria-label={at.labelStatus}
     >
       {ADMIN_TASK_STATUSES.map((s) => (
@@ -133,8 +133,8 @@ export function AdminTasksClient({
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--c-text-1)]">{at.title}</h1>
-          <p className="mt-0.5 text-sm text-[var(--c-text-3)]">{at.description}</p>
+          <h1 className="text-2xl font-bold text-content">{at.title}</h1>
+          <p className="mt-0.5 text-sm text-content-3">{at.description}</p>
         </div>
         <Link
           href="/dashboard/admin-tasks/new"
@@ -148,7 +148,7 @@ export function AdminTasksClient({
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3">
         {/* Status filter tabs */}
-        <div className="flex items-center gap-1 rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] p-0.5">
+        <div className="flex items-center gap-1 rounded-lg border border-line bg-surface p-0.5">
           {(["all", "active", "done"] as FilterKey[]).map((f) => (
             <button
               key={f}
@@ -157,7 +157,7 @@ export function AdminTasksClient({
               className={`rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
                 filter === f
                   ? "bg-accent2/10 text-accent2"
-                  : "text-[var(--c-text-3)] hover:text-[var(--c-text-1)]"
+                  : "text-content-3 hover:text-content"
               }`}
             >
               {f === "all" ? at.filterAll : f === "active" ? at.filterActive : at.filterDone}
@@ -169,7 +169,7 @@ export function AdminTasksClient({
         <select
           value={priorityFilter}
           onChange={(e) => setPriorityFilter(e.target.value)}
-          className="rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-3 py-1.5 text-xs text-[var(--c-text-2)] focus:outline-none focus:border-accent2"
+          className="rounded-lg border border-line bg-surface px-3 py-1.5 text-xs text-content-2 focus:outline-none focus:border-accent2"
         >
           <option value="all">{at.labelPriority}: {at.filterAll}</option>
           {(["urgent", "high", "normal", "low"] as const).map((p) => (
@@ -183,27 +183,27 @@ export function AdminTasksClient({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={t.common.search + "…"}
-          className="rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-3 py-1.5 text-xs text-[var(--c-text-1)] placeholder:text-[var(--c-text-3)] focus:outline-none focus:border-accent2 min-w-[160px]"
+          className="rounded-lg border border-line bg-surface px-3 py-1.5 text-xs text-content placeholder:text-content-3 focus:outline-none focus:border-accent2 min-w-[160px]"
         />
 
-        <span className="ml-auto text-xs text-[var(--c-text-3)]">
+        <span className="ml-auto text-xs text-content-3">
           {filtered.length} {filtered.length === 1 ? t.common.result : t.common.results}
         </span>
       </div>
 
       {/* Task list */}
       {filtered.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-[var(--c-border)] bg-[var(--c-card)] py-16 text-center">
-          <AlertTriangle size={28} className="mx-auto mb-3 text-[var(--c-text-3)]" />
-          <p className="text-sm text-[var(--c-text-3)]">{at.empty}</p>
+        <div className="rounded-xl border border-dashed border-line bg-surface py-16 text-center">
+          <AlertTriangle size={28} className="mx-auto mb-3 text-content-3" />
+          <p className="text-sm text-content-3">{at.empty}</p>
         </div>
       ) : (
-        <div className="rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] overflow-hidden">
-          <div className="divide-y divide-[var(--c-border)]">
+        <div className="rounded-xl border border-line bg-surface overflow-hidden">
+          <div className="divide-y divide-line">
             {filtered.map((task) => (
               <div
                 key={task.id}
-                className="group flex items-center gap-3 px-4 py-3 hover:bg-[var(--c-elevated)] transition-colors"
+                className="group flex items-center gap-3 px-4 py-3 hover:bg-surface-2 transition-colors"
               >
                 {/* Status icon */}
                 <span className="shrink-0">{statusIcon[task.status]}</span>
@@ -213,18 +213,18 @@ export function AdminTasksClient({
                   href={`/dashboard/admin-tasks/${task.id}`}
                   className="min-w-0 flex-1"
                 >
-                  <p className="truncate text-sm font-medium text-[var(--c-text-1)] group-hover:text-accent2 transition-colors">
+                  <p className="truncate text-sm font-medium text-content group-hover:text-accent2 transition-colors">
                     {task.title}
                   </p>
                   <div className="mt-0.5 flex flex-wrap items-center gap-2">
                     {task.related_client_name && (
-                      <span className="text-[10px] text-[var(--c-text-3)]">{task.related_client_name}</span>
+                      <span className="text-[10px] text-content-3">{task.related_client_name}</span>
                     )}
                     {task.related_project_name && (
-                      <span className="text-[10px] text-[var(--c-text-3)]">· {task.related_project_name}</span>
+                      <span className="text-[10px] text-content-3">· {task.related_project_name}</span>
                     )}
                     {task.assigned_admin_name && (
-                      <span className="text-[10px] text-[var(--c-text-3)]">· @{task.assigned_admin_name}</span>
+                      <span className="text-[10px] text-content-3">· @{task.assigned_admin_name}</span>
                     )}
                   </div>
                 </Link>

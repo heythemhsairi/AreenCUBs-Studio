@@ -50,12 +50,13 @@ export default async function DashboardLayout({
   return (
     <NowProvider serverNowIso={serverNowIso}>
     <div className="flex h-screen overflow-hidden bg-canvas">
-      {/* fixed dark mesh background */}
-      <div aria-hidden className="pointer-events-none fixed inset-0 -z-10">
-        <div className="absolute inset-0 bg-mesh opacity-60" />
-        <div className="absolute -left-40 -top-20 h-96 w-96 rounded-full bg-neon-cyan/6 blur-[100px]" />
-        <div className="absolute right-0 top-1/3 h-80 w-80 rounded-full bg-neon-violet/5 blur-[100px]" />
-      </div>
+      {/*
+        The blurred cyan and violet blobs that used to sit here are gone. Two
+        soft glow circles behind a dashboard is the single most recognisable
+        "generated admin panel" signature, and they cost real paint time on
+        every scroll while adding nothing an operator can use. The canvas token
+        carries the ground now.
+      */}
 
       {/* Desktop sidebar — full height, sticky */}
       <Sidebar role={session.role} />
@@ -70,7 +71,13 @@ export default async function DashboardLayout({
           notifications={notifications}
         />
         <main className="flex-1 overflow-y-auto pb-20 md:pb-0">
-          <div className="mx-auto max-w-[1280px] px-4 py-5 md:px-6 md:py-6 lg:px-8 lg:py-8 space-y-6">
+          {/*
+            Content measure: 1280px is wide enough for a dense table and narrow
+            enough that a paragraph never runs past a comfortable line length.
+            The vertical rhythm steps with the viewport rather than staying
+            fixed, so a phone is not padded like a desktop.
+          */}
+          <div className="mx-auto max-w-[1280px] space-y-6 px-4 py-5 md:px-6 md:py-7 lg:px-8 lg:py-9">
             {unseenUpdate && <WhatsNewBanner update={unseenUpdate} />}
             {children}
           </div>

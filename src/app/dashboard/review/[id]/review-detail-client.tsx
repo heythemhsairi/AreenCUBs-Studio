@@ -181,7 +181,7 @@ export function ReviewDetailClient({
                       Lecture réservée à l&apos;équipe de production.
                     </p>
                   )}
-                  <ul className="divide-y divide-[var(--c-border)]">
+                  <ul className="divide-y divide-line">
                     {versions.map((v) => (
                       <li key={v.id} className="flex items-center justify-between gap-3 py-2">
                         <p className="text-sm text-ink">
@@ -242,7 +242,7 @@ export function ReviewDetailClient({
                   return (
                     <li
                       key={c.id}
-                      className={`rounded-lg border border-[var(--c-border)] p-3 ${
+                      className={`rounded-lg border border-line p-3 ${
                         c.resolved ? "opacity-60" : ""
                       }`}
                     >

@@ -96,12 +96,12 @@ export function InternDashboardClient({
               size="sm"
             />
           ) : (
-            <ul className="divide-y divide-[var(--c-border)]">
+            <ul className="divide-y divide-line">
               {open.map((task) => (
                 <li key={task.id}>
                   <Link
                     href={`/dashboard/tasks/${task.id}`}
-                    className="flex flex-col gap-1 py-3 transition-colors hover:bg-[var(--c-surface-2)] sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+                    className="flex flex-col gap-1 py-3 transition-colors hover:bg-surface-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
                   >
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium text-ink">{task.title}</p>

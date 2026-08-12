@@ -93,8 +93,8 @@ export function ContentItemDetailClient({ item, members }: Props) {
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-[var(--c-text-3)] flex-wrap">
-        <Link href="/dashboard/content" className="hover:text-[var(--c-text-1)] flex items-center gap-1 transition-colors">
+      <div className="flex items-center gap-2 text-sm text-content-3 flex-wrap">
+        <Link href="/dashboard/content" className="hover:text-content flex items-center gap-1 transition-colors">
           <ChevronLeft size={14} />
           {c.title}
         </Link>
@@ -103,7 +103,7 @@ export function ContentItemDetailClient({ item, members }: Props) {
             <span>/</span>
             <Link
               href={`/dashboard/content/clients/${plan?.client_id}`}
-              className="hover:text-[var(--c-text-1)] transition-colors"
+              className="hover:text-content transition-colors"
             >
               {client.name}
             </Link>
@@ -114,23 +114,23 @@ export function ContentItemDetailClient({ item, members }: Props) {
             <span>/</span>
             <Link
               href={`/dashboard/content/plans/${plan.id}`}
-              className="hover:text-[var(--c-text-1)] transition-colors"
+              className="hover:text-content transition-colors"
             >
               {monthLabel} {plan.year}
             </Link>
           </>
         )}
         <span>/</span>
-        <span className="text-[var(--c-text-1)] font-medium line-clamp-1 max-w-[200px]">{item.title}</span>
+        <span className="text-content font-medium line-clamp-1 max-w-[200px]">{item.title}</span>
       </div>
 
       {/* Status badge strip */}
       <div className="flex items-center gap-3 flex-wrap">
-        <span className={cn("rounded-full px-2.5 py-1 text-[11px] font-semibold", ITEM_STATUS_BG[item.status] ?? "bg-[var(--c-border)] text-[var(--c-text-3)]")}>
+        <span className={cn("rounded-full px-2.5 py-1 text-[11px] font-semibold", ITEM_STATUS_BG[item.status] ?? "bg-[var(--c-border)] text-content-3")}>
           {c.itemStatus[item.status as keyof typeof c.itemStatus] ?? item.status}
         </span>
-        <span className="text-xs text-[var(--c-text-3)] capitalize">{item.platform}</span>
-        <span className="text-xs text-[var(--c-text-3)]">
+        <span className="text-xs text-content-3 capitalize">{item.platform}</span>
+        <span className="text-xs text-content-3">
           {c.contentType[item.content_type as keyof typeof c.contentType] ?? item.content_type}
         </span>
         {item.task_id && (
@@ -147,9 +147,9 @@ export function ContentItemDetailClient({ item, members }: Props) {
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Main content card */}
         <div className="lg:col-span-2">
-          <div className="rounded-xl border border-[var(--c-border)] bg-[var(--c-card)]">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--c-border)]">
-              <h1 className="font-bold text-[var(--c-text-1)]">{item.title}</h1>
+          <div className="rounded-xl border border-line bg-surface">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-line">
+              <h1 className="font-bold text-content">{item.title}</h1>
               <button
                 type="button"
                 onClick={() => setEditing(!editing)}
@@ -270,7 +270,7 @@ export function ContentItemDetailClient({ item, members }: Props) {
                   <button
                     type="button"
                     onClick={() => setEditing(false)}
-                    className="rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-4 py-2 text-sm text-[var(--c-text-2)] hover:bg-[var(--c-elevated)] transition-colors"
+                    className="rounded-lg border border-line bg-surface px-4 py-2 text-sm text-content-2 hover:bg-surface-2 transition-colors"
                   >
                     {t.common.cancel}
                   </button>
@@ -287,35 +287,35 @@ export function ContentItemDetailClient({ item, members }: Props) {
               <div className="p-5 flex flex-col gap-5">
                 {item.caption && (
                   <section>
-                    <h3 className="text-xs font-semibold text-[var(--c-text-3)] uppercase tracking-wider mb-2">
+                    <h3 className="text-xs font-semibold text-content-3 uppercase tracking-wider mb-2">
                       {c.itemFields.caption}
                     </h3>
-                    <p className="text-sm text-[var(--c-text-1)] whitespace-pre-line bg-[var(--c-elevated)] rounded-lg p-3">
+                    <p className="text-sm text-content whitespace-pre-line bg-surface-2 rounded-lg p-3">
                       {item.caption}
                     </p>
                   </section>
                 )}
                 {item.visual_direction && (
                   <section>
-                    <h3 className="text-xs font-semibold text-[var(--c-text-3)] uppercase tracking-wider mb-2">
+                    <h3 className="text-xs font-semibold text-content-3 uppercase tracking-wider mb-2">
                       {c.itemFields.visualDirection}
                     </h3>
-                    <p className="text-sm text-[var(--c-text-1)]">{item.visual_direction}</p>
+                    <p className="text-sm text-content">{item.visual_direction}</p>
                   </section>
                 )}
                 {item.client_feedback && (
                   <section>
-                    <h3 className="text-xs font-semibold text-[var(--c-text-3)] uppercase tracking-wider mb-2">
+                    <h3 className="text-xs font-semibold text-content-3 uppercase tracking-wider mb-2">
                       {c.itemFields.clientFeedback}
                     </h3>
-                    <p className="text-sm text-[var(--c-text-1)] whitespace-pre-line bg-danger-weak rounded-lg p-3 border border-danger">
+                    <p className="text-sm text-content whitespace-pre-line bg-danger-weak rounded-lg p-3 border border-danger">
                       {item.client_feedback}
                     </p>
                   </section>
                 )}
                 {item.final_asset_url && (
                   <section>
-                    <h3 className="text-xs font-semibold text-[var(--c-text-3)] uppercase tracking-wider mb-2">
+                    <h3 className="text-xs font-semibold text-content-3 uppercase tracking-wider mb-2">
                       {c.itemFields.finalAssetUrl}
                     </h3>
                     <a
@@ -330,7 +330,7 @@ export function ContentItemDetailClient({ item, members }: Props) {
                   </section>
                 )}
                 {!item.caption && !item.visual_direction && !item.client_feedback && !item.final_asset_url && (
-                  <p className="text-sm text-[var(--c-text-3)]">
+                  <p className="text-sm text-content-3">
                     {c.noContentYet}
                   </p>
                 )}
@@ -342,43 +342,43 @@ export function ContentItemDetailClient({ item, members }: Props) {
         {/* Sidebar */}
         <div className="flex flex-col gap-4">
           {/* Meta */}
-          <div className="rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] p-4 flex flex-col gap-3">
-            <h3 className="text-xs font-semibold text-[var(--c-text-3)] uppercase tracking-wider">
+          <div className="rounded-xl border border-line bg-surface p-4 flex flex-col gap-3">
+            <h3 className="text-xs font-semibold text-content-3 uppercase tracking-wider">
               {c.details}
             </h3>
             <MetaRow label={c.itemFields.status}>
-              <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-semibold", ITEM_STATUS_BG[item.status] ?? "bg-[var(--c-border)] text-[var(--c-text-3)]")}>
+              <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-semibold", ITEM_STATUS_BG[item.status] ?? "bg-[var(--c-border)] text-content-3")}>
                 {c.itemStatus[item.status as keyof typeof c.itemStatus] ?? item.status}
               </span>
             </MetaRow>
             <MetaRow label={c.itemFields.contentType}>
-              <span className="text-sm text-[var(--c-text-1)]">
+              <span className="text-sm text-content">
                 {c.contentType[item.content_type as keyof typeof c.contentType] ?? item.content_type}
               </span>
             </MetaRow>
             <MetaRow label={c.itemFields.platform}>
-              <span className="text-sm text-[var(--c-text-1)] capitalize">{item.platform}</span>
+              <span className="text-sm text-content capitalize">{item.platform}</span>
             </MetaRow>
             {item.pillar && (
               <MetaRow label={c.itemFields.pillar}>
-                <span className="text-sm text-[var(--c-text-1)]">{item.pillar}</span>
+                <span className="text-sm text-content">{item.pillar}</span>
               </MetaRow>
             )}
             <MetaRow label={c.itemFields.priority}>
-              <span className="text-sm text-[var(--c-text-1)]">
+              <span className="text-sm text-content">
                 {t.tasks.priority[item.priority as keyof typeof t.tasks.priority]}
               </span>
             </MetaRow>
             <MetaRow label={c.itemFields.assignedTo}>
-              <span className="text-sm text-[var(--c-text-1)]">
+              <span className="text-sm text-content">
                 {item.profiles?.full_name ?? item.profiles?.username ?? (
-                  <em className="text-[var(--c-text-3)]">{t.tasks.form.unassigned}</em>
+                  <em className="text-content-3">{t.tasks.form.unassigned}</em>
                 )}
               </span>
             </MetaRow>
             {item.publish_date && (
               <MetaRow label={c.itemFields.publishDate}>
-                <span className="text-sm text-[var(--c-text-1)]">
+                <span className="text-sm text-content">
                   {new Date(item.publish_date).toLocaleDateString(
                     locale === "en" ? "en-US" : "fr-FR",
                     { day: "numeric", month: "long", year: "numeric" },
@@ -388,7 +388,7 @@ export function ContentItemDetailClient({ item, members }: Props) {
             )}
             {item.deadline && (
               <MetaRow label={c.itemFields.deadline}>
-                <span className="text-sm text-[var(--c-text-1)]">
+                <span className="text-sm text-content">
                   {new Date(item.deadline).toLocaleDateString(
                     locale === "en" ? "en-US" : "fr-FR",
                     { day: "numeric", month: "long", year: "numeric" },
@@ -403,7 +403,7 @@ export function ContentItemDetailClient({ item, members }: Props) {
                   ? "bg-success-weak text-success"
                   : item.approval_status === "revision_requested"
                     ? "bg-danger-weak text-danger"
-                    : "bg-[var(--c-border)] text-[var(--c-text-3)]",
+                    : "bg-[var(--c-border)] text-content-3",
               )}>
                 {c.approvalStatus[
                   (item.approval_status ?? "pending") as keyof typeof c.approvalStatus
@@ -414,22 +414,22 @@ export function ContentItemDetailClient({ item, members }: Props) {
 
           {/* Plan link */}
           {plan && (
-            <div className="rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] p-4">
-              <h3 className="text-xs font-semibold text-[var(--c-text-3)] uppercase tracking-wider mb-3">
+            <div className="rounded-xl border border-line bg-surface p-4">
+              <h3 className="text-xs font-semibold text-content-3 uppercase tracking-wider mb-3">
                 {c.plan}
               </h3>
               <Link
                 href={`/dashboard/content/plans/${plan.id}`}
-                className="flex items-center gap-2 rounded-lg bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] hover:text-accent2 hover:bg-accent2/5 transition-colors"
+                className="flex items-center gap-2 rounded-lg bg-surface-2 px-3 py-2 text-sm text-content hover:text-accent2 hover:bg-accent2/5 transition-colors"
               >
-                <ExternalLink size={13} className="text-[var(--c-text-3)]" />
+                <ExternalLink size={13} className="text-content-3" />
                 {monthNames[plan.month - 1]} {plan.year}
                 {plan.theme ? ` — ${plan.theme}` : ""}
               </Link>
               {client && (
                 <Link
                   href={`/dashboard/content/clients/${plan.client_id}`}
-                  className="mt-2 flex items-center gap-2 text-xs text-[var(--c-text-3)] hover:text-[var(--c-text-1)] transition-colors"
+                  className="mt-2 flex items-center gap-2 text-xs text-content-3 hover:text-content transition-colors"
                 >
                   {client.name}
                 </Link>
@@ -453,7 +453,7 @@ function FormField({
 }) {
   return (
     <label className={cn("flex flex-col gap-1.5", className)}>
-      <span className="text-xs font-medium text-[var(--c-text-3)]">{label}</span>
+      <span className="text-xs font-medium text-content-3">{label}</span>
       {children}
     </label>
   );
@@ -462,7 +462,7 @@ function FormField({
 function MetaRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex items-start justify-between gap-2">
-      <span className="text-xs text-[var(--c-text-3)] shrink-0">{label}</span>
+      <span className="text-xs text-content-3 shrink-0">{label}</span>
       <div className="text-right">{children}</div>
     </div>
   );

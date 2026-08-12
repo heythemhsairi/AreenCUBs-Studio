@@ -121,12 +121,12 @@ export function CommercialDashboardClient({
                 size="sm"
               />
             ) : (
-              <ul className="divide-y divide-[var(--c-border)]">
+              <ul className="divide-y divide-line">
                 {drafts.map((d) => (
                   <li key={d.id}>
                     <Link
                       href={`/dashboard/${d.kind === "facture" ? "factures" : "devis"}/${d.id}`}
-                      className="flex items-center justify-between gap-4 py-3 transition-colors hover:bg-[var(--c-surface-2)]"
+                      className="flex items-center justify-between gap-4 py-3 transition-colors hover:bg-surface-2"
                     >
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium text-ink">
@@ -159,7 +159,7 @@ export function CommercialDashboardClient({
                 size="sm"
               />
             ) : (
-              <ul className="divide-y divide-[var(--c-border)]">
+              <ul className="divide-y divide-line">
                 {awaiting.map((d) => {
                   const isOverdue = overdue.some((o) => o.id === d.id);
                   return (
@@ -206,7 +206,7 @@ export function CommercialDashboardClient({
                 <li key={cl.id}>
                   <Link
                     href={`/dashboard/clients/${cl.id}`}
-                    className="block rounded-lg border border-[var(--c-border)] p-3 transition-colors hover:bg-[var(--c-surface-2)]"
+                    className="block rounded-lg border border-line p-3 transition-colors hover:bg-surface-2"
                   >
                     <p className="truncate text-sm font-medium text-ink">{cl.name}</p>
                     <p className="truncate text-xs text-content-3">
