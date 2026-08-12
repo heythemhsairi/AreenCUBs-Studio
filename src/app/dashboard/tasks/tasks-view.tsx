@@ -508,7 +508,7 @@ function DarkKanbanCard({
       }
       className={cn(
         "group relative cursor-grab rounded-xl border bg-surface p-3.5 transition-all duration-150",
-        "hover:border-accent2/30 hover:-translate-y-px active:cursor-grabbing",
+        "hover:border-accent2/30  active:cursor-grabbing",
         isOverdue ? "border-danger/30" : "border-line",
         dragging && "opacity-50",
       )}

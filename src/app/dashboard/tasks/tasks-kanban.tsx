@@ -232,7 +232,7 @@ function KanbanCard({
         })
       }
       className={cn(
-        "group space-y-2 rounded-xl border border-ink/8 bg-surface p-3 shadow-soft transition-all duration-150 hover:-translate-y-px hover:shadow-lift hover:border-brand/30 cursor-grab active:cursor-grabbing",
+        "group space-y-2 rounded-xl border border-ink/8 bg-surface p-3 shadow-soft transition-all duration-150  hover:shadow-lift hover:border-brand/30 cursor-grab active:cursor-grabbing",
         dragging && "opacity-50",
       )}
     >

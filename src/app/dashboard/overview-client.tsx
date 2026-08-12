@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { SectionHeading } from "@/components/dashboard/section-heading";
 import { AlertTriangle, CheckCircle2, Clock, TrendingUp, Users, FileText, CalendarDays } from "lucide-react";
 import { useI18n } from "@/lib/i18n/provider";
 import { useNow, useToday } from "@/lib/time/now";
@@ -237,12 +238,12 @@ export function OverviewClient({
 
         {/* Today's Work hero banner */}
         <section>
-          <p className={SECTION_LABEL}>{t.overview.workerTodayWork}</p>
+          <SectionHeading>{t.overview.workerTodayWork}</SectionHeading>
           <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
             {/* Overdue */}
             <Link
               href="/dashboard/tasks"
-              className={`flex flex-col gap-1.5 rounded-xl p-4 transition-all hover:-translate-y-px ${overdueWorkerTasks.length > 0 ? "bg-danger/10 border border-danger/25 hover:bg-danger/15" : "bg-surface border border-line"}`}
+              className={`flex flex-col gap-1.5 rounded-xl p-4 transition-colors duration-2 ease-ac ${overdueWorkerTasks.length > 0 ? "bg-danger/10 border border-danger/25 hover:bg-danger/15" : "bg-surface border border-line"}`}
             >
               <div className="flex items-center gap-1.5">
                 <AlertTriangle className={`h-3.5 w-3.5 ${overdueWorkerTasks.length > 0 ? "text-danger" : "text-content-3"}`} />
@@ -256,7 +257,7 @@ export function OverviewClient({
             {/* Due today */}
             <Link
               href="/dashboard/tasks"
-              className={`due-today-card flex flex-col gap-1.5 rounded-xl p-4 transition-all hover:-translate-y-px ${todayTasks.length > 0 ? "due-today-active" : "due-today-empty"}`}
+              className={`due-today-card flex flex-col gap-1.5 rounded-xl p-4 transition-colors duration-2 ease-ac ${todayTasks.length > 0 ? "due-today-active" : "due-today-empty"}`}
             >
               <div className="flex items-center gap-1.5">
                 <Clock className={`h-3.5 w-3.5 ${todayTasks.length > 0 ? "due-today-icon" : "text-content-3"}`} />
@@ -270,7 +271,7 @@ export function OverviewClient({
             {/* In progress */}
             <Link
               href="/dashboard/tasks"
-              className="flex flex-col gap-1.5 rounded-xl bg-accent2/8 border border-accent2/20 p-4 transition-all hover:-translate-y-px hover:bg-accent2/12"
+              className="flex flex-col gap-1.5 rounded-xl bg-accent2/8 border border-accent2/20 p-4 transition-colors duration-2 ease-ac hover:bg-accent2/12"
             >
               <div className="flex items-center gap-1.5">
                 <span className="relative flex h-2 w-2 shrink-0">
@@ -285,7 +286,7 @@ export function OverviewClient({
             {/* Waiting review */}
             <Link
               href="/dashboard/tasks"
-              className={`flex flex-col gap-1.5 rounded-xl p-4 transition-all hover:-translate-y-px ${reviewTasks.length > 0 ? "bg-chart-4/10 border border-chart-4/25 hover:bg-chart-4/15" : "bg-surface border border-line"}`}
+              className={`flex flex-col gap-1.5 rounded-xl p-4 transition-colors duration-2 ease-ac ${reviewTasks.length > 0 ? "bg-chart-4/10 border border-chart-4/25 hover:bg-chart-4/15" : "bg-surface border border-line"}`}
             >
               <div className="flex items-center gap-1.5">
                 <CheckCircle2 className={`h-3.5 w-3.5 ${reviewTasks.length > 0 ? "text-chart-4" : "text-content-3"}`} />
@@ -301,7 +302,7 @@ export function OverviewClient({
         {/* Urgent tasks (overdue + due today) */}
         {totalUrgent > 0 && (
           <section>
-            <p className={SECTION_LABEL}>{t.overview.workerUrgentTasks}</p>
+            <SectionHeading>{t.overview.workerUrgentTasks}</SectionHeading>
             <div className="mt-3 rounded-xl border-l-2 border-danger bg-surface ring-1 ring-line overflow-hidden">
               <div className="flex items-center justify-between border-b border-line px-5 py-3">
                 <div className="flex items-center gap-2">
@@ -357,7 +358,7 @@ export function OverviewClient({
 
         {totalUrgent === 0 && (
           <section>
-            <p className={SECTION_LABEL}>{t.overview.workerUrgentTasks}</p>
+            <SectionHeading>{t.overview.workerUrgentTasks}</SectionHeading>
             <div className="mt-3 flex items-center gap-3 rounded-xl border border-success/20 bg-success/5 px-5 py-4">
               <CheckCircle2 className="h-4 w-4 text-success" />
               <p className="text-sm font-medium text-success">{t.overview.allClear}</p>
@@ -368,7 +369,7 @@ export function OverviewClient({
         {/* My tasks list */}
         <section>
           <div className="flex items-center justify-between">
-            <p className={SECTION_LABEL}>{t.overview.myTasks}</p>
+            <SectionHeading>{t.overview.myTasks}</SectionHeading>
             <Link href="/dashboard/tasks" className="text-[11px] font-semibold text-info hover:text-info transition-colors">
               {t.overview.seeAllLink}
             </Link>
@@ -382,7 +383,7 @@ export function OverviewClient({
         {thisWeekTasks.length > 0 && (
           <section>
             <div className="flex items-center justify-between">
-              <p className={SECTION_LABEL}>{t.overview.workerThisWeek}</p>
+              <SectionHeading>{t.overview.workerThisWeek}</SectionHeading>
               <Link href="/dashboard/calendar" className="text-[11px] font-semibold text-info hover:text-info transition-colors">
                 <CalendarDays className="inline-block h-3.5 w-3.5 mr-1 -mt-0.5" />
                 {t.calendar.title}
@@ -396,7 +397,7 @@ export function OverviewClient({
 
         {/* Office/Home planning */}
         <section>
-          <p className={SECTION_LABEL}>{t.overview.myPlanning}</p>
+          <SectionHeading>{t.overview.myPlanning}</SectionHeading>
           <div className="mt-3 rounded-xl bg-surface ring-1 ring-line p-5">
             <p className="mb-3 text-xs text-content-3">{t.overview.myPlanningHint}</p>
             <WorkCalendar initial={workSchedule} />
@@ -405,7 +406,7 @@ export function OverviewClient({
 
         {/* My KPI strip */}
         <section>
-          <p className={SECTION_LABEL}>{t.overview.myMetrics}</p>
+          <SectionHeading>{t.overview.myMetrics}</SectionHeading>
           <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
             <KpiCard
               label={t.kpis.myActiveTasks}
@@ -449,7 +450,7 @@ export function OverviewClient({
       {/* ================================================================== */}
       {hasPriorities && (
         <section>
-          <p className={SECTION_LABEL}>{t.overview.todayPriorities}</p>
+          <SectionHeading>{t.overview.todayPriorities}</SectionHeading>
           <div className="mt-3 rounded-xl border-l-2 border-danger bg-surface ring-1 ring-line">
             <div className="flex items-center justify-between border-b border-line px-5 py-3">
               <div className="flex items-center gap-2">
@@ -551,7 +552,7 @@ export function OverviewClient({
 
       {!hasPriorities && (
         <section>
-          <p className={SECTION_LABEL}>{t.overview.todayPriorities}</p>
+          <SectionHeading>{t.overview.todayPriorities}</SectionHeading>
           <div className="mt-3 flex items-center gap-3 rounded-xl border border-success/20 bg-success/5 px-5 py-4">
             <CheckCircle2 className="h-4 w-4 text-success" />
             <p className="text-sm font-medium text-success">
@@ -567,7 +568,7 @@ export function OverviewClient({
       {isAdmin && (
         <section>
           <div className="flex items-center justify-between">
-            <p className={SECTION_LABEL}>{t.overview.financialHealth}</p>
+            <SectionHeading>{t.overview.financialHealth}</SectionHeading>
             <Link
               href="/dashboard/finance"
               className="text-[11px] font-semibold text-info hover:text-info transition-colors"
@@ -637,7 +638,7 @@ export function OverviewClient({
       {/* Freelancer KPI strip */}
       {role === "freelancer" && (
         <section>
-          <p className={SECTION_LABEL}>{t.overview.myMetrics}</p>
+          <SectionHeading>{t.overview.myMetrics}</SectionHeading>
           <div className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-4">
             <KpiCard
               label={t.kpis.myActiveTasks}
@@ -674,7 +675,7 @@ export function OverviewClient({
       {/* ================================================================== */}
       <section>
         <div className="flex items-center justify-between">
-          <p className={SECTION_LABEL}>{t.overview.activeWork}</p>
+          <SectionHeading>{t.overview.activeWork}</SectionHeading>
           <Link
             href="/dashboard/tasks"
             className="text-[11px] font-semibold text-info hover:text-info transition-colors"
@@ -724,7 +725,7 @@ export function OverviewClient({
       {/* ================================================================== */}
       <section>
         <div className="flex items-center justify-between">
-          <p className={SECTION_LABEL}>{t.overview.upcomingDeadlines}</p>
+          <SectionHeading>{t.overview.upcomingDeadlines}</SectionHeading>
           <Link
             href="/dashboard/tasks"
             className="text-[11px] font-semibold text-info hover:text-info transition-colors"
@@ -742,7 +743,7 @@ export function OverviewClient({
       {/* ================================================================== */}
       <section>
         <div className="flex items-center justify-between">
-          <p className={SECTION_LABEL}>{t.overview.recentDocs}</p>
+          <SectionHeading>{t.overview.recentDocs}</SectionHeading>
           <Link
             href="/dashboard/devis"
             className="text-[11px] font-semibold text-info hover:text-info transition-colors"
@@ -761,7 +762,7 @@ export function OverviewClient({
       {isAdmin && (
         <section>
           <div className="flex items-center justify-between">
-            <p className={SECTION_LABEL}>{t.overview.revenueChart}</p>
+            <SectionHeading>{t.overview.revenueChart}</SectionHeading>
             <Link
               href="/dashboard/finance"
               className="text-[11px] font-semibold text-info hover:text-info transition-colors"
@@ -798,7 +799,7 @@ export function OverviewClient({
       {/* Freelancer: My Tasks + Work Calendar */}
       {role === "freelancer" && (
         <section>
-          <p className={SECTION_LABEL}>{t.overview.myWorkspace}</p>
+          <SectionHeading>{t.overview.myWorkspace}</SectionHeading>
           <div className="mt-3 grid grid-cols-1 gap-4 lg:grid-cols-5">
             <Card className="lg:col-span-3">
               <CardHeader>
@@ -836,7 +837,7 @@ export function OverviewClient({
       {isAdmin && counts.teamSize !== null && counts.teamSize > 0 && (
         <section>
           <div className="flex items-center justify-between">
-            <p className={SECTION_LABEL}>{t.overview.teamSection}</p>
+            <SectionHeading>{t.overview.teamSection}</SectionHeading>
             <Link
               href="/dashboard/team"
               className="text-[11px] font-semibold text-info hover:text-info transition-colors"
@@ -898,7 +899,7 @@ export function OverviewClient({
       {isAdmin && adminTaskCounts && (
         <section>
           <div className="flex items-center justify-between">
-            <p className={SECTION_LABEL}>{t.adminTasks.widgetTitle}</p>
+            <SectionHeading>{t.adminTasks.widgetTitle}</SectionHeading>
             <Link
               href="/dashboard/admin-tasks"
               className="text-[11px] font-semibold text-info hover:text-info transition-colors"
