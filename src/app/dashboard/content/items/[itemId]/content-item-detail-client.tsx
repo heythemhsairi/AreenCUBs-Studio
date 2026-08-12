@@ -126,7 +126,7 @@ export function ContentItemDetailClient({ item, members }: Props) {
 
       {/* Status badge strip */}
       <div className="flex items-center gap-3 flex-wrap">
-        <span className={cn("rounded-full px-2.5 py-1 text-[11px] font-semibold", ITEM_STATUS_BG[item.status] ?? "bg-[var(--c-border)] text-content-3")}>
+        <span className={cn("rounded-full px-2.5 py-1 text-[11px] font-semibold", ITEM_STATUS_BG[item.status] ?? "bg-surface-3 text-content-2")}>
           {c.itemStatus[item.status as keyof typeof c.itemStatus] ?? item.status}
         </span>
         <span className="text-xs text-content-3 capitalize">{item.platform}</span>
@@ -347,7 +347,7 @@ export function ContentItemDetailClient({ item, members }: Props) {
               {c.details}
             </h3>
             <MetaRow label={c.itemFields.status}>
-              <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-semibold", ITEM_STATUS_BG[item.status] ?? "bg-[var(--c-border)] text-content-3")}>
+              <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-semibold", ITEM_STATUS_BG[item.status] ?? "bg-surface-3 text-content-2")}>
                 {c.itemStatus[item.status as keyof typeof c.itemStatus] ?? item.status}
               </span>
             </MetaRow>
@@ -403,7 +403,7 @@ export function ContentItemDetailClient({ item, members }: Props) {
                   ? "bg-success-weak text-success"
                   : item.approval_status === "revision_requested"
                     ? "bg-danger-weak text-danger"
-                    : "bg-[var(--c-border)] text-content-3",
+                    : "bg-surface-3 text-content-2",
               )}>
                 {c.approvalStatus[
                   (item.approval_status ?? "pending") as keyof typeof c.approvalStatus

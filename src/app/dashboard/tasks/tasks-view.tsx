@@ -536,7 +536,7 @@ function DarkKanbanCard({
             {task.project.name}
           </Link>
           {task.client && (
-            <span className="text-[#3D5068]"> · {task.client.name}</span>
+            <span className="text-content-3"> · {task.client.name}</span>
           )}
         </p>
       )}
@@ -835,7 +835,7 @@ function DarkList({
                         {task.project?.name ?? "—"}
                       </span>
                       {task.client && (
-                        <span className="block text-[11px] text-[#3D5068]">
+                        <span className="block text-[11px] text-content-3">
                           {task.client.name}
                         </span>
                       )}

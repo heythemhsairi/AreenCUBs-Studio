@@ -88,7 +88,7 @@ function getPlatform(id: string) {
 }
 
 const STATUS_COLORS: Record<SocialPostStatus, string> = {
-  draft: "bg-[var(--c-border)] text-content-3",
+  draft: "bg-surface-3 text-content-2",
   scheduled: "bg-accent2/15 text-accent2",
   published: "bg-success-weak text-success",
   cancelled: "bg-danger-weak text-danger",

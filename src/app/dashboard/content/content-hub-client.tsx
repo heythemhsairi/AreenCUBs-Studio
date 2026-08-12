@@ -32,9 +32,9 @@ type Props = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  draft: "bg-[var(--c-border)] text-content-3",
+  draft: "bg-surface-3 text-content-2",
   approved: "bg-success-weak text-success",
-  archived: "bg-[var(--c-border)] text-content-3",
+  archived: "bg-surface-3 text-content-2",
 };
 
 export function ContentHubClient({ clients, plans, profiles, publishingCount }: Props) {

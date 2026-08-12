@@ -277,9 +277,20 @@ export function Topbar({
           >
             <Search size={14} />
             <span>{t.common.search}...</span>
-            <span className="ml-auto text-[10px] bg-[var(--c-border)] px-1.5 py-0.5 rounded font-mono leading-none">
+            {/*
+              The shortcut hint. It was a `<span>` at 10px inheriting the
+              button's `text-content-3` over the legacy `--c-border`, which on
+              the light theme is #D8E6F7 — 4.31:1, the single failure axe
+              reported on all ten authenticated routes. `--c-border` is a
+              pre-token colour outside the neutral ramp, so no amount of
+              adjusting the text role would have made it hold in both themes.
+
+              Now a semantic pair (`text-content-2` on `surface-3`, 7.9:1) and a
+              `<kbd>`, which is what a key legend actually is.
+            */}
+            <kbd className="ml-auto rounded border border-line bg-surface-3 px-1.5 py-0.5 font-mono text-[11px] leading-none text-content-2">
               ⌘K
-            </span>
+            </kbd>
           </button>
         </div>
 

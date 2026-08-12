@@ -65,9 +65,9 @@ const ITEM_STATUSES: ContentItemStatus[] = [
 ];
 
 const STATUS_BG: Record<string, string> = {
-  draft: "bg-[var(--c-border)] text-content-3",
+  draft: "bg-surface-3 text-content-2",
   approved: "bg-success-weak text-success",
-  archived: "bg-[var(--c-border)] text-content-3",
+  archived: "bg-surface-3 text-content-2",
 };
 
 const ITEM_STATUS_BG: Record<string, string> = {
@@ -459,7 +459,7 @@ export function ContentPlanDetailClient({ plan, items, members }: Props) {
                         onChange={(e) => handleChangeStatus(item.id, e.target.value as ContentItemStatus)}
                         className={cn(
                           "rounded-full px-2 py-0.5 text-[11px] font-semibold border-0 outline-none cursor-pointer",
-                          ITEM_STATUS_BG[item.status] ?? "bg-[var(--c-border)] text-content-3",
+                          ITEM_STATUS_BG[item.status] ?? "bg-surface-3 text-content-2",
                         )}
                       >
                         {ITEM_STATUSES.map((s) => (

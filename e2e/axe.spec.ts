@@ -38,6 +38,36 @@ function summarise(violations: Violation[]): string {
 /** Serious and critical are treated as failures; minor/moderate are reported. */
 const BLOCKING = new Set(["serious", "critical"]);
 
+/**
+ * Every scan runs in BOTH themes.
+ *
+ * Scanning only the default theme was a real hole, not a theoretical one. The
+ * contrast failure that took ten routes down was `#5a6b7f on #d8e6f7` — a pair
+ * that only exists on the light surfaces — and it went unnoticed because the
+ * legacy `--c-*` variables were keyed on a `.dark` selector the redesign
+ * removed, so their LIGHT values were resolving underneath the dark theme. A
+ * single-theme scan cannot distinguish that from a correct page.
+ */
+const THEMES = ["dark", "light"] as const;
+
+/** Applies a theme the same way the application's own toggle does. */
+async function setTheme(
+  page: import("@playwright/test").Page,
+  theme: (typeof THEMES)[number],
+) {
+  await page.evaluate((t) => {
+    document.documentElement.classList.toggle("light", t === "light");
+    try {
+      localStorage.setItem("areencubs.theme", t);
+    } catch {
+      /* storage may be unavailable; the class is what paints */
+    }
+  }, theme);
+  // Surface colour transitions are 150ms; axe reads computed styles, so it must
+  // not sample mid-transition.
+  await page.waitForTimeout(250);
+}
+
 async function scan(page: import("@playwright/test").Page, label: string) {
   const results = await new AxeBuilder({ page }).withTags(TAGS).analyze();
   const violations = results.violations as unknown as Violation[];
@@ -69,11 +99,28 @@ async function scan(page: import("@playwright/test").Page, label: string) {
   return { violations, blocking };
 }
 
+/**
+ * Scans the CURRENT page in both themes and returns one flat list of blocking
+ * findings, each tagged with the theme it appeared in so a failure message says
+ * which surface to look at.
+ */
+async function scanThemes(
+  page: import("@playwright/test").Page,
+  label: string,
+): Promise<string[]> {
+  const found: string[] = [];
+  for (const theme of THEMES) {
+    await setTheme(page, theme);
+    const { blocking } = await scan(page, `${label} [${theme}]`);
+    found.push(...blocking.map((v) => `${theme}: ${v.id} (${v.nodes.length})`));
+  }
+  return found;
+}
+
 test.describe("axe — unauthenticated routes", () => {
   test("login page has no serious or critical violations", async ({ page }) => {
     await page.goto("/login", { waitUntil: "networkidle" });
-    const { blocking } = await scan(page, "/login");
-    expect(blocking.map((v) => `${v.id} (${v.nodes.length})`)).toEqual([]);
+    expect(await scanThemes(page, "/login")).toEqual([]);
   });
 
   test("login page in an error state", async ({ page }) => {
@@ -82,8 +129,7 @@ test.describe("axe — unauthenticated routes", () => {
     await page.fill('input[name="password"]', "wrong-password");
     await page.click('button[type="submit"]');
     await page.waitForLoadState("networkidle");
-    const { blocking } = await scan(page, "/login (error state)");
-    expect(blocking.map((v) => v.id)).toEqual([]);
+    expect(await scanThemes(page, "/login (error state)")).toEqual([]);
   });
 });
 
@@ -106,16 +152,14 @@ test.describe("axe — authenticated routes", () => {
   ]) {
     test(`${route} has no serious or critical violations`, async ({ page }) => {
       await page.goto(route, { waitUntil: "networkidle" });
-      const { blocking } = await scan(page, route);
-      expect(blocking.map((v) => `${v.id} (${v.nodes.length})`)).toEqual([]);
+      expect(await scanThemes(page, route)).toEqual([]);
     });
   }
 
   test("the account-unavailable denial page", async ({ page, context }) => {
     await context.clearCookies();
     await login(page, "orphan");
-    const { blocking } = await scan(page, "/account-unavailable");
-    expect(blocking.map((v) => v.id)).toEqual([]);
+    expect(await scanThemes(page, "/account-unavailable")).toEqual([]);
   });
 });
 
@@ -125,7 +169,6 @@ test.describe("axe — client portal", () => {
   test("the portal has no serious or critical violations", async ({ page }) => {
     await login(page, "client");
     await page.goto("/portal", { waitUntil: "networkidle" });
-    const { blocking } = await scan(page, "/portal");
-    expect(blocking.map((v) => `${v.id} (${v.nodes.length})`)).toEqual([]);
+    expect(await scanThemes(page, "/portal")).toEqual([]);
   });
 });

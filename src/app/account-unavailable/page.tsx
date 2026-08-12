@@ -19,7 +19,7 @@ export default function AccountUnavailablePage() {
         className="w-full max-w-md rounded-2xl border p-8 text-center"
         style={{
           background: "var(--c-card)",
-          borderColor: "var(--c-border)",
+          borderColor: "rgb(var(--ac-border))",
           boxShadow: "var(--shadow-soft)",
         }}
       >

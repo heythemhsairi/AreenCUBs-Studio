@@ -50,9 +50,9 @@ type Props = {
 const PLATFORMS = ["instagram", "facebook", "linkedin", "twitter", "tiktok", "youtube", "threads"];
 
 const STATUS_COLORS: Record<string, string> = {
-  draft: "bg-[var(--c-border)] text-content-3",
+  draft: "bg-surface-3 text-content-2",
   approved: "bg-success-weak text-success",
-  archived: "bg-[var(--c-border)] text-content-3",
+  archived: "bg-surface-3 text-content-2",
 };
 
 export function ClientContentProfileClient({ client, profile, plans, members: _members }: Props) {
@@ -283,7 +283,7 @@ export function ClientContentProfileClient({ client, profile, plans, members: _m
                         "rounded-lg px-3 py-1.5 text-xs font-semibold transition-all capitalize",
                         selectedPlatforms.includes(p)
                           ? "bg-accent2 text-accent2-fg"
-                          : "bg-surface-2 text-content-2 hover:bg-[var(--c-border)]",
+                          : "bg-surface-2 text-content-2 hover:bg-surface-3",
                       )}
                     >
                       {p}

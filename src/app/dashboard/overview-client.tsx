@@ -852,7 +852,7 @@ export function OverviewClient({
                 {t.overview.membersCount(counts.teamSize ?? 0)}
               </span>
             </div>
-            <div className="h-4 w-px bg-[var(--c-border)]" />
+            <div className="h-4 w-px bg-line" />
             {counts.activeTasks > 0 && (
               <div className="flex items-center gap-2">
                 <span className="relative flex h-2 w-2">
@@ -866,7 +866,7 @@ export function OverviewClient({
             )}
             {counts.activeProjects > 0 && (
               <>
-                <div className="h-4 w-px bg-[var(--c-border)]" />
+                <div className="h-4 w-px bg-line" />
                 <span className="text-sm text-content-2">
                   {t.overview.activeProjects(counts.activeProjects)}
                 </span>
@@ -874,7 +874,7 @@ export function OverviewClient({
             )}
             {counts.clients !== null && counts.clients > 0 && (
               <>
-                <div className="h-4 w-px bg-[var(--c-border)]" />
+                <div className="h-4 w-px bg-line" />
                 <span className="text-sm text-content-2">
                   {t.overview.clientsCount(counts.clients)}
                 </span>
