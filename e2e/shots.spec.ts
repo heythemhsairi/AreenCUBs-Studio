@@ -233,7 +233,7 @@ async function shootThemes(page: Page, info: TestInfo, role: string, name: strin
   for (const theme of THEMES) {
     await setTheme(page, theme);
     await page.screenshot({
-      path: `e2e/.artifacts/screens/${info.project.name}/${theme}/${role}-${name}.png`,
+      path: `e2e/.screens/${info.project.name}/${theme}/${role}-${name}.png`,
       fullPage: true,
     });
   }

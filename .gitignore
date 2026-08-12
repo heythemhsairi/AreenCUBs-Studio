@@ -14,3 +14,9 @@ supabase/.branches/
 /e2e/.artifacts/
 /playwright-report/
 /test-results/
+
+# Design-evidence screenshots. Outside e2e/.artifacts on purpose:
+# Playwright wipes outputDir before every run, which silently deleted the
+# evidence the moment any other suite ran.
+e2e/.screens/
+e2e/.sheets/

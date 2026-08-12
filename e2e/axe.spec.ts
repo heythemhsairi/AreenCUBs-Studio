@@ -123,6 +123,11 @@ test.describe("axe — unauthenticated routes", () => {
     expect(await scanThemes(page, "/login")).toEqual([]);
   });
 
+  test("the 404 page", async ({ page }) => {
+    await page.goto("/no-such-route-exists", { waitUntil: "networkidle" });
+    expect(await scanThemes(page, "/404")).toEqual([]);
+  });
+
   test("login page in an error state", async ({ page }) => {
     await page.goto("/login", { waitUntil: "networkidle" });
     await page.fill('input[name="username"]', "nobody-at-all");
