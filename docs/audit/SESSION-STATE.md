@@ -179,195 +179,88 @@ Write the permission matrix first. Everything from Phase 3 onward depends on it.
 
 ---
 
-## UI/UX REDESIGN — PHASES 1-4 DONE, 5-8 NOT STARTED, AXE IS RED
+## UI/UX REDESIGN — BOTH RED GATES REPAIRED; PHASES 5-8 STILL OPEN
 
-**REDESIGN INCOMPLETE.** Per-surface status with ✅/◐/⬜ is in
-`docs/REDESIGN-COVERAGE.md`; the specification is `docs/DESIGN-SYSTEM.md`.
+**REDESIGN INCOMPLETE.** Per-surface status is in `docs/REDESIGN-COVERAGE.md`;
+the specification is `docs/DESIGN-SYSTEM.md`.
 
 | Phase | Commit | State |
 |---|---|---|
-| Token foundation, Manrope, override tables deleted | `198d9fc` | ✅ |
-| Primitives, touch targets, latent #418 fix | `7c564b1` | ✅ |
-| 1-2 Shell + dense shared components | `6b3f47b` | ✅ |
-| 3 Charts read tokens at runtime | `f8ef8fc` | ✅ |
-| 4 Dashboards: real headings, twitch removed | `2270f5a` | ◐ partial |
-| Config gradients tokenised; open defect recorded | `97bbf5c` | — |
-| 5 Finance and documents | — | ⬜ |
-| 6 Content OS and review | — | ⬜ |
-| 7 Client portal and external states | — | ⬜ |
-| 8 Settings, profile, remaining routes | — | ⬜ |
+| Token foundation, Manrope, override tables deleted | `198d9fc` | done |
+| Primitives, touch targets, latent #418 fix | `7c564b1` | done |
+| 1-2 Shell + dense shared components | `6b3f47b` | done |
+| 3 Charts read tokens at runtime | `f8ef8fc` | done |
+| 4 Dashboards: real headings, twitch removed | `2270f5a` | PARTIAL |
+| Recovery: /dashboard/finance crash | `8a324cd` | done |
+| Recovery: axe contrast + both-theme scanning | `e486a03` | done |
+| Recovery: screenshot matrix rebuilt and reviewed | `7030a46` | done |
+| 8 (part) the 404 page | `98db605` | PARTIAL |
+| 5 Finance and documents | — | NOT STARTED |
+| 6 Content OS and review | — | NOT STARTED |
+| 7 Client portal and external states | — | NOT STARTED |
 
-### FIX THIS FIRST — axe regression, 14 failures
+### Both evidence gates are GREEN
 
-```
-#ffffff on #3b8bba = 3.75:1   (10pt / 13.33px)
-```
+- **axe**: 42 passed / 0 failed — 14 screens x 3 viewports, BOTH themes each
+  (84 scans), no violation at any impact, no rule excluded. Plus the new 404.
+- **screenshots**: 21 passed / 0 failed in 11.7 min, 420 files, and they were
+  actually reviewed via `scripts/contact-sheet.mjs`.
 
-`#3B8BBA` is the pre-token brand colour. axe was **14/14 green at `198d9fc`**,
-so phases 1-4 introduced it — most likely *uncovered* it, since deleting the
-override tables stopped a patch from repainting it. It appears on every route
-**including `/login` and `/account-unavailable`**, which have no shell.
+Two corrections worth carrying forward, because both cost whole sessions:
 
-Already ruled out, with evidence (see `REDESIGN-COVERAGE.md`): not a Tailwind
-class — the built CSS in `.next/static/css` emits no such rule; not
-`theme.backgroundImage` — tokenising it changed nothing; not `brand.DEFAULT`.
+1. The recorded axe diagnosis was **wrong in every particular** — colour, size,
+   count and scope. `#3B8BBA` was never involved. Trust captured stdout over a
+   recorded summary, including one written by a previous session.
+2. `git status` on the WSL runner reports several hundred phantom modified
+   files immediately after a `reset --hard` or a cold VM start, then reports
+   clean on the next call. It is a stale stat cache. Do not act on the first
+   reading.
 
-**The next command**, and it matters because the obvious approach is a trap —
-the failing selector goes to **stdout**, not into `error-context.md`, which
-holds the spec source:
+### RESUME HERE — phase 4 completion, then 5, 6, 7, 8
+
+Seven defects were found by looking at the screenshots. They are the work
+queue, listed with evidence in `REDESIGN-COVERAGE.md` under VISUAL FINDINGS:
+
+**Phase 4 — the next thing to do.**
+1. The "Nouveautes disponibles" banner renders ABOVE the page header on every
+   route (`src/app/dashboard/layout.tsx`, `WhatsNewBanner` before `children`),
+   so the first thing on every page is not what the page is.
+2. `/dashboard` renders alert cards and a gradient panel BEFORE the page
+   header; the header sits mid-page (`src/app/dashboard/overview-client.tsx`).
+3. `/dashboard/projects/<id>` is sparse and uses little of the width.
+4. Empty states (`admin-tasks`, `audit`) do not offer the action that would
+   resolve the emptiness.
+5. Still outstanding from the original phase 4: genuine per-role information
+   hierarchy for commercial, intern, worker and freelancer — what each should
+   see FIRST, based only on what they may act on. Only headings were fixed.
+
+**Phase 5** finance, quotes, invoices, builders, detail/edit, print. The
+builders waste horizontal space (narrow left column, empty right at 1280px).
+Print views are CORRECT — verified visually — and must not regress. Do not
+alter TVA behaviour, totals, millime compatibility or issued-document
+immutability.
+
+**Phase 6** Content OS hub/plans/items/calendar/publishing/reports and the
+review workspace. Preserve signed URLs, MIME/size validation, private storage.
+
+**Phase 7** client portal — must become visibly SIMPLER than the internal
+dashboards. No internal notes, employees, finance, identifiers, diagnostics.
+
+**Phase 8** remaining: settings, profile (a narrow column against a large empty
+right side), and the `error.tsx` boundaries — still **unphotographed**, because
+malformed ids produce `notFound()` rather than a thrown error. Forcing a real
+boundary needs a fault injected at the data layer; no test-only hook was added
+to the application.
+
+### Commands
 
 ```bash
-bash scripts/run-e2e.sh --project=desktop -g "login page has no serious" 2>&1 | grep -A6 "\[axe\]"
+bash scripts/run-e2e.sh e2e/shots.spec.ts        # 21 tests, ~12 min, 420 shots
+node scripts/contact-sheet.mjs e2e/.screens e2e/.sheets
+bash scripts/run-e2e.sh e2e/axe.spec.ts          # 42 tests, both themes
 ```
 
-The `e.g. [...]` line names the element. Because it renders on `/login`, look at
-the root layout, `LanguageToggle`, `ThemeToggle`, `Toaster` — and at any inline
-`style`, since the colour is not in the stylesheet.
+Screenshots live in `e2e/.screens`, deliberately NOT under `e2e/.artifacts`:
+that is Playwright's `outputDir` and is wiped before every run, which silently
+deleted the evidence whenever another suite ran.
 
-### THEN — resume at phase 5
-
-1. **Finance and documents**: finance, quotes, invoices, builders, detail/edit,
-   print. Must not alter TVA behaviour, totals, millime compatibility or
-   issued-document immutability.
-2. **Content OS and review**, preserving signed-URL and storage boundaries.
-3. **Client portal** — must become visibly *simpler* than the internal
-   dashboards, with no internal notes, people, finance or diagnostics.
-4. **Settings, profile, login, account-unavailable, 404, error states.**
-
-Also unfinished in phase 4: genuine per-role information hierarchy — what a
-commercial, intern or freelancer should see *first*, based on what they can act
-on. Only the heading structure was fixed.
-
-### Screenshot matrix
-
-`e2e/shots.spec.ts` — 6 roles × their reachable routes × both themes × 3
-viewports, plus unauthenticated states. **It is BROKEN: 117 failed / 15 passed
-over 1.3 hours**, measured across two full runs.
-
-The filter collision with the old spec was real but secondary. The spec runs
-~174 tests and each performs its **own sign-in**; the dev server saturates, the
-login form stops rendering inside the timeout, and every later test fails in
-`beforeEach` — which makes a load problem look like a login bug.
-
-Fix: sign in **once per role**, not once per test. Either reuse a Playwright
-`storageState` per role, or collapse each role into a single test that walks
-its routes in a loop taking both themes at each stop. That is six logins
-instead of 174. Then re-run and actually **look at the images** — the matrix
-exists for human inspection, and nobody has inspected these.
-
-
-
-The implementation programme and the independent audit are complete
-(`COMPLETION-REPORT.md`, `INDEPENDENT-AUDIT.md`). A full visual redesign began
-on top of them. **Two phases are committed; the route-level pass is not done.**
-
-| Phase | Commit | What landed |
-|---|---|---|
-| Token foundation | `198d9fc` | Areen palette, both themes, Manrope, codemod, both override tables deleted |
-| Primitives | `7c564b1` | Button/Card, touch targets, and a latent #418 fix |
-
-Specification: **`docs/DESIGN-SYSTEM.md`** — tokens, type, depth, motion, touch
-targets, the skills synthesised, and the deliberate deviations.
-
-### What is DONE
-
-- `src/styles/tokens.css`: one role-based system, RGB triplets so opacity
-  modifiers work, dark as the base and `.light` as the opt-in.
-- **~560 lines of `!important` theme patches deleted.** Components name roles;
-  the legacy names (`ink`, `cream`, `brand`, `accent`) point at the same tokens,
-  which fixed 419 `text-ink` uses without a 419-site edit.
-- 1,189 hex classes + 362 named-palette classes migrated by codemod.
-- Manrope (SIL OFL, variable axis) with Noto Sans Arabic kept **inside** the
-  sans stack — dropping that fallback breaks every Arabic glyph.
-- Button/Card visual layer, `pointer-coarse:` variant registered.
-- **axe 14/14, zero violations, both themes.**
-
-### RESUME HERE — the route-level pass
-
-The foundation propagates colour and type everywhere automatically, so no route
-is broken — but no route has had its **layout** redesigned yet. In priority
-order:
-
-1. **Shell** — sidebar, topbar, mobile nav, page header. The rail is already
-   navy in both themes via `--ac-rail`; the layout and density are untouched.
-2. **Dense tables** — desktop density and the intentional conversion to mobile
-   cards rather than horizontal overflow.
-3. **KPI cards, charts** — the six-colour chart ramp exists in tokens but the
-   chart components still pass their own colours in places.
-4. **Per-route layout** — dashboards, finance, Content OS, portal, review.
-
-### Known follow-ups
-
-- **20+ ambient `toLocale*` calls** remain (`grep -rn "toLocale" src | grep -v
-  timeZone`). Most operate on date-only strings, which are safe at UTC+1;
-  timestamps are not. One caused a deterministic #418 on `/dashboard/clients`
-  the moment this session crossed midnight. Fix with `formatDate` from
-  `src/lib/format.ts`, and verify by running the test **twice** — a
-  time-dependent failure that passes once proves nothing.
-- ~160 hex literals remain in `.tsx`, mostly in charts and print views.
-- `globals.css` still holds legacy `--c-*` variables and component classes that
-  the `--ac-*` roles supersede; safe to retire incrementally.
-
-### Gate baseline for this work
-
-Baseline screenshots (pre-redesign) are in `/root/baseline` inside the runner,
-36 PNGs. The redesign matrix regenerates to `e2e/.artifacts/screens`.
-
-## PROGRAMME COMPLETE — then independently audited
-
-All twelve phases are done (`COMPLETION-REPORT.md`). A fresh evidence-based
-audit followed, treating the recorded-complete state as untrusted:
-`INDEPENDENT-AUDIT.md`.
-
-**Three defects confirmed and fixed**, each with a test that fails without it:
-
-| | Commit |
-|---|---|
-| The client portal had no error boundary — `error.message` and `error.digest` shown to external contacts | `d7b7bec` |
-| A commercial was offered a media control that redirected them off the page | `ee6702a` |
-| A TVA-disabled document stated a rate — including on every line of the printed document | `530627d` |
-
-**Measured clean and now pinned** (`08e7f16`): the seven owner-run views grant
-`authenticated:SELECT` and nothing else, refuse `anon` outright, and return
-zero to a session with no membership. Tests enumerate views by pattern, so one
-added later is covered the day it appears.
-
-Database posture, measured: no `public` table without RLS; no RLS-enabled table
-without policies; no `SECURITY DEFINER` function with an unpinned `search_path`;
-`anon` reaches zero rows everywhere.
-
-**Final gates, all green:** 34 migrations from zero · typecheck · build ·
-244 unit · 268 database · **302 browser tests across three viewports** ·
-axe zero serious/critical · 36 screenshots · secret scan clean (three matches
-inspected and confirmed placeholders in `.env.example` and the loopback default
-in `docs/STAGING.md`) · stack stopped with 0 containers, 0 listeners.
-
-Nothing further is safe to do autonomously. What remains is owner action —
-key rotation first, then the production schema baseline that gates every
-migration rollout.
-
-### Two process notes for the next session
-
-- `mksync.sh` runs `git add -A` as a side effect. It swept two unrelated audit
-  fixes into one commit; they were split before anything built on top. **Commit
-  before syncing**, or stage explicitly afterwards.
-- The runner is synced by tar, so its git HEAD stops describing its files.
-  `resync-runner.sh <commit>` hard-resets it (runner only — the canonical repo
-  is fetched read-only) and must run **before** the working tree is layered on,
-  or git refuses rather than clobbering.
-
-### The environment traps, still true
-
-1. `SECURITY DEFINER` makes `current_user` the owner — identify callers by `auth.uid()`.
-2. Assert rows affected, never "did it throw".
-3. CLI skips future-dated migrations silently.
-4. `git archive` scopes to the shell cwd — run from repo root.
-5. Backslash escapes collapse in Bash heredocs — use the Write tool; char codes beat regex classes.
-6. Browser tests persist writes — reset fixtures (incl. `storage.objects` rows via `session_replication_role = replica`).
-7. The WSL VM idles out between tool calls; cold boots look like DB crashes — wait for health.
-8. The WSL clone is synced by tar; verify provenance against the Windows repo.
-
-### Open items (`DECISIONS-NEEDED.md`)
-
-§1 key rotation · §11b/§11c scope decisions · §14 production schema unknown ·
-millimes engine · Drive connection · Clear Sans licence.
