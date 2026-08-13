@@ -18,15 +18,16 @@ system; layout untouched) · **⬜ not started**
 | 1 | Shared shell | ✅ | `6b3f47b` |
 | 2 | Data-dense shared components | ✅ | `6b3f47b` |
 | 3 | Charts | ✅ | `f8ef8fc` |
-| 4 | Role dashboards + core operations | ◐ | `2270f5a` |
-| 5 | Finance and document flows | ⬜ | — |
-| 6 | Content OS and review | ⬜ | — |
-| 7 | Client portal and external states | ⬜ | — |
-| 8 | Settings, profile, remaining routes | ⬜ | — |
+| 4 | Role dashboards + core operations | ✅ | `2f5329a` |
+| 5 | Finance and document flows | ✅ | `2f5329a` |
+| 6 | Content OS and review | ✅ | `2f5329a` |
+| 7 | Client portal and external states | ✅ | `2f5329a` |
+| 8 | Settings, profile, remaining routes | ✅ | `2f5329a` |
 
-**The redesign is INCOMPLETE.** Phases 5–8 have not had layout work. They are
-not broken — the foundation propagates colour, type, depth and motion to every
-route automatically — but their *layouts* are still the originals.
+**The redesign is complete.** The final pass added mobile cards for projects,
+tasks and services; a compact editable planning view; balanced document,
+profile and settings workspaces; a unified Content OS/review hierarchy; and a
+client portal that is visibly simpler than the internal application.
 
 ---
 
@@ -59,42 +60,48 @@ every menu item (they were relying on hover alone). Safe-area inset on the
 mobile bar — without it the last 34px of every tap sat under the iOS home
 indicator.
 
-### Role dashboards — ◐
+### Role dashboards — ✅
 `SectionHeading` replaces 18 styled-`<p>` section labels on the administrator
-overview with real `<h2>`s, and the card hover-lift twitch is gone. **Not yet
-done:** genuine information-hierarchy rework per role — deciding what a
-commercial, an intern or a freelancer should see *first* based on what they can
-act on.
+overview with real `<h2>`s, and the card hover-lift twitch is gone. Each role
+now opens with the work or exceptions it can act on first.
 
-### Projects · tasks · clients · services · team · planning · calendar — ◐
-Token-level only. Dense tables inherit the new table primitive; **the
-intentional table→mobile-card conversion is not implemented per route.**
+### Projects · tasks · clients · services · team · planning · calendar — ✅
+Dense desktop tables remain efficient; mobile projects, tasks and services
+switch to scan-friendly cards. Planning keeps the full desktop matrix and uses
+expandable per-member calendars on phones. Calendar retains its purpose-built
+agenda mode.
 
-### Finance, quotes, invoices, builders, print — ◐
-Chart colours tokenised (phase 3). Layout, document polish and the print view
-untouched. **Any work here must not alter TVA behaviour, totals, millime
-compatibility or issued-document immutability.**
+### Finance, quotes, invoices, builders, print — ✅
+Builders use a purposeful two-column desktop workspace with sticky totals and
+responsive line items. Print rendering, TVA, totals, millime compatibility and
+issued-document immutability are unchanged and browser-tested.
 
-### Content OS, publishing, plans, items, reports — ⬜
+### Content OS, publishing, plans, items, reports — ✅
 
-### Review workspace (list, detail, upload, player, comments) — ⬜
+### Review workspace (list, detail, upload, player, comments) — ✅
 
-### Client portal, approval flow, portal player — ◐
-Inherits tokens. **Not yet simplified relative to the internal dashboards**,
-which the brief requires. Boundaries to preserve: no internal notes, no
-employee identity, no finance, no diagnostics.
+### Client portal, approval flow, portal player — ✅
+The external portal uses a smaller, calmer two-column workspace, puts pending
+decisions first, and exposes no internal notes, employee identity, finance or
+diagnostics.
 
-### Login · account-unavailable · 404 · global error · portal error — ⬜
+### Login · account-unavailable · 404 · global error · portal error — ✅
 
-### Settings · profile · search · command palette · notifications — ◐
-Command palette and notification menus got focus states with the shell; their
-layouts are unchanged.
+### Settings · profile · search · command palette · notifications — ✅
+Profile and settings use the available desktop width without weakening their
+mobile flow. Command palette and notification menus retain the shell's focus
+and keyboard behavior.
 
 ---
 
 ## Screenshot matrix — REPAIRED, GREEN, AND REVIEWED
 
-`e2e/shots.spec.ts`. **21 passed / 0 failed in 11.7 minutes**, 420 screenshots.
+`e2e/shots.spec.ts`. **21 passed / 0 failed**, 408 current reachable screenshots.
+
+The historical 420 count included stale route assumptions. The current harness
+correctly refuses to photograph `/dashboard/social-media` (a redirect) and the
+commercial print destination (permission redirect). It generated 60 contact
+sheets and every current screenshot was reviewed.
 
 Previously: 117 failed / 15 passed in ~80 minutes, never reviewed.
 
@@ -167,8 +174,8 @@ input to phases 4-8.
 | 1 | every route | "Nouveautés disponibles" rendered ABOVE the page header on every route | 4 | **CLOSED** `PHASE4` |
 | 2 | `/dashboard` | Alerts and panels rendered BEFORE the page header | 4 | **CLOSED** `PHASE4` |
 | 3 | 404 — all three paths | Next's raw unstyled default | 8 | **CLOSED** `98db605` |
-| 4 | devis/factures builders | Narrow left column, empty right at 1280px | 5 | open |
-| 5 | `/dashboard/profile` | Single narrow column against a large empty right side | 8 | open |
+| 4 | devis/factures builders | Narrow left column, empty right at 1280px | 5 | **CLOSED** `2f5329a` |
+| 5 | `/dashboard/profile` | Single narrow column against a large empty right side | 8 | **CLOSED** `2f5329a` |
 | 6 | `/dashboard/projects/<id>` | Sparse; little use of the width | 4 | **CLOSED** `PHASE4` |
 | 7 | `admin-tasks`, `audit` | Empty states offered no next action | 4 | **CLOSED** `PHASE4` |
 

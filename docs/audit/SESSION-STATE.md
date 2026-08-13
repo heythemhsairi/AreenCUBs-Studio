@@ -6,13 +6,40 @@ Written so another session can resume without reconstructing anything. Updated a
 
 ## Where things stand
 
+> **FINAL LOCAL RELEASE CANDIDATE — 13 August 2026**
+>
+> The UI/UX redesign is complete at application level. Release commit
+> `2f5329a` finishes phases 4c–8 without changing permissions, finance rules,
+> document persistence, storage boundaries, or production state. Remaining
+> entries in `DECISIONS-NEEDED.md` are approval-gated product/infrastructure
+> decisions, not unfinished redesign work.
+
 | | |
 |---|---|
 | Canonical repo | `C:\Users\AreenCubs\AreenCUBs-Studio` (source of truth) |
 | Branch | `phase-1-data-integrity` |
 | Isolated execution clone | `~/AreenCUBs-Studio-staging` inside Ubuntu / WSL 2 (ext4) |
-| Local stack | **stopped** unless a phase is actively testing |
+| Local stack | **stopped** unless testing or the requested local preview is active |
 | Production contact | **never** — no query, no migration list, no push, no deploy |
+
+### Final verification — `2f5329a`
+
+| Gate | Result |
+|---|---|
+| Typecheck | clean |
+| Production build | clean, 61 application routes |
+| Unit | 244 / 244 |
+| Database / RLS | 268 passed, 8 intentionally skipped |
+| Functional browser | 224 passed, 4 viewport-inapplicable checks skipped |
+| axe | 45 / 45, three viewports, both themes, zero serious/critical violations |
+| Mobile overflow | 2 / 2 roles, zero offending elements at 390px |
+| Visual evidence | 21 / 21 route walks; 408 current reachable screens; 60 reviewed contact sheets |
+
+The historical 420-screen figure included stale route assumptions. The
+corrected harness omits `/dashboard/social-media` and the commercial print
+destination because both redirect. No screenshot stop failed. The evidence run
+used a server-only key generated from the isolated local stack; it was deleted
+on exit and never printed.
 
 **Sync rule:** the WSL clone is only ever a *runner*. Before any database or end-to-end verification, fast-forward it to the exact canonical commit:
 
@@ -268,4 +295,3 @@ bash scripts/run-e2e.sh --project=mobile e2e/overflow.spec.ts
 
 Screenshots live in `e2e/.screens`, deliberately NOT under `e2e/.artifacts`:
 that is Playwright's `outputDir` and is wiped before every run.
-
