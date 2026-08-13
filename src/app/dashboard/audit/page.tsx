@@ -27,6 +27,7 @@ const ACTION_TONE: Record<string, Tone> = {
   "review.status_changed": "blue",
   "devis.draft_created": "violet",
   "devis.draft_updated": "violet",
+  "devis.reopened_and_updated": "amber",
 };
 
 export default async function AuditPage() {

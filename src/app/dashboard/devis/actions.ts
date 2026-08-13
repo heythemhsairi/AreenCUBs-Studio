@@ -308,22 +308,34 @@ export async function updateDevisAction(
   const totals = computeDocumentTotalsLegacy(input.items, calcOptions);
   const supabase = await createClient();
 
-  // Financial columns are frozen once a document is issued — the database
-  // trigger enforces it, and refusing here as well gives the person a usable
-  // message instead of a policy error. The escape hatch is deliberate and
-  // audit-visible: return the document to draft, edit, re-issue.
-  {
-    const { data: current } = await supabase
-      .from("devis")
-      .select("status")
-      .eq("id", id)
-      .maybeSingle();
-    if (!current) return { ok: false, error: "Document introuvable." };
-    if (current.status !== "draft") {
+  const { data: current } = await supabase
+    .from("devis")
+    .select("status, kind")
+    .eq("id", id)
+    .maybeSingle();
+  if (!current) return { ok: false, error: "Document introuvable." };
+
+  // Issued documents remain immutable by default. An administrator can make
+  // a client-agreed correction in one explicit operation: the same UPDATE
+  // returns the document to draft and applies the corrected totals. The
+  // database trigger permits that lifecycle transition while still rejecting
+  // a silent arithmetic rewrite that leaves the issued status unchanged.
+  const reopeningIssued = current.status !== "draft";
+  if (reopeningIssued) {
+    if (session.role !== "admin") {
+      return {
+        ok: false,
+        error: "Seul un administrateur peut rouvrir un document émis.",
+      };
+    }
+    if (
+      formData.get("reopen_issued") !== "on" ||
+      formData.get("client_notified") !== "on"
+    ) {
       return {
         ok: false,
         error:
-          "Ce document est émis : ses montants sont figés. Repassez-le en brouillon pour le modifier.",
+          "Confirmez que le client a été informé avant de rouvrir ce document.",
       };
     }
   }
@@ -354,7 +366,7 @@ export async function updateDevisAction(
     }
   }
 
-  const { error } = await supabase
+  const { data: updated, error } = await supabase
     .from("devis")
     .update({
       client_id: input.client_id,
@@ -370,10 +382,20 @@ export async function updateDevisAction(
       stamp_dt: totals.stamp,
       total_dt: totals.total,
       calc_source: "legacy-v1",
+      ...(reopeningIssued ? { status: "draft" as const } : {}),
       ...numberPatch,
     })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("status", current.status)
+    .select("id")
+    .maybeSingle();
   if (error) return { ok: false, error: error.message };
+  if (!updated) {
+    return {
+      ok: false,
+      error: "Le statut du document a changé. Rechargez la page puis réessayez.",
+    };
+  }
 
   await supabase.from("devis_items").delete().eq("devis_id", id);
   const { error: itemsError } = await supabase.from("devis_items").insert(
@@ -390,21 +412,33 @@ export async function updateDevisAction(
   );
   if (itemsError) return { ok: false, error: itemsError.message };
 
+  // A corrected invoice total may turn a paid invoice into partial (or the
+  // reverse). Payment state is derived from the recorded payments.
+  if (current.kind === "facture") {
+    await recomputePaymentStatus(supabase, id);
+  }
+
   await recordShadowDivergence(supabase, input.kind, input.items, calcOptions);
   await supabase.from("audit_log").insert({
     actor_id: session.id,
     actor_role: session.role,
-    action: "devis.draft_updated",
+    action: reopeningIssued
+      ? "devis.reopened_and_updated"
+      : "devis.draft_updated",
     entity_type: "devis",
     entity_id: id,
-    summary: `${input.kind} — ${input.items.length} ligne(s)`,
+    summary: reopeningIssued
+      ? `${input.kind} — ${current.status} → brouillon; client informé; ${input.items.length} ligne(s)`
+      : `${input.kind} — ${input.items.length} ligne(s)`,
   });
 
   revalidatePath("/dashboard/devis");
   revalidatePath("/dashboard/factures");
   revalidatePath(`/dashboard/devis/${id}`);
   revalidatePath(`/dashboard/factures/${id}`);
-  return { ok: true };
+  revalidatePath(`/dashboard/devis/${id}/edit`);
+  revalidatePath(`/dashboard/factures/${id}/edit`);
+  return { ok: true, data: { reopened: reopeningIssued } };
 }
 
 export async function setDevisStatusAction(

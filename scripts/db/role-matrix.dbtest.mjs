@@ -1091,6 +1091,19 @@ describe("optional TVA — Phase 9", () => {
     expect(out).toContain("EDITED");
   });
 
+  it("an admin can atomically reopen and correct an issued document", () => {
+    const out = sqlAs(
+      USERS.admin,
+      `with corrected as (
+         update public.devis
+            set status = 'draft', total_dt = total_dt + 1
+          where id = '${FIXTURES.devisSent}'
+          returning status
+       ) select status from corrected;`,
+    );
+    expect(out).toBe("draft");
+  });
+
 
   it("a TVA-disabled document stores no tax and says so explicitly", () => {
     // tva_enabled is the record of the DECISION. tva_dt = 0 alone cannot carry

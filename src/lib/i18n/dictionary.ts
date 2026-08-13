@@ -882,6 +882,15 @@ export const dict = {
       createFacture: "Créer la facture",
       editDoc: (doc: string) => `Modifier ${doc}`,
       newDoc: (doc: string) => `Nouveau ${doc}`,
+      issuedEditTitle: "Correction d'un document émis",
+      issuedEditDescription:
+        "Cette correction remettra le document en brouillon. Après vérification, vous pourrez le renvoyer puis remettre son statut à jour.",
+      clientNotifiedConfirmation:
+        "Je confirme avoir informé le client de cette modification.",
+      issuedLockedTitle: "Document verrouillé",
+      issuedLockedDescription:
+        "Seul un administrateur peut rouvrir et corriger un document déjà émis.",
+      reopenAndSave: "Remettre en brouillon et enregistrer",
     },
     factures: {
       title: "Factures",
@@ -2398,6 +2407,15 @@ export const dict = {
       createFacture: "Create invoice",
       editDoc: (doc: string) => `Edit ${doc}`,
       newDoc: (doc: string) => `New ${doc}`,
+      issuedEditTitle: "Correct an issued document",
+      issuedEditDescription:
+        "This correction will return the document to draft. After reviewing it, you can resend it and update its status again.",
+      clientNotifiedConfirmation:
+        "I confirm that I informed the client about this change.",
+      issuedLockedTitle: "Document locked",
+      issuedLockedDescription:
+        "Only an administrator can reopen and correct an issued document.",
+      reopenAndSave: "Return to draft and save",
     },
     factures: {
       title: "Invoices",
