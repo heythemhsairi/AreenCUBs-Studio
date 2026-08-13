@@ -50,3 +50,11 @@ test.describe("admin payroll controls", () => {
     await expect(page.locator("body")).toContainText("58,00 DT");
   });
 });
+
+for (const role of ["commercial", "intern", "freelancer", "client"] as const) {
+  test(`${role} cannot open worker payroll`, async ({ page }) => {
+    await login(page, role);
+    await page.goto("/dashboard/payroll", { waitUntil: "networkidle" });
+    await expect(page).not.toHaveURL(/\/dashboard\/payroll/);
+  });
+}

@@ -149,6 +149,7 @@ test.describe("axe — authenticated routes", () => {
     "/dashboard/clients",
     "/dashboard/projects",
     "/dashboard/finance",
+    "/dashboard/payroll",
     "/dashboard/content",
     "/dashboard/review",
     "/dashboard/reports",
