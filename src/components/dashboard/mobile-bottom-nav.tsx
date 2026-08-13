@@ -23,6 +23,8 @@ import {
   Share2,
   ClipboardList,
   Banknote,
+  MessageCircle,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/lib/utils";
@@ -39,13 +41,25 @@ const ALL_NAV_ITEMS: NavItem[] = [
     href: "/dashboard",
     label: "Dashboard",
     icon: LayoutDashboard,
-    roles: ["admin", "worker", "freelancer"],
+    roles: ["admin", "worker", "freelancer", "commercial", "intern"],
   },
   {
     href: "/dashboard/tasks",
-    label: "Tasks",
+    label: "Client tasks",
     icon: CheckSquare,
-    roles: ["admin", "worker", "freelancer"],
+    roles: ["admin", "worker", "freelancer", "intern"],
+  },
+  {
+    href: "/dashboard/studio-tasks",
+    label: "Areen tasks",
+    icon: Sparkles,
+    roles: ["admin", "worker", "freelancer", "commercial", "intern"],
+  },
+  {
+    href: "/dashboard/messages",
+    label: "Messages",
+    icon: MessageCircle,
+    roles: ["admin", "worker", "freelancer", "commercial", "intern"],
   },
   {
     href: "/dashboard/finance",
@@ -57,7 +71,7 @@ const ALL_NAV_ITEMS: NavItem[] = [
     href: "/dashboard/clients",
     label: "Clients",
     icon: Users,
-    roles: ["admin", "worker"],
+    roles: ["admin", "worker", "commercial"],
   },
   {
     href: "/dashboard/projects",
@@ -69,7 +83,7 @@ const ALL_NAV_ITEMS: NavItem[] = [
     href: "/dashboard/calendar",
     label: "Calendar",
     icon: Calendar,
-    roles: ["admin", "worker", "freelancer"],
+    roles: ["admin", "worker", "freelancer", "intern"],
   },
   {
     href: "/dashboard/devis",
@@ -150,11 +164,28 @@ function getPrimaryItems(role: UserRole): NavItem[] {
       ALL_NAV_ITEMS.find((i) => i.href === "/dashboard/calendar")!,
     ];
   }
-  // freelancer
+  if (role === "commercial") {
+    return [
+      ALL_NAV_ITEMS.find((i) => i.href === "/dashboard")!,
+      ALL_NAV_ITEMS.find((i) => i.href === "/dashboard/clients")!,
+      ALL_NAV_ITEMS.find((i) => i.href === "/dashboard/studio-tasks")!,
+      ALL_NAV_ITEMS.find((i) => i.href === "/dashboard/messages")!,
+    ];
+  }
+  if (role === "intern") {
+    return [
+      ALL_NAV_ITEMS.find((i) => i.href === "/dashboard")!,
+      ALL_NAV_ITEMS.find((i) => i.href === "/dashboard/tasks")!,
+      ALL_NAV_ITEMS.find((i) => i.href === "/dashboard/studio-tasks")!,
+      ALL_NAV_ITEMS.find((i) => i.href === "/dashboard/messages")!,
+    ];
+  }
+  // Freelancer
   return [
     ALL_NAV_ITEMS.find((i) => i.href === "/dashboard")!,
     ALL_NAV_ITEMS.find((i) => i.href === "/dashboard/tasks")!,
-    ALL_NAV_ITEMS.find((i) => i.href === "/dashboard/calendar")!,
+    ALL_NAV_ITEMS.find((i) => i.href === "/dashboard/studio-tasks")!,
+    ALL_NAV_ITEMS.find((i) => i.href === "/dashboard/messages")!,
   ];
 }
 

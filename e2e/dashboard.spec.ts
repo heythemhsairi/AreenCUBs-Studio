@@ -8,6 +8,8 @@ import { test, expect, login, hydrationErrors } from "./fixtures";
 const ROUTES = [
   "/dashboard",
   "/dashboard/tasks",
+  "/dashboard/studio-tasks",
+  "/dashboard/messages",
   "/dashboard/calendar",
   "/dashboard/clients",
   "/dashboard/projects",

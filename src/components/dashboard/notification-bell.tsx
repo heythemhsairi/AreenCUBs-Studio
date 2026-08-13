@@ -37,6 +37,8 @@ function iconFor(kind: string): string {
   if (kind === "task_mentioned") return "@";
   if (kind === "task_review") return "👀";
   if (kind === "task_done") return "✅";
+  if (kind === "message_mention") return "💬";
+  if (kind === "reminder") return "⏰";
   if (kind === "file_uploaded") return "📎";
   if (kind === "devis_accepted") return "🎉";
   if (kind === "devis_rejected") return "❌";
@@ -50,6 +52,8 @@ type NotifGroupKind =
   | "task_mentioned"
   | "task_review"
   | "task_done"
+  | "message_mention"
+  | "reminder"
   | "file_uploaded"
   | "devis_accepted"
   | "devis_rejected"
@@ -62,6 +66,8 @@ function pluralFor(
     task_mentioned: (n: number) => string;
     task_review: (n: number) => string;
     task_done: (n: number) => string;
+    message_mention: (n: number) => string;
+    reminder: (n: number) => string;
     file_uploaded: (n: number) => string;
     devis_accepted: (n: number) => string;
     devis_rejected: (n: number) => string;
@@ -77,6 +83,8 @@ function pluralFor(
     "task_mentioned",
     "task_review",
     "task_done",
+    "message_mention",
+    "reminder",
     "file_uploaded",
     "devis_accepted",
     "devis_rejected",

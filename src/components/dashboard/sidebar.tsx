@@ -27,6 +27,8 @@ import {
   FileBarChart,
   ScrollText,
   Banknote,
+  MessageCircle,
+  Sparkles,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -61,9 +63,23 @@ function buildNav(
     },
     {
       href: "/dashboard/tasks",
-      label: role === "freelancer" ? t.nav.myTasks : t.nav.tasks,
+      label: role === "freelancer" ? t.nav.myTasks : t.tasksUi.clientWork,
       icon: CheckSquare,
       rolesAllowed: ["admin", "worker", "freelancer", "intern"],
+      group: "workspace",
+    },
+    {
+      href: "/dashboard/studio-tasks",
+      label: t.nav.studioTasks,
+      icon: Sparkles,
+      rolesAllowed: ["admin", "worker", "freelancer", "commercial", "intern"],
+      group: "workspace",
+    },
+    {
+      href: "/dashboard/messages",
+      label: t.nav.messages,
+      icon: MessageCircle,
+      rolesAllowed: ["admin", "worker", "freelancer", "commercial", "intern"],
       group: "workspace",
     },
     {

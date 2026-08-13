@@ -51,6 +51,8 @@ const BY_ROLE: Record<keyof typeof ACCOUNTS, Stop[]> = {
   admin: [
     { name: "dashboard", path: "/dashboard" },
     { name: "tasks", path: "/dashboard/tasks", drill: true },
+    { name: "studio-tasks", path: "/dashboard/studio-tasks" },
+    { name: "messages", path: "/dashboard/messages" },
     { name: "tasks-tags", path: "/dashboard/tasks/tags" },
     { name: "tasks-templates", path: "/dashboard/tasks/templates" },
     { name: "clients", path: "/dashboard/clients", drill: true },
@@ -77,6 +79,8 @@ const BY_ROLE: Record<keyof typeof ACCOUNTS, Stop[]> = {
   ],
   commercial: [
     { name: "dashboard", path: "/dashboard" },
+    { name: "studio-tasks", path: "/dashboard/studio-tasks" },
+    { name: "messages", path: "/dashboard/messages" },
     { name: "clients", path: "/dashboard/clients", drill: true },
     { name: "devis", path: "/dashboard/devis", drill: true },
     { name: "review", path: "/dashboard/review" },
@@ -85,17 +89,23 @@ const BY_ROLE: Record<keyof typeof ACCOUNTS, Stop[]> = {
   intern: [
     { name: "dashboard", path: "/dashboard" },
     { name: "tasks", path: "/dashboard/tasks", drill: true },
+    { name: "studio-tasks", path: "/dashboard/studio-tasks" },
+    { name: "messages", path: "/dashboard/messages" },
     { name: "profile", path: "/dashboard/profile" },
   ],
   worker: [
     { name: "dashboard", path: "/dashboard" },
     { name: "tasks", path: "/dashboard/tasks", drill: true },
+    { name: "studio-tasks", path: "/dashboard/studio-tasks" },
+    { name: "messages", path: "/dashboard/messages" },
     { name: "clients", path: "/dashboard/clients" },
     { name: "profile", path: "/dashboard/profile" },
   ],
   freelancer: [
     { name: "dashboard", path: "/dashboard" },
     { name: "tasks", path: "/dashboard/tasks", drill: true },
+    { name: "studio-tasks", path: "/dashboard/studio-tasks" },
+    { name: "messages", path: "/dashboard/messages" },
     { name: "profile", path: "/dashboard/profile" },
   ],
   client: [{ name: "portal", path: "/portal", drill: true }],

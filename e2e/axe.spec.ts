@@ -146,6 +146,8 @@ test.describe("axe — authenticated routes", () => {
   for (const route of [
     "/dashboard",
     "/dashboard/tasks",
+    "/dashboard/studio-tasks",
+    "/dashboard/messages",
     "/dashboard/clients",
     "/dashboard/projects",
     "/dashboard/finance",

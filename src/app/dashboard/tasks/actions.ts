@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { requireSession, requireWorkerOrAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { logActivity } from "@/lib/activity";
-import { notify } from "@/lib/notify";
+import { notify, notifyTaskAssignment, notifyTaskCompleted } from "@/lib/notify";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -23,6 +23,7 @@ type TaskPriority = (typeof PRIORITIES)[number];
 type Recurrence = (typeof RECURRENCES)[number];
 
 function pickTaskFields(formData: FormData) {
+  const work_scope = formData.get("work_scope") === "studio" ? "studio" : "client";
   const status = String(formData.get("status") ?? "todo") as TaskStatus;
   const priority = String(formData.get("priority") ?? "normal") as TaskPriority;
   const rawRecurrence = String(formData.get("recurrence") ?? "");
@@ -62,7 +63,8 @@ function pickTaskFields(formData: FormData) {
       : null;
 
   return {
-    project_id: String(formData.get("project_id") ?? ""),
+    project_id: work_scope === "studio" ? null : stringOrNull(formData.get("project_id")),
+    work_scope,
     title: String(formData.get("title") ?? "").trim(),
     description: stringOrNull(formData.get("description")),
     status: STATUSES.includes(status) ? status : ("todo" as TaskStatus),
@@ -135,17 +137,15 @@ export async function setTaskAssigneesAction(
   // Notify newly added people (skip self).
   const added = userIds.filter((u) => !prevIds.has(u) && u !== session.id);
   if (added.length > 0 && before) {
-    await notify(
+    await notifyTaskAssignment(
       added[0],
-      "task_assigned",
-      `Tâche assignée : ${before.title}`,
+      before.title,
       `/dashboard/tasks/${taskId}`,
     );
     for (let i = 1; i < added.length; i++) {
-      await notify(
+      await notifyTaskAssignment(
         added[i],
-        "task_assigned",
-        `Tâche assignée : ${before.title}`,
+        before.title,
         `/dashboard/tasks/${taskId}`,
       );
     }
@@ -183,7 +183,7 @@ export async function createTaskAction(
 ): Promise<ActionResult> {
   const session = await requireWorkerOrAdmin();
   const fields = pickTaskFields(formData);
-  if (!fields.project_id)
+  if (fields.work_scope === "client" && !fields.project_id)
     return { ok: false, error: "Le projet est requis." };
   if (!fields.title) return { ok: false, error: "Le titre est requis." };
 
@@ -219,10 +219,9 @@ export async function createTaskAction(
     // Notify each assignee — unless they assigned it to themselves.
     for (const uid of assignee_ids) {
       if (uid !== session.id) {
-        await notify(
+        await notifyTaskAssignment(
           uid,
-          "task_assigned",
-          `Nouvelle tâche : ${fields.title}`,
+          fields.title,
           `/dashboard/tasks/${data.id}`,
         );
       }
@@ -230,8 +229,9 @@ export async function createTaskAction(
   }
 
   revalidatePath("/dashboard/tasks");
-  revalidatePath(`/dashboard/projects/${data.project_id}`);
-  redirect(`/dashboard/projects/${data.project_id}`);
+  revalidatePath("/dashboard/studio-tasks");
+  if (data.project_id) revalidatePath(`/dashboard/projects/${data.project_id}`);
+  redirect(fields.work_scope === "studio" ? "/dashboard/studio-tasks" : `/dashboard/projects/${data.project_id}`);
 }
 
 
@@ -249,7 +249,7 @@ export async function updateTaskAction(
   const { data: before } = await supabase
     .from("tasks")
     .select(
-      "status, priority, assignee_id, deadline, project_id, parent_task_id, title, description, deliverable_url, tags, recurrence, created_by, started_at, payroll_task_type_id, payroll_credit_user_id",
+      "status, priority, assignee_id, deadline, project_id, parent_task_id, title, description, deliverable_url, tags, recurrence, created_by, started_at, work_scope, payroll_task_type_id, payroll_credit_user_id",
     )
     .eq("id", id)
     .single();
@@ -263,6 +263,8 @@ export async function updateTaskAction(
     .from("tasks")
     .update({
       title: fields.title,
+      project_id: fields.project_id,
+      work_scope: fields.work_scope,
       description: fields.description,
       status: fields.status,
       priority: fields.priority,
@@ -297,10 +299,9 @@ export async function updateTaskAction(
   await syncTaskAssignees(supabase, id, fields.assignee_ids);
   for (const uid of fields.assignee_ids) {
     if (!prevIds.has(uid) && uid !== session.id) {
-      await notify(
+      await notifyTaskAssignment(
         uid,
-        "task_assigned",
-        `Tâche assignée : ${fields.title}`,
+        fields.title,
         `/dashboard/tasks/${id}`,
       );
     }
@@ -318,13 +319,11 @@ export async function updateTaskAction(
         before.created_by &&
         before.created_by !== session.id
       ) {
-        const label = fields.status === "review" ? "à valider" : "terminée";
-        await notify(
-          before.created_by,
-          `task_${fields.status}`,
-          `Tâche ${label} : ${fields.title}`,
-          `/dashboard/tasks/${id}`,
-        );
+        if (fields.status === "done") {
+          await notifyTaskCompleted(before.created_by, fields.title, `/dashboard/tasks/${id}`);
+        } else {
+          await notify(before.created_by, "task_review", `Prête pour votre regard : ${fields.title} 👀`, `/dashboard/tasks/${id}`);
+        }
       }
     }
     if (before.priority !== fields.priority) {
@@ -367,6 +366,7 @@ export async function updateTaskAction(
       .from("tasks")
       .insert({
         project_id: fields.project_id || before.project_id,
+        work_scope: before.work_scope,
         title: fields.title,
         description: fields.description,
         status: "todo",
@@ -391,6 +391,7 @@ export async function updateTaskAction(
   }
 
   revalidatePath("/dashboard/tasks");
+  revalidatePath("/dashboard/studio-tasks");
   revalidatePath(`/dashboard/tasks/${id}`);
   if (data?.project_id)
     revalidatePath(`/dashboard/projects/${data.project_id}`);
@@ -409,7 +410,7 @@ export async function changeTaskStatusAction(
   const { data: before } = await supabase
     .from("tasks")
     .select(
-      "status, project_id, parent_task_id, title, description, priority, assignee_id, deadline, deliverable_url, tags, recurrence, created_by, started_at, payroll_task_type_id, payroll_credit_user_id",
+      "status, project_id, parent_task_id, title, description, priority, assignee_id, deadline, deliverable_url, tags, recurrence, created_by, started_at, work_scope, payroll_task_type_id, payroll_credit_user_id",
     )
     .eq("id", taskId)
     .single();
@@ -446,13 +447,11 @@ export async function changeTaskStatusAction(
       bRow.created_by &&
       bRow.created_by !== session.id
     ) {
-      const label = status === "review" ? "à valider" : "terminée";
-      await notify(
-        bRow.created_by,
-        `task_${status}`,
-        `Tâche ${label} : ${bRow.title ?? "—"}`,
-        `/dashboard/tasks/${taskId}`,
-      );
+      if (status === "done") {
+        await notifyTaskCompleted(bRow.created_by, bRow.title ?? "—", `/dashboard/tasks/${taskId}`);
+      } else {
+        await notify(bRow.created_by, "task_review", `Prête pour votre regard : ${bRow.title ?? "—"} 👀`, `/dashboard/tasks/${taskId}`);
+      }
     }
   }
 
@@ -471,6 +470,7 @@ export async function changeTaskStatusAction(
       .from("tasks")
       .insert({
         project_id: before.project_id,
+        work_scope: before.work_scope,
         title: before.title,
         description: before.description,
         status: "todo",
@@ -495,6 +495,7 @@ export async function changeTaskStatusAction(
   }
 
   revalidatePath("/dashboard/tasks");
+  revalidatePath("/dashboard/studio-tasks");
   if (data?.project_id)
     revalidatePath(`/dashboard/projects/${data.project_id}`);
   revalidatePath(`/dashboard/tasks/${taskId}`);
@@ -507,6 +508,7 @@ export async function deleteTaskAction(
   await requireWorkerOrAdmin();
   const id = String(formData.get("id") ?? "");
   const projectId = String(formData.get("project_id") ?? "");
+  const workScope = formData.get("work_scope") === "studio" ? "studio" : "client";
   if (!id) return { ok: false, error: "ID manquant." };
 
   const supabase = await createClient();
@@ -514,8 +516,9 @@ export async function deleteTaskAction(
   if (error) return { ok: false, error: error.message };
 
   revalidatePath("/dashboard/tasks");
+  revalidatePath("/dashboard/studio-tasks");
   if (projectId) revalidatePath(`/dashboard/projects/${projectId}`);
-  redirect(projectId ? `/dashboard/projects/${projectId}` : "/dashboard/tasks");
+  redirect(workScope === "studio" ? "/dashboard/studio-tasks" : projectId ? `/dashboard/projects/${projectId}` : "/dashboard/tasks");
 }
 
 // ===== Subtasks =====
@@ -534,7 +537,7 @@ export async function createSubtaskAction(
   // Lookup parent to inherit project_id + assignees
   const { data: parent } = await supabase
     .from("tasks")
-    .select("project_id, assignee_id")
+    .select("project_id, assignee_id, work_scope")
     .eq("id", parentId)
     .single();
   if (!parent) return { ok: false, error: "Tâche parente introuvable." };
@@ -551,6 +554,7 @@ export async function createSubtaskAction(
     .from("tasks")
     .insert({
       project_id: parent.project_id,
+      work_scope: parent.work_scope,
       parent_task_id: parentId,
       title,
       status: "todo",
@@ -566,7 +570,8 @@ export async function createSubtaskAction(
 
   await logActivity(parentId, session.id, "subtask_added", { title });
   revalidatePath(`/dashboard/tasks/${parentId}`);
-  revalidatePath(`/dashboard/projects/${parent.project_id}`);
+  if (parent.project_id) revalidatePath(`/dashboard/projects/${parent.project_id}`);
+  revalidatePath("/dashboard/studio-tasks");
   return { ok: true };
 }
 

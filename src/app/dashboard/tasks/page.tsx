@@ -18,6 +18,7 @@ export default async function TasksPage() {
       .select(
         "id, title, status, priority, deadline, assignee_id, tags, estimated_minutes, completed_at, profiles:assignee_id(username, full_name), projects:project_id(id, name, clients:client_id(id, name))",
       )
+      .eq("work_scope", "client")
       .is("parent_task_id", null)
       .order("created_at", { ascending: false }),
     supabase
@@ -83,6 +84,9 @@ export default async function TasksPage() {
       tagColors={tagColors}
       isFreelancer={session.role === "freelancer"}
       isWorker={session.role === "worker"}
+      currentRole={session.role}
+      canCreate={session.role === "admin" || session.role === "worker"}
+      scope="client"
       defaultQuickFilter={session.role === "worker" ? "my_tasks" : "active"}
     />
   );

@@ -38,7 +38,7 @@ export default async function TaskEditPage({
     supabase
       .from("tasks")
       .select(
-        "id, project_id, title, description, status, priority, assignee_id, deadline, deliverable_url, parent_task_id, tags, recurrence, estimated_minutes, late_reason, completion_note, payroll_task_type_id, payroll_credit_user_id, projects:project_id(name, clients:client_id(name))",
+        "id, project_id, work_scope, title, description, status, priority, assignee_id, deadline, deliverable_url, parent_task_id, tags, recurrence, estimated_minutes, late_reason, completion_note, payroll_task_type_id, payroll_credit_user_id, projects:project_id(name, clients:client_id(name))",
       )
       .eq("id", id)
       .single(),
@@ -247,6 +247,7 @@ export default async function TaskEditPage({
 
       <TaskForm
         mode="edit"
+        currentRole={session.role}
         task={{ ...task, assignee_ids: taskAssigneeIds }}
         assignees={assignees ?? []}
         canManagePayroll={session.role === "admin"}
@@ -295,7 +296,7 @@ export default async function TaskEditPage({
       <ActivityFeed entries={activity} />
 
       {session.role !== "freelancer" && (
-        <TaskDeleteButton taskId={task.id} projectId={task.project_id} />
+        <TaskDeleteButton taskId={task.id} projectId={task.project_id} workScope={task.work_scope} />
       )}
     </div>
   );

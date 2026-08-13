@@ -66,6 +66,25 @@ describe("migration history", () => {
   });
 });
 
+describe("collaboration hub", () => {
+  it.each(["studio_messages", "studio_message_recipients", "reminders"])("creates %s with RLS", (table) => {
+    expect(has("table", table)).toBe(true);
+    expect(sql(`select relrowsecurity from pg_class where oid='public.${table}'::regclass;`)).toBe("t");
+  });
+
+  it("separates client tasks from Areen studio tasks at the database boundary", () => {
+    expect(sql(`select is_nullable from information_schema.columns where table_schema='public' and table_name='tasks' and column_name='project_id';`)).toBe("YES");
+    expect(sql(`select column_default from information_schema.columns where table_schema='public' and table_name='tasks' and column_name='work_scope';`)).toContain("client");
+    expect(sql(`select pg_get_constraintdef(oid) from pg_constraint where conname='tasks_scope_project_check';`)).toContain("work_scope");
+  });
+
+  it("pins the collaboration helper search paths", () => {
+    for (const fn of ["is_studio_message_participant", "is_internal_profile"]) {
+      expect(sql(`select coalesce(array_to_string(proconfig, ','),'') from pg_proc where proname='${fn}';`)).toContain("search_path=public");
+    }
+  });
+});
+
 describe("0018 operational_improvements", () => {
   it.each(["app_updates", "app_update_items", "user_update_views"])("table %s exists", (t) => {
     expect(has("table", t)).toBe(true);

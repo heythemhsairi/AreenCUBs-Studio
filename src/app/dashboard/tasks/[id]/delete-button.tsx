@@ -9,9 +9,11 @@ import { deleteTaskAction } from "../actions";
 export function TaskDeleteButton({
   taskId,
   projectId,
+  workScope,
 }: {
   taskId: string;
-  projectId: string;
+  projectId: string | null;
+  workScope: "client" | "studio";
 }) {
   const { t } = useI18n();
   const [pending, startTransition] = useTransition();
@@ -20,7 +22,8 @@ export function TaskDeleteButton({
     if (!confirm(t.tasks.deleteConfirm)) return;
     const fd = new FormData();
     fd.set("id", taskId);
-    fd.set("project_id", projectId);
+    fd.set("project_id", projectId ?? "");
+    fd.set("work_scope", workScope);
     startTransition(async () => {
       await deleteTaskAction(fd);
     });

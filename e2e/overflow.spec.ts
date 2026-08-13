@@ -25,6 +25,8 @@ const ROUTES_BY_ROLE: { role: keyof typeof ACCOUNTS; routes: string[] }[] = [
     routes: [
       "/dashboard",
       "/dashboard/tasks",
+      "/dashboard/studio-tasks",
+      "/dashboard/messages",
       "/dashboard/clients",
       "/dashboard/projects",
       "/dashboard/finance",

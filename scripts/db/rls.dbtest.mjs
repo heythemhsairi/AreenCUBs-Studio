@@ -109,6 +109,38 @@ describe("authenticated user without a profile fails closed", () => {
   });
 });
 
+describe("collaboration hub containment", () => {
+  it("exposes the mention directory to internal roles, never clients or unprovisioned identities", () => {
+    expect(Number(sqlAs(USERS.worker, "select count(*) from public.studio_member_directory;"))).toBeGreaterThan(0);
+    expect(sqlAs(USERS.client, "select count(*) from public.studio_member_directory;")).toBe("0");
+    expect(sqlAs(USERS.orphan, "select count(*) from public.studio_member_directory;")).toBe("0");
+  });
+
+  it("keeps reminders private to their owner", () => {
+    const owned = sqlAs(USERS.worker, `
+      with created as (
+        insert into public.reminders(owner_id,title,remind_at)
+        values ('${USERS.worker}','probe',now()) returning id
+      )
+      select count(*) from public.reminders where owner_id='${USERS.worker}';
+    `);
+    expect(Number(owned)).toBeGreaterThan(0);
+    expect(sqlAs(USERS.freelancer, `select count(*) from public.reminders where owner_id='${USERS.worker}';`)).toBe("0");
+  });
+
+  it("rejects an external client recipient", () => {
+    const output = sqlAsExpectError(USERS.worker, `
+      with message as (
+        insert into public.studio_messages(sender_id,body)
+        values ('${USERS.worker}','probe') returning id
+      )
+      insert into public.studio_message_recipients(message_id,user_id)
+      select id,'${USERS.client}' from message;
+    `);
+    expect(output).toContain("row-level security");
+  });
+});
+
 describe("admin access is allowed where the schema intends", () => {
   it("reads clients, documents and payments", () => {
     expect(Number(sqlAs(USERS.admin, "select count(*) from public.clients;"))).toBeGreaterThan(0);

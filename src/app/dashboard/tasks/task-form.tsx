@@ -12,6 +12,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { MultiAssignee } from "@/components/multi-assignee";
 import { createTaskAction, updateTaskAction } from "./actions";
+import { taskOpenMessage } from "@/lib/role-copy";
+import type { UserRole } from "@/lib/utils";
 
 type Project = { id: string; name: string; client_name: string | null };
 type Assignee = {
@@ -24,7 +26,8 @@ type Assignee = {
 
 type TaskRow = {
   id: string;
-  project_id: string;
+  project_id: string | null;
+  work_scope: "client" | "studio";
   title: string;
   description: string | null;
   status: "todo" | "in_progress" | "review" | "done" | "cancelled";
@@ -61,6 +64,8 @@ type Props = (
   | {
       mode: "create";
       defaultProjectId?: string;
+      defaultScope?: "client" | "studio";
+      scopeLocked?: boolean;
       projects: Project[];
       assignees: Assignee[];
       templates?: TaskTemplateOption[];
@@ -73,16 +78,21 @@ type Props = (
       assignees: Assignee[];
       projects?: undefined;
       defaultProjectId?: undefined;
+      defaultScope?: undefined;
+      scopeLocked?: undefined;
       templates?: undefined;
       preselectedTemplate?: undefined;
-    }) & PayrollProps;
+    }) & PayrollProps & { currentRole: UserRole };
 
 export function TaskForm(props: Props) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [pending, startTransition] = useTransition();
+  const [workScope, setWorkScope] = useState<"client" | "studio">(
+    props.mode === "create" ? props.defaultScope ?? "client" : props.task.work_scope,
+  );
 
   const tpl = props.mode === "create" ? props.preselectedTemplate : null;
   const templates = props.mode === "create" ? props.templates ?? [] : [];
@@ -132,8 +142,8 @@ export function TaskForm(props: Props) {
             : (tk?.title ?? t.tasks.title)
         }
         subtitle={
-          <Link href="/dashboard/tasks" className="hover:underline">
-            ← {t.tasks.title}
+          <Link href={workScope === "studio" ? "/dashboard/studio-tasks" : "/dashboard/tasks"} className="hover:underline">
+            ← {workScope === "studio" ? t.studioTasks.title : t.tasks.title}
           </Link>
         }
       />
@@ -145,28 +155,50 @@ export function TaskForm(props: Props) {
           </CardTitle>
         </CardHeader>
         <CardContent>
+          {props.mode === "edit" && (
+            <div className="mb-5 rounded-xl border border-brand/20 bg-brand/5 px-4 py-3 text-sm leading-relaxed text-content-2">
+              <span aria-hidden className="mr-2">💙</span>
+              {taskOpenMessage(props.currentRole, locale)}
+            </div>
+          )}
           <form className="space-y-4" onSubmit={onSubmit}>
             {props.mode === "edit" && (
               <input type="hidden" name="id" value={tk?.id} />
             )}
 
             {props.mode === "create" ? (
-              <Field label={t.tasks.form.project}>
-                <Select
-                  name="project_id"
-                  required
-                  defaultValue={props.defaultProjectId ?? ""}
-                >
-                  <option value="">{t.tasks.form.noProject}</option>
-                  {props.projects.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.client_name ? `${p.client_name} — ${p.name}` : p.name}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
+              <>
+                {props.scopeLocked ? (
+                  <>
+                    <input type="hidden" name="work_scope" value={workScope} />
+                    <div className="rounded-xl border border-brand/20 bg-brand/5 px-4 py-3 text-sm font-semibold text-brand">✨ {t.tasksUi.studioWork}</div>
+                  </>
+                ) : (
+                  <Field label={t.tasksUi.workScope}>
+                    <Select name="work_scope" value={workScope} onChange={(event) => setWorkScope(event.target.value === "studio" ? "studio" : "client")}>
+                      <option value="client">{t.tasksUi.clientWork}</option>
+                      <option value="studio">{t.tasksUi.studioWork}</option>
+                    </Select>
+                  </Field>
+                )}
+                {workScope === "client" ? (
+                  <Field label={t.tasks.form.project}>
+                    <Select name="project_id" required defaultValue={props.defaultProjectId ?? ""}>
+                      <option value="">{t.tasks.form.noProject}</option>
+                      {props.projects.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.client_name ? `${p.client_name} — ${p.name}` : p.name}
+                        </option>
+                      ))}
+                    </Select>
+                  </Field>
+                ) : <input type="hidden" name="project_id" value="" />}
+              </>
             ) : (
-              <input type="hidden" name="project_id" value={tk?.project_id} />
+              <>
+                <input type="hidden" name="project_id" value={tk?.project_id ?? ""} />
+                <input type="hidden" name="work_scope" value={tk?.work_scope ?? "client"} />
+              </>
             )}
 
             {props.mode === "create" && templates.length > 0 && (
@@ -178,10 +210,11 @@ export function TaskForm(props: Props) {
                       const params = new URLSearchParams();
                       if (props.defaultProjectId)
                         params.set("projectId", props.defaultProjectId);
+                      params.set("scope", workScope);
                       if (e.target.value)
                         params.set("templateId", e.target.value);
                       router.replace(
-                        `/dashboard/tasks/new${params.toString() ? "?" + params.toString() : ""}`,
+                        `${workScope === "studio" ? "/dashboard/studio-tasks/new" : "/dashboard/tasks/new"}${params.toString() ? "?" + params.toString() : ""}`,
                       );
                     }}
                   >
@@ -396,7 +429,7 @@ export function TaskForm(props: Props) {
               <Link
                 href={
                   props.mode === "create"
-                    ? "/dashboard/tasks"
+                    ? workScope === "studio" ? "/dashboard/studio-tasks" : "/dashboard/tasks"
                     : `/dashboard/tasks/${tk?.id}`
                 }
                 className="text-sm text-content-3 hover:text-content-3"

@@ -1,5 +1,7 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isValidRole } from "@/lib/auth";
+import { taskAssignedMessage, taskDoneMessage } from "@/lib/role-copy";
 
 /**
  * Fire an in-app notification for a single user. Safe to call anywhere —
@@ -44,5 +46,56 @@ export async function notifyMany(
     );
   } catch (err) {
     console.error("[notifyMany] failed", err);
+  }
+}
+
+/** Role-aware assignment copy keeps notifications warm without weakening the action's auth. */
+export async function notifyTaskAssignment(
+  userId: string | null | undefined,
+  title: string,
+  link: string,
+): Promise<void> {
+  if (!userId) return;
+  try {
+    const admin = createAdminClient();
+    const { data: profile } = await admin
+      .from("profiles")
+      .select("role")
+      .eq("id", userId)
+      .maybeSingle();
+    const role = isValidRole(profile?.role) ? profile.role : "worker";
+    await admin.from("notifications").insert({
+      user_id: userId,
+      kind: "task_assigned",
+      body: taskAssignedMessage(role, title),
+      link,
+    });
+  } catch (err) {
+    console.error("[notifyTaskAssignment] failed", err);
+  }
+}
+
+export async function notifyTaskCompleted(
+  userId: string | null | undefined,
+  title: string,
+  link: string,
+): Promise<void> {
+  if (!userId) return;
+  try {
+    const admin = createAdminClient();
+    const { data: profile } = await admin
+      .from("profiles")
+      .select("role")
+      .eq("id", userId)
+      .maybeSingle();
+    const role = isValidRole(profile?.role) ? profile.role : "worker";
+    await admin.from("notifications").insert({
+      user_id: userId,
+      kind: "task_done",
+      body: `${taskDoneMessage(role)} ${title}`,
+      link,
+    });
+  } catch (err) {
+    console.error("[notifyTaskCompleted] failed", err);
   }
 }

@@ -21,6 +21,8 @@ import {
   Plus,
   Filter,
 } from "lucide-react";
+import type { UserRole } from "@/lib/utils";
+import { taskDoneMessage, taskOpenMessage } from "@/lib/role-copy";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -58,6 +60,9 @@ export function TasksView({
   isFreelancer,
   isWorker = false,
   defaultQuickFilter = "active",
+  scope = "client",
+  currentRole,
+  canCreate = false,
 }: {
   tasks: TaskCard[];
   projects: Option[];
@@ -68,8 +73,12 @@ export function TasksView({
   isFreelancer: boolean;
   isWorker?: boolean;
   defaultQuickFilter?: QuickFilter;
+  scope?: "client" | "studio";
+  currentRole: UserRole;
+  canCreate?: boolean;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const createHref = scope === "studio" ? "/dashboard/studio-tasks/new" : "/dashboard/tasks/new";
   const [filters, setFilters] = useState<TasksFilters>(DEFAULT_FILTERS);
   const [view, setView] = useState<ViewMode>("kanban");
   const [quickFilter, setQuickFilter] = useState<QuickFilter>(defaultQuickFilter);
@@ -107,22 +116,29 @@ export function TasksView({
     <div className="relative flex flex-col gap-4 pb-20 md:pb-6">
       {/* Page header */}
       <PageHeader
-        title={isFreelancer ? t.tasks.myTitle : t.tasks.title}
+        title={scope === "studio" ? t.studioTasks.title : isFreelancer ? t.tasks.myTitle : t.tasks.title}
         description={
-          isFreelancer
+          scope === "studio"
+            ? t.studioTasks.description
+            : isFreelancer
             ? t.tasksUi.descriptionMine
             : isWorker
               ? t.tasksUi.descriptionWorker
               : t.tasksUi.description
         }
         action={
-          !isFreelancer ? (
-            <Link href="/dashboard/tasks/new">
-              <Button>{t.tasksUi.newTaskCta}</Button>
+          canCreate ? (
+            <Link href={createHref}>
+              <Button>{scope === "studio" ? t.studioTasks.newTask : t.tasksUi.newTaskCta}</Button>
             </Link>
           ) : null
         }
       />
+
+      <div className="rounded-xl border border-brand/20 bg-brand/5 px-4 py-3 text-sm leading-relaxed text-content-2">
+        <span aria-hidden className="mr-2">💙</span>
+        {taskOpenMessage(currentRole, locale)}
+      </div>
 
       {/* Top bar: quick filters + view toggle */}
       <div className="flex items-center gap-3">
@@ -241,6 +257,7 @@ export function TasksView({
         <DarkKanban
           tasks={filtered}
           tagColors={tagColors}
+          currentRole={currentRole}
         />
       ) : view === "calendar" ? (
         <CalendarPlaceholder />
@@ -249,15 +266,15 @@ export function TasksView({
       )}
 
       {/* Mobile sticky "Add task" button */}
-      {!isFreelancer && (
+      {canCreate && (
         <div className="fixed bottom-6 right-5 z-50 md:hidden">
           {/* axe `link-name`: the anchor's only content was an icon, leaving
               both the link and the button it wrapped without a name. A button
               nested inside a link is also invalid — the anchor already is the
               control, so the wrapper is gone and the styles moved onto it. */}
           <Link
-            href="/dashboard/tasks/new"
-            aria-label={t.tasksUi.newTaskCta}
+            href={createHref}
+            aria-label={scope === "studio" ? t.studioTasks.newTask : t.tasksUi.newTaskCta}
             className="flex h-12 w-12 items-center justify-center rounded-full bg-accent2 text-accent2-fg shadow-lg shadow-accent2/25 transition-all hover:scale-105 hover:bg-accent2 active:scale-95"
           >
             <Plus size={20} aria-hidden="true" />
@@ -336,11 +353,13 @@ import { startTouchDrag } from "@/lib/touch-drag";
 function DarkKanban({
   tasks,
   tagColors,
+  currentRole,
 }: {
   tasks: TaskCard[];
   tagColors?: Record<string, string>;
+  currentRole: UserRole;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [, startTransition] = useTransition();
   const [dragOver, setDragOver] = useState<Status | null>(null);
   const [override, setOverride] = useState<Record<string, Status>>({})
@@ -361,7 +380,7 @@ function DarkKanban({
         });
         toast.error(res.error);
       } else if (to === "done") {
-        toast.success(t.tasksUi.taskCompleted);
+        toast.success(taskDoneMessage(currentRole, locale));
       } else {
         toast.success(t.tasksUi.statusUpdated);
       }

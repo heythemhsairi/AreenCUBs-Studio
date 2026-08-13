@@ -5,10 +5,10 @@ import { TaskForm, type TaskTemplateOption } from "../task-form";
 export default async function NewTaskPage({
   searchParams,
 }: {
-  searchParams: Promise<{ projectId?: string; templateId?: string }>;
+  searchParams: Promise<{ projectId?: string; templateId?: string; scope?: string }>;
 }) {
   const session = await requireWorkerOrAdmin();
-  const { projectId, templateId } = await searchParams;
+  const { projectId, templateId, scope } = await searchParams;
   const supabase = await createClient();
 
   const [
@@ -60,7 +60,9 @@ export default async function NewTaskPage({
   return (
     <TaskForm
       mode="create"
+      currentRole={session.role}
       defaultProjectId={projectId}
+      defaultScope={scope === "studio" ? "studio" : "client"}
       projects={(projects ?? []).map((p) => {
         const c = Array.isArray(p.clients) ? p.clients[0] : p.clients;
         return {

@@ -23,12 +23,32 @@ export default async function DashboardLayout({
   let notifications: NotificationRow[] = [];
   try {
     const supabase = await createClient();
-    const { data } = await supabase
-      .from("notifications")
-      .select("id, kind, body, link, read_at, created_at")
-      .order("created_at", { ascending: false })
-      .limit(20);
-    notifications = (data ?? []) as NotificationRow[];
+    const now = new Date().toISOString();
+    const [{ data }, { data: dueReminders }] = await Promise.all([
+      supabase
+        .from("notifications")
+        .select("id, kind, body, link, read_at, created_at")
+        .order("created_at", { ascending: false })
+        .limit(20),
+      supabase
+        .from("reminders")
+        .select("id, title, link, remind_at")
+        .is("completed_at", null)
+        .lte("remind_at", now)
+        .order("remind_at", { ascending: false })
+        .limit(10),
+    ]);
+    const reminderNotifications: NotificationRow[] = (dueReminders ?? []).map((reminder) => ({
+      id: `reminder:${reminder.id}`,
+      kind: "reminder",
+      body: `Rappel : ${reminder.title}`,
+      link: reminder.link ?? "/dashboard/messages",
+      read_at: null,
+      created_at: reminder.remind_at,
+    }));
+    notifications = [...((data ?? []) as NotificationRow[]), ...reminderNotifications]
+      .sort((a, b) => b.created_at.localeCompare(a.created_at))
+      .slice(0, 30);
   } catch (err) {
     console.error("[layout:notifications]", err);
   }
