@@ -5,14 +5,14 @@
 @layer base {
   :root {
     /* ── Design token CSS variables — dark (default) ── */
-    --c-bg:        #071B2C;
-    --c-page:      #08243A;
-    --c-card:      #0D2D47;
-    --c-elevated:  #123A5A;
-    --c-border:    #22506F;
-    --c-text-1:    #F4FAFF;
-    --c-text-2:    #B8D0E4;
-    --c-text-3:    #86A8C2;
+    --c-bg:        rgb(var(--ac-canvas));
+    --c-page:      rgb(var(--ac-canvas));
+    --c-card:      rgb(var(--ac-surface));
+    --c-elevated:  rgb(var(--ac-surface-2));
+    --c-border:    rgb(var(--ac-border));
+    --c-text-1:    rgb(var(--ac-text));
+    --c-text-2:    rgb(var(--ac-text-2));
+    --c-text-3:    rgb(var(--ac-text-3));
     --c-brand:     rgb(var(--ac-brand-600));
     --c-cyan:      rgb(var(--ac-accent));
     --c-success:   #2ECC71;
@@ -21,36 +21,36 @@
 
     --shadow-soft: 0 1px 2px rgba(0,10,20,0.15), 0 4px 14px rgba(0,10,20,0.2);
     --shadow-lift: 0 20px 40px -22px rgba(0,10,20,0.5), 0 8px 16px -8px rgba(0,10,20,0.25);
-    --shadow-brand: 0 22px 48px -22px rgba(34,184,214,0.4), 0 8px 18px -8px rgba(34,184,214,0.2);
+    --shadow-brand: 0 22px 48px -22px rgb(var(--ac-brand-500) / 0.38), 0 8px 18px -8px rgb(var(--ac-brand-400) / 0.20);
     --shadow-surface: 0 1px 3px rgba(0,0,0,0.5), 0 4px 16px rgba(0,0,0,0.4);
     --shadow-surface-lg: 0 8px 32px rgba(0,0,0,0.6), 0 2px 8px rgba(0,0,0,0.35);
 
     --bg-mesh:
-      radial-gradient(ellipse 900px 500px at 12% -10%, rgba(34,184,214,0.10), transparent 60%),
-      radial-gradient(ellipse 750px 550px at 95% 5%,  rgba(44,110,150,0.08), transparent 65%),
-      radial-gradient(ellipse 600px 400px at 50% 110%, rgba(34,184,214,0.06), transparent 60%);
+      radial-gradient(ellipse 900px 500px at 12% -10%, rgb(var(--ac-brand-500) / 0.12), transparent 60%),
+      radial-gradient(ellipse 750px 550px at 95% 5%, rgb(var(--ac-brand-400) / 0.09), transparent 65%),
+      radial-gradient(ellipse 600px 400px at 50% 110%, rgb(var(--ac-support) / 0.12), transparent 60%);
 
     --chart-track:   rgba(255,255,255,0.08);
-    --chart-bar-bg:  rgba(34,184,214,0.35);
+    --chart-bar-bg:  rgb(var(--ac-brand-400) / 0.35);
     --chart-paid-bg: rgba(46,204,113,0.55);
     --chart-text:    #F4FAFF;
   }
 
   /* ── Light mode token overrides ── */
   html.light {
-    --c-bg:       #F5F9FF;
-    --c-page:     #F8FBFF;
-    --c-card:     #FFFFFF;
-    --c-elevated: #F0F6FF;
-    --c-border:   #D8E6F7;
-    --c-text-1:   #102033;
-    --c-text-2:   #49627A;
+    --c-bg:       rgb(var(--ac-canvas));
+    --c-page:     rgb(var(--ac-canvas));
+    --c-card:     rgb(var(--ac-surface));
+    --c-elevated: rgb(var(--ac-surface-2));
+    --c-border:   rgb(var(--ac-border));
+    --c-text-1:   rgb(var(--ac-text));
+    --c-text-2:   rgb(var(--ac-text-2));
     /* WCAG AA. Measured by axe on the light surfaces this token actually
        lands on: #6C8298 gave 3.97:1 on #FFFFFF, 3.76:1 on #F5F9FF and
        3.14:1 on #D8E6F7 — the single largest source of violations, 30+ nodes.
        #556575 keeps the same blue-grey hue and reads as the same tier of
        muted text, at 5.99 / 5.67 / 4.73:1 respectively. */
-    --c-text-3:   #556575;
+    --c-text-3:   rgb(var(--ac-text-3));
     --c-brand:    rgb(var(--ac-brand-600));
     /* #1A9DBF measured 2.92:1 on #F0F6FF and 2.84:1 on #E8F5F9. Darkened
        along the same hue to 5.50 / 5.37:1 rather than switching to the brand
@@ -66,11 +66,11 @@
     --shadow-surface-lg: 0 8px 32px rgba(16,32,51,0.12), 0 2px 8px rgba(16,32,51,0.06);
 
     --bg-mesh:
-      radial-gradient(ellipse 900px 500px at 12% -10%, rgba(44,110,150,0.06), transparent 60%),
-      radial-gradient(ellipse 600px 400px at 95% 0%,  rgba(34,184,214,0.05), transparent 65%);
+      radial-gradient(ellipse 900px 500px at 12% -10%, rgb(var(--ac-brand-500) / 0.08), transparent 60%),
+      radial-gradient(ellipse 600px 400px at 95% 0%, rgb(var(--ac-brand-400) / 0.06), transparent 65%);
 
     --chart-track:   rgba(16,32,51,0.06);
-    --chart-bar-bg:  rgba(44,110,150,0.22);
+    --chart-bar-bg:  rgb(var(--ac-brand-400) / 0.22);
     --chart-paid-bg: rgba(21,154,91,0.55);
     --chart-text:    #102033;
   }
@@ -115,21 +115,20 @@
   /* dark body gets the mesh overlay too */
   html:not(.light) body {
     background:
-      radial-gradient(ellipse 900px 500px at 12% -10%, rgba(34,184,214,0.08), transparent 60%),
-      radial-gradient(ellipse 750px 550px at 95% 5%,  rgba(44,110,150,0.06), transparent 65%),
-      radial-gradient(ellipse 600px 400px at 50% 110%, rgba(34,184,214,0.05), transparent 60%),
-      linear-gradient(180deg, #071B2C 0%, #08243A 50%, #071B2C 100%);
+      radial-gradient(ellipse 900px 500px at 12% -10%, rgb(var(--ac-brand-500) / 0.11), transparent 60%),
+      radial-gradient(ellipse 750px 550px at 95% 5%, rgb(var(--ac-brand-400) / 0.08), transparent 65%),
+      linear-gradient(180deg, rgb(var(--ac-canvas)) 0%, rgb(var(--ac-brand-950)) 100%);
   }
 
   html.light body {
     background:
-      radial-gradient(ellipse 900px 600px at 10% -5%, rgba(44,110,150,0.08), transparent 60%),
-      radial-gradient(ellipse 700px 500px at 90% 0%,  rgba(34,184,214,0.05), transparent 60%),
-      linear-gradient(180deg, #F5F9FF 0%, #EEF5FF 100%);
+      radial-gradient(ellipse 900px 600px at 10% -5%, rgb(var(--ac-brand-500) / 0.10), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 90% 0%, rgb(var(--ac-brand-400) / 0.07), transparent 60%),
+      linear-gradient(180deg, #F5F7F8 0%, rgb(var(--ac-canvas)) 100%);
   }
 
   ::selection {
-    background: rgba(34,184,214,0.25);
+    background: rgb(var(--ac-brand-400) / 0.28);
     color: var(--c-text-1);
   }
 
@@ -157,7 +156,7 @@
   a:focus-visible, button:focus-visible, input:focus-visible,
   select:focus-visible, textarea:focus-visible,
   [role="button"]:focus-visible, [role="link"]:focus-visible {
-    outline: 2px solid rgba(34,184,214,0.6);
+    outline: 2px solid rgb(var(--ac-brand-500) / 0.70);
     outline-offset: 2px;
     border-radius: 6px;
   }
@@ -375,8 +374,8 @@
   }
   .input-base:focus {
     outline: none;
-    border-color: #22D3EE;
-    box-shadow: 0 0 0 3px rgba(34,211,238,0.12);
+    border-color: rgb(var(--ac-brand-500));
+    box-shadow: 0 0 0 3px rgb(var(--ac-brand-500) / 0.14);
   }
   .input-base::placeholder { color: var(--c-text-3); opacity: 0.7; }
   .input-base option { background: var(--c-card); color: var(--c-text-1); }
@@ -388,6 +387,47 @@
   .shadow-lift     { box-shadow: var(--shadow-lift); }
   .shadow-surface  { box-shadow: var(--shadow-surface); }
   .shadow-surface-lg { box-shadow: var(--shadow-surface-lg); }
+}
+
+/* The overview arrives as one composition, with short staggered movement that
+   preserves orientation. Reduced-motion users receive the final state. */
+.dashboard-welcome {
+  animation: overview-enter var(--ac-dur-3) var(--ac-ease) both;
+}
+
+.dashboard-overview > *:not(:first-child),
+.overview-sections > * {
+  animation: overview-enter var(--ac-dur-3) var(--ac-ease) both;
+}
+
+.dashboard-overview > *:nth-child(2), .overview-sections > *:nth-child(1) { animation-delay: 40ms; }
+.dashboard-overview > *:nth-child(3), .overview-sections > *:nth-child(2) { animation-delay: 80ms; }
+.dashboard-overview > *:nth-child(4), .overview-sections > *:nth-child(3) { animation-delay: 120ms; }
+.overview-sections > *:nth-child(n + 4) { animation-delay: 160ms; }
+
+.brand-mark-motion {
+  animation: brand-mark-enter var(--ac-dur-3) var(--ac-ease) 80ms both;
+}
+
+@keyframes overview-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes brand-mark-enter {
+  from { opacity: 0; transform: translateY(8px) rotate(-5deg) scale(0.94); }
+  to { opacity: 1; transform: translateY(0) rotate(0) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-welcome,
+  .dashboard-overview > *,
+  .overview-sections > *,
+  .brand-mark-motion,
+  .pulse-dot::after {
+    animation: none;
+  }
+  html { scroll-behavior: auto; }
 }
 
 /* =========================================================================

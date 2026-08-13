@@ -224,7 +224,7 @@ export function OverviewClient({
     const totalUrgent = overdueWorkerTasks.length + todayTasks.length;
 
     return (
-      <div className="space-y-7">
+      <div className="overview-sections space-y-7">
         {/* Today's Work hero banner */}
         <section>
           <SectionHeading>{t.overview.workerTodayWork}</SectionHeading>
@@ -428,7 +428,7 @@ export function OverviewClient({
 
   // Admin / freelancer layout
   return (
-    <div className="space-y-8">
+    <div className="overview-sections space-y-8">
       {/* ================================================================== */}
       {/* 1. TODAY'S PRIORITIES                                               */}
       {/* ================================================================== */}

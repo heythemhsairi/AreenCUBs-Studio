@@ -649,7 +649,7 @@ export default async function DashboardPage() {
   const workerPayroll = await payrollPromise;
 
   return (
-    <div className="space-y-7">
+    <div className="dashboard-overview space-y-7">
       {/*
         Order is deliberate: identity, then what you can do, then what needs
         attention. The exception panels used to come first, so the page opened

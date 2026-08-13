@@ -49,7 +49,8 @@ export const metadata: Metadata = {
   title: "Areen CUBs Studio",
   description: "Internal management workspace for Areen CUBs.",
   icons: {
-    icon: "/logo.svg",
+    icon: "/brand/areen-cubs-icon.svg",
+    apple: "/brand/areen-cubs-icon.svg",
   },
 };
 
@@ -64,7 +65,7 @@ export default function RootLayout({
         {/* Inline script: apply theme before first paint to prevent flash */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var m=localStorage.getItem('areencubs.theme');var dark=(m==='dark')||(m!=='light'&&(m!=='system'?true:window.matchMedia('(prefers-color-scheme: dark)').matches));if(!dark)document.documentElement.classList.add('light')}catch(e){}})()`,
+            __html: `(function(){try{var m=localStorage.getItem('areencubs.theme');var light=!m||m==='light'||(m==='system'&&!window.matchMedia('(prefers-color-scheme: dark)').matches);if(light)document.documentElement.classList.add('light')}catch(e){document.documentElement.classList.add('light')}})()`,
           }}
         />
       </head>
@@ -76,7 +77,7 @@ export default function RootLayout({
           position="bottom-right"
           theme="dark"
           richColors
-          toastOptions={{ style: { background: '#0D2D47', border: '1px solid #22506F', color: '#F4FAFF' } }}
+          toastOptions={{ style: { background: 'rgb(var(--ac-surface))', border: '1px solid rgb(var(--ac-border))', color: 'rgb(var(--ac-text))' } }}
         />
       </body>
     </html>

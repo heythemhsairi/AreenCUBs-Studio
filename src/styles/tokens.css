@@ -36,7 +36,8 @@
   --ac-brand-900:  10  51 111;   /* #0A336F — deep navy */
   --ac-brand-950:   6  33  74;
 
-  --ac-support:   143 173 206;   /* #8FADCE */
+  --ac-support:    10  51 111;   /* #0A336F — support / navigation */
+  --ac-muted-blue: 143 173 206;  /* accessible muted blue for dark surfaces */
 
   /* Neutrals biased toward the brand hue — a neutral that was chosen reads
      differently from one that was inherited. */
@@ -58,28 +59,28 @@
 :root {
   color-scheme: dark;
 
-  --ac-canvas:        7  23  42;
-  --ac-surface:      14  37  63;
-  --ac-surface-2:    20  49  80;
-  --ac-surface-3:    28  62  98;
+  --ac-canvas:        6  27  61;
+  --ac-surface:       8  38  75;
+  --ac-surface-2:    10  49  93;
+  --ac-surface-3:    12  61 111;
 
   /* The navigation rail is deep navy in BOTH themes — the one place the
      brand asserts itself constantly, and what makes a screenshot of this
      product recognisable. Its contents use the on-rail roles, never the
      page text roles, because the rail keeps its own ground in both themes. */
-  --ac-rail:          6  20  38;
-  --ac-rail-2:       12  34  58;
-  --ac-rail-border:  30  64 100;
+  --ac-rail:         var(--ac-support);
+  --ac-rail-2:       var(--ac-brand-800);
+  --ac-rail-border:  var(--ac-brand-700);
   --ac-on-rail:     234 241 248;
-  --ac-on-rail-muted: var(--ac-support);   /* 6.1:1 on the rail */
+  --ac-on-rail-muted: var(--ac-muted-blue);
 
   --ac-text:        234 241 248;    /* 14.8:1 on surface */
   --ac-text-2:      185 201 220;    /*  9.4:1 */
-  --ac-text-3:      var(--ac-support); /* 6.1:1 — its correct home */
+  --ac-text-3:      var(--ac-muted-blue);
   --ac-text-inverse: 15 27 45;
 
-  --ac-border:       30  64 100;
-  --ac-border-strong: 62 100 142;
+  --ac-border:       var(--ac-brand-800);
+  --ac-border-strong: var(--ac-brand-700);
 
   --ac-accent:       107 165 240;   /* #6BA5F0 — 6.5:1 on surface */
   --ac-accent-hover: 143 189 246;
@@ -102,7 +103,7 @@
   /* Ordered so adjacent series stay separable under deuteranopia and
      protanopia: hue AND lightness both vary. Never the only encoding —
      charts also carry labels or direct annotation. */
-  --ac-chart-1: 107 165 240;   /* blue    */
+  --ac-chart-1:  51 130 214;   /* secondary blue */
   --ac-chart-2: 226 180  94;   /* amber   */
   --ac-chart-3:  84 197 205;   /* teal    */
   --ac-chart-4: 225 145 200;   /* magenta */
@@ -208,4 +209,3 @@ html.light {
 @media (prefers-reduced-motion: reduce) {
   :root { --ac-dur-1: 1ms; --ac-dur-2: 1ms; --ac-dur-3: 1ms; }
 }
-
