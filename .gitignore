@@ -20,3 +20,7 @@ supabase/.branches/
 # evidence the moment any other suite ran.
 e2e/.screens/
 e2e/.sheets/
+
+.vercel
+.env*
+!.env.example
