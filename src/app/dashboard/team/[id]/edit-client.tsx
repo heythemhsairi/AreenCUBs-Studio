@@ -9,6 +9,7 @@ import { Select } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar } from "@/components/avatar";
 import { PageHeader } from "@/components/dashboard/page-header";
+import { YOKO_ASSISTANT_ACCOUNT_USERNAME } from "@/lib/yoko-assistant";
 import {
   updateTeamMemberAction,
   resetTeamMemberPasswordAction,
@@ -16,6 +17,7 @@ import {
   uploadAvatarAction,
   removeAvatarAction,
 } from "../actions";
+import { YokoAssistantCard } from "./yoko-assistant-card";
 import type { UserRole } from "@/lib/utils";
 
 type Member = {
@@ -49,6 +51,7 @@ export function TeamEditClient({
       />
 
       <AvatarCard member={member} />
+      {member.username === YOKO_ASSISTANT_ACCOUNT_USERNAME ? <YokoAssistantCard /> : null}
       <ProfileForm member={member} isSelf={isSelf} />
       <PasswordResetCard memberId={member.id} />
       {!isSelf && <DeleteCard memberId={member.id} />}
