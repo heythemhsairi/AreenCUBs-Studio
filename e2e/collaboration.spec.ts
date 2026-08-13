@@ -49,7 +49,7 @@ test.describe("collaboration hub", () => {
     await page.goto("/dashboard/studio-tasks/new", { waitUntil: "networkidle" });
     await expect(page.getByText(/Travail interne Areen|Internal Areen work/)).toBeVisible();
     await page.locator('input[name="title"]').fill(title);
-    await page.getByRole("button", { name: /Créer|Create/, exact: true }).click();
+    await page.getByRole("button", { name: /^(Créer|Create)$/ }).click();
 
     await page.waitForURL(/\/dashboard\/studio-tasks$/);
     await expect(page.locator("main").getByText(title, { exact: true })).toBeVisible();
