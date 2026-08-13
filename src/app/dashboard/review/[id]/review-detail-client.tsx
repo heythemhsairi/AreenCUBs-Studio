@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { ArrowLeft, CheckCircle2, Film, MessageSquare, Upload } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,14 +10,22 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/dashboard/page-header";
+import {
+  appendReviewFileMetadata,
+  uploadReviewVideoToTicket,
+} from "@/lib/review-upload-client";
 import { REVIEW_STATUS_LABEL, REVIEW_STATUS_TONE } from "../review-list-client";
 import {
   addAgencyReviewCommentAction,
   getReviewMediaUrlAction,
   setCommentResolvedAction,
   setReviewStatusAction,
-  uploadReviewVersionAction,
 } from "../actions";
+import {
+  abandonReviewUploadAction,
+  finalizeReviewUploadAction,
+  prepareReviewVersionUploadAction,
+} from "../upload-actions";
 
 export type ReviewVersion = {
   id: string;
@@ -67,9 +76,11 @@ export function ReviewDetailClient({
    */
   canPlayMedia: boolean;
 }) {
+  const router = useRouter();
   const latest = versions[0] ?? null;
   const [error, setError] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [uploadStatus, setUploadStatus] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   function run(action: (fd: FormData) => Promise<{ ok: boolean; error?: string }>, fd: FormData) {
@@ -89,6 +100,66 @@ export function ReviewDetailClient({
       const result = await getReviewMediaUrlAction(fd);
       if (result.ok) setPreviewUrl(result.url);
       else setError(result.error);
+    });
+  }
+
+  function uploadVersion(formData: FormData) {
+    const file = formData.get("file");
+    if (!(file instanceof File) || file.size === 0) {
+      setError("Choisissez la vidéo à envoyer.");
+      return;
+    }
+
+    const prepareData = new FormData();
+    prepareData.set("asset_id", asset.id);
+    appendReviewFileMetadata(prepareData, file);
+
+    setError(null);
+    startTransition(async () => {
+      let cleanupData: FormData | null = null;
+      try {
+        setUploadStatus("Préparation…");
+        const prepared = await prepareReviewVersionUploadAction(prepareData);
+        if (!prepared.ok) {
+          setError(prepared.error);
+          return;
+        }
+
+        cleanupData = new FormData();
+        cleanupData.set("asset_id", prepared.ticket.assetId);
+        cleanupData.set("storage_path", prepared.ticket.storagePath);
+        cleanupData.set("version_number", String(prepared.ticket.versionNumber));
+
+        setUploadStatus("Envoi de la vidéo…");
+        const uploadError = await uploadReviewVideoToTicket(prepared.ticket, file);
+        if (uploadError) {
+          await abandonReviewUploadAction(cleanupData);
+          setError(uploadError);
+          return;
+        }
+
+        setUploadStatus("Finalisation…");
+        const finalizeData = new FormData();
+        finalizeData.set("asset_id", prepared.ticket.assetId);
+        finalizeData.set("storage_path", prepared.ticket.storagePath);
+        finalizeData.set("version_number", String(prepared.ticket.versionNumber));
+        appendReviewFileMetadata(finalizeData, file);
+        const finalized = await finalizeReviewUploadAction(finalizeData);
+        if (!finalized.ok) {
+          setError(finalized.error);
+          return;
+        }
+
+        setPreviewUrl(null);
+        router.refresh();
+      } catch {
+        if (cleanupData) {
+          await abandonReviewUploadAction(cleanupData).catch(() => undefined);
+        }
+        setError("Le téléversement a été interrompu. Réessayez.");
+      } finally {
+        setUploadStatus(null);
+      }
     });
   }
 
@@ -200,7 +271,7 @@ export function ReviewDetailClient({
               )}
 
               {canMutate && (
-                <form action={(fd) => run(uploadReviewVersionAction, fd)} className="space-y-2">
+                <form action={uploadVersion} className="space-y-2">
                   <input type="hidden" name="asset_id" value={asset.id} />
                   <label htmlFor="review-file" className="block text-xs font-medium text-content-2">
                     Nouvelle version (vidéo, 200 Mo max)
@@ -215,7 +286,7 @@ export function ReviewDetailClient({
                   />
                   <Button type="submit" size="sm" disabled={pending}>
                     <Upload size={14} aria-hidden="true" />
-                    Téléverser
+                    {pending && uploadStatus ? uploadStatus : "Téléverser"}
                   </Button>
                 </form>
               )}

@@ -7,14 +7,6 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const nextConfig = {
   reactStrictMode: true,
   outputFileTracingRoot: __dirname,
-  experimental: {
-    serverActions: {
-      // Review versions upload through a server action so the storage RLS
-      // policy — not a bypassing service key — is what authorises the write.
-      // The Next.js default body cap is 1 MB, which no video clears.
-      bodySizeLimit: "210mb",
-    },
-  },
 };
 
 export default nextConfig;
