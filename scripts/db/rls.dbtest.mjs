@@ -117,15 +117,33 @@ describe("collaboration hub containment", () => {
   });
 
   it("keeps reminders private to their owner", () => {
-    const owned = sqlAs(USERS.worker, `
-      with created as (
-        insert into public.reminders(owner_id,title,remind_at)
-        values ('${USERS.worker}','probe',now()) returning id
-      )
-      select count(*) from public.reminders where owner_id='${USERS.worker}';
+    const result = sql(`
+      begin;
+      select set_config('request.jwt.claims', '{"sub":"${USERS.worker}","role":"authenticated"}', true);
+      set local role authenticated;
+      insert into public.reminders(owner_id,title,remind_at)
+      values ('${USERS.worker}','probe',now());
+      reset role;
+      select set_config('request.jwt.claims', '{"sub":"${USERS.freelancer}","role":"authenticated"}', true);
+      set local role authenticated;
+      select 'private=' || count(*) from public.reminders where owner_id='${USERS.worker}';
+      rollback;
     `);
-    expect(Number(owned)).toBeGreaterThan(0);
-    expect(sqlAs(USERS.freelancer, `select count(*) from public.reminders where owner_id='${USERS.worker}';`)).toBe("0");
+    expect(result).toContain("private=0");
+  });
+
+  it("lets an internal sender create a message and address another internal person", () => {
+    const output = sqlAs(USERS.worker, `
+      insert into public.studio_messages(id,sender_id,body)
+      values ('88000000-0000-4000-8000-000000000001','${USERS.worker}','probe');
+      with linked as (
+        insert into public.studio_message_recipients(message_id,user_id)
+        values ('88000000-0000-4000-8000-000000000001','${USERS.freelancer}')
+        returning 1
+      )
+      select count(*) from linked;
+    `);
+    expect(output.trim().split("\n").at(-1)).toBe("1");
   });
 
   it("rejects an external client recipient", () => {

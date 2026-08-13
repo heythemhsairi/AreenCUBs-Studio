@@ -123,7 +123,16 @@ grant execute on function public.is_internal_profile(uuid) to authenticated;
 
 drop policy if exists "studio_messages_participant_select" on public.studio_messages;
 create policy "studio_messages_participant_select" on public.studio_messages
-  for select using (public.is_studio_message_participant(id));
+  for select using (
+    public.is_internal()
+    and (
+      sender_id = auth.uid()
+      or exists (
+        select 1 from public.studio_message_recipients r
+        where r.message_id = id and r.user_id = auth.uid()
+      )
+    )
+  );
 
 drop policy if exists "studio_messages_sender_insert" on public.studio_messages;
 create policy "studio_messages_sender_insert" on public.studio_messages
