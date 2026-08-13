@@ -92,7 +92,7 @@ export function MonthlyBars({ series, className, height = 200 }: Props) {
       </div>
 
       <div
-        className="grid gap-1.5 text-[11px] text-ink/50"
+        className="grid gap-1.5 text-[11px] text-content-3"
         style={{ gridTemplateColumns: `repeat(${series.length}, minmax(0, 1fr))` }}
       >
         {series.map((p, i) => (
@@ -103,7 +103,7 @@ export function MonthlyBars({ series, className, height = 200 }: Props) {
       </div>
 
       {/* Legend + hover tooltip */}
-      <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-cream/60 px-3 py-2 text-xs text-ink/70 ring-1 ring-ink/5">
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-cream/60 px-3 py-2 text-xs text-content-2 ring-1 ring-ink/5">
         {hoverIdx !== null ? (
           <div className="flex flex-wrap items-center gap-3">
             <strong className="text-ink">{resolveLabel(series[hoverIdx])}</strong>
@@ -112,12 +112,12 @@ export function MonthlyBars({ series, className, height = 200 }: Props) {
               <strong className="text-ink">{formatDt(series[hoverIdx].invoiced)}</strong>
             </span>
             <span className="inline-flex items-center gap-1">
-              <span className="h-2 w-2 rounded-sm bg-emerald-500" /> {t.finance?.chartCollected}{" "}
+              <span className="h-2 w-2 rounded-sm bg-success" /> {t.finance?.chartCollected}{" "}
               <strong className="text-ink">{formatDt(series[hoverIdx].paid)}</strong>
             </span>
             {hasExpenses && (
               <span className="inline-flex items-center gap-1">
-                <span className="h-2 w-2 rounded-sm bg-red-400" /> {t.finance?.chartExpenses}{" "}
+                <span className="h-2 w-2 rounded-sm bg-danger" /> {t.finance?.chartExpenses}{" "}
                 <strong className="text-ink">{formatDt(series[hoverIdx].expenses ?? 0)}</strong>
               </span>
             )}
@@ -125,9 +125,9 @@ export function MonthlyBars({ series, className, height = 200 }: Props) {
         ) : (
           <div className="flex flex-wrap items-center gap-3">
             <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-brand" /> {t.finance?.chartInvoiced}</span>
-            <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-emerald-500" /> {t.finance?.chartCollected}</span>
-            {hasExpenses && <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-red-400" /> {t.finance?.chartExpenses}</span>}
-            <span className="text-ink/35">{t.finance?.chartHoverHint}</span>
+            <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-success" /> {t.finance?.chartCollected}</span>
+            {hasExpenses && <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-danger" /> {t.finance?.chartExpenses}</span>}
+            <span className="text-content-3">{t.finance?.chartHoverHint}</span>
           </div>
         )}
       </div>

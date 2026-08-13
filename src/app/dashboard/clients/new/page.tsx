@@ -1,7 +1,7 @@
-import { requireWorkerOrAdmin } from "@/lib/auth";
+import { requireClientAccess } from "@/lib/auth";
 import { ClientForm } from "../client-form";
 
 export default async function NewClientPage() {
-  await requireWorkerOrAdmin();
+  await requireClientAccess();
   return <ClientForm mode="create" />;
 }

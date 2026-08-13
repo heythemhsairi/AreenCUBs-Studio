@@ -23,12 +23,27 @@ import {
   Settings,
   Layers,
   ClipboardList,
+  Clapperboard,
+  FileBarChart,
+  ScrollText,
+  Banknote,
+  MessageCircle,
+  Sparkles,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 type NavItem = {
   href: string;
   label: string;
+  /**
+   * Allow-list. A role absent here sees no link — which is why every new role
+   * must be added deliberately rather than inheriting a default.
+   *
+   * A nav entry is not a permission. Each destination re-checks with its own
+   * guard, and the database re-checks again; this list only decides what is
+   * worth offering. It is kept in step with src/lib/auth.ts so a role is never
+   * shown a link that immediately redirects it back.
+   */
   rolesAllowed: UserRole[];
   icon: LucideIcon;
   group: "workspace" | "business" | "team" | "system";
@@ -43,21 +58,35 @@ function buildNav(
       href: "/dashboard",
       label: t.nav.overview,
       icon: LayoutDashboard,
-      rolesAllowed: ["admin", "worker", "freelancer"],
+      rolesAllowed: ["admin", "worker", "freelancer", "commercial", "intern"],
       group: "workspace",
     },
     {
       href: "/dashboard/tasks",
-      label: role === "freelancer" ? t.nav.myTasks : t.nav.tasks,
+      label: role === "freelancer" ? t.nav.myTasks : t.tasksUi.clientWork,
       icon: CheckSquare,
-      rolesAllowed: ["admin", "worker", "freelancer"],
+      rolesAllowed: ["admin", "worker", "freelancer", "intern"],
+      group: "workspace",
+    },
+    {
+      href: "/dashboard/studio-tasks",
+      label: t.nav.studioTasks,
+      icon: Sparkles,
+      rolesAllowed: ["admin", "worker", "freelancer", "commercial", "intern"],
+      group: "workspace",
+    },
+    {
+      href: "/dashboard/messages",
+      label: t.nav.messages,
+      icon: MessageCircle,
+      rolesAllowed: ["admin", "worker", "freelancer", "commercial", "intern"],
       group: "workspace",
     },
     {
       href: "/dashboard/calendar",
       label: t.nav.calendar,
       icon: Calendar,
-      rolesAllowed: ["admin", "worker", "freelancer"],
+      rolesAllowed: ["admin", "worker", "freelancer", "intern"],
       group: "workspace",
     },
     {
@@ -68,10 +97,17 @@ function buildNav(
       group: "workspace",
     },
     {
+      href: "/dashboard/review",
+      label: t.nav.review,
+      icon: Clapperboard,
+      rolesAllowed: ["admin", "worker", "commercial"],
+      group: "workspace",
+    },
+    {
       href: "/dashboard/clients",
       label: t.nav.clients,
       icon: Users,
-      rolesAllowed: ["admin", "worker"],
+      rolesAllowed: ["admin", "worker", "commercial"],
       group: "workspace",
     },
     {
@@ -85,14 +121,14 @@ function buildNav(
       href: "/dashboard/devis",
       label: t.nav.devis,
       icon: FileText,
-      rolesAllowed: ["admin"],
+      rolesAllowed: ["admin", "commercial"],
       group: "business",
     },
     {
       href: "/dashboard/factures",
       label: t.nav.factures,
       icon: Receipt,
-      rolesAllowed: ["admin"],
+      rolesAllowed: ["admin", "commercial"],
       group: "business",
     },
     {
@@ -129,6 +165,27 @@ function buildNav(
       icon: CalendarDays,
       rolesAllowed: ["admin"],
       group: "team",
+    },
+    {
+      href: "/dashboard/payroll",
+      label: role === "admin" ? "Points & salaires" : "Mes points & salaire",
+      icon: Banknote,
+      rolesAllowed: ["admin", "worker"],
+      group: "team",
+    },
+    {
+      href: "/dashboard/reports",
+      label: t.nav.reports,
+      icon: FileBarChart,
+      rolesAllowed: ["admin"],
+      group: "system",
+    },
+    {
+      href: "/dashboard/audit",
+      label: t.nav.audit,
+      icon: ScrollText,
+      rolesAllowed: ["admin"],
+      group: "system",
     },
     {
       href: "/dashboard/admin-tasks",
@@ -180,11 +237,25 @@ export function Sidebar({ role }: { role: UserRole }) {
   if (!mounted || !isDesktop) return null;
 
   return (
-    <aside className="flex w-60 shrink-0 flex-col h-screen sticky top-0 bg-[var(--c-card)] border-r border-[var(--c-border)] overflow-y-auto">
-      {/* Logo lockup */}
-      <div className="flex items-center gap-2.5 h-16 px-5 border-b border-[var(--c-border)] shrink-0">
-        <Link href="/dashboard" className="flex items-center">
-          <BrandLogo width={110} className="text-[#22D3EE]" />
+    /*
+     * The rail. Deep navy in BOTH themes via --ac-rail, which until now no
+     * component consumed — the sidebar was `bg-surface`, i.e. just
+     * another surface, so the product had no constant brand anchor and a
+     * screenshot of it could have been any admin template.
+     *
+     * Everything inside uses the on-rail roles (rail-fg / rail-muted), never
+     * the page text roles, because the rail keeps its own ground when the page
+     * flips to light.
+     */
+    <aside className="sticky top-0 flex h-screen w-60 shrink-0 flex-col overflow-y-auto bg-rail shadow-rail">
+      {/* Brand lockup. Sits on the rail's own ground, so the mark keeps its
+          contrast in both themes without a per-theme override. */}
+      <div className="flex h-16 shrink-0 items-center border-b border-rail-border px-5">
+        <Link
+          href="/dashboard"
+          className="flex items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rail-fg focus-visible:ring-offset-2 focus-visible:ring-offset-rail"
+        >
+          <BrandLogo width={110} className="text-rail-fg" />
         </Link>
       </div>
 
@@ -195,7 +266,7 @@ export function Sidebar({ role }: { role: UserRole }) {
           if (groupItems.length === 0) return null;
           return (
             <div key={group}>
-              <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-[#64748B]">
+              <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-rail-muted">
                 {t.nav.groups[group]}
               </p>
               <div className="space-y-0.5">
@@ -206,26 +277,27 @@ export function Sidebar({ role }: { role: UserRole }) {
                     <Link
                       key={item.href}
                       href={item.href}
-                      style={
-                        active
-                          ? {
-                              boxShadow:
-                                "inset 0 0 20px rgba(34,211,238,0.03)",
-                            }
-                          : undefined
-                      }
                       className={cn(
-                        "relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-150",
+                        // Active state is a filled pill plus a solid left
+                        // marker: two cues, so it survives greyscale and does
+                        // not depend on the accent hue alone.
+                        "group relative flex items-center gap-3 rounded-lg py-2.5 pl-3 pr-3",
+                        "text-[13px] font-medium",
+                        "transition-[background-color,color] duration-2 ease-ac",
+                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rail-fg",
+                        "focus-visible:ring-offset-2 focus-visible:ring-offset-rail",
                         active
-                          ? "text-[#22D3EE] bg-[#22D3EE]/10 border-l-2 border-[#22D3EE]"
-                          : "text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-white/5 border-l-2 border-transparent",
+                          ? "bg-rail-fg/12 text-rail-fg"
+                          : "text-rail-muted hover:bg-rail-fg/6 hover:text-rail-fg",
                       )}
                     >
-                      <Icon
-                        size={16}
-                        strokeWidth={1.75}
-                        className="shrink-0"
-                      />
+                      {active && (
+                        <span
+                          aria-hidden
+                          className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-rail-fg"
+                        />
+                      )}
+                      <Icon size={16} strokeWidth={1.75} className="shrink-0" />
                       <span className="flex-1 truncate">{item.label}</span>
                     </Link>
                   );
@@ -245,7 +317,7 @@ export function MobileNav({ role }: { role: UserRole }) {
   const items = buildNav(role, t).filter((i) => i.rolesAllowed.includes(role));
 
   return (
-    <nav className="flex gap-1 overflow-x-auto border-b border-white/30 bg-white/55 px-3 py-2 backdrop-blur md:hidden">
+    <nav className="flex gap-1 overflow-x-auto border-b border-line bg-surface px-3 py-2 md:hidden">
       {items.map((item) => {
         const active = isActive(pathname, item.href);
         return (
@@ -253,10 +325,12 @@ export function MobileNav({ role }: { role: UserRole }) {
             key={item.href}
             href={item.href}
             className={cn(
-              "shrink-0 rounded-md px-3 py-1.5 text-xs font-medium transition-all",
+              "shrink-0 rounded-md px-3 py-1.5 text-xs font-medium",
+              "transition-colors duration-2 ease-ac",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent2",
               active
-                ? "bg-brand text-white shadow-sm"
-                : "text-ink/65 hover:bg-white/70",
+                ? "bg-accent2 text-accent2-fg"
+                : "text-content-3 hover:bg-surface-2 hover:text-content",
             )}
           >
             {item.label}

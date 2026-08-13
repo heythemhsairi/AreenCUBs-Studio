@@ -4,6 +4,7 @@ import { useState, useTransition, useRef, useEffect } from "react";
 import Link from "next/link";
 import { ChevronDown, Check } from "lucide-react";
 import { useI18n } from "@/lib/i18n/provider";
+import { formatDate } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Table, THead, TBody, TR, TH, TD, EmptyState } from "@/components/ui/table";
 import { toast } from "@/components/toast";
@@ -44,6 +45,10 @@ function StatusCell({
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setStatus(initial);
+  }, [initial]);
 
   useEffect(() => {
     if (!open) return;
@@ -87,11 +92,11 @@ function StatusCell({
       >
         <Badge tone={statusTone[status]}>{t.projects.status[status]}</Badge>
         {isPending ? (
-          <span className="h-3 w-3 animate-spin rounded-full border-2 border-[var(--c-border)] border-t-[#22D3EE]" />
+          <span className="h-3 w-3 animate-spin rounded-full border-2 border-line border-t-[#22D3EE]" />
         ) : (
           <ChevronDown
             size={11}
-            className={`text-[var(--c-text-3)] transition-transform duration-150 ${open ? "rotate-180" : ""}`}
+            className={`text-content-3 transition-transform duration-150 ${open ? "rotate-180" : ""}`}
           />
         )}
       </button>
@@ -100,7 +105,7 @@ function StatusCell({
         <div
           role="listbox"
           aria-label={t.projects.columns.status}
-          className="absolute left-0 top-full z-50 mt-1.5 min-w-[130px] rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] py-1 shadow-2xl shadow-black/40"
+          className="absolute left-0 top-full z-50 mt-1.5 min-w-[130px] rounded-xl border border-line bg-surface py-1 shadow-2xl shadow-black/40"
         >
           {ALL_STATUSES.map((s) => (
             <button
@@ -109,10 +114,10 @@ function StatusCell({
               aria-selected={s === status}
               type="button"
               onClick={() => handleSelect(s)}
-              className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-xs transition-colors hover:bg-[var(--c-elevated)]"
+              className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-xs transition-colors hover:bg-surface-2"
             >
               <Badge tone={statusTone[s]}>{t.projects.status[s]}</Badge>
-              {s === status && <Check size={11} className="text-[#22D3EE] shrink-0" />}
+              {s === status && <Check size={11} className="text-accent2 shrink-0" />}
             </button>
           ))}
         </div>
@@ -137,7 +142,42 @@ export function ProjectsTable({
   }
 
   return (
-    <Table>
+    <>
+      <div className="space-y-3 md:hidden">
+        {projects.map((p) => (
+          <article key={p.id} className="rounded-2xl border border-line bg-surface p-4 shadow-soft">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <Link href={`/dashboard/projects/${p.id}`} className="block truncate font-semibold text-content hover:text-accent2">
+                  {p.name}
+                </Link>
+                {showClient && p.client && (
+                  <Link href={`/dashboard/clients/${p.client.id}`} className="mt-1 block truncate text-xs text-content-3 hover:text-accent2">
+                    {p.client.name}
+                  </Link>
+                )}
+              </div>
+              <StatusCell projectId={p.id} initial={p.status} isAdmin={isAdmin ?? false} />
+            </div>
+            <dl className="mt-4 grid grid-cols-3 gap-3 border-t border-line pt-3 text-xs">
+              <div className="min-w-0">
+                <dt className="text-content-3">{t.projects.columns.owner}</dt>
+                <dd className="mt-1 truncate font-medium text-content-2">{p.owner}</dd>
+              </div>
+              <div>
+                <dt className="text-content-3">{t.projects.columns.deadline}</dt>
+                <dd className="mt-1 font-medium text-content-2">{formatDate(p.end_date)}</dd>
+              </div>
+              <div className="text-right">
+                <dt className="text-content-3">{t.projects.columns.tasks}</dt>
+                <dd className="mt-1 font-semibold text-content">{p.tasks_count}</dd>
+              </div>
+            </dl>
+          </article>
+        ))}
+      </div>
+      <div className="hidden md:block">
+        <Table>
       <THead>
         <TR>
           <TH>{t.projects.columns.name}</TH>
@@ -151,20 +191,20 @@ export function ProjectsTable({
       <TBody>
         {projects.map((p) => (
           <TR key={p.id}>
-            <TD className="font-medium text-[#F4FAFF]">
+            <TD className="font-medium text-content">
               <Link
                 href={`/dashboard/projects/${p.id}`}
-                className="hover:text-[#22D3EE]"
+                className="hover:text-accent2"
               >
                 {p.name}
               </Link>
             </TD>
             {showClient && (
-              <TD className="text-[#B8D0E4]">
+              <TD className="text-content-2">
                 {p.client ? (
                   <Link
                     href={`/dashboard/clients/${p.client.id}`}
-                    className="hover:text-[#22D3EE]"
+                    className="hover:text-accent2"
                   >
                     {p.client.name}
                   </Link>
@@ -180,16 +220,20 @@ export function ProjectsTable({
                 isAdmin={isAdmin ?? false}
               />
             </TD>
-            <TD className="text-[#B8D0E4]">{p.owner}</TD>
-            <TD className="text-[#B8D0E4]">
-              {p.end_date
-                ? new Date(p.end_date).toLocaleDateString()
-                : "—"}
+            <TD className="text-content-2">{p.owner}</TD>
+            <TD className="text-content-2">
+              {/* Bare toLocaleDateString() follows the RUNTIME locale, so the
+                  server (en-US/UTC) and the browser (fr-FR/Africa-Tunis) render
+                  different text and React fails hydration with #418. Reproduced
+                  in the browser on /dashboard/projects. */}
+              {formatDate(p.end_date)}
             </TD>
-            <TD className="text-[#B8D0E4]">{p.tasks_count}</TD>
+            <TD className="text-content-2">{p.tasks_count}</TD>
           </TR>
         ))}
       </TBody>
-    </Table>
+        </Table>
+      </div>
+    </>
   );
 }

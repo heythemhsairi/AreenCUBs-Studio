@@ -14,7 +14,7 @@ export function PinHintRow({
   return (
     <div className="flex items-center gap-3">
       <PriorityPinButton taskId={taskId} initiallyPinned={isPinned} />
-      <span className="text-xs text-ink/55">
+      <span className="text-xs text-content-3">
         {isPinned ? t.taskDetail.pinnedHint : t.taskDetail.pinHint}
       </span>
     </div>

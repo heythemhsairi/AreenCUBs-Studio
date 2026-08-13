@@ -50,9 +50,9 @@ type Props = {
 const PLATFORMS = ["instagram", "facebook", "linkedin", "twitter", "tiktok", "youtube", "threads"];
 
 const STATUS_COLORS: Record<string, string> = {
-  draft: "bg-[var(--c-border)] text-[var(--c-text-3)]",
-  approved: "bg-emerald-500/15 text-emerald-400",
-  archived: "bg-[var(--c-border)] text-[var(--c-text-3)]",
+  draft: "bg-surface-3 text-content-2",
+  approved: "bg-success-weak text-success",
+  archived: "bg-surface-3 text-content-2",
 };
 
 export function ClientContentProfileClient({ client, profile, plans, members: _members }: Props) {
@@ -112,25 +112,25 @@ export function ClientContentProfileClient({ client, profile, plans, members: _m
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-[var(--c-text-3)]">
-        <Link href="/dashboard/content" className="hover:text-[var(--c-text-1)] flex items-center gap-1 transition-colors">
+      <div className="flex items-center gap-2 text-sm text-content-3">
+        <Link href="/dashboard/content" className="hover:text-content flex items-center gap-1 transition-colors">
           <ChevronLeft size={14} />
           {c.title}
         </Link>
         <span>/</span>
-        <span className="text-[var(--c-text-1)] font-medium">{client.name}</span>
+        <span className="text-content font-medium">{client.name}</span>
       </div>
 
       {/* Title */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-[var(--c-text-1)]">{client.name}</h1>
-          {client.email && <p className="text-sm text-[var(--c-text-3)]">{client.email}</p>}
+          <h1 className="text-xl font-bold text-content">{client.name}</h1>
+          {client.email && <p className="text-sm text-content-3">{client.email}</p>}
         </div>
         <div className="flex gap-2">
           <Link
             href={`/dashboard/content/calendar?client=${client.id}`}
-            className="flex items-center gap-1.5 rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-3 py-2 text-sm text-[var(--c-text-2)] hover:text-[var(--c-text-1)] hover:bg-[var(--c-elevated)] transition-colors"
+            className="flex items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-2 text-sm text-content-2 hover:text-content hover:bg-surface-2 transition-colors"
           >
             <ExternalLink size={13} />
             {c.calendar}
@@ -139,7 +139,7 @@ export function ClientContentProfileClient({ client, profile, plans, members: _m
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-[var(--c-border)]">
+      <div className="flex gap-1 border-b border-line">
         {(["profile", "plans"] as const).map((tabKey) => (
           <button
             key={tabKey}
@@ -148,8 +148,8 @@ export function ClientContentProfileClient({ client, profile, plans, members: _m
             className={cn(
               "px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px",
               tab === tabKey
-                ? "border-[#22D3EE] text-[#22D3EE]"
-                : "border-transparent text-[var(--c-text-3)] hover:text-[var(--c-text-1)]",
+                ? "border-accent2 text-accent2"
+                : "border-transparent text-content-3 hover:text-content",
             )}
           >
             {tabKey === "profile" ? c.clientProfile : c.monthlyPlans}
@@ -159,14 +159,14 @@ export function ClientContentProfileClient({ client, profile, plans, members: _m
 
       {/* Profile tab */}
       {tab === "profile" && (
-        <div className="rounded-xl border border-[var(--c-border)] bg-[var(--c-card)]">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--c-border)]">
-            <h2 className="font-semibold text-[var(--c-text-1)]">{c.clientProfile}</h2>
+        <div className="rounded-xl border border-line bg-surface">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-line">
+            <h2 className="font-semibold text-content">{c.clientProfile}</h2>
             {!editingProfile && (
               <button
                 type="button"
                 onClick={() => setEditingProfile(true)}
-                className="text-sm text-[#22D3EE] hover:text-[#22D3EE]/80 transition-colors"
+                className="text-sm text-accent2 hover:text-accent2/80 transition-colors"
               >
                 {c.editProfile}
               </button>
@@ -282,8 +282,8 @@ export function ClientContentProfileClient({ client, profile, plans, members: _m
                       className={cn(
                         "rounded-lg px-3 py-1.5 text-xs font-semibold transition-all capitalize",
                         selectedPlatforms.includes(p)
-                          ? "bg-[#22D3EE] text-[#071B2C]"
-                          : "bg-[var(--c-elevated)] text-[var(--c-text-2)] hover:bg-[var(--c-border)]",
+                          ? "bg-accent2 text-accent2-fg"
+                          : "bg-surface-2 text-content-2 hover:bg-surface-3",
                       )}
                     >
                       {p}
@@ -297,7 +297,7 @@ export function ClientContentProfileClient({ client, profile, plans, members: _m
                   <button
                     type="button"
                     onClick={() => setEditingProfile(false)}
-                    className="rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-4 py-2 text-sm text-[var(--c-text-2)] hover:bg-[var(--c-elevated)] transition-colors"
+                    className="rounded-lg border border-line bg-surface px-4 py-2 text-sm text-content-2 hover:bg-surface-2 transition-colors"
                   >
                     {t.common.cancel}
                   </button>
@@ -305,7 +305,7 @@ export function ClientContentProfileClient({ client, profile, plans, members: _m
                 <button
                   type="submit"
                   disabled={isPending}
-                  className="rounded-lg bg-[#22D3EE] px-4 py-2 text-sm font-semibold text-[#071B2C] hover:bg-[#22D3EE]/90 disabled:opacity-60 transition-colors"
+                  className="rounded-lg bg-accent2 px-4 py-2 text-sm font-semibold text-accent2-fg hover:bg-accent2/90 disabled:opacity-60 transition-colors"
                 >
                   {isPending ? t.common.saving : c.saveProfile}
                 </button>
@@ -321,20 +321,20 @@ export function ClientContentProfileClient({ client, profile, plans, members: _m
               <ProfileRow label={c.profileFields.postingFrequency} value={profile.posting_frequency} />
               {profile.content_pillars.length > 0 && (
                 <div className="sm:col-span-2">
-                  <span className="text-xs font-medium text-[var(--c-text-3)]">{c.profileFields.contentPillars}</span>
+                  <span className="text-xs font-medium text-content-3">{c.profileFields.contentPillars}</span>
                   <div className="mt-1.5 flex flex-wrap gap-1.5">
                     {profile.content_pillars.map((p) => (
-                      <span key={p} className="rounded-md bg-[#A78BFA]/15 px-2 py-0.5 text-xs font-medium text-[#A78BFA]">{p}</span>
+                      <span key={p} className="rounded-md bg-chart-4/15 px-2 py-0.5 text-xs font-medium text-chart-4">{p}</span>
                     ))}
                   </div>
                 </div>
               )}
               {profile.platforms.length > 0 && (
                 <div className="sm:col-span-2">
-                  <span className="text-xs font-medium text-[var(--c-text-3)]">{c.profileFields.platforms}</span>
+                  <span className="text-xs font-medium text-content-3">{c.profileFields.platforms}</span>
                   <div className="mt-1.5 flex flex-wrap gap-1.5">
                     {profile.platforms.map((p) => (
-                      <span key={p} className="rounded-md bg-[#22D3EE]/10 px-2 py-0.5 text-xs font-medium text-[#22D3EE] capitalize">{p}</span>
+                      <span key={p} className="rounded-md bg-accent2/10 px-2 py-0.5 text-xs font-medium text-accent2 capitalize">{p}</span>
                     ))}
                   </div>
                 </div>
@@ -345,7 +345,7 @@ export function ClientContentProfileClient({ client, profile, plans, members: _m
               {profile.notes && <ProfileRow label={c.profileFields.notes} value={profile.notes} className="sm:col-span-2" />}
             </div>
           ) : (
-            <div className="p-8 text-center text-sm text-[var(--c-text-3)]">
+            <div className="p-8 text-center text-sm text-content-3">
               {c.noProfileYet}
             </div>
           )}
@@ -356,13 +356,13 @@ export function ClientContentProfileClient({ client, profile, plans, members: _m
       {tab === "plans" && (
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <h2 className="font-semibold text-[var(--c-text-1)]">
+            <h2 className="font-semibold text-content">
               {c.monthlyPlans}
             </h2>
             <button
               type="button"
               onClick={() => setShowNewPlan(true)}
-              className="flex items-center gap-1.5 rounded-lg bg-[#22D3EE]/10 border border-[#22D3EE]/25 text-[#22D3EE] px-3 py-2 text-sm font-medium hover:bg-[#22D3EE]/20 transition-colors"
+              className="flex items-center gap-1.5 rounded-lg bg-accent2/10 border border-accent2/25 text-accent2 px-3 py-2 text-sm font-medium hover:bg-accent2/20 transition-colors"
             >
               <Plus size={14} />
               {c.newPlan}
@@ -373,9 +373,9 @@ export function ClientContentProfileClient({ client, profile, plans, members: _m
           {showNewPlan && (
             <form
               onSubmit={handleCreatePlan}
-              className="rounded-xl border border-[#22D3EE]/30 bg-[var(--c-card)] p-4 flex flex-col gap-4"
+              className="rounded-xl border border-accent2/30 bg-surface p-4 flex flex-col gap-4"
             >
-              <h3 className="font-semibold text-sm text-[var(--c-text-1)]">
+              <h3 className="font-semibold text-sm text-content">
                 {c.newPlan}
               </h3>
               <div className="grid gap-3 sm:grid-cols-3">
@@ -413,14 +413,14 @@ export function ClientContentProfileClient({ client, profile, plans, members: _m
                 <button
                   type="button"
                   onClick={() => setShowNewPlan(false)}
-                  className="rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-4 py-2 text-sm text-[var(--c-text-2)] hover:bg-[var(--c-elevated)] transition-colors"
+                  className="rounded-lg border border-line bg-surface px-4 py-2 text-sm text-content-2 hover:bg-surface-2 transition-colors"
                 >
                   {t.common.cancel}
                 </button>
                 <button
                   type="submit"
                   disabled={isPending}
-                  className="rounded-lg bg-[#22D3EE] px-4 py-2 text-sm font-semibold text-[#071B2C] hover:bg-[#22D3EE]/90 disabled:opacity-60 transition-colors"
+                  className="rounded-lg bg-accent2 px-4 py-2 text-sm font-semibold text-accent2-fg hover:bg-accent2/90 disabled:opacity-60 transition-colors"
                 >
                   {isPending ? t.common.saving : t.common.create}
                 </button>
@@ -429,12 +429,12 @@ export function ClientContentProfileClient({ client, profile, plans, members: _m
           )}
 
           {plans.length === 0 && !showNewPlan ? (
-            <div className="rounded-xl border border-dashed border-[var(--c-border)] bg-[var(--c-card)] py-12 text-center">
-              <p className="text-sm text-[var(--c-text-3)]">{c.noPlans}</p>
+            <div className="rounded-xl border border-dashed border-line bg-surface py-12 text-center">
+              <p className="text-sm text-content-3">{c.noPlans}</p>
               <button
                 type="button"
                 onClick={() => setShowNewPlan(true)}
-                className="mt-3 text-sm text-[#22D3EE] hover:underline"
+                className="mt-3 text-sm text-accent2 hover:underline"
               >
                 {c.createFirstPlan}
               </button>
@@ -451,31 +451,31 @@ export function ClientContentProfileClient({ client, profile, plans, members: _m
                   <Link
                     key={plan.id}
                     href={`/dashboard/content/plans/${plan.id}`}
-                    className="group flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] p-4 hover:border-[#22D3EE]/40 transition-all"
+                    className="group flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border border-line bg-surface p-4 hover:border-accent2/40 transition-all"
                   >
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-semibold text-[var(--c-text-1)] group-hover:text-[#22D3EE] transition-colors">
+                        <span className="font-semibold text-content group-hover:text-accent2 transition-colors">
                           {monthNames[plan.month - 1]} {plan.year}
                         </span>
                         {plan.theme && (
-                          <span className="text-sm text-[var(--c-text-3)]">— {plan.theme}</span>
+                          <span className="text-sm text-content-3">— {plan.theme}</span>
                         )}
                         <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-semibold", STATUS_COLORS[plan.status] ?? STATUS_COLORS.draft)}>
                           {c.planStatus[plan.status as keyof typeof c.planStatus] ?? plan.status}
                         </span>
                       </div>
                       {plan.goals && (
-                        <p className="mt-1 text-xs text-[var(--c-text-3)] line-clamp-1">{plan.goals}</p>
+                        <p className="mt-1 text-xs text-content-3 line-clamp-1">{plan.goals}</p>
                       )}
                     </div>
-                    <div className="flex items-center gap-4 text-xs text-[var(--c-text-3)] shrink-0">
+                    <div className="flex items-center gap-4 text-xs text-content-3 shrink-0">
                       <span className="flex items-center gap-1">
                         <Layers size={11} />
                         {c.statsItems(total)}
                       </span>
                       <span className="flex items-center gap-1">
-                        <CheckCircle2 size={11} className="text-emerald-400" />
+                        <CheckCircle2 size={11} className="text-success" />
                         {c.statsApproved(approved)}
                       </span>
                       <span className="flex items-center gap-1">
@@ -505,7 +505,7 @@ function Field({
 }) {
   return (
     <label className={cn("flex flex-col gap-1.5", className)}>
-      <span className="text-xs font-medium text-[var(--c-text-3)]">{label}</span>
+      <span className="text-xs font-medium text-content-3">{label}</span>
       {children}
     </label>
   );
@@ -523,8 +523,8 @@ function ProfileRow({
   if (!value) return null;
   return (
     <div className={cn("flex flex-col gap-0.5", className)}>
-      <span className="text-xs font-medium text-[var(--c-text-3)]">{label}</span>
-      <span className="text-sm text-[var(--c-text-1)] whitespace-pre-line">{value}</span>
+      <span className="text-xs font-medium text-content-3">{label}</span>
+      <span className="text-sm text-content whitespace-pre-line">{value}</span>
     </div>
   );
 }

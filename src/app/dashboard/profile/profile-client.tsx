@@ -8,6 +8,7 @@ import { Avatar } from "@/components/avatar";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { useI18n } from "@/lib/i18n/provider";
+import { ROLE_TONE } from "@/lib/roles";
 import {
   updateMyProfileAction,
   uploadMyAvatarAction,
@@ -25,11 +26,7 @@ type Profile = {
   avatar_url: string | null;
 };
 
-const roleTone: Record<UserRole, "violet" | "blue" | "green"> = {
-  admin: "violet",
-  worker: "blue",
-  freelancer: "green",
-};
+
 
 export function ProfileClient({ profile }: { profile: Profile }) {
   const { t } = useI18n();
@@ -40,9 +37,13 @@ export function ProfileClient({ profile }: { profile: Profile }) {
         description={t.profile.subtitle}
       />
 
-      <ProfileSummary profile={profile} />
-      <NameForm initial={profile.full_name ?? ""} />
-      <PasswordForm />
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)] lg:items-start">
+        <ProfileSummary profile={profile} />
+        <div className="space-y-6">
+          <NameForm initial={profile.full_name ?? ""} />
+          <PasswordForm />
+        </div>
+      </div>
     </div>
   );
 }
@@ -75,7 +76,7 @@ function ProfileSummary({ profile }: { profile: Profile }) {
   }
 
   return (
-    <Card className="max-w-2xl">
+    <Card>
       <CardHeader>
         <CardTitle>{t.profile.photo}</CardTitle>
       </CardHeader>
@@ -91,10 +92,10 @@ function ProfileSummary({ profile }: { profile: Profile }) {
               <p className="text-lg font-semibold text-ink">
                 {profile.full_name ?? profile.username}
               </p>
-              <p className="text-sm text-ink/55">
+              <p className="text-sm text-content-3">
                 @{profile.username} · {profile.email}
               </p>
-              <Badge tone={roleTone[profile.role]} className="mt-1.5">
+              <Badge tone={ROLE_TONE[profile.role]} className="mt-1.5">
                 {t.roles[profile.role]}
               </Badge>
             </div>
@@ -128,8 +129,8 @@ function ProfileSummary({ profile }: { profile: Profile }) {
                 </Button>
               )}
             </div>
-            <p className="text-xs text-ink/45">{t.profile.photoHint}</p>
-            {error && <p className="text-sm text-red-600">{error}</p>}
+            <p className="text-xs text-content-3">{t.profile.photoHint}</p>
+            {error && <p className="text-sm text-danger">{error}</p>}
           </div>
         </div>
       </CardContent>
@@ -156,16 +157,16 @@ function NameForm({ initial }: { initial: string }) {
   }
 
   return (
-    <Card className="max-w-2xl">
+    <Card>
       <CardHeader>
         <CardTitle>{t.profile.fullName}</CardTitle>
       </CardHeader>
       <CardContent>
         <form className="space-y-4" onSubmit={onSubmit}>
           <Input name="full_name" defaultValue={initial} required />
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-danger">{error}</p>}
           {saved && (
-            <p className="text-sm text-green-700">{t.profile.savedTick}</p>
+            <p className="text-sm text-success">{t.profile.savedTick}</p>
           )}
           <Button type="submit" disabled={pending}>
             {pending ? "…" : t.common.save}
@@ -198,14 +199,14 @@ function PasswordForm() {
   }
 
   return (
-    <Card className="max-w-2xl">
+    <Card>
       <CardHeader>
         <CardTitle>{t.profile.changePassword}</CardTitle>
       </CardHeader>
       <CardContent>
         <form className="space-y-4" onSubmit={onSubmit}>
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold uppercase tracking-wider text-ink/55">
+            <label className="text-xs font-semibold uppercase tracking-wider text-content-3">
               {t.profile.newPassword}
             </label>
             <Input
@@ -215,11 +216,11 @@ function PasswordForm() {
               required
               autoComplete="new-password"
             />
-            <p className="text-xs text-ink/45">{t.profile.passwordHint}</p>
+            <p className="text-xs text-content-3">{t.profile.passwordHint}</p>
           </div>
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-danger">{error}</p>}
           {done && (
-            <p className="text-sm text-green-700">
+            <p className="text-sm text-success">
               {t.profile.passwordChanged}
             </p>
           )}

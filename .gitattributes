@@ -1,0 +1,5 @@
+# Shell scripts run under WSL/POSIX sh. A CRLF line ending makes the shebang
+# and every command fail with `$'\r': command not found`, which is what
+# happened when the staging clone was synced from a Windows working tree.
+# Pinning LF here fixes it for checkout, export and archive alike.
+*.sh text eol=lf

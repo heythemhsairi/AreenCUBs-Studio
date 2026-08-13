@@ -104,14 +104,14 @@ export function TemplatesClient({
                           </Badge>
                         )}
                       </div>
-                      <p className="mt-1 text-sm text-ink/70">
-                        <span className="text-ink/45">
+                      <p className="mt-1 text-sm text-content-2">
+                        <span className="text-content-3">
                           {t.templates.defaultTitleLabel}
                         </span>{" "}
                         {row.title}
                       </p>
                       {row.description && (
-                        <p className="mt-1 line-clamp-2 text-xs text-ink/55">
+                        <p className="mt-1 line-clamp-2 text-xs text-content-3">
                           {row.description}
                         </p>
                       )}
@@ -119,7 +119,7 @@ export function TemplatesClient({
                     <button
                       type="button"
                       onClick={() => onDelete(row.id)}
-                      className="text-xs text-ink/30 hover:text-red-600"
+                      className="text-xs text-content-3 hover:text-danger"
                     >
                       {t.common.delete}
                     </button>
@@ -196,7 +196,7 @@ function Field({
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="text-[11px] font-semibold uppercase tracking-wider text-ink/55">
+      <label className="text-[11px] font-semibold uppercase tracking-wider text-content-3">
         {label}
       </label>
       {children}

@@ -2,6 +2,35 @@
 -- Pre-loads the 17 services from the historical devis (EST-0034/0035/0036).
 -- Treated as a migration so `supabase db push` applies it. Idempotent.
 
+-- ── Fresh-database guard ─────────────────────────────────────────────────────
+-- The INSERT below uses `on conflict (name_fr)`, which requires a unique index
+-- on services.name_fr. That constraint is created by migration
+-- 20260506000007_services_unique_name.sql — which runs LATER. On an empty
+-- database this file therefore aborted at statement 0 with:
+--
+--   ERROR: there is no unique or exclusion constraint matching the
+--          ON CONFLICT specification            (SQLSTATE 42P10)
+--
+-- The dependency was introduced when migration 7 retroactively patched this
+-- file (see its header: "The seed file (0003) is also patched to use
+-- `on conflict (name_fr)`"), which made the chain non-reproducible from empty.
+-- Existing environments are unaffected: this migration is already recorded as
+-- applied there and will not re-run. Migration 7 guards its own ADD CONSTRAINT
+-- against duplicate_object, so it remains a no-op once this has run.
+-- An existence check rather than an exception handler: ADD CONSTRAINT ... UNIQUE
+-- builds an index of the same name, so a name collision raises duplicate_table
+-- (42P07, "relation already exists") BEFORE the duplicate_object (42710) that a
+-- naive `exception when duplicate_object` handler would catch. Testing for the
+-- constraint directly avoids depending on which SQLSTATE surfaces first.
+do $$ begin
+  if not exists (
+    select 1 from pg_constraint where conname = 'services_name_fr_uk'
+  ) then
+    alter table public.services
+      add constraint services_name_fr_uk unique (name_fr);
+  end if;
+end $$;
+
 insert into public.services (name_fr, name_en, category, default_price_dt, default_unit)
 values
   ('Identité de Marque', 'Brand identity', 'branding', 550.00, 'package'),

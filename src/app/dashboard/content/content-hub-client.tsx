@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/utils";
 import { Layers, Users, CalendarDays, BarChart2, ChevronRight, CheckCircle2, Clock, PenTool, Share2 } from "lucide-react";
+import { PageHeader } from "@/components/dashboard/page-header";
 
 type Client = { id: string; name: string; email: string | null };
 type ContentItem = { id: string; status: string };
@@ -32,9 +33,9 @@ type Props = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  draft: "bg-[var(--c-border)] text-[var(--c-text-3)]",
-  approved: "bg-emerald-500/15 text-emerald-400",
-  archived: "bg-[var(--c-border)] text-[var(--c-text-3)]",
+  draft: "bg-surface-3 text-content-2",
+  approved: "bg-success-weak text-success",
+  archived: "bg-surface-3 text-content-2",
 };
 
 export function ContentHubClient({ clients, plans, profiles, publishingCount }: Props) {
@@ -53,70 +54,64 @@ export function ContentHubClient({ clients, plans, profiles, publishingCount }: 
   const totalPlans = plans.length;
   const approvedPlans = plans.filter((p) => p.status === "approved").length;
   const totalItems = plans.reduce((sum, p) => sum + p.content_items.length, 0);
-  const publishedItems = plans.reduce(
-    (sum, p) => sum + p.content_items.filter((i) => i.status === "published").length,
-    0,
-  );
-
   return (
-    <div className="flex flex-col gap-6 p-4 md:p-6">
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-[var(--c-text-1)]">{c.title}</h1>
-          <p className="mt-0.5 text-sm text-[var(--c-text-3)]">{c.description}</p>
-        </div>
-        <div className="flex items-center gap-2">
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title={c.title}
+        description={c.description}
+        action={
+          <nav aria-label="Content OS" className="flex flex-wrap items-center gap-2">
           <Link
             href="/dashboard/content/calendar"
-            className="flex items-center gap-1.5 rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-3 py-2 text-sm text-[var(--c-text-2)] hover:text-[var(--c-text-1)] hover:bg-[var(--c-elevated)] transition-colors"
+            className="flex items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-2 text-sm text-content-2 hover:text-content hover:bg-surface-2 transition-colors"
           >
             <CalendarDays size={14} />
             {t.calendar.title}
           </Link>
           <Link
             href="/dashboard/content/publishing"
-            className="flex items-center gap-1.5 rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-3 py-2 text-sm text-[var(--c-text-2)] hover:text-[var(--c-text-1)] hover:bg-[var(--c-elevated)] transition-colors"
+            className="flex items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-2 text-sm text-content-2 hover:text-content hover:bg-surface-2 transition-colors"
           >
             <Share2 size={14} />
             {c.publishingLink}
           </Link>
           <Link
             href="/dashboard/content/reports"
-            className="flex items-center gap-1.5 rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-3 py-2 text-sm text-[var(--c-text-2)] hover:text-[var(--c-text-1)] hover:bg-[var(--c-elevated)] transition-colors"
+            className="flex items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-2 text-sm text-content-2 hover:text-content hover:bg-surface-2 transition-colors"
           >
             <BarChart2 size={14} />
             {c.reportsTitle}
           </Link>
-        </div>
-      </div>
+          </nav>
+        }
+      />
 
       {/* KPI strip */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
-          { icon: Layers, label: c.kpiTotalPlans, value: totalPlans, accent: "#22D3EE" },
-          { icon: CheckCircle2, label: c.kpiApprovedPlans, value: approvedPlans, accent: "#22C55E" },
-          { icon: PenTool, label: c.kpiTotalContent, value: totalItems, accent: "#A78BFA" },
-          { icon: Share2, label: c.totalPosts, value: publishingCount, accent: "#F59E0B" },
-        ].map(({ icon: Icon, label, value, accent }) => (
+          { icon: Layers, label: c.kpiTotalPlans, value: totalPlans, tone: "text-brand" },
+          { icon: CheckCircle2, label: c.kpiApprovedPlans, value: approvedPlans, tone: "text-success" },
+          { icon: PenTool, label: c.kpiTotalContent, value: totalItems, tone: "text-accent2" },
+          { icon: Share2, label: c.totalPosts, value: publishingCount, tone: "text-warning" },
+        ].map(({ icon: Icon, label, value, tone }) => (
           <div
             key={label}
-            className="flex flex-col gap-2 rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] p-4"
+            className="flex flex-col gap-2 rounded-xl border border-line bg-surface p-4"
           >
             <div className="flex items-center gap-2">
-              <Icon size={14} style={{ color: accent }} />
-              <span className="text-xs text-[var(--c-text-3)]">{label}</span>
+              <Icon size={14} className={tone} />
+              <span className="text-xs text-content-3">{label}</span>
             </div>
-            <span className="text-2xl font-bold text-[var(--c-text-1)]">{value}</span>
+            <span className="text-2xl font-bold text-content">{value}</span>
           </div>
         ))}
       </div>
 
       {/* Clients grid */}
       {clients.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-[var(--c-border)] bg-[var(--c-card)] py-16 text-center">
-          <Users size={32} className="mx-auto mb-3 text-[var(--c-text-3)]" />
-          <p className="text-sm text-[var(--c-text-3)]">{c.noClients}</p>
+        <div className="rounded-xl border border-dashed border-line bg-surface py-16 text-center">
+          <Users size={32} className="mx-auto mb-3 text-content-3" />
+          <p className="text-sm text-content-3">{c.noClients}</p>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -134,21 +129,21 @@ export function ContentHubClient({ clients, plans, profiles, publishingCount }: 
               <Link
                 key={client.id}
                 href={`/dashboard/content/clients/${client.id}`}
-                className="group flex flex-col gap-3 rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] p-4 transition-all hover:border-[#22D3EE]/40 hover:shadow-md"
+                className="group flex flex-col gap-3 rounded-xl border border-line bg-surface p-4 transition-all hover:border-accent2/40 hover:shadow-md"
               >
                 {/* Client name + chevron */}
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <h2 className="font-semibold text-[var(--c-text-1)] group-hover:text-[#22D3EE] transition-colors">
+                    <h2 className="font-semibold text-content group-hover:text-accent2 transition-colors">
                       {client.name}
                     </h2>
                     {profile?.posting_frequency && (
-                      <p className="text-xs text-[var(--c-text-3)] mt-0.5">
+                      <p className="text-xs text-content-3 mt-0.5">
                         {profile.posting_frequency}
                       </p>
                     )}
                   </div>
-                  <ChevronRight size={16} className="shrink-0 text-[var(--c-text-3)] group-hover:text-[#22D3EE] transition-colors mt-0.5" />
+                  <ChevronRight size={16} className="shrink-0 text-content-3 group-hover:text-accent2 transition-colors mt-0.5" />
                 </div>
 
                 {/* Profile platforms */}
@@ -157,7 +152,7 @@ export function ContentHubClient({ clients, plans, profiles, publishingCount }: 
                     {profile.platforms.slice(0, 4).map((p) => (
                       <span
                         key={p}
-                        className="rounded-md bg-[#22D3EE]/10 px-1.5 py-0.5 text-[10px] font-medium text-[#22D3EE]"
+                        className="rounded-md bg-accent2/10 px-1.5 py-0.5 text-[10px] font-medium text-accent2"
                       >
                         {p}
                       </span>
@@ -167,8 +162,8 @@ export function ContentHubClient({ clients, plans, profiles, publishingCount }: 
 
                 {/* Latest plan */}
                 {latestPlan ? (
-                  <div className="flex items-center justify-between rounded-lg bg-[var(--c-elevated)] px-3 py-2 text-xs">
-                    <span className="text-[var(--c-text-2)]">
+                  <div className="flex items-center justify-between rounded-lg bg-surface-2 px-3 py-2 text-xs">
+                    <span className="text-content-2">
                       {monthNames[latestPlan.month - 1]} {latestPlan.year}
                       {latestPlan.theme ? ` — ${latestPlan.theme}` : ""}
                     </span>
@@ -177,11 +172,11 @@ export function ContentHubClient({ clients, plans, profiles, publishingCount }: 
                     </span>
                   </div>
                 ) : (
-                  <p className="text-xs text-[var(--c-text-3)]">{c.noPlans}</p>
+                  <p className="text-xs text-content-3">{c.noPlans}</p>
                 )}
 
                 {/* Stats */}
-                <div className="flex items-center gap-3 text-xs text-[var(--c-text-3)]">
+                <div className="flex items-center gap-3 text-xs text-content-3">
                   <span className="flex items-center gap-1">
                     <Layers size={11} />
                     {c.statsPlans(clientPlans.length)}

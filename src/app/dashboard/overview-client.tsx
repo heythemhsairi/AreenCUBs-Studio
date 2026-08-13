@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { SectionHeading } from "@/components/dashboard/section-heading";
 import { AlertTriangle, CheckCircle2, Clock, TrendingUp, Users, FileText, CalendarDays } from "lucide-react";
 import { useI18n } from "@/lib/i18n/provider";
+import { useToday } from "@/lib/time/now";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge, StatusBadge } from "@/components/ui/badge";
 import { KpiCard } from "@/components/ui/kpi-card";
@@ -13,6 +15,7 @@ import { TrendPill } from "@/components/charts/trend-pill";
 import { Donut, DonutLegend, type DonutSlice } from "@/components/charts/donut";
 import { MonthlyBars, type BarPoint } from "@/components/charts/bars";
 import { WorkCalendar } from "@/components/work-calendar";
+import type { WorkLocation } from "@/lib/work-schedule";
 import { formatDevisNumber, formatDt, formatDate } from "@/lib/format";
 import type { UserRole } from "@/lib/utils";
 
@@ -90,7 +93,7 @@ type Props = {
   recentDevis: RecentDevis[];
   upcomingTasks: UpcomingTask[];
   featuredEmployee: Featured;
-  workSchedule: Record<string, "office" | "home">;
+  workSchedule: Record<string, WorkLocation>;
   adminTaskCounts?: AdminTaskCounts;
 };
 
@@ -120,9 +123,9 @@ const priorityTone: Record<string, "slate" | "neutral" | "amber" | "red"> = {
 
 // Section label style — consistent across the whole file
 const SECTION_LABEL =
-  "text-[10px] font-semibold uppercase tracking-widest text-[#64748B]";
+  "text-[10px] font-semibold uppercase tracking-widest text-content-3";
 
-const SECTION_DIVIDER = "border-[#22506F]";
+const SECTION_DIVIDER = "border-line";
 
 // ---------------------------------------------------------------------------
 // Main export
@@ -149,16 +152,11 @@ export function OverviewClient({
     label: locale === "en" && s.labelEn ? s.labelEn : s.label,
   }));
 
-  const subtitle =
-    role === "admin"
-      ? t.dashboard.admin.title
-      : role === "worker"
-        ? t.dashboard.worker.title
-        : t.dashboard.freelancer.title;
-
   // Compute today helpers used by multiple sections
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  // Hydration-safe midnight. A render-time `new Date()` resolved to the UTC
+  // day on the server and the Africa/Tunis day in the browser, so overdue
+  // counts and relative day labels differed across hydration (React #418).
+  const today = useToday();
 
   const overdueTasks = upcomingTasks.filter((task) => {
     const due = new Date(task.deadline);
@@ -227,24 +225,21 @@ export function OverviewClient({
     const totalUrgent = overdueWorkerTasks.length + todayTasks.length;
 
     return (
-      <div className="space-y-7">
-        {/* Greeting */}
-        <Greeting fullName={fullName} subtitle={subtitle} role={role} />
-
+      <div className="overview-sections space-y-7">
         {/* Today's Work hero banner */}
         <section>
-          <p className={SECTION_LABEL}>{t.overview.workerTodayWork}</p>
+          <SectionHeading>{t.overview.workerTodayWork}</SectionHeading>
           <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
             {/* Overdue */}
             <Link
               href="/dashboard/tasks"
-              className={`flex flex-col gap-1.5 rounded-xl p-4 transition-all hover:-translate-y-px ${overdueWorkerTasks.length > 0 ? "bg-[#F43F5E]/10 border border-[#F43F5E]/25 hover:bg-[#F43F5E]/15" : "bg-[var(--c-card)] border border-[var(--c-border)]"}`}
+              className={`flex flex-col gap-1.5 rounded-xl p-4 transition-colors duration-2 ease-ac ${overdueWorkerTasks.length > 0 ? "bg-danger/10 border border-danger/25 hover:bg-danger/15" : "bg-surface border border-line"}`}
             >
               <div className="flex items-center gap-1.5">
-                <AlertTriangle className={`h-3.5 w-3.5 ${overdueWorkerTasks.length > 0 ? "text-[#F43F5E]" : "text-[var(--c-text-3)]"}`} />
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--c-text-3)]">{t.overview.workerOverdue}</span>
+                <AlertTriangle className={`h-3.5 w-3.5 ${overdueWorkerTasks.length > 0 ? "text-danger" : "text-content-3"}`} />
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-content-3">{t.overview.workerOverdue}</span>
               </div>
-              <p className={`text-3xl font-bold leading-none ${overdueWorkerTasks.length > 0 ? "text-[#F43F5E]" : "text-[var(--c-text-3)]"}`}>
+              <p className={`text-3xl font-bold leading-none ${overdueWorkerTasks.length > 0 ? "text-danger" : "text-content-3"}`}>
                 {overdueWorkerTasks.length}
               </p>
             </Link>
@@ -252,13 +247,13 @@ export function OverviewClient({
             {/* Due today */}
             <Link
               href="/dashboard/tasks"
-              className={`due-today-card flex flex-col gap-1.5 rounded-xl p-4 transition-all hover:-translate-y-px ${todayTasks.length > 0 ? "due-today-active" : "due-today-empty"}`}
+              className={`due-today-card flex flex-col gap-1.5 rounded-xl p-4 transition-colors duration-2 ease-ac ${todayTasks.length > 0 ? "due-today-active" : "due-today-empty"}`}
             >
               <div className="flex items-center gap-1.5">
-                <Clock className={`h-3.5 w-3.5 ${todayTasks.length > 0 ? "due-today-icon" : "text-[var(--c-text-3)]"}`} />
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--c-text-3)]">{t.overview.workerDueToday}</span>
+                <Clock className={`h-3.5 w-3.5 ${todayTasks.length > 0 ? "due-today-icon" : "text-content-3"}`} />
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-content-3">{t.overview.workerDueToday}</span>
               </div>
-              <p className={`text-3xl font-bold leading-none ${todayTasks.length > 0 ? "due-today-number" : "text-[var(--c-text-3)]"}`}>
+              <p className={`text-3xl font-bold leading-none ${todayTasks.length > 0 ? "due-today-number" : "text-content-3"}`}>
                 {todayTasks.length}
               </p>
             </Link>
@@ -266,28 +261,28 @@ export function OverviewClient({
             {/* In progress */}
             <Link
               href="/dashboard/tasks"
-              className="flex flex-col gap-1.5 rounded-xl bg-[#22D3EE]/8 border border-[#22D3EE]/20 p-4 transition-all hover:-translate-y-px hover:bg-[#22D3EE]/12"
+              className="flex flex-col gap-1.5 rounded-xl bg-accent2/8 border border-accent2/20 p-4 transition-colors duration-2 ease-ac hover:bg-accent2/12"
             >
               <div className="flex items-center gap-1.5">
                 <span className="relative flex h-2 w-2 shrink-0">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#22D3EE] opacity-60" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-[#22D3EE]" />
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent2 opacity-60" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-accent2" />
                 </span>
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--c-text-3)]">{t.tasks.status.in_progress}</span>
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-content-3">{t.tasks.status.in_progress}</span>
               </div>
-              <p className="text-3xl font-bold leading-none text-[#22D3EE]">{inProgressTasks.length}</p>
+              <p className="text-3xl font-bold leading-none text-accent2">{inProgressTasks.length}</p>
             </Link>
 
             {/* Waiting review */}
             <Link
               href="/dashboard/tasks"
-              className={`flex flex-col gap-1.5 rounded-xl p-4 transition-all hover:-translate-y-px ${reviewTasks.length > 0 ? "bg-[#A78BFA]/10 border border-[#A78BFA]/25 hover:bg-[#A78BFA]/15" : "bg-[var(--c-card)] border border-[var(--c-border)]"}`}
+              className={`flex flex-col gap-1.5 rounded-xl p-4 transition-colors duration-2 ease-ac ${reviewTasks.length > 0 ? "bg-chart-4/10 border border-chart-4/25 hover:bg-chart-4/15" : "bg-surface border border-line"}`}
             >
               <div className="flex items-center gap-1.5">
-                <CheckCircle2 className={`h-3.5 w-3.5 ${reviewTasks.length > 0 ? "text-[#A78BFA]" : "text-[var(--c-text-3)]"}`} />
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--c-text-3)]">{t.tasks.status.review}</span>
+                <CheckCircle2 className={`h-3.5 w-3.5 ${reviewTasks.length > 0 ? "text-chart-4" : "text-content-3"}`} />
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-content-3">{t.tasks.status.review}</span>
               </div>
-              <p className={`text-3xl font-bold leading-none ${reviewTasks.length > 0 ? "text-[#A78BFA]" : "text-[var(--c-text-3)]"}`}>
+              <p className={`text-3xl font-bold leading-none ${reviewTasks.length > 0 ? "text-chart-4" : "text-content-3"}`}>
                 {reviewTasks.length}
               </p>
             </Link>
@@ -297,34 +292,34 @@ export function OverviewClient({
         {/* Urgent tasks (overdue + due today) */}
         {totalUrgent > 0 && (
           <section>
-            <p className={SECTION_LABEL}>{t.overview.workerUrgentTasks}</p>
-            <div className="mt-3 rounded-xl border-l-2 border-[#F43F5E] bg-[var(--c-card)] ring-1 ring-[var(--c-border)] overflow-hidden">
-              <div className="flex items-center justify-between border-b border-[var(--c-border)] px-5 py-3">
+            <SectionHeading>{t.overview.workerUrgentTasks}</SectionHeading>
+            <div className="mt-3 rounded-xl border-l-2 border-danger bg-surface ring-1 ring-line overflow-hidden">
+              <div className="flex items-center justify-between border-b border-line px-5 py-3">
                 <div className="flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 text-[#F43F5E]" />
-                  <span className="text-sm font-semibold text-[var(--c-text-1)]">{t.overview.attentionRequired}</span>
-                  <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#F43F5E] px-1.5 text-[10px] font-bold text-white">
+                  <AlertTriangle className="h-4 w-4 text-danger" />
+                  <span className="text-sm font-semibold text-content">{t.overview.attentionRequired}</span>
+                  <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-danger px-1.5 text-[10px] font-bold text-white">
                     {totalUrgent}
                   </span>
                 </div>
-                <Link href="/dashboard/tasks" className="text-[11px] font-semibold text-[#38BDF8] hover:text-[#7DD3FC] transition-colors">
+                <Link href="/dashboard/tasks" className="text-[11px] font-semibold text-info hover:text-info transition-colors">
                   {t.overview.seeAllLink}
                 </Link>
               </div>
-              <div className="divide-y divide-[var(--c-border)]">
+              <div className="divide-y divide-line">
                 {overdueWorkerTasks.slice(0, 3).map((task) => {
                   const due = new Date(task.deadline);
                   const daysLate = Math.floor((today.getTime() - due.getTime()) / (1000 * 60 * 60 * 24));
                   return (
-                    <Link key={task.id} href={`/dashboard/tasks/${task.id}`} className="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-white/4">
-                      <Clock className="h-3.5 w-3.5 shrink-0 text-[#F43F5E]" />
+                    <Link key={task.id} href={`/dashboard/tasks/${task.id}`} className="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-surface/4">
+                      <Clock className="h-3.5 w-3.5 shrink-0 text-danger" />
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium text-[var(--c-text-1)]">{task.title}</p>
-                        <p className="truncate text-[11px] text-[var(--c-text-3)]">{task.client} · {task.project}</p>
+                        <p className="truncate text-sm font-medium text-content">{task.title}</p>
+                        <p className="truncate text-[11px] text-content-3">{task.client} · {task.project}</p>
                       </div>
                       <div className="flex shrink-0 items-center gap-2">
                         <StatusBadge status={task.priority} type="priority" label={t.tasks.priority[task.priority as keyof typeof t.tasks.priority] ?? task.priority} />
-                        <span className="rounded-md bg-[#F43F5E]/15 px-2 py-0.5 text-[11px] font-semibold text-[#F43F5E]">
+                        <span className="rounded-md bg-danger/15 px-2 py-0.5 text-[11px] font-semibold text-danger">
                           {t.overview.relativeOverdue(daysLate)}
                         </span>
                       </div>
@@ -332,15 +327,15 @@ export function OverviewClient({
                   );
                 })}
                 {todayTasks.slice(0, 2).map((task) => (
-                  <Link key={task.id} href={`/dashboard/tasks/${task.id}`} className="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-white/4">
-                    <Clock className="h-3.5 w-3.5 shrink-0 text-[#F59E0B]" />
+                  <Link key={task.id} href={`/dashboard/tasks/${task.id}`} className="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-surface/4">
+                    <Clock className="h-3.5 w-3.5 shrink-0 text-warning" />
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-[var(--c-text-1)]">{task.title}</p>
-                      <p className="truncate text-[11px] text-[var(--c-text-3)]">{task.client} · {task.project}</p>
+                      <p className="truncate text-sm font-medium text-content">{task.title}</p>
+                      <p className="truncate text-[11px] text-content-3">{task.client} · {task.project}</p>
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
                       <StatusBadge status={task.priority} type="priority" label={t.tasks.priority[task.priority as keyof typeof t.tasks.priority] ?? task.priority} />
-                      <span className="rounded-md bg-[#F59E0B]/15 px-2 py-0.5 text-[11px] font-semibold text-[#F59E0B]">
+                      <span className="rounded-md bg-warning/15 px-2 py-0.5 text-[11px] font-semibold text-warning">
                         {t.overview.relativeTodayLong}
                       </span>
                     </div>
@@ -353,10 +348,10 @@ export function OverviewClient({
 
         {totalUrgent === 0 && (
           <section>
-            <p className={SECTION_LABEL}>{t.overview.workerUrgentTasks}</p>
-            <div className="mt-3 flex items-center gap-3 rounded-xl border border-[#22C55E]/20 bg-[#22C55E]/5 px-5 py-4">
-              <CheckCircle2 className="h-4 w-4 text-[#22C55E]" />
-              <p className="text-sm font-medium text-[#22C55E]">{t.overview.allClear}</p>
+            <SectionHeading>{t.overview.workerUrgentTasks}</SectionHeading>
+            <div className="mt-3 flex items-center gap-3 rounded-xl border border-success/20 bg-success/5 px-5 py-4">
+              <CheckCircle2 className="h-4 w-4 text-success" />
+              <p className="text-sm font-medium text-success">{t.overview.allClear}</p>
             </div>
           </section>
         )}
@@ -364,8 +359,8 @@ export function OverviewClient({
         {/* My tasks list */}
         <section>
           <div className="flex items-center justify-between">
-            <p className={SECTION_LABEL}>{t.overview.myTasks}</p>
-            <Link href="/dashboard/tasks" className="text-[11px] font-semibold text-[#38BDF8] hover:text-[#7DD3FC] transition-colors">
+            <SectionHeading>{t.overview.myTasks}</SectionHeading>
+            <Link href="/dashboard/tasks" className="text-[11px] font-semibold text-info hover:text-info transition-colors">
               {t.overview.seeAllLink}
             </Link>
           </div>
@@ -378,13 +373,13 @@ export function OverviewClient({
         {thisWeekTasks.length > 0 && (
           <section>
             <div className="flex items-center justify-between">
-              <p className={SECTION_LABEL}>{t.overview.workerThisWeek}</p>
-              <Link href="/dashboard/calendar" className="text-[11px] font-semibold text-[#38BDF8] hover:text-[#7DD3FC] transition-colors">
+              <SectionHeading>{t.overview.workerThisWeek}</SectionHeading>
+              <Link href="/dashboard/calendar" className="text-[11px] font-semibold text-info hover:text-info transition-colors">
                 <CalendarDays className="inline-block h-3.5 w-3.5 mr-1 -mt-0.5" />
                 {t.calendar.title}
               </Link>
             </div>
-            <div className="mt-3 rounded-xl bg-[var(--c-card)] ring-1 ring-[var(--c-border)] overflow-hidden">
+            <div className="mt-3 rounded-xl bg-surface ring-1 ring-line overflow-hidden">
               <UpcomingDeadlinesList rows={thisWeekTasks.slice(0, 5)} today={today} />
             </div>
           </section>
@@ -392,16 +387,16 @@ export function OverviewClient({
 
         {/* Office/Home planning */}
         <section>
-          <p className={SECTION_LABEL}>{t.overview.myPlanning}</p>
-          <div className="mt-3 rounded-xl bg-[var(--c-card)] ring-1 ring-[var(--c-border)] p-5">
-            <p className="mb-3 text-xs text-[var(--c-text-3)]">{t.overview.myPlanningHint}</p>
+          <SectionHeading>{t.overview.myPlanning}</SectionHeading>
+          <div className="mt-3 rounded-xl bg-surface ring-1 ring-line p-5">
+            <p className="mb-3 text-xs text-content-3">{t.overview.myPlanningHint}</p>
             <WorkCalendar initial={workSchedule} />
           </div>
         </section>
 
         {/* My KPI strip */}
         <section>
-          <p className={SECTION_LABEL}>{t.overview.myMetrics}</p>
+          <SectionHeading>{t.overview.myMetrics}</SectionHeading>
           <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
             <KpiCard
               label={t.kpis.myActiveTasks}
@@ -434,40 +429,35 @@ export function OverviewClient({
 
   // Admin / freelancer layout
   return (
-    <div className="space-y-8">
-      {/* ------------------------------------------------------------------ */}
-      {/* GREETING                                                            */}
-      {/* ------------------------------------------------------------------ */}
-      <Greeting fullName={fullName} subtitle={subtitle} role={role} />
-
+    <div className="overview-sections space-y-8">
       {/* ================================================================== */}
       {/* 1. TODAY'S PRIORITIES                                               */}
       {/* ================================================================== */}
       {hasPriorities && (
         <section>
-          <p className={SECTION_LABEL}>{t.overview.todayPriorities}</p>
-          <div className="mt-3 rounded-xl border-l-2 border-[#F43F5E] bg-[var(--c-card)] ring-1 ring-[var(--c-border)]">
-            <div className="flex items-center justify-between border-b border-[var(--c-border)] px-5 py-3">
+          <SectionHeading>{t.overview.todayPriorities}</SectionHeading>
+          <div className="mt-3 rounded-xl border-l-2 border-danger bg-surface ring-1 ring-line">
+            <div className="flex items-center justify-between border-b border-line px-5 py-3">
               <div className="flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-[#F43F5E]" />
-                <span className="text-sm font-semibold text-[var(--c-text-1)]">
+                <AlertTriangle className="h-4 w-4 text-danger" />
+                <span className="text-sm font-semibold text-content">
                   {t.overview.attentionRequired}
                 </span>
                 {(overdueTasks.length + urgentInvoices.length) > 0 && (
-                  <span className="ml-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#F43F5E] px-1.5 text-[10px] font-bold text-white">
+                  <span className="ml-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-danger px-1.5 text-[10px] font-bold text-white">
                     {overdueTasks.length + urgentInvoices.length}
                   </span>
                 )}
               </div>
               <Link
                 href="/dashboard/finance"
-                className="text-[11px] font-semibold text-[#38BDF8] hover:text-[#7DD3FC] transition-colors"
+                className="text-[11px] font-semibold text-info hover:text-info transition-colors"
               >
                 {t.overview.seeAllLink}
               </Link>
             </div>
 
-            <div className="divide-y divide-[var(--c-border)]">
+            <div className="divide-y divide-line">
               {overdueTasks.map((task) => {
                 const due = new Date(task.deadline);
                 const daysLate = Math.floor(
@@ -477,20 +467,20 @@ export function OverviewClient({
                   <Link
                     key={task.id}
                     href={`/dashboard/tasks/${task.id}`}
-                    className="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-white/4"
+                    className="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-surface/4"
                   >
-                    <Clock className="h-3.5 w-3.5 shrink-0 text-[#F43F5E]" />
+                    <Clock className="h-3.5 w-3.5 shrink-0 text-danger" />
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-[var(--c-text-1)]">
+                      <p className="truncate text-sm font-medium text-content">
                         {task.title}
                       </p>
-                      <p className="truncate text-[11px] text-[var(--c-text-3)]">
+                      <p className="truncate text-[11px] text-content-3">
                         {task.client} · {task.project}
                       </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
                       <StatusBadge status={task.priority} type="priority" label={t.tasks.priority[task.priority as keyof typeof t.tasks.priority] ?? task.priority} />
-                      <span className="rounded-md bg-[#F43F5E]/15 px-2 py-0.5 text-[11px] font-semibold text-[#F43F5E]">
+                      <span className="rounded-md bg-danger/15 px-2 py-0.5 text-[11px] font-semibold text-danger">
                         {t.overview.relativeOverdue(daysLate)}
                       </span>
                     </div>
@@ -511,23 +501,23 @@ export function OverviewClient({
                       ? t.overview.relativeInLong(daysUntil)
                       : t.overview.unpaid;
                 const urgencyColor = isOverdue
-                  ? "bg-[#F43F5E]/15 text-[#F43F5E]"
+                  ? "bg-danger/15 text-danger"
                   : isDueToday
-                    ? "bg-[#F59E0B]/15 text-[#F59E0B]"
-                    : "bg-[#38BDF8]/15 text-[#38BDF8]";
-                const iconColor = isOverdue ? "text-[#F43F5E]" : isDueToday ? "text-[#F59E0B]" : "text-[#38BDF8]";
+                    ? "bg-warning/15 text-warning"
+                    : "bg-info/15 text-info";
+                const iconColor = isOverdue ? "text-danger" : isDueToday ? "text-warning" : "text-info";
                 return (
                   <Link
                     key={doc.id}
                     href={`/dashboard/${doc.kind === "facture" ? "factures" : "devis"}/${doc.id}`}
-                    className="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-white/4"
+                    className="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-surface/4"
                   >
                     <FileText className={`h-3.5 w-3.5 shrink-0 ${iconColor}`} />
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-[var(--c-text-1)]">
+                      <p className="truncate text-sm font-medium text-content">
                         {doc.client_name}
                       </p>
-                      <p className="truncate text-[11px] text-[var(--c-text-3)]">
+                      <p className="truncate text-[11px] text-content-3">
                         {formatDevisNumber(doc.devis_number, doc.kind)} · {due ? formatDate(doc.due_date!) : formatDate(doc.date)}
                       </p>
                     </div>
@@ -547,10 +537,10 @@ export function OverviewClient({
 
       {!hasPriorities && (
         <section>
-          <p className={SECTION_LABEL}>{t.overview.todayPriorities}</p>
-          <div className="mt-3 flex items-center gap-3 rounded-xl border border-[#22C55E]/20 bg-[#22C55E]/5 px-5 py-4">
-            <CheckCircle2 className="h-4 w-4 text-[#22C55E]" />
-            <p className="text-sm font-medium text-[#22C55E]">
+          <SectionHeading>{t.overview.todayPriorities}</SectionHeading>
+          <div className="mt-3 flex items-center gap-3 rounded-xl border border-success/20 bg-success/5 px-5 py-4">
+            <CheckCircle2 className="h-4 w-4 text-success" />
+            <p className="text-sm font-medium text-success">
               {t.overview.allClear}
             </p>
           </div>
@@ -563,10 +553,10 @@ export function OverviewClient({
       {isAdmin && (
         <section>
           <div className="flex items-center justify-between">
-            <p className={SECTION_LABEL}>{t.overview.financialHealth}</p>
+            <SectionHeading>{t.overview.financialHealth}</SectionHeading>
             <Link
               href="/dashboard/finance"
-              className="text-[11px] font-semibold text-[#38BDF8] hover:text-[#7DD3FC] transition-colors"
+              className="text-[11px] font-semibold text-info hover:text-info transition-colors"
             >
               {t.overview.detailsLink}
             </Link>
@@ -610,18 +600,18 @@ export function OverviewClient({
             />
 
             {/* Voir Finance OS */}
-            <div className="flex flex-col items-start justify-between rounded-xl bg-[var(--c-card)] border border-[var(--c-border)] p-5 gap-3">
+            <div className="flex flex-col items-start justify-between rounded-xl bg-surface border border-line p-5 gap-3">
               <div className="flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-[#22D3EE]" />
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--c-text-3)]">{t.overview.fullAnalysis}</p>
+                <TrendingUp className="h-4 w-4 text-accent2" />
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-content-3">{t.overview.fullAnalysis}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-[var(--c-text-1)]">{t.overview.financeOS}</p>
-                <p className="mt-0.5 text-xs text-[var(--c-text-3)]">{t.overview.financeOSDesc}</p>
+                <p className="text-sm font-medium text-content">{t.overview.financeOS}</p>
+                <p className="mt-0.5 text-xs text-content-3">{t.overview.financeOSDesc}</p>
               </div>
               <Link
                 href="/dashboard/finance"
-                className="mt-auto inline-flex items-center gap-1.5 rounded-lg bg-[#22D3EE]/10 border border-[#22D3EE]/25 px-3 py-1.5 text-xs font-semibold text-[#22D3EE] hover:bg-[#22D3EE]/20 transition-colors"
+                className="mt-auto inline-flex items-center gap-1.5 rounded-lg bg-accent2/10 border border-accent2/25 px-3 py-1.5 text-xs font-semibold text-accent2 hover:bg-accent2/20 transition-colors"
               >
                 {t.overview.viewFinanceOS}
               </Link>
@@ -633,7 +623,7 @@ export function OverviewClient({
       {/* Freelancer KPI strip */}
       {role === "freelancer" && (
         <section>
-          <p className={SECTION_LABEL}>{t.overview.myMetrics}</p>
+          <SectionHeading>{t.overview.myMetrics}</SectionHeading>
           <div className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-4">
             <KpiCard
               label={t.kpis.myActiveTasks}
@@ -670,10 +660,10 @@ export function OverviewClient({
       {/* ================================================================== */}
       <section>
         <div className="flex items-center justify-between">
-          <p className={SECTION_LABEL}>{t.overview.activeWork}</p>
+          <SectionHeading>{t.overview.activeWork}</SectionHeading>
           <Link
             href="/dashboard/tasks"
-            className="text-[11px] font-semibold text-[#38BDF8] hover:text-[#7DD3FC] transition-colors"
+            className="text-[11px] font-semibold text-info hover:text-info transition-colors"
           >
             {t.tasksUi.kanbanLabel} →
           </Link>
@@ -684,16 +674,16 @@ export function OverviewClient({
             count={statusGroups.todo}
             total={totalTasks}
             color="#64748B"
-            gradientFrom="from-[#64748B]"
-            gradientTo="to-[#94A3B8]"
+            gradientFrom="from-content-3"
+            gradientTo="to-content-3"
           />
           <ActiveWorkColumn
             label={t.tasks.status.in_progress}
             count={statusGroups.in_progress}
             total={totalTasks}
             color="#22D3EE"
-            gradientFrom="from-[#0891B2]"
-            gradientTo="to-[#22D3EE]"
+            gradientFrom="from-accent2-hover"
+            gradientTo="to-accent2"
             pulse
           />
           <ActiveWorkColumn
@@ -702,7 +692,7 @@ export function OverviewClient({
             total={totalTasks}
             color="#A78BFA"
             gradientFrom="from-[#7C3AED]"
-            gradientTo="to-[#A78BFA]"
+            gradientTo="to-chart-4"
           />
           <ActiveWorkColumn
             label={t.tasks.status.done}
@@ -710,7 +700,7 @@ export function OverviewClient({
             total={totalTasks}
             color="#22C55E"
             gradientFrom="from-[#15803D]"
-            gradientTo="to-[#22C55E]"
+            gradientTo="to-success"
           />
         </div>
       </section>
@@ -720,15 +710,15 @@ export function OverviewClient({
       {/* ================================================================== */}
       <section>
         <div className="flex items-center justify-between">
-          <p className={SECTION_LABEL}>{t.overview.upcomingDeadlines}</p>
+          <SectionHeading>{t.overview.upcomingDeadlines}</SectionHeading>
           <Link
             href="/dashboard/tasks"
-            className="text-[11px] font-semibold text-[#38BDF8] hover:text-[#7DD3FC] transition-colors"
+            className="text-[11px] font-semibold text-info hover:text-info transition-colors"
           >
             {t.overview.seeAllLink}
           </Link>
         </div>
-        <div className="mt-3 rounded-xl bg-[var(--c-card)] ring-1 ring-[var(--c-border)] overflow-hidden">
+        <div className="mt-3 rounded-xl bg-surface ring-1 ring-line overflow-hidden">
           <UpcomingDeadlinesList rows={upcomingTasks.slice(0, 5)} today={today} />
         </div>
       </section>
@@ -738,15 +728,15 @@ export function OverviewClient({
       {/* ================================================================== */}
       <section>
         <div className="flex items-center justify-between">
-          <p className={SECTION_LABEL}>{t.overview.recentDocs}</p>
+          <SectionHeading>{t.overview.recentDocs}</SectionHeading>
           <Link
             href="/dashboard/devis"
-            className="text-[11px] font-semibold text-[#38BDF8] hover:text-[#7DD3FC] transition-colors"
+            className="text-[11px] font-semibold text-info hover:text-info transition-colors"
           >
             {t.overview.seeAllLink}
           </Link>
         </div>
-        <div className="mt-3 rounded-xl bg-[var(--c-card)] ring-1 ring-[var(--c-border)] overflow-hidden">
+        <div className="mt-3 rounded-xl bg-surface ring-1 ring-line overflow-hidden">
           <RecentDocsFeed rows={recentDevis} />
         </div>
       </section>
@@ -757,23 +747,23 @@ export function OverviewClient({
       {isAdmin && (
         <section>
           <div className="flex items-center justify-between">
-            <p className={SECTION_LABEL}>{t.overview.revenueChart}</p>
+            <SectionHeading>{t.overview.revenueChart}</SectionHeading>
             <Link
               href="/dashboard/finance"
-              className="text-[11px] font-semibold text-[#38BDF8] hover:text-[#7DD3FC] transition-colors"
+              className="text-[11px] font-semibold text-info hover:text-info transition-colors"
             >
               {t.overview.financesLink}
             </Link>
           </div>
           <div className="mt-3 grid grid-cols-1 gap-4 lg:grid-cols-3">
-            <div className="lg:col-span-2 rounded-xl bg-[var(--c-card)] ring-1 ring-[var(--c-border)] p-5">
+            <div className="lg:col-span-2 rounded-xl bg-surface ring-1 ring-line p-5">
               <MonthlyBars series={monthlySeries} />
             </div>
-            <div className="rounded-xl bg-[var(--c-card)] ring-1 ring-[var(--c-border)] p-5">
-              <p className="mb-4 text-sm font-semibold text-[var(--c-text-1)]">
+            <div className="rounded-xl bg-surface ring-1 ring-line p-5">
+              <p className="mb-4 text-sm font-semibold text-content">
                 {t.overview.serviceMix}
               </p>
-              <p className="mb-4 text-[11px] text-[var(--c-text-3)]">
+              <p className="mb-4 text-[11px] text-content-3">
                 {t.overview.serviceMixHint}
               </p>
               {localizedDonutData.length > 0 ? (
@@ -782,7 +772,7 @@ export function OverviewClient({
                   <DonutLegend data={localizedDonutData.slice(0, 5)} />
                 </div>
               ) : (
-                <p className="py-6 text-center text-sm text-[var(--c-text-3)]">
+                <p className="py-6 text-center text-sm text-content-3">
                   {t.overview.noServiceMix}
                 </p>
               )}
@@ -794,7 +784,7 @@ export function OverviewClient({
       {/* Freelancer: My Tasks + Work Calendar */}
       {role === "freelancer" && (
         <section>
-          <p className={SECTION_LABEL}>{t.overview.myWorkspace}</p>
+          <SectionHeading>{t.overview.myWorkspace}</SectionHeading>
           <div className="mt-3 grid grid-cols-1 gap-4 lg:grid-cols-5">
             <Card className="lg:col-span-3">
               <CardHeader>
@@ -816,7 +806,7 @@ export function OverviewClient({
             <Card className="lg:col-span-2">
               <CardHeader>
                 <CardTitle>{t.overview.myPlanning}</CardTitle>
-                <p className="text-xs text-ink/55">{t.overview.myPlanningHint}</p>
+                <p className="text-xs text-content-3">{t.overview.myPlanningHint}</p>
               </CardHeader>
               <CardContent>
                 <WorkCalendar initial={workSchedule} />
@@ -832,45 +822,45 @@ export function OverviewClient({
       {isAdmin && counts.teamSize !== null && counts.teamSize > 0 && (
         <section>
           <div className="flex items-center justify-between">
-            <p className={SECTION_LABEL}>{t.overview.teamSection}</p>
+            <SectionHeading>{t.overview.teamSection}</SectionHeading>
             <Link
               href="/dashboard/team"
-              className="text-[11px] font-semibold text-[#38BDF8] hover:text-[#7DD3FC] transition-colors"
+              className="text-[11px] font-semibold text-info hover:text-info transition-colors"
             >
               {t.overview.manageLink}
             </Link>
           </div>
-          <div className="mt-3 flex items-center gap-4 rounded-xl bg-[var(--c-card)] px-5 py-4 ring-1 ring-[var(--c-border)]">
+          <div className="mt-3 flex items-center gap-4 rounded-xl bg-surface px-5 py-4 ring-1 ring-line">
             <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-[var(--c-text-3)]" />
-              <span className="text-sm font-semibold text-[var(--c-text-1)]">
+              <Users className="h-4 w-4 text-content-3" />
+              <span className="text-sm font-semibold text-content">
                 {t.overview.membersCount(counts.teamSize ?? 0)}
               </span>
             </div>
-            <div className="h-4 w-px bg-[var(--c-border)]" />
+            <div className="h-4 w-px bg-line" />
             {counts.activeTasks > 0 && (
               <div className="flex items-center gap-2">
                 <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#22D3EE] opacity-75" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-[#22D3EE]" />
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent2 opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-accent2" />
                 </span>
-                <span className="text-sm text-[var(--c-text-2)]">
+                <span className="text-sm text-content-2">
                   {t.overview.activeTasks(counts.activeTasks)}
                 </span>
               </div>
             )}
             {counts.activeProjects > 0 && (
               <>
-                <div className="h-4 w-px bg-[var(--c-border)]" />
-                <span className="text-sm text-[var(--c-text-2)]">
+                <div className="h-4 w-px bg-line" />
+                <span className="text-sm text-content-2">
                   {t.overview.activeProjects(counts.activeProjects)}
                 </span>
               </>
             )}
             {counts.clients !== null && counts.clients > 0 && (
               <>
-                <div className="h-4 w-px bg-[var(--c-border)]" />
-                <span className="text-sm text-[var(--c-text-2)]">
+                <div className="h-4 w-px bg-line" />
+                <span className="text-sm text-content-2">
                   {t.overview.clientsCount(counts.clients)}
                 </span>
               </>
@@ -878,7 +868,7 @@ export function OverviewClient({
             <div className="ml-auto">
               <Link
                 href="/dashboard/team/planning"
-                className="inline-flex items-center gap-1.5 rounded-lg bg-white/5 px-3 py-1.5 text-[11px] font-semibold text-[var(--c-text-2)] ring-1 ring-[var(--c-border)] transition-all hover:bg-white/10 hover:text-[var(--c-text-1)]"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-surface/5 px-3 py-1.5 text-[11px] font-semibold text-content-2 ring-1 ring-line transition-all hover:bg-surface/10 hover:text-content"
               >
                 <span>{t.overview.teamPlanning}</span>
                 <span aria-hidden>→</span>
@@ -894,36 +884,36 @@ export function OverviewClient({
       {isAdmin && adminTaskCounts && (
         <section>
           <div className="flex items-center justify-between">
-            <p className={SECTION_LABEL}>{t.adminTasks.widgetTitle}</p>
+            <SectionHeading>{t.adminTasks.widgetTitle}</SectionHeading>
             <Link
               href="/dashboard/admin-tasks"
-              className="text-[11px] font-semibold text-[#38BDF8] hover:text-[#7DD3FC] transition-colors"
+              className="text-[11px] font-semibold text-info hover:text-info transition-colors"
             >
               {t.adminTasks.widgetSeeAll}
             </Link>
           </div>
           <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <Link href="/dashboard/admin-tasks?f=overdue" className="group rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] p-4 hover:border-[#F43F5E]/50 transition-colors">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B]">{t.adminTasks.widgetOverdue}</p>
-              <p className={`mt-1 text-2xl font-bold ${adminTaskCounts.overdue > 0 ? "text-[#F43F5E]" : "text-[var(--c-text-3)]"}`}>
+            <Link href="/dashboard/admin-tasks?f=overdue" className="group rounded-xl border border-line bg-surface p-4 hover:border-danger/50 transition-colors">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-content-3">{t.adminTasks.widgetOverdue}</p>
+              <p className={`mt-1 text-2xl font-bold ${adminTaskCounts.overdue > 0 ? "text-danger" : "text-content-3"}`}>
                 {adminTaskCounts.overdue}
               </p>
             </Link>
-            <Link href="/dashboard/admin-tasks?f=today" className="group rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] p-4 hover:border-[#F59E0B]/50 transition-colors">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B]">{t.adminTasks.widgetToday}</p>
-              <p className={`mt-1 text-2xl font-bold ${adminTaskCounts.dueToday > 0 ? "text-[#F59E0B]" : "text-[var(--c-text-3)]"}`}>
+            <Link href="/dashboard/admin-tasks?f=today" className="group rounded-xl border border-line bg-surface p-4 hover:border-warning/50 transition-colors">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-content-3">{t.adminTasks.widgetToday}</p>
+              <p className={`mt-1 text-2xl font-bold ${adminTaskCounts.dueToday > 0 ? "text-warning" : "text-content-3"}`}>
                 {adminTaskCounts.dueToday}
               </p>
             </Link>
-            <Link href="/dashboard/admin-tasks?f=week" className="group rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] p-4 hover:border-[#22D3EE]/50 transition-colors">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B]">{t.adminTasks.widgetThisWeek}</p>
-              <p className="mt-1 text-2xl font-bold text-[var(--c-text-1)]">
+            <Link href="/dashboard/admin-tasks?f=week" className="group rounded-xl border border-line bg-surface p-4 hover:border-accent2/50 transition-colors">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-content-3">{t.adminTasks.widgetThisWeek}</p>
+              <p className="mt-1 text-2xl font-bold text-content">
                 {adminTaskCounts.thisWeek}
               </p>
             </Link>
-            <Link href="/dashboard/admin-tasks?f=waiting" className="group rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] p-4 hover:border-[#F59E0B]/30 transition-colors">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B]">{t.adminTasks.widgetWaiting}</p>
-              <p className={`mt-1 text-2xl font-bold ${adminTaskCounts.waiting > 0 ? "text-[#F59E0B]" : "text-[var(--c-text-3)]"}`}>
+            <Link href="/dashboard/admin-tasks?f=waiting" className="group rounded-xl border border-line bg-surface p-4 hover:border-warning/30 transition-colors">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-content-3">{t.adminTasks.widgetWaiting}</p>
+              <p className={`mt-1 text-2xl font-bold ${adminTaskCounts.waiting > 0 ? "text-warning" : "text-content-3"}`}>
                 {adminTaskCounts.waiting}
               </p>
             </Link>
@@ -946,43 +936,6 @@ export function OverviewClient({
 // ---------------------------------------------------------------------------
 // Greeting
 // ---------------------------------------------------------------------------
-
-function Greeting({
-  fullName,
-  subtitle,
-  role,
-}: {
-  fullName: string;
-  subtitle: string;
-  role: UserRole;
-}) {
-  const { t } = useI18n();
-  const hour = new Date().getHours();
-  const time =
-    hour < 5
-      ? t.greeting.goodNight
-      : hour < 12
-        ? t.greeting.goodMorning
-        : hour < 18
-          ? t.greeting.goodAfternoon
-          : t.greeting.goodEvening;
-
-  return (
-    <section className="reveal flex flex-col gap-2">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand">
-        {role === "admin"
-          ? t.greeting.spaceAdmin
-          : role === "worker"
-            ? t.greeting.spaceTeam
-            : t.greeting.spaceFreelance}
-      </p>
-      <h1 className="text-3xl font-semibold tracking-tight text-[#F8FAFC] md:text-4xl">
-        {time}, {fullName.split(" ")[0]} 👋
-      </h1>
-      <p className="text-sm text-[#94A3B8]">{subtitle}</p>
-    </section>
-  );
-}
 
 // ---------------------------------------------------------------------------
 // HeroRevenueCard — kept exactly as before
@@ -1008,7 +961,7 @@ function HeroRevenueCard({
 
   return (
     <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-brand via-brand-dark to-[#0a1326] shadow-brand-glow surface-grain">
-      <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-cyan-400/25 blur-3xl" />
+      <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-info-weak blur-3xl" />
       <div className="pointer-events-none absolute -bottom-10 -left-10 h-32 w-32 rounded-full bg-[#7c4dff]/30 blur-3xl" />
 
       <div className="relative flex h-full flex-col justify-between p-5">
@@ -1016,7 +969,7 @@ function HeroRevenueCard({
           <p className="text-[11px] font-semibold uppercase tracking-wider text-cream/70">
             {t.kpis.revenueMtd}
           </p>
-          <TrendPill pct={paidTrend} isNew={paidIsNew} noData={paidNoData} className="!bg-white/15 !text-white !ring-0" labelNoData={locale === "en" ? "No data" : "Aucune donnée"} labelNew={locale === "en" ? "New" : "Nouveau"} />
+          <TrendPill pct={paidTrend} isNew={paidIsNew} noData={paidNoData} className="!bg-surface/15 !text-white !ring-0" labelNoData={locale === "en" ? "No data" : "Aucune donnée"} labelNew={locale === "en" ? "New" : "Nouveau"} />
         </div>
 
         <p className="mt-3 text-3xl font-semibold tracking-tight text-cream md:text-[34px]">
@@ -1040,7 +993,7 @@ function HeroRevenueCard({
                   : `${collectionRate.toFixed(0)}%`}
               </span>
             </div>
-            <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/15">
+            <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-surface/15">
               <div
                 className={`h-full bg-gradient-to-r transition-all duration-700 ${
                   collectionRate >= 100
@@ -1082,9 +1035,9 @@ function ActiveWorkColumn({
   const pct = total > 0 ? Math.max(2, (count / total) * 100) : 0;
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl bg-[#0D2D47] p-4 ring-1 ring-[#22506F]">
+    <div className="flex flex-col gap-3 rounded-xl bg-surface p-4 ring-1 ring-line">
       <div className="flex items-center justify-between">
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-[#64748B]">
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-content-3">
           {label}
         </p>
         {pulse && count > 0 && (
@@ -1097,13 +1050,13 @@ function ActiveWorkColumn({
       <p className="font-mono text-3xl font-bold leading-none" style={{ color }}>
         <CountUp to={count} decimals={0} />
       </p>
-      <div className="h-1.5 overflow-hidden rounded-full bg-white/8">
+      <div className="h-1.5 overflow-hidden rounded-full bg-surface/8">
         <div
           className={`h-full bg-gradient-to-r ${gradientFrom} ${gradientTo} transition-all duration-700`}
           style={{ width: `${pct}%` }}
         />
       </div>
-      <p className="text-[11px] text-[#64748B]">
+      <p className="text-[11px] text-content-3">
         {total > 0 && count > 0 ? `${Math.round((count / total) * 100)}% ${t.overview.ofTotal}` : total > 0 ? "0%" : "—"}
       </p>
     </div>
@@ -1124,14 +1077,14 @@ function UpcomingDeadlinesList({
   const { t } = useI18n();
   if (rows.length === 0) {
     return (
-      <p className="py-8 text-center text-sm text-[#64748B]">
+      <p className="py-8 text-center text-sm text-content-3">
         {t.overview.noUpcoming}
       </p>
     );
   }
 
   return (
-    <ul className="divide-y divide-[#1A3E5C]">
+    <ul className="divide-y divide-surface-2">
       {rows.map((task) => {
         const due = new Date(task.deadline);
         const days = Math.floor(
@@ -1145,7 +1098,7 @@ function UpcomingDeadlinesList({
           <li key={task.id}>
             <Link
               href={`/dashboard/tasks/${task.id}`}
-              className="flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-white/4"
+              className="flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-surface/4"
             >
               {/* Assignee avatar */}
               {task.assignee ? (
@@ -1155,7 +1108,7 @@ function UpcomingDeadlinesList({
                   size="sm"
                 />
               ) : (
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#1A3E5C] text-xs text-[#64748B]">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface-2 text-xs text-content-3">
                   ?
                 </span>
               )}
@@ -1164,12 +1117,12 @@ function UpcomingDeadlinesList({
               <div className="min-w-0 flex-1">
                 <p
                   className={`truncate text-sm font-medium ${
-                    isOverdue ? "text-[#F43F5E]" : "text-[#F8FAFC]"
+                    isOverdue ? "text-danger" : "text-content"
                   }`}
                 >
                   {task.title}
                 </p>
-                <p className="truncate text-[11px] text-[#64748B]">
+                <p className="truncate text-[11px] text-content-3">
                   {task.client} · {task.project}
                 </p>
               </div>
@@ -1181,12 +1134,12 @@ function UpcomingDeadlinesList({
               <span
                 className={`shrink-0 rounded-lg px-2.5 py-1 text-[11px] font-semibold ${
                   isOverdue
-                    ? "bg-[#F43F5E]/15 text-[#F43F5E]"
+                    ? "bg-danger/15 text-danger"
                     : isToday
-                      ? "bg-[#F59E0B]/15 text-[#F59E0B]"
+                      ? "bg-warning/15 text-warning"
                       : isSoon
-                        ? "bg-[#38BDF8]/10 text-[#38BDF8]"
-                        : "bg-white/5 text-[#64748B]"
+                        ? "bg-info/10 text-info"
+                        : "bg-surface/5 text-content-3"
                 }`}
               >
                 {isOverdue
@@ -1211,14 +1164,14 @@ function RecentDocsFeed({ rows }: { rows: RecentDevis[] }) {
   const { t } = useI18n();
   if (rows.length === 0) {
     return (
-      <p className="py-8 text-center text-sm text-[#64748B]">
+      <p className="py-8 text-center text-sm text-content-3">
         {t.overview.noRecentDocs}
       </p>
     );
   }
 
   return (
-    <ul className="divide-y divide-[#1A3E5C]">
+    <ul className="divide-y divide-surface-2">
       {rows.map((d) => {
         const baseUrl =
           d.kind === "facture" ? "/dashboard/factures" : "/dashboard/devis";
@@ -1226,22 +1179,22 @@ function RecentDocsFeed({ rows }: { rows: RecentDevis[] }) {
           <li key={d.id}>
             <Link
               href={`${baseUrl}/${d.id}`}
-              className="flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-white/4"
+              className="flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-surface/4"
             >
               <span
                 className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${
                   d.kind === "facture"
-                    ? "bg-[#7c4dff]/20 text-[#A78BFA]"
-                    : "bg-[#38BDF8]/10 text-[#38BDF8]"
+                    ? "bg-[#7c4dff]/20 text-chart-4"
+                    : "bg-info/10 text-info"
                 }`}
               >
                 {d.kind === "facture" ? "FA" : "DE"}
               </span>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-[#F8FAFC]">
+                <p className="truncate text-sm font-medium text-content">
                   {d.client_name}
                 </p>
-                <p className="truncate text-[11px] text-[#64748B]">
+                <p className="truncate text-[11px] text-content-3">
                   {formatDevisNumber(d.devis_number, d.kind)} · {formatDate(d.date)}
                 </p>
               </div>
@@ -1266,13 +1219,15 @@ function MyTasksList({ rows }: { rows: UpcomingTask[] }) {
   if (rows.length === 0) {
     return (
       <div className="py-10 text-center">
-        <p className="text-sm text-ink/45">{t.overview.noMine}</p>
+        <p className="text-sm text-content-3">{t.overview.noMine}</p>
       </div>
     );
   }
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  // Hydration-safe midnight. A render-time `new Date()` resolved to the UTC
+  // day on the server and the Africa/Tunis day in the browser, so overdue
+  // counts and relative day labels differed across hydration (React #418).
+  const today = useToday();
 
   return (
     <ul className="space-y-1.5">
@@ -1301,14 +1256,14 @@ function MyTasksList({ rows }: { rows: UpcomingTask[] }) {
           <li key={task.id}>
             <Link
               href={`/dashboard/tasks/${task.id}`}
-              className="group block rounded-xl border border-white/15 bg-white/8 p-3 transition-all hover:border-brand/30 hover:bg-white/12 hover:shadow-soft"
+              className="group block rounded-xl border border-white/15 bg-surface/8 p-3 transition-all hover:border-brand/30 hover:bg-surface/12 hover:shadow-soft"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-ink group-hover:text-brand">
                     {task.title}
                   </p>
-                  <p className="mt-0.5 truncate text-xs text-ink/50">
+                  <p className="mt-0.5 truncate text-xs text-content-3">
                     {task.client} · {task.project}
                   </p>
                 </div>
@@ -1326,12 +1281,12 @@ function MyTasksList({ rows }: { rows: UpcomingTask[] }) {
                 <span
                   className={`rounded-md px-2 py-0.5 font-semibold ${
                     isOverdue
-                      ? "bg-red-500/15 text-red-300"
+                      ? "bg-danger-weak text-danger"
                       : isToday
                         ? "bg-brand/20 text-brand"
                         : isSoon
                           ? "bg-brand/12 text-brand"
-                          : "bg-white/8 text-ink/55"
+                          : "bg-surface/8 text-content-3"
                   }`}
                 >
                   {isOverdue
@@ -1363,26 +1318,26 @@ function FeaturedCard({
   const name = featured.full_name ?? featured.username;
   const { t } = useI18n();
   return (
-    <div className="featured-card relative overflow-hidden rounded-2xl border border-[var(--c-border)]">
+    <div className="featured-card relative overflow-hidden rounded-2xl border border-line">
       {/* Glow blobs — visible in dark, harmless in light (light bg washes them out) */}
       <div aria-hidden className="pointer-events-none absolute -left-20 -top-20 h-72 w-72 rounded-full bg-[#2C6E96]/30 blur-3xl" />
       <div aria-hidden className="pointer-events-none absolute -bottom-24 right-1/4 h-64 w-64 rounded-full bg-[#7c4dff]/20 blur-3xl" />
-      <div aria-hidden className="pointer-events-none absolute -right-12 top-1/3 h-48 w-48 rounded-full bg-[#22D3EE]/15 blur-3xl" />
+      <div aria-hidden className="pointer-events-none absolute -right-12 top-1/3 h-48 w-48 rounded-full bg-accent2/15 blur-3xl" />
 
       <div className="relative flex min-h-[140px] flex-col items-center gap-6 px-8 py-8 text-center sm:flex-row sm:items-center sm:gap-8 sm:text-left">
         <div className="relative shrink-0">
           <div
             aria-hidden
-            className="absolute inset-0 -m-2.5 animate-pulse rounded-full bg-gradient-to-br from-[#2C6E96] via-[#7c4dff] to-[#22D3EE] opacity-50 blur-xl"
+            className="absolute inset-0 -m-2.5 animate-pulse rounded-full bg-gradient-to-br from-[#2C6E96] via-[#7c4dff] to-accent2 opacity-50 blur-xl"
           />
-          <div className="absolute inset-0 -m-1 rounded-full bg-gradient-to-br from-[#2C6E96] via-[#7c4dff] to-[#22D3EE] p-[2px]">
-            <div className="h-full w-full rounded-full bg-[#071B2C]" />
+          <div className="absolute inset-0 -m-1 rounded-full bg-gradient-to-br from-[#2C6E96] via-[#7c4dff] to-accent2 p-[2px]">
+            <div className="h-full w-full rounded-full bg-canvas" />
           </div>
           <Avatar
             src={featured.avatar_url}
             name={name}
             size="xl"
-            className="relative ring-2 ring-[#22D3EE]/50 ring-offset-2 ring-offset-[#071B2C]"
+            className="relative ring-2 ring-accent2/50 ring-offset-2 ring-offset-[#071B2C]"
           />
           <span className="absolute -top-3 left-1/2 -translate-x-1/2 -rotate-12 text-2xl drop-shadow-md" aria-hidden>
             ⭐
@@ -1430,7 +1385,7 @@ function FeaturedCard({
 function FeaturedEmptyCta() {
   const { t } = useI18n();
   return (
-    <Card className="border-dashed border-brand/30 bg-brand/5 dark:border-white/10 dark:bg-white/3">
+    <Card className="border-dashed border-brand/30 bg-brand/5 dark:border-white/10 dark:bg-surface/3">
       <CardContent className="flex items-center justify-between p-5">
         <div className="flex items-center gap-3">
           <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand/12 text-lg text-brand">
@@ -1438,7 +1393,7 @@ function FeaturedEmptyCta() {
           </span>
           <div>
             <p className="text-sm font-semibold text-ink">{t.featured.empty}</p>
-            <p className="text-xs text-ink/55">{t.featured.emptyHint}</p>
+            <p className="text-xs text-content-3">{t.featured.emptyHint}</p>
           </div>
         </div>
         <Link

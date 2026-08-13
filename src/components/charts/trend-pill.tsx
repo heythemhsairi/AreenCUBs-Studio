@@ -27,7 +27,7 @@ export function TrendPill({ pct, className, invert, isNew, noData, labelNoData =
     return (
       <span
         className={cn(
-          "inline-flex items-center gap-0.5 rounded-full bg-[var(--c-border)] px-2 py-0.5 text-[11px] font-semibold text-[var(--c-text-3)]",
+          "inline-flex items-center gap-0.5 rounded-full bg-surface-3 px-2 py-0.5 text-[11px] font-semibold text-content-2",
           className,
         )}
       >
@@ -41,7 +41,7 @@ export function TrendPill({ pct, className, invert, isNew, noData, labelNoData =
     return (
       <span
         className={cn(
-          "inline-flex items-center gap-0.5 rounded-full bg-[#06B6D4]/15 px-2 py-0.5 text-[11px] font-semibold text-[#06B6D4]",
+          "inline-flex items-center gap-0.5 rounded-full bg-accent2/15 px-2 py-0.5 text-[11px] font-semibold text-accent2",
           className,
         )}
       >
@@ -55,7 +55,7 @@ export function TrendPill({ pct, className, invert, isNew, noData, labelNoData =
     return (
       <span
         className={cn(
-          "inline-flex items-center gap-0.5 rounded-full bg-[var(--c-border)] px-2 py-0.5 text-[11px] font-semibold text-[var(--c-text-3)]",
+          "inline-flex items-center gap-0.5 rounded-full bg-surface-3 px-2 py-0.5 text-[11px] font-semibold text-content-2",
           className,
         )}
       >
@@ -69,7 +69,7 @@ export function TrendPill({ pct, className, invert, isNew, noData, labelNoData =
     return (
       <span
         className={cn(
-          "inline-flex items-center gap-0.5 rounded-full bg-[var(--c-border)] px-2 py-0.5 text-[11px] font-semibold text-[var(--c-text-3)]",
+          "inline-flex items-center gap-0.5 rounded-full bg-surface-3 px-2 py-0.5 text-[11px] font-semibold text-content-2",
           className,
         )}
       >
@@ -82,8 +82,8 @@ export function TrendPill({ pct, className, invert, isNew, noData, labelNoData =
   const isGood = invert ? !up : up;
 
   const tone = isGood
-    ? "bg-[#22C55E]/15 text-[#22C55E]"
-    : "bg-[#F43F5E]/15 text-[#F43F5E]";
+    ? "bg-success/15 text-success"
+    : "bg-danger/15 text-danger";
 
   return (
     <span

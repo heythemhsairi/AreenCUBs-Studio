@@ -1,5 +1,9 @@
-import { requireSession } from "@/lib/auth";
+import { requireInternal } from "@/lib/auth";
+import { CommercialDashboard } from "./commercial-dashboard";
+import { InternDashboard } from "./intern-dashboard";
 import { createClient } from "@/lib/supabase/server";
+import type { WorkLocation } from "@/lib/work-schedule";
+import { DashboardGreeting } from "@/components/dashboard/dashboard-greeting";
 import { OverviewClient } from "./overview-client";
 import { getDonutPalette } from "@/components/charts/palette";
 import {
@@ -9,6 +13,9 @@ import {
 import { PriorityPinsSection } from "./priorities-section";
 import { QuickActions } from "@/components/dashboard/quick-actions";
 import { TodaySummary } from "@/components/dashboard/today-summary";
+import { loadPayrollPeriod } from "@/lib/payroll-data";
+import { periodBounds } from "@/lib/payroll";
+import { PayrollSummaryCard } from "./payroll/payroll-summary-card";
 
 // Defensive helper so one failing query can't take down the whole page.
 async function safe<T>(
@@ -25,13 +32,30 @@ async function safe<T>(
 }
 
 export default async function DashboardPage() {
-  const session = await requireSession();
+  const session = await requireInternal();
+
+  // Branch BEFORE any query runs. A commercial must not see agency-wide
+  // finance, and the strongest guarantee is that the queries producing those
+  // figures are never issued for this session — not that the result is hidden
+  // after the fact. A conditional around the markup leaves the number one
+  // refactor away from being rendered and one network tab away from being read.
+  if (session.role === "commercial") {
+    return <CommercialDashboard session={session} />;
+  }
+  if (session.role === "intern") {
+    return <InternDashboard session={session} />;
+  }
+
   const supabase = await createClient();
 
   const now = new Date();
   const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const startOfPrevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const payrollBounds = periodBounds(now.getFullYear(), now.getMonth() + 1);
+  const payrollPromise = session.role === "worker"
+    ? loadPayrollPeriod(supabase, session.id, payrollBounds.start, payrollBounds.next)
+    : Promise.resolve(null);
 
   // 12-month window for bars
   const months: { key: string; label: string }[] = [];
@@ -458,7 +482,7 @@ export default async function DashboardPage() {
   );
 
   // ---- My work schedule (3-month window around current) ----
-  const myWorkSchedule: Record<string, "office" | "home"> = await safe(
+  const myWorkSchedule: Record<string, WorkLocation> = await safe(
     async () => {
       const { data } = await supabase
         .from("work_schedule")
@@ -466,13 +490,13 @@ export default async function DashboardPage() {
         .eq("user_id", session.id)
         .gte("date", scheduleStart)
         .lte("date", scheduleEnd);
-      const out: Record<string, "office" | "home"> = {};
+        const out: Record<string, WorkLocation> = {};
       for (const row of data ?? []) {
-        out[row.date as string] = row.location as "office" | "home";
+          out[row.date as string] = row.location as WorkLocation;
       }
       return out;
     },
-    {} as Record<string, "office" | "home">,
+    {} as Record<string, WorkLocation>,
     "workSchedule",
   );
 
@@ -623,13 +647,24 @@ export default async function DashboardPage() {
         "adminTaskCounts",
       )
     : null;
+  const workerPayroll = await payrollPromise;
 
   return (
-    <div className="space-y-7">
+    <div className="dashboard-overview space-y-7">
+      {/*
+        Order is deliberate: identity, then what you can do, then what needs
+        attention. The exception panels used to come first, so the page opened
+        on an alert about a quote before saying whose workspace it was.
+      */}
+      <DashboardGreeting
+        fullName={session.full_name ?? session.username}
+        role={session.role}
+      />
+      <QuickActions role={session.role} />
+      {workerPayroll && <PayrollSummaryCard calculation={workerPayroll} />}
       {isAdmin && staleDevis.length > 0 && (
         <StaleDevisBanner rows={staleDevis} />
       )}
-      <QuickActions role={session.role} />
       <TodaySummary
         overdueCount={summaryOverdue}
         dueTodayCount={summaryDueToday}

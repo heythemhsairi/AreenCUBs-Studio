@@ -70,7 +70,7 @@ function Avatar({ member }: { member: Pick<MemberStats, "avatar_url" | "full_nam
   }
 
   return (
-    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#22D3EE]/15 text-xs font-bold text-[#22D3EE]">
+    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent2/15 text-xs font-bold text-accent2">
       {initials}
     </div>
   );
@@ -80,12 +80,12 @@ function LoadBar({ active, max }: { active: number; max: number }) {
   const pct = max === 0 ? 0 : Math.min((active / max) * 100, 100);
   const color =
     active >= OVERLOAD_THRESHOLD
-      ? "bg-[#F43F5E]"
+      ? "bg-danger"
       : active >= OVERLOAD_THRESHOLD * 0.7
-        ? "bg-[#F59E0B]"
-        : "bg-[#22C55E]";
+        ? "bg-warning"
+        : "bg-success";
   return (
-    <div className="h-1.5 w-full rounded-full bg-[#22506F]">
+    <div className="h-1.5 w-full rounded-full bg-surface-3">
       <div className={cn("h-1.5 rounded-full transition-all", color)} style={{ width: `${pct}%` }} />
     </div>
   );
@@ -136,13 +136,13 @@ export function WorkloadView({
       </div>
 
       {/* Team grid */}
-      <div className="overflow-hidden rounded-2xl border border-[#22506F] bg-[#0D2D47]">
-        <div className="border-b border-[#22506F] bg-[#123A5A] px-4 py-2.5">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-[#94A3B8]">
+      <div className="overflow-hidden rounded-2xl border border-line bg-surface">
+        <div className="border-b border-line bg-surface-2 px-4 py-2.5">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-content-3">
             {tf.workloadTeamHeader(today)}
           </p>
         </div>
-        <div className="divide-y divide-[#1A3E5C]">
+        <div className="divide-y divide-surface-2">
           {members.map((m) => {
             const isOverloaded = m.active >= OVERLOAD_THRESHOLD;
             const isExpanded = expandedId === m.id;
@@ -150,7 +150,7 @@ export function WorkloadView({
             return (
               <div key={m.id}>
                 <div
-                  className="flex cursor-pointer items-start gap-3 px-4 py-3 transition-colors hover:bg-[#1A3E5C]"
+                  className="flex cursor-pointer items-start gap-3 px-4 py-3 transition-colors hover:bg-surface-2"
                   onClick={() => setExpandedId(isExpanded ? null : m.id)}
                 >
                   <Avatar member={m} />
@@ -159,21 +159,21 @@ export function WorkloadView({
                     <div className="flex flex-wrap items-center gap-2">
                       <Link
                         href={`/dashboard/team/${m.id}`}
-                        className="text-sm font-semibold text-[#F8FAFC] hover:text-[#22D3EE]"
+                        className="text-sm font-semibold text-content hover:text-accent2"
                         onClick={(e) => e.stopPropagation()}
                       >
                         {m.full_name ?? `@${m.username}`}
                       </Link>
                       {m.job_title && (
-                        <span className="text-xs text-[#64748B]">{m.job_title}</span>
+                        <span className="text-xs text-content-3">{m.job_title}</span>
                       )}
                       {isOverloaded && (
-                        <span className="rounded-full bg-[#F43F5E]/15 px-2 py-0.5 text-[10px] font-semibold text-[#F43F5E]">
+                        <span className="rounded-full bg-danger/15 px-2 py-0.5 text-[10px] font-semibold text-danger">
                           {tf.workloadOverloaded}
                         </span>
                       )}
                       {m.active === 0 && (
-                        <span className="rounded-full bg-[#22C55E]/15 px-2 py-0.5 text-[10px] font-semibold text-[#22C55E]">
+                        <span className="rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-semibold text-success">
                           {tf.workloadAvailableBadge}
                         </span>
                       )}
@@ -181,32 +181,32 @@ export function WorkloadView({
 
                     <LoadBar active={m.active} max={maxActive} />
 
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[#94A3B8]">
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-content-3">
                       <span>
-                        <strong className="text-[#F8FAFC]">{m.active}</strong> {tf.workloadActive}
+                        <strong className="text-content">{m.active}</strong> {tf.workloadActive}
                       </span>
                       {m.admin_tasks_active > 0 && (
-                        <span className="rounded-md bg-[#22D3EE]/10 px-1.5 py-0.5 text-[10px] font-medium text-[#22D3EE]">
+                        <span className="rounded-md bg-accent2/10 px-1.5 py-0.5 text-[10px] font-medium text-accent2">
                           {m.admin_tasks_active} {tf.workloadAdminTasksBadge}
                         </span>
                       )}
                       {m.in_progress > 0 && (
                         <span>
-                          <strong className="text-[#22D3EE]">{m.in_progress}</strong> {tf.workloadInProgress}
+                          <strong className="text-accent2">{m.in_progress}</strong> {tf.workloadInProgress}
                         </span>
                       )}
                       {m.review > 0 && (
                         <span>
-                          <strong className="text-[#F59E0B]">{m.review}</strong> {tf.workloadToValidate}
+                          <strong className="text-warning">{m.review}</strong> {tf.workloadToValidate}
                         </span>
                       )}
                       {m.overdue > 0 && (
                         <span>
-                          <strong className="text-[#F43F5E]">{m.overdue}</strong> {tf.workloadLate}
+                          <strong className="text-danger">{m.overdue}</strong> {tf.workloadLate}
                         </span>
                       )}
                       <span>
-                        <strong className="text-[#22C55E]">{m.done_month}</strong> {tf.workloadDoneMonth}
+                        <strong className="text-success">{m.done_month}</strong> {tf.workloadDoneMonth}
                       </span>
                       {m.total_tracked_seconds > 0 && (
                         <span>{fmtTime(m.total_tracked_seconds)} {tf.workloadTracked}</span>
@@ -218,13 +218,13 @@ export function WorkloadView({
                         {m.projects.slice(0, 5).map((p) => (
                           <span
                             key={p}
-                            className="rounded-md bg-[#22D3EE]/10 px-1.5 py-0.5 text-[10px] font-medium text-[#22D3EE]"
+                            className="rounded-md bg-accent2/10 px-1.5 py-0.5 text-[10px] font-medium text-accent2"
                           >
                             {p}
                           </span>
                         ))}
                         {m.projects.length > 5 && (
-                          <span className="text-[10px] text-[#64748B]">
+                          <span className="text-[10px] text-content-3">
                             +{m.projects.length - 5}
                           </span>
                         )}
@@ -234,7 +234,7 @@ export function WorkloadView({
 
                   <div className="flex shrink-0 items-center gap-2">
                     <svg
-                      className={cn("h-4 w-4 text-[#64748B] transition-transform", isExpanded && "rotate-180")}
+                      className={cn("h-4 w-4 text-content-3 transition-transform", isExpanded && "rotate-180")}
                       viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
                     >
                       <path d="m6 9 6 6 6-6" />
@@ -244,49 +244,49 @@ export function WorkloadView({
 
                 {/* Expanded: overdue tasks detail */}
                 {isExpanded && (
-                  <div className="border-t border-[#1A3E5C] bg-[#0D1117] px-4 pb-4 pt-3">
+                  <div className="border-t border-surface-2 bg-[#0D1117] px-4 pb-4 pt-3">
                     {m.active === 0 ? (
-                      <p className="text-sm text-[#64748B]">{tf.workloadNoActive}</p>
+                      <p className="text-sm text-content-3">{tf.workloadNoActive}</p>
                     ) : (
                       <div className="space-y-3">
                         {isOverloaded && (
-                          <div className="rounded-lg border border-[#F43F5E]/20 bg-[#F43F5E]/10 px-3 py-2 text-xs text-[#F43F5E]">
+                          <div className="rounded-lg border border-danger/20 bg-danger/10 px-3 py-2 text-xs text-danger">
                             {tf.workloadOverloadWarning(m.active, OVERLOAD_THRESHOLD)}
                           </div>
                         )}
 
                         {m.overdue_tasks.length > 0 && (
                           <div>
-                            <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-[#F43F5E]">
+                            <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-danger">
                               {tf.workloadOverdueHeader}
                             </p>
                             <div className="space-y-1">
                               {m.overdue_tasks.map((task) => (
                                 <div
                                   key={task.id}
-                                  className="flex items-center justify-between gap-2 rounded-lg border border-[#F43F5E]/15 bg-[#F43F5E]/8 px-3 py-2"
+                                  className="flex items-center justify-between gap-2 rounded-lg border border-danger/15 bg-danger/8 px-3 py-2"
                                 >
                                   <div className="min-w-0">
                                     <div className="flex items-center gap-2">
                                       <Link
                                         href={task.isAdminTask ? `/dashboard/admin-tasks/${task.id}` : `/dashboard/tasks/${task.id}`}
-                                        className="text-sm font-medium text-[#F8FAFC] hover:text-[#22D3EE]"
+                                        className="text-sm font-medium text-content hover:text-accent2"
                                       >
                                         {task.title}
                                       </Link>
                                       {task.isAdminTask && (
-                                        <span className="rounded-md bg-[#22D3EE]/10 px-1.5 py-0.5 text-[10px] font-semibold text-[#22D3EE]">
+                                        <span className="rounded-md bg-accent2/10 px-1.5 py-0.5 text-[10px] font-semibold text-accent2">
                                           {tf.workloadAdminTasksBadge}
                                         </span>
                                       )}
                                     </div>
-                                    <p className="text-[11px] text-[#64748B]">{task.project}</p>
+                                    <p className="text-[11px] text-content-3">{task.project}</p>
                                   </div>
                                   <div className="flex shrink-0 items-center gap-2">
                                     <Badge tone="red">+{task.days_late}d</Badge>
                                     <Link
                                       href={task.isAdminTask ? `/dashboard/admin-tasks/${task.id}` : `/dashboard/tasks/${task.id}`}
-                                      className="rounded-md bg-[#22D3EE]/10 px-2 py-1 text-xs font-medium text-[#22D3EE] hover:bg-[#22D3EE]/20"
+                                      className="rounded-md bg-accent2/10 px-2 py-1 text-xs font-medium text-accent2 hover:bg-accent2/20"
                                     >
                                       {tf.workloadViewLink}
                                     </Link>
@@ -298,7 +298,7 @@ export function WorkloadView({
                         )}
 
                         {m.overdue_tasks.length === 0 && m.active > 0 && (
-                          <p className="text-xs text-[#64748B]">{tf.workloadNoOverdue(m.active)}</p>
+                          <p className="text-xs text-content-3">{tf.workloadNoOverdue(m.active)}</p>
                         )}
                       </div>
                     )}
@@ -312,9 +312,9 @@ export function WorkloadView({
 
       {/* Overdue review table */}
       {summary.withOverdue.length > 0 && (
-        <div className="overflow-hidden rounded-2xl border border-[#22506F] bg-[#0D2D47]">
-          <div className="border-b border-[#22506F] bg-[#123A5A] px-4 py-2.5">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-[#F43F5E]">
+        <div className="overflow-hidden rounded-2xl border border-line bg-surface">
+          <div className="border-b border-line bg-surface-2 px-4 py-2.5">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-danger">
               {tf.workloadReviewTitle}
             </p>
           </div>
@@ -322,7 +322,7 @@ export function WorkloadView({
             <div className="overflow-x-auto">
               <table className="w-full min-w-[600px] text-sm">
                 <thead>
-                  <tr className="border-b border-[#22506F] text-left">
+                  <tr className="border-b border-line text-left">
                     <Th>{tf.workloadColTask}</Th>
                     <Th>{tf.workloadColOwner}</Th>
                     <Th>{tf.workloadColProject}</Th>
@@ -335,29 +335,29 @@ export function WorkloadView({
                     .flatMap((m) => m.overdue_tasks.map((task) => ({ ...task, member: m })))
                     .sort((a, b) => b.days_late - a.days_late)
                     .map((row) => (
-                      <tr key={`${row.id}-${row.member.id}`} className="border-b border-[#1A3E5C] last:border-0 hover:bg-[#1A3E5C]">
+                      <tr key={`${row.id}-${row.member.id}`} className="border-b border-surface-2 last:border-0 hover:bg-surface-2">
                         <Td>
                           <div className="flex items-center gap-2">
                             <Link
                               href={row.isAdminTask ? `/dashboard/admin-tasks/${row.id}` : `/dashboard/tasks/${row.id}`}
-                              className="font-medium text-[#F8FAFC] hover:text-[#22D3EE]"
+                              className="font-medium text-content hover:text-accent2"
                             >
                               {row.title}
                             </Link>
                             {row.isAdminTask && (
-                              <span className="rounded-md bg-[#22D3EE]/10 px-1.5 py-0.5 text-[10px] font-semibold text-[#22D3EE]">
+                              <span className="rounded-md bg-accent2/10 px-1.5 py-0.5 text-[10px] font-semibold text-accent2">
                                 {tf.workloadAdminTasksBadge}
                               </span>
                             )}
                           </div>
                         </Td>
                         <Td>
-                          <span className="text-[#94A3B8]">
+                          <span className="text-content-3">
                             {row.member.full_name ?? `@${row.member.username}`}
                           </span>
                         </Td>
                         <Td>
-                          <span className="text-[#64748B]">{row.project}</span>
+                          <span className="text-content-3">{row.project}</span>
                         </Td>
                         <Td>
                           <Badge tone="red">+{row.days_late}d</Badge>
@@ -365,7 +365,7 @@ export function WorkloadView({
                         <Td>
                           <Link
                             href={row.isAdminTask ? `/dashboard/admin-tasks/${row.id}` : `/dashboard/tasks/${row.id}`}
-                            className="rounded-md bg-[#22D3EE]/10 px-2 py-1 text-xs font-medium text-[#22D3EE] hover:bg-[#22D3EE]/20"
+                            className="rounded-md bg-accent2/10 px-2 py-1 text-xs font-medium text-accent2 hover:bg-accent2/20"
                           >
                             {tf.workloadOpenLink}
                           </Link>
@@ -387,25 +387,25 @@ function SummaryTile({ label, value, sub, tone }: {
   tone: "red" | "amber" | "green" | "neutral" | "slate";
 }) {
   const styles = {
-    red:     { card: "border-[#F43F5E]/20 bg-[#F43F5E]/8",  val: "text-[#F43F5E]" },
-    amber:   { card: "border-[#F59E0B]/20 bg-[#F59E0B]/8",  val: "text-[#F59E0B]" },
-    green:   { card: "border-[#22C55E]/20 bg-[#22C55E]/8",  val: "text-[#22C55E]" },
-    slate:   { card: "border-[#22506F] bg-[#123A5A]",        val: "text-[#94A3B8]" },
-    neutral: { card: "border-[#22506F] bg-[#0D2D47]",        val: "text-[#F8FAFC]" },
+    red:     { card: "border-danger/20 bg-danger/8",  val: "text-danger" },
+    amber:   { card: "border-warning/20 bg-warning/8",  val: "text-warning" },
+    green:   { card: "border-success/20 bg-success/8",  val: "text-success" },
+    slate:   { card: "border-line bg-surface-2",        val: "text-content-3" },
+    neutral: { card: "border-line bg-surface",        val: "text-content" },
   }[tone];
 
   return (
     <div className={cn("rounded-xl border p-3.5", styles.card)}>
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">{label}</p>
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-content-3">{label}</p>
       <p className={cn("mt-1.5 text-lg font-bold", styles.val)}>{value}</p>
-      <p className="text-[11px] text-[#64748B]">{sub}</p>
+      <p className="text-[11px] text-content-3">{sub}</p>
     </div>
   );
 }
 
 function Th({ children }: { children?: React.ReactNode }) {
   return (
-    <th className="px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#94A3B8]">
+    <th className="px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.06em] text-content-3">
       {children}
     </th>
   );

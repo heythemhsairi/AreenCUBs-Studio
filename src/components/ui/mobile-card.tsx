@@ -44,7 +44,7 @@ export function MobileCard({
   return (
     <div
       className={cn(
-        "bg-[#0D2D47] border border-[#22506F] rounded-xl p-4 flex flex-col gap-3",
+        "bg-surface border border-line rounded-xl p-4 flex flex-col gap-3",
         onClick && "cursor-pointer active:opacity-80 transition-opacity",
         className
       )}
@@ -54,13 +54,13 @@ export function MobileCard({
       <div className="flex items-start justify-between gap-2">
         <div className="flex flex-col gap-0.5 min-w-0">
           {/* Title */}
-          <div className="font-medium text-[#F8FAFC] leading-snug truncate">
+          <div className="font-medium text-content leading-snug truncate">
             {title}
           </div>
 
           {/* Subtitle */}
           {subtitle && (
-            <div className="text-sm text-[#64748B] leading-snug truncate">
+            <div className="text-sm text-content-3 leading-snug truncate">
               {subtitle}
             </div>
           )}
@@ -68,7 +68,7 @@ export function MobileCard({
 
         {/* Meta (top-right) */}
         {meta && (
-          <div className="text-xs text-[#64748B] text-right shrink-0 mt-0.5">
+          <div className="text-xs text-content-3 text-right shrink-0 mt-0.5">
             {meta}
           </div>
         )}
@@ -83,17 +83,17 @@ export function MobileCard({
           {/* Amount */}
           {hasAmount && (
             <div className="text-right shrink-0">
-              <div className="font-mono font-bold text-[#22C55E] text-base leading-none">
+              <div className="font-mono font-bold text-success text-base leading-none">
                 {amount.toLocaleString("fr-TN", {
                   minimumFractionDigits: 3,
                   maximumFractionDigits: 3,
                 })}{" "}
-                <span className="text-xs font-sans font-normal text-[#64748B]">
+                <span className="text-xs font-sans font-normal text-content-3">
                   TND
                 </span>
               </div>
               {amountLabel && (
-                <div className="text-xs text-[#64748B] mt-0.5">{amountLabel}</div>
+                <div className="text-xs text-content-3 mt-0.5">{amountLabel}</div>
               )}
             </div>
           )}
@@ -103,7 +103,7 @@ export function MobileCard({
       {/* Actions row */}
       {hasActions && (
         <div
-          className="flex items-center gap-2 pt-1 border-t border-[#22506F] flex-wrap"
+          className="flex items-center gap-2 pt-1 border-t border-line flex-wrap"
           onClick={(e) => e.stopPropagation()}
         >
           {actions.map((action, i) => {
@@ -111,8 +111,8 @@ export function MobileCard({
               "inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-[#3B82F6]";
             const variantClass =
               action.variant === "danger"
-                ? "text-[#EF4444] hover:bg-[#EF4444]/10 active:bg-[#EF4444]/20"
-                : "text-[#94A3B8] hover:bg-[#22506F] active:bg-[#2d3c55]";
+                ? "text-danger hover:bg-danger/10 active:bg-danger/20"
+                : "text-content-3 hover:bg-surface-3 active:bg-[#2d3c55]";
 
             if (action.href) {
               return (
@@ -149,14 +149,14 @@ export function MobileCardSkeleton({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "bg-[#0D2D47] border border-[#22506F] rounded-xl p-4 flex flex-col gap-3 animate-pulse",
+        "bg-surface border border-line rounded-xl p-4 flex flex-col gap-3 animate-pulse",
         className
       )}
     >
       {/* Top row */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex flex-col gap-1.5 flex-1 min-w-0">
-          <div className="h-4 w-2/3 bg-[#22506F] rounded-md" />
+          <div className="h-4 w-2/3 bg-surface-3 rounded-md" />
           <div className="h-3 w-1/2 bg-[#1e2d42] rounded-md" />
         </div>
         <div className="h-3 w-16 bg-[#1e2d42] rounded-md shrink-0 mt-0.5" />
@@ -169,7 +169,7 @@ export function MobileCardSkeleton({ className }: { className?: string }) {
       </div>
 
       {/* Actions row */}
-      <div className="flex items-center gap-2 pt-1 border-t border-[#22506F]">
+      <div className="flex items-center gap-2 pt-1 border-t border-line">
         <div className="h-7 w-16 bg-[#1e2d42] rounded-lg" />
         <div className="h-7 w-16 bg-[#1e2d42] rounded-lg" />
       </div>
@@ -186,7 +186,7 @@ export interface MobileCardListProps {
 
 export function MobileCardList({ children, className }: MobileCardListProps) {
   return (
-    <div className={cn("flex flex-col divide-y divide-[#22506F]", className)}>
+    <div className={cn("flex flex-col divide-y divide-line", className)}>
       {children}
     </div>
   );

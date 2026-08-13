@@ -5,49 +5,57 @@
 @layer base {
   :root {
     /* ── Design token CSS variables — dark (default) ── */
-    --c-bg:        #071B2C;
-    --c-page:      #08243A;
-    --c-card:      #0D2D47;
-    --c-elevated:  #123A5A;
-    --c-border:    #22506F;
-    --c-text-1:    #F4FAFF;
-    --c-text-2:    #B8D0E4;
-    --c-text-3:    #86A8C2;
-    --c-brand:     #2C6E96;
-    --c-cyan:      #22B8D6;
+    --c-bg:        rgb(var(--ac-canvas));
+    --c-page:      rgb(var(--ac-canvas));
+    --c-card:      rgb(var(--ac-surface));
+    --c-elevated:  rgb(var(--ac-surface-2));
+    --c-border:    rgb(var(--ac-border));
+    --c-text-1:    rgb(var(--ac-text));
+    --c-text-2:    rgb(var(--ac-text-2));
+    --c-text-3:    rgb(var(--ac-text-3));
+    --c-brand:     rgb(var(--ac-brand-600));
+    --c-cyan:      rgb(var(--ac-accent));
     --c-success:   #2ECC71;
     --c-warning:   #F4A62A;
     --c-danger:    #FF4D6D;
 
     --shadow-soft: 0 1px 2px rgba(0,10,20,0.15), 0 4px 14px rgba(0,10,20,0.2);
     --shadow-lift: 0 20px 40px -22px rgba(0,10,20,0.5), 0 8px 16px -8px rgba(0,10,20,0.25);
-    --shadow-brand: 0 22px 48px -22px rgba(34,184,214,0.4), 0 8px 18px -8px rgba(34,184,214,0.2);
+    --shadow-brand: 0 22px 48px -22px rgb(var(--ac-brand-500) / 0.38), 0 8px 18px -8px rgb(var(--ac-brand-400) / 0.20);
     --shadow-surface: 0 1px 3px rgba(0,0,0,0.5), 0 4px 16px rgba(0,0,0,0.4);
     --shadow-surface-lg: 0 8px 32px rgba(0,0,0,0.6), 0 2px 8px rgba(0,0,0,0.35);
 
     --bg-mesh:
-      radial-gradient(ellipse 900px 500px at 12% -10%, rgba(34,184,214,0.10), transparent 60%),
-      radial-gradient(ellipse 750px 550px at 95% 5%,  rgba(44,110,150,0.08), transparent 65%),
-      radial-gradient(ellipse 600px 400px at 50% 110%, rgba(34,184,214,0.06), transparent 60%);
+      radial-gradient(ellipse 900px 500px at 12% -10%, rgb(var(--ac-brand-500) / 0.12), transparent 60%),
+      radial-gradient(ellipse 750px 550px at 95% 5%, rgb(var(--ac-brand-400) / 0.09), transparent 65%),
+      radial-gradient(ellipse 600px 400px at 50% 110%, rgb(var(--ac-support) / 0.12), transparent 60%);
 
     --chart-track:   rgba(255,255,255,0.08);
-    --chart-bar-bg:  rgba(34,184,214,0.35);
+    --chart-bar-bg:  rgb(var(--ac-brand-400) / 0.35);
     --chart-paid-bg: rgba(46,204,113,0.55);
     --chart-text:    #F4FAFF;
   }
 
   /* ── Light mode token overrides ── */
   html.light {
-    --c-bg:       #F5F9FF;
-    --c-page:     #F8FBFF;
-    --c-card:     #FFFFFF;
-    --c-elevated: #F0F6FF;
-    --c-border:   #D8E6F7;
-    --c-text-1:   #102033;
-    --c-text-2:   #49627A;
-    --c-text-3:   #6C8298;
-    --c-brand:    #2C6E96;
-    --c-cyan:     #1A9DBF;
+    --c-bg:       rgb(var(--ac-canvas));
+    --c-page:     rgb(var(--ac-canvas));
+    --c-card:     rgb(var(--ac-surface));
+    --c-elevated: rgb(var(--ac-surface-2));
+    --c-border:   rgb(var(--ac-border));
+    --c-text-1:   rgb(var(--ac-text));
+    --c-text-2:   rgb(var(--ac-text-2));
+    /* WCAG AA. Measured by axe on the light surfaces this token actually
+       lands on: #6C8298 gave 3.97:1 on #FFFFFF, 3.76:1 on #F5F9FF and
+       3.14:1 on #D8E6F7 — the single largest source of violations, 30+ nodes.
+       #556575 keeps the same blue-grey hue and reads as the same tier of
+       muted text, at 5.99 / 5.67 / 4.73:1 respectively. */
+    --c-text-3:   rgb(var(--ac-text-3));
+    --c-brand:    rgb(var(--ac-brand-600));
+    /* #1A9DBF measured 2.92:1 on #F0F6FF and 2.84:1 on #E8F5F9. Darkened
+       along the same hue to 5.50 / 5.37:1 rather than switching to the brand
+       blue, so the accent keeps its identity. */
+    --c-cyan:     #0E6C87;
     --c-success:  #159A5B;
     --c-warning:  #C77800;
     --c-danger:   #D92D4A;
@@ -58,11 +66,11 @@
     --shadow-surface-lg: 0 8px 32px rgba(16,32,51,0.12), 0 2px 8px rgba(16,32,51,0.06);
 
     --bg-mesh:
-      radial-gradient(ellipse 900px 500px at 12% -10%, rgba(44,110,150,0.06), transparent 60%),
-      radial-gradient(ellipse 600px 400px at 95% 0%,  rgba(34,184,214,0.05), transparent 65%);
+      radial-gradient(ellipse 900px 500px at 12% -10%, rgb(var(--ac-brand-500) / 0.08), transparent 60%),
+      radial-gradient(ellipse 600px 400px at 95% 0%, rgb(var(--ac-brand-400) / 0.06), transparent 65%);
 
     --chart-track:   rgba(16,32,51,0.06);
-    --chart-bar-bg:  rgba(44,110,150,0.22);
+    --chart-bar-bg:  rgb(var(--ac-brand-400) / 0.22);
     --chart-paid-bg: rgba(21,154,91,0.55);
     --chart-text:    #102033;
   }
@@ -82,29 +90,45 @@
     background: var(--c-bg);
     background-attachment: fixed;
     color: var(--c-text-1);
-    font-family: var(--font-franklin), ui-sans-serif, system-ui, -apple-system,
-      "Segoe UI", Helvetica, Arial, sans-serif;
+    /* Latin first, unchanged. Noto Sans Arabic sits after it purely as a
+       fallback: the browser only reaches it for codepoints Manrope
+       has no glyph for, i.e. Arabic script. Latin rendering is unaffected. */
+    font-family: var(--font-manrope), ui-sans-serif, system-ui, -apple-system,
+      "Segoe UI", Helvetica, Arial, var(--font-noto-arabic), sans-serif;
     font-feature-settings: "ss01" on, "cv11" on;
+  }
+
+  /* Arabic content leads with Noto Sans Arabic rather than falling back to it.
+     Applies to any element explicitly marked as Arabic, and to descendants,
+     so a single lang="ar" section switches typeface without extra classes.
+
+     Scope note: this is typography only. Arabic translations and RTL layout
+     are deliberately NOT part of this phase — no `direction` or `text-align`
+     is set here, so marking an element lang="ar" changes the font and nothing
+     else. `dir="rtl"` remains an explicit, separate decision. */
+  [lang="ar"],
+  [lang="ar"] * {
+    font-family: var(--font-noto-arabic), var(--font-manrope), ui-sans-serif,
+      system-ui, "Segoe UI", sans-serif;
   }
 
   /* dark body gets the mesh overlay too */
   html:not(.light) body {
     background:
-      radial-gradient(ellipse 900px 500px at 12% -10%, rgba(34,184,214,0.08), transparent 60%),
-      radial-gradient(ellipse 750px 550px at 95% 5%,  rgba(44,110,150,0.06), transparent 65%),
-      radial-gradient(ellipse 600px 400px at 50% 110%, rgba(34,184,214,0.05), transparent 60%),
-      linear-gradient(180deg, #071B2C 0%, #08243A 50%, #071B2C 100%);
+      radial-gradient(ellipse 900px 500px at 12% -10%, rgb(var(--ac-brand-500) / 0.11), transparent 60%),
+      radial-gradient(ellipse 750px 550px at 95% 5%, rgb(var(--ac-brand-400) / 0.08), transparent 65%),
+      linear-gradient(180deg, rgb(var(--ac-canvas)) 0%, rgb(var(--ac-brand-950)) 100%);
   }
 
   html.light body {
     background:
-      radial-gradient(ellipse 900px 600px at 10% -5%, rgba(44,110,150,0.08), transparent 60%),
-      radial-gradient(ellipse 700px 500px at 90% 0%,  rgba(34,184,214,0.05), transparent 60%),
-      linear-gradient(180deg, #F5F9FF 0%, #EEF5FF 100%);
+      radial-gradient(ellipse 900px 600px at 10% -5%, rgb(var(--ac-brand-500) / 0.10), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 90% 0%, rgb(var(--ac-brand-400) / 0.07), transparent 60%),
+      linear-gradient(180deg, #F5F7F8 0%, rgb(var(--ac-canvas)) 100%);
   }
 
   ::selection {
-    background: rgba(34,184,214,0.25);
+    background: rgb(var(--ac-brand-400) / 0.28);
     color: var(--c-text-1);
   }
 
@@ -122,7 +146,7 @@
   }
   html.light *::-webkit-scrollbar-thumb { background: rgba(44,110,150,0.3); }
   *::-webkit-scrollbar-thumb:hover {
-    background: rgba(34,184,214,0.5);
+    background: rgb(var(--ac-accent) / 0.5);
     background-clip: padding-box;
     border: 2px solid transparent;
   }
@@ -132,7 +156,7 @@
   a:focus-visible, button:focus-visible, input:focus-visible,
   select:focus-visible, textarea:focus-visible,
   [role="button"]:focus-visible, [role="link"]:focus-visible {
-    outline: 2px solid rgba(34,184,214,0.6);
+    outline: 2px solid rgb(var(--ac-brand-500) / 0.70);
     outline-offset: 2px;
     border-radius: 6px;
   }
@@ -269,13 +293,13 @@
   }
 
   .text-gradient-brand {
-    background: linear-gradient(135deg, #22B8D6, #2C6E96);
+    background: linear-gradient(135deg, rgb(var(--ac-accent)), rgb(var(--ac-brand-600)));
     background-clip: text;
     -webkit-background-clip: text;
     color: transparent;
   }
   html.light .text-gradient-brand {
-    background: linear-gradient(135deg, #1A9DBF, #2C6E96 50%, #102033);
+    background: linear-gradient(135deg, #1A9DBF, rgb(var(--ac-brand-600)) 50%, #102033);
     background-clip: text;
     -webkit-background-clip: text;
     color: transparent;
@@ -321,19 +345,19 @@
   .ring-gradient {
     background:
       linear-gradient(var(--c-card), var(--c-card)) padding-box,
-      linear-gradient(135deg, #22B8D6, #A78BFA) border-box;
+      linear-gradient(135deg, rgb(var(--ac-accent)), rgb(var(--ac-chart-4))) border-box;
     border: 1.5px solid transparent;
   }
 
   .gradient-border {
     background:
       linear-gradient(var(--c-card), var(--c-card)) padding-box,
-      linear-gradient(135deg, #22B8D6, #A78BFA) border-box;
+      linear-gradient(135deg, rgb(var(--ac-accent)), rgb(var(--ac-chart-4))) border-box;
     border: 1px solid transparent;
   }
 
-  .neon-text-cyan  { color: #22B8D6; text-shadow: 0 0 20px rgba(34,184,214,0.5); }
-  .neon-border-cyan { border-color: #22B8D6; box-shadow: 0 0 12px rgba(34,184,214,0.3); }
+  .neon-text-cyan  { color: rgb(var(--ac-accent)); text-shadow: 0 0 20px rgb(var(--ac-accent) / 0.5); }
+  .neon-border-cyan { border-color: rgb(var(--ac-accent)); box-shadow: 0 0 12px rgb(var(--ac-accent) / 0.3); }
 
   /* Reusable form input style — picks up global dark/light overrides */
   .input-base {
@@ -350,8 +374,8 @@
   }
   .input-base:focus {
     outline: none;
-    border-color: #22D3EE;
-    box-shadow: 0 0 0 3px rgba(34,211,238,0.12);
+    border-color: rgb(var(--ac-brand-500));
+    box-shadow: 0 0 0 3px rgb(var(--ac-brand-500) / 0.14);
   }
   .input-base::placeholder { color: var(--c-text-3); opacity: 0.7; }
   .input-base option { background: var(--c-card); color: var(--c-text-1); }
@@ -365,418 +389,72 @@
   .shadow-surface-lg { box-shadow: var(--shadow-surface-lg); }
 }
 
+/* The overview arrives as one composition, with short staggered movement that
+   preserves orientation. Reduced-motion users receive the final state. */
+.dashboard-welcome {
+  animation: overview-enter var(--ac-dur-3) var(--ac-ease) both;
+}
+
+.dashboard-overview > *:not(:first-child),
+.overview-sections > * {
+  animation: overview-enter var(--ac-dur-3) var(--ac-ease) both;
+}
+
+.dashboard-overview > *:nth-child(2), .overview-sections > *:nth-child(1) { animation-delay: 40ms; }
+.dashboard-overview > *:nth-child(3), .overview-sections > *:nth-child(2) { animation-delay: 80ms; }
+.dashboard-overview > *:nth-child(4), .overview-sections > *:nth-child(3) { animation-delay: 120ms; }
+.overview-sections > *:nth-child(n + 4) { animation-delay: 160ms; }
+
+.brand-mark-motion {
+  animation: brand-mark-enter var(--ac-dur-3) var(--ac-ease) 80ms both;
+}
+
+@keyframes overview-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes brand-mark-enter {
+  from { opacity: 0; transform: translateY(8px) rotate(-5deg) scale(0.94); }
+  to { opacity: 1; transform: translateY(0) rotate(0) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-welcome,
+  .dashboard-overview > *,
+  .overview-sections > *,
+  .brand-mark-motion,
+  .pulse-dot::after {
+    animation: none;
+  }
+  html { scroll-behavior: auto; }
+}
+
 /* =========================================================================
    DARK MODE — override hardcoded hex tokens used throughout the codebase.
    Dark is the default; these run when html does NOT have .light.
    ========================================================================= */
 
-/* Legacy ink tokens (near-black → light text) */
-html:not(.light) .text-ink    { color: #F4FAFF !important; }
-html:not(.light) .text-ink\/30 { color: rgba(244,250,255,0.30) !important; }
-html:not(.light) .text-ink\/35 { color: rgba(244,250,255,0.35) !important; }
-html:not(.light) .text-ink\/40 { color: rgba(244,250,255,0.40) !important; }
-html:not(.light) .text-ink\/45 { color: rgba(244,250,255,0.45) !important; }
-html:not(.light) .text-ink\/50 { color: rgba(244,250,255,0.50) !important; }
-html:not(.light) .text-ink\/55 { color: rgba(244,250,255,0.55) !important; }
-html:not(.light) .text-ink\/60 { color: rgba(244,250,255,0.60) !important; }
-html:not(.light) .text-ink\/65 { color: rgba(244,250,255,0.65) !important; }
-html:not(.light) .text-ink\/70 { color: rgba(244,250,255,0.70) !important; }
-html:not(.light) .text-ink\/75 { color: rgba(244,250,255,0.75) !important; }
-html:not(.light) .text-ink\/80 { color: rgba(244,250,255,0.80) !important; }
+/* ═══════════════════════════════════════════════════════════════════════
+   The override tables that used to live here are GONE — and their absence
+   is the point of the redesign, not a side effect of it.
 
-html:not(.light) .bg-ink\/5   { background-color: rgba(244,250,255,0.05) !important; }
-html:not(.light) .bg-ink\/8   { background-color: rgba(244,250,255,0.08) !important; }
-html:not(.light) .bg-ink\/10  { background-color: rgba(244,250,255,0.10) !important; }
-html:not(.light) .bg-ink\/50  { background-color: rgba(0,0,0,0.50) !important; }
+   There were two, ~560 lines together:
 
-html:not(.light) .border-ink\/8  { border-color: rgba(34,80,111,0.5) !important; }
-html:not(.light) .border-ink\/10 { border-color: rgba(34,80,111,0.6) !important; }
-html:not(.light) .border-ink\/12 { border-color: rgba(34,80,111,0.65) !important; }
-html:not(.light) .border-ink\/15 { border-color: rgba(34,80,111,0.7) !important; }
-html:not(.light) .border-ink\/20 { border-color: rgba(34,80,111,0.8) !important; }
-html:not(.light) .border-ink\/25 { border-color: rgba(34,80,111,0.9) !important; }
+     html.light  .bg-\[\#0D2D47\] { ... !important }   (~470 lines)
+     html:not(.light) .text-ink   { ... !important }   (~90 lines)
 
-/* Hardcoded dark hex surfaces → new dark-blue palette */
-html:not(.light) .bg-\[\#0B0F14\]  { background-color: #071B2C !important; }
-html:not(.light) .bg-\[\#111827\]  { background-color: #0D2D47 !important; }
-html:not(.light) .bg-\[\#18212F\]  { background-color: #123A5A !important; }
-html:not(.light) .bg-\[\#1E2A3A\]  { background-color: #1A3E5C !important; }
-html:not(.light) .bg-\[\#0B0F14\]\/90 { background-color: rgba(7,27,44,0.90) !important; }
+   Both existed for the same reason: components named literal colours, so
+   the second theme had to be repainted on top of them by selector. That is
+   why a single new component could look right in one theme and unreadable
+   in the other, and why a contrast fix meant hunting a hex through a patch
+   list instead of changing one value.
 
-/* Borders */
-html:not(.light) .border-\[\#263244\] { border-color: #22506F !important; }
-html:not(.light) .divide-\[\#263244\] > * + * { border-color: #22506F !important; }
-html:not(.light) .divide-\[\#1E293B\] > * + * { border-color: #1A3E5C !important; }
-html:not(.light) .divide-\[\#1E2A3A\] > * + * { border-color: #1A3E5C !important; }
+   Components now name ROLES (bg-surface, text-content-3, border-line) that
+   resolve through RGB-triplet variables in src/styles/tokens.css, and the
+   legacy names (ink, cream, brand, accent) point at those same roles in
+   tailwind.config.ts. Both themes are one lookup. Nothing needs !important.
 
-/* Text in explicit dark hex */
-html:not(.light) .text-\[\#F8FAFC\]  { color: #F4FAFF !important; }
-html:not(.light) .text-\[\#94A3B8\]  { color: #B8D0E4 !important; }
-html:not(.light) .text-\[\#64748B\]  { color: #86A8C2 !important; }
-
-/* White backgrounds (legacy kanban cards, etc.) */
-html:not(.light) .bg-white { background-color: #0D2D47 !important; }
-html:not(.light) .bg-white\/40 { background-color: rgba(244,250,255,0.04) !important; }
-html:not(.light) .bg-white\/45 { background-color: rgba(244,250,255,0.05) !important; }
-html:not(.light) .bg-white\/50 { background-color: rgba(244,250,255,0.05) !important; }
-html:not(.light) .bg-white\/55 { background-color: rgba(244,250,255,0.05) !important; }
-html:not(.light) .bg-white\/60 { background-color: rgba(244,250,255,0.06) !important; }
-html:not(.light) .bg-white\/70 { background-color: rgba(244,250,255,0.07) !important; }
-html:not(.light) .bg-white\/8  { background-color: rgba(244,250,255,0.08) !important; }
-
-/* cream tokens */
-html:not(.light) .bg-cream\/30 { background-color: rgba(244,250,255,0.04) !important; }
-html:not(.light) .bg-cream\/50 { background-color: rgba(244,250,255,0.06) !important; }
-html:not(.light) .bg-cream\/60 { background-color: rgba(244,250,255,0.07) !important; }
-html:not(.light) .bg-cream-dark\/40 { background-color: rgba(244,250,255,0.05) !important; }
-html:not(.light) .bg-cream-dark\/50 { background-color: rgba(244,250,255,0.06) !important; }
-
-/* Forms */
-html:not(.light) input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
-html:not(.light) select,
-html:not(.light) textarea {
-  background-color: #0D2D47 !important;
-  border-color: #22506F !important;
-  color: #F4FAFF !important;
-}
-html:not(.light) input::placeholder,
-html:not(.light) textarea::placeholder {
-  color: rgba(184,208,228,0.5) !important;
-}
-
-/* deadline/overdue chips that use red-50/red-700 */
-html:not(.light) .bg-red-50 { background-color: rgba(255,77,109,0.12) !important; }
-html:not(.light) .text-red-700 { color: #FF4D6D !important; }
-html:not(.light) .text-red-600 { color: #FF4D6D !important; }
-
-/* =========================================================================
-   LIGHT MODE — all hardcoded dark hex tokens flipped to light palette
-   ========================================================================= */
-
-/* Main surfaces */
-html.light body { color: #102033; }
-
-html.light .bg-\[\#0B0F14\]  { background-color: #F5F9FF !important; }
-html.light .bg-\[\#111827\]  { background-color: #FFFFFF !important; }
-html.light .bg-\[\#18212F\]  { background-color: #F0F6FF !important; }
-html.light .bg-\[\#1E2A3A\]  { background-color: #E8F2FF !important; }
-html.light .bg-\[\#0B0F14\]\/90 { background-color: rgba(245,249,255,0.92) !important; }
-
-/* Borders */
-html.light .border-\[\#263244\]  { border-color: #D8E6F7 !important; }
-html.light .divide-\[\#263244\] > * + * { border-color: #D8E6F7 !important; }
-html.light .divide-\[\#1E293B\] > * + * { border-color: #D8E6F7 !important; }
-html.light .divide-\[\#1E2A3A\] > * + * { border-color: #D8E6F7 !important; }
-
-/* Text */
-html.light .text-\[\#F8FAFC\]  { color: #102033 !important; }
-html.light .text-\[\#94A3B8\]  { color: #49627A !important; }
-html.light .text-\[\#64748B\]  { color: #6C8298 !important; }
-html.light .text-\[\#3F4C59\]  { color: #6C8298 !important; }
-html.light .text-\[\#CBD5E1\]  { color: #49627A !important; }
-html.light .text-\[\#F4FAFF\]  { color: #102033 !important; }
-html.light .text-\[\#B8D0E4\]  { color: #49627A !important; }
-html.light .text-\[\#86A8C2\]  { color: #6C8298 !important; }
-
-/* ink tokens in light mode behave naturally (they're already dark) */
-html.light .text-ink    { color: #102033 !important; }
-html.light .text-ink\/55 { color: rgba(16,32,51,0.55) !important; }
-html.light .text-ink\/65 { color: rgba(16,32,51,0.65) !important; }
-html.light .text-ink\/70 { color: rgba(16,32,51,0.70) !important; }
-
-/* white/cream surfaces stay white in light mode */
-html.light .bg-white { background-color: #FFFFFF !important; }
-html.light .bg-white\/40 { background-color: rgba(255,255,255,0.6) !important; }
-html.light .bg-white\/70 { background-color: rgba(255,255,255,0.8) !important; }
-html.light .bg-cream\/50  { background-color: rgba(248,251,255,0.7) !important; }
-html.light .bg-cream\/60  { background-color: rgba(248,251,255,0.8) !important; }
-html.light .bg-cream-dark\/40 { background-color: rgba(240,246,255,0.6) !important; }
-
-/* Brand cyan — stays readable in light */
-html.light .text-\[\#22D3EE\] { color: #1A9DBF !important; }
-html.light .text-\[\#22B8D6\] { color: #1A9DBF !important; }
-html.light .border-\[\#22D3EE\]\/40 { border-color: rgba(26,157,191,0.35) !important; }
-html.light .bg-\[\#22D3EE\]\/10 { background-color: rgba(26,157,191,0.10) !important; }
-html.light .bg-\[\#22D3EE\]\/15 { background-color: rgba(26,157,191,0.12) !important; }
-
-/* Kanban column headers in light mode */
-html.light .bg-white\/70.ring-1 { background-color: #FFFFFF !important; }
-html.light .ring-\[\#263244\]   { --tw-ring-color: #D8E6F7 !important; }
-
-/* Forms */
-html.light input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
-html.light select,
-html.light textarea {
-  background-color: #FFFFFF !important;
-  border-color: #D8E6F7 !important;
-  color: #102033 !important;
-}
-html.light input::placeholder,
-html.light textarea::placeholder {
-  color: rgba(16,32,51,0.4) !important;
-}
-
-/* Kanban card bg-white override */
-html.light .rounded-xl.border.border-ink\/8.bg-white {
-  background-color: #FFFFFF !important;
-  border-color: #D8E6F7 !important;
-}
-
-/* Overdue chips in light mode */
-html.light .bg-red-50  { background-color: rgba(217,45,74,0.08) !important; }
-html.light .text-red-700 { color: #D92D4A !important; }
-html.light .text-red-600 { color: #D92D4A !important; }
-
-/* Topbar in light */
-html.light header.sticky { background-color: rgba(248,251,255,0.92) !important; }
-
-/* Sidebar in light */
-html.light aside { background-color: #FFFFFF !important; }
-
-/* Status select in kanban cards */
-html.light .bg-cream\/50 { background-color: rgba(240,246,255,0.8) !important; }
-html.light .border-ink\/10 { border-color: #D8E6F7 !important; }
-
-/* Chart tokens */
-html.light {
-  --chart-track:   rgba(16,32,51,0.06);
-  --chart-bar-bg:  rgba(44,110,150,0.22);
-  --chart-paid-bg: rgba(21,154,91,0.55);
-  --chart-text:    #102033;
-}
-
-/* Badge overrides — slate/dark bg tokens need light equivalents */
-html.light .bg-\[\#334155\]      { background-color: rgba(16,32,51,0.08) !important; }
-html.light .bg-\[\#475569\]\/25  { background-color: rgba(16,32,51,0.08) !important; }
-html.light .bg-\[\#1E3A5F\]\/60  { background-color: rgba(44,110,150,0.12) !important; }
-html.light .text-\[\#94A3B8\]    { color: #49627A !important; }
-html.light .text-\[\#CBD5E1\]    { color: #49627A !important; }
-html.light .text-\[\#64748B\]    { color: #6C8298 !important; }
-html.light .text-\[\#93C5FD\]    { color: #2C6E96 !important; }
-html.light .border-\[\#475569\]\/30 { border-color: rgba(16,32,51,0.15) !important; }
-html.light .border-\[\#64748B\]\/40  { border-color: rgba(16,32,51,0.18) !important; }
-html.light .border-\[\#3B82F6\]\/30  { border-color: rgba(44,110,150,0.25) !important; }
-
-/* New Areen-blue palette cards/surfaces in light */
-html.light .bg-\[\#0D2D47\]      { background-color: #FFFFFF !important; }
-html.light .bg-\[\#071B2C\]      { background-color: #F5F9FF !important; }
-html.light .bg-\[\#123A5A\]      { background-color: #F0F6FF !important; }
-html.light .bg-\[\#1A3E5C\]      { background-color: #E8F2FF !important; }
-html.light .border-\[\#22506F\]   { border-color: #D8E6F7 !important; }
-html.light .divide-\[\#22506F\] > * + * { border-color: #D8E6F7 !important; }
-html.light .bg-\[\#22506F\]      { background-color: rgba(44,110,150,0.10) !important; }
-html.light .hover\:bg-\[\#1A3E5C\]:hover { background-color: rgba(44,110,150,0.08) !important; }
-html.light .bg-\[\#071B2C\]\/50  { background-color: rgba(220,234,250,0.55) !important; }
-html.light .bg-\[\#071B2C\]\/60  { background-color: rgba(245,249,255,0.8) !important; }
-html.light .bg-\[\#071B2C\]\/70  { background-color: #EEF5FF !important; }
-html.light .bg-\[\#071B2C\]\/80  { background-color: #E8F2FF !important; }
-html.light .bg-\[\#071B2C\]\/90  { background-color: rgba(248,251,255,0.92) !important; }
-
-/* Kanban column drop-zone hover in light */
-html.light .border-\[\#22D3EE\]\/40 { border-color: rgba(26,157,191,0.4) !important; }
-html.light .bg-\[\#22D3EE\]\/5   { background-color: rgba(26,157,191,0.06) !important; }
-html.light .ring-\[\#22D3EE\]\/20 { --tw-ring-color: rgba(26,157,191,0.2) !important; }
-
-/* Kanban card: overdue left bar + border */
-html.light .bg-\[\#F43F5E\]\/50  { background-color: rgba(217,45,74,0.4) !important; }
-html.light .border-\[\#F43F5E\]\/30 { border-color: rgba(217,45,74,0.3) !important; }
-
-/* Kanban card hover border */
-html.light .hover\:border-\[\#22D3EE\]\/30:hover { border-color: rgba(26,157,191,0.3) !important; }
-
-/* Kanban card title & project text */
-html.light .text-\[\#F8FAFC\]    { color: #102033 !important; }
-html.light .text-\[\#3D5068\]    { color: #6C8298 !important; }
-
-/* Kanban status select */
-html.light select.bg-\[\#071B2C\]\/70,
-html.light .bg-\[\#071B2C\]\/70 select { background-color: #F0F6FF !important; }
-
-/* Kanban column header status text */
-html.light .text-\[\#64748B\]    { color: #6C8298 !important; }
-
-/* Kanban empty drop zone */
-html.light .border-\[\#22506F\].border-dashed { border-color: #B8D0E4 !important; }
-html.light .text-\[\#374151\]    { color: #6C8298 !important; }
-
-/* =========================================================================
-   SLATE COLOR OVERRIDES — slate-* are near-black, invisible in dark mode
-   ========================================================================= */
-
-html:not(.light) .text-slate-900 { color: #F4FAFF !important; }
-html:not(.light) .text-slate-800 { color: #E2EFF9 !important; }
-html:not(.light) .text-slate-700 { color: #B8D0E4 !important; }
-html:not(.light) .text-slate-600 { color: #B8D0E4 !important; }
-html:not(.light) .text-slate-500 { color: #86A8C2 !important; }
-html:not(.light) .text-slate-400 { color: #86A8C2 !important; }
-html:not(.light) .bg-slate-900    { background-color: #071B2C !important; }
-html:not(.light) .bg-slate-800    { background-color: #0D2D47 !important; }
-html:not(.light) .bg-slate-700    { background-color: #123A5A !important; }
-html:not(.light) .border-slate-700 { border-color: #22506F !important; }
-html:not(.light) .border-slate-600 { border-color: #22506F !important; }
-
-/* Light mode: slate colors behave naturally (they're dark on white) */
-html.light .text-slate-900 { color: #102033 !important; }
-html.light .text-slate-800 { color: #1E3A55 !important; }
-html.light .text-slate-600 { color: #49627A !important; }
-html.light .text-slate-500 { color: #6C8298 !important; }
-
-/* =========================================================================
-   COMMAND PALETTE — light mode override
-   ========================================================================= */
-
-html.light .command-palette-modal { background-color: #FFFFFF !important; border-color: #D8E6F7 !important; }
-
-/* =========================================================================
-   DUE TODAY SUMMARY CARD (TodaySummary component — admin/freelancer dashboard)
-   ========================================================================= */
-
-.due-today-summary {
-  background: linear-gradient(135deg, rgba(34,211,238,0.13) 0%, #0D2D47 100%);
-  border: 1px solid rgba(34,211,238,0.28);
-}
-.due-today-summary:hover {
-  background: linear-gradient(135deg, rgba(34,211,238,0.18) 0%, #0D2D47 100%);
-}
-html.light .due-today-summary {
-  background: linear-gradient(135deg, rgba(34,211,238,0.10) 0%, #EBF7FC 100%);
-  border: 1px solid rgba(34,211,238,0.32);
-}
-html.light .due-today-summary:hover {
-  background: linear-gradient(135deg, rgba(34,211,238,0.16) 0%, #D6F1FA 100%);
-}
-
-.due-today-summary-icon {
-  background: rgba(34,211,238,0.18);
-  color: #22D3EE;
-  box-shadow: 0 0 0 1px rgba(34,211,238,0.30);
-}
-html.light .due-today-summary-icon {
-  background: rgba(34,211,238,0.12);
-  color: #0D7FA3;
-  box-shadow: 0 0 0 1px rgba(34,211,238,0.28);
-}
-
-.due-today-summary-label { color: rgba(34,211,238,0.90); }
-html.light .due-today-summary-label { color: #0D5C75; }
-
-.due-today-summary-count { color: #F4FAFF; }
-html.light .due-today-summary-count { color: #102033; }
-
-.due-today-summary-link { color: #22D3EE; }
-html.light .due-today-summary-link { color: #0D7FA3; }
-
-/* =========================================================================
-   DUE TODAY CARD (worker dashboard)
-   ========================================================================= */
-
-/* Active state — tasks exist */
-.due-today-active {
-  background: linear-gradient(135deg, rgba(34,211,238,0.13) 0%, rgba(13,45,71,0.96) 100%);
-  border: 1px solid rgba(34,211,238,0.28);
-}
-.due-today-active:hover {
-  background: linear-gradient(135deg, rgba(34,211,238,0.18) 0%, rgba(13,45,71,0.96) 100%);
-}
-html.light .due-today-active {
-  background: linear-gradient(135deg, rgba(34,211,238,0.10) 0%, rgba(230,248,252,0.85) 100%);
-  border: 1px solid rgba(34,211,238,0.32);
-}
-html.light .due-today-active:hover {
-  background: linear-gradient(135deg, rgba(34,211,238,0.16) 0%, rgba(210,244,252,0.90) 100%);
-}
-
-/* Empty state — no tasks */
-.due-today-empty {
-  background: var(--c-card);
-  border: 1px solid var(--c-border);
-}
-
-/* Icon + number colors */
-.due-today-icon  { color: #22D3EE; }
-.due-today-number { color: #22D3EE; }
-html.light .due-today-icon   { color: #1A9DBF; }
-html.light .due-today-number { color: #1A9DBF; }
-
-/* =========================================================================
-   FEATURED CARD
-   ========================================================================= */
-
-.featured-card {
-  background:
-    radial-gradient(circle at 6% 12%,  rgba(44,110,150,0.55),  transparent 45%),
-    radial-gradient(circle at 95% 18%, rgba(34,184,214,0.32),  transparent 42%),
-    radial-gradient(circle at 0% 100%, rgba(44,110,150,0.40),  transparent 55%),
-    radial-gradient(circle at 100% 100%, rgba(34,184,214,0.25), transparent 50%),
-    linear-gradient(135deg, #051525 0%, #0D2D47 55%, #071B2C 100%);
-  position: relative;
-}
-.featured-card::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(circle at 50% 50%, rgba(34,184,214,0.06), transparent 70%);
-  border-radius: inherit;
-}
-
-html.light .featured-card {
-  background:
-    radial-gradient(circle at 8% 14%,  rgba(44,110,150,0.10),  transparent 55%),
-    radial-gradient(circle at 92% 20%, rgba(34,184,214,0.08),  transparent 50%),
-    radial-gradient(circle at 5% 90%,  rgba(34,184,214,0.06),  transparent 55%),
-    linear-gradient(135deg, #EBF6FC 0%, #FFFFFF 60%);
-}
-html.light .featured-card::after {
-  background: none;
-}
-/* Hide dark glow blobs in light mode */
-html.light .featured-card > [aria-hidden].blur-3xl {
-  display: none;
-}
-
-/* Badge */
-.featured-badge {
-  background: rgba(34,211,238,0.14);
-  color: #A5F3FC;
-  box-shadow: 0 0 0 1px rgba(34,211,238,0.35);
-}
-html.light .featured-badge {
-  background: #D6F1FA;
-  color: #0D5C75;
-  box-shadow: 0 0 0 1px rgba(34,211,238,0.40);
-}
-
-/* Employee name */
-.featured-name { color: #F4FAFF; }
-html.light .featured-name { color: #102033; }
-
-/* Month label */
-.featured-month { color: rgba(244,250,255,0.55); }
-html.light .featured-month { color: #49627A; }
-
-/* Quote */
-.featured-quote { color: rgba(244,250,255,0.70); font-style: italic; }
-html.light .featured-quote { color: #49627A; font-style: italic; }
-
-/* Edit button */
-.featured-edit-btn {
-  border: 1px solid rgba(255,255,255,0.15);
-  background: rgba(255,255,255,0.10);
-  color: rgba(244,250,255,0.95);
-}
-.featured-edit-btn:hover {
-  border-color: rgba(34,184,214,0.55);
-  background: rgba(34,184,214,0.22);
-  color: #ffffff;
-}
-html.light .featured-edit-btn {
-  border: 1px solid rgba(34,184,214,0.35);
-  background: rgba(34,184,214,0.08);
-  color: #0D5C75;
-}
-html.light .featured-edit-btn:hover {
-  border-color: rgba(34,184,214,0.55);
-  background: rgba(34,184,214,0.16);
-  color: #0D5C75;
-}
+   If a component ever needs a colour with no role, add the role — do not
+   reintroduce a literal and a patch for it.
+   ═══════════════════════════════════════════════════════════════════════ */

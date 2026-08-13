@@ -15,6 +15,7 @@ type Devis = {
   discount_dt: number;
   tva_dt: number;
   tva_rate: number;
+  tva_enabled?: boolean;
   stamp_dt: number;
   total_dt: number;
 };
@@ -44,6 +45,9 @@ export function DevisPrintView({
   items: Item[];
   settings: AppSettings;
 }) {
+  // Historical documents predate the column and default to enabled, which is
+  // what their stored totals already mean.
+  const tvaEnabled = devis.tva_enabled ?? true;
   const isFacture = devis.kind === "facture";
   const docType = isFacture ? "FACTURE" : "DEVIS";
   const fullNumber = formatDevisNumber(devis.devis_number, devis.kind);
@@ -141,7 +145,15 @@ export function DevisPrintView({
           {items.map((it, i) => (
             <tr key={i}>
               <td className="col-desc">{it.description}</td>
-              <td className="col-tax">TVA {Number(devis.tva_rate).toFixed(0)}%</td>
+              {/*
+                The per-line tax column. On a TVA-disabled document this
+                previously printed "TVA 19%" against EVERY line of the paper
+                the client receives — a rate stated on a document that charges
+                none. A dash states nothing.
+              */}
+              <td className="col-tax">
+                {tvaEnabled ? `TVA ${Number(devis.tva_rate).toFixed(0)}%` : "—"}
+              </td>
               <td className="col-unit right">
                 {it.is_bonus ? "Bonus" : `${it.unit_price_dt} DT`}
               </td>
@@ -190,10 +202,12 @@ export function DevisPrintView({
                 </div>
               </>
             )}
-            <div className="totals-row">
-              <span>TVA ({Number(devis.tva_rate).toFixed(0)}%)</span>
-              <strong>{formatDt(devis.tva_dt)}</strong>
-            </div>
+            {tvaEnabled && (
+              <div className="totals-row">
+                <span>TVA ({Number(devis.tva_rate).toFixed(0)}%)</span>
+                <strong>{formatDt(devis.tva_dt)}</strong>
+              </div>
+            )}
             {devis.stamp_dt > 0 && (
               <div className="totals-row">
                 <span>Timbre fiscal</span>
@@ -238,7 +252,7 @@ export function DevisPrintView({
           padding: 0;
           background: #e9eef2;
           color: var(--ink);
-          font-family: var(--font-franklin), ui-sans-serif, system-ui,
+          font-family: var(--font-manrope), ui-sans-serif, system-ui,
             -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
           font-size: var(--base-fs);
           line-height: 1.4;

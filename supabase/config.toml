@@ -1,4 +1,65 @@
-# Areen CUBs Studio — Supabase project config
-# Used by the Supabase CLI. The project_id is the ref of the linked Supabase project.
+# Areen CUBs Studio — Supabase CLI config
+#
+# `project_id` is the ref of the LINKED REMOTE project. It is what
+# `npm run db:push` targets.
+#
+#   ⚠  THE LINKED PROJECT IS PRODUCTION.
+#      `npm run db:push` applies migrations to live data. Use the local
+#      staging stack (`npm run db:start`) for all development and testing.
+#      See docs/STAGING.md.
+#
+# Everything below `[api]` configures the LOCAL stack only. None of it
+# affects the remote project.
 
 project_id = "exdatjsgeomejhdofgvw"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+# Caps rows returned by PostgREST, mirroring the hosted default.
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+# Must match the hosted project's major version so migrations behave
+# identically here and there.
+major_version = 17
+
+[studio]
+enabled = true
+port = 54323
+api_url = "http://127.0.0.1:54321"
+
+# Local mailbox. Auth emails (invites, recovery) are captured here instead of
+# being delivered, so staging can never email a real client.
+[inbucket]
+enabled = true
+port = 54324
+
+[storage]
+enabled = true
+file_size_limit = "50MiB"
+
+[auth]
+enabled = true
+site_url = "http://127.0.0.1:3000"
+additional_redirect_urls = ["http://localhost:3000"]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+refresh_token_reuse_interval = 10
+# Staging accounts are created by supabase/seed.sql, not by self-service.
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+# The app signs in with synthetic addresses (username@areencubs.studio) that
+# no mailbox can receive. Confirmation is therefore disabled locally so seeded
+# accounts are usable immediately. The hosted project is unaffected.
+enable_confirmations = false
+
+[analytics]
+enabled = false

@@ -39,7 +39,7 @@ export function ProjectDetailActions({
         <Button
           variant="outline"
           size="sm"
-          className="border-red-300 text-red-700 hover:bg-red-50"
+          className="border-danger text-danger hover:bg-danger-weak"
           onClick={onDelete}
           disabled={pending}
         >

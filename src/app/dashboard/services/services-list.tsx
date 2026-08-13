@@ -89,7 +89,7 @@ export function ServicesList({ services }: { services: Service[] }) {
       <div className="glass flex flex-wrap items-center gap-2 rounded-2xl px-4 py-3 md:px-5">
         <div className="relative min-w-[220px] flex-1">
           <svg
-            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink/40"
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-content-3"
             width="14"
             height="14"
             viewBox="0 0 24 24"
@@ -107,7 +107,7 @@ export function ServicesList({ services }: { services: Service[] }) {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder={t.filters.searchService}
-            className="w-full rounded-lg border border-ink/10 bg-white/70 py-2 pl-9 pr-3 text-sm text-ink placeholder:text-ink/40 transition-colors focus:border-brand focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20"
+            className="w-full rounded-lg border border-ink/10 bg-surface/70 py-2 pl-9 pr-3 text-sm text-ink placeholder:text-content-3 transition-colors focus:border-brand focus:bg-surface focus:outline-none focus:ring-2 focus:ring-brand/20"
           />
         </div>
 
@@ -115,7 +115,7 @@ export function ServicesList({ services }: { services: Service[] }) {
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="h-9 rounded-lg border border-ink/10 bg-white/70 px-3 text-xs font-medium text-ink/70 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+            className="h-9 rounded-lg border border-ink/10 bg-surface/70 px-3 text-xs font-medium text-content-2 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
           >
             <option value="all">{t.filters.allCategories}</option>
             {categories.map((c) => (
@@ -126,7 +126,7 @@ export function ServicesList({ services }: { services: Service[] }) {
           </select>
         )}
 
-        <div className="inline-flex items-center rounded-lg border border-ink/10 bg-white/60 p-0.5">
+        <div className="inline-flex items-center rounded-lg border border-ink/10 bg-surface/60 p-0.5">
           {(["all", "active", "inactive"] as ActiveFilter[]).map((a) => (
             <button
               key={a}
@@ -137,7 +137,7 @@ export function ServicesList({ services }: { services: Service[] }) {
                 "h-7 rounded-md px-3 text-xs font-medium transition-all",
                 activeFilter === a
                   ? "bg-brand text-white shadow-sm"
-                  : "text-ink/60 hover:bg-white/80 hover:text-ink",
+                  : "text-content-3 hover:bg-surface/80 hover:text-ink",
               )}
             >
               {a === "all"
@@ -152,14 +152,14 @@ export function ServicesList({ services }: { services: Service[] }) {
         <select
           value={sort}
           onChange={(e) => setSort(e.target.value as Sort)}
-          className="h-9 rounded-lg border border-ink/10 bg-white/70 px-3 text-xs font-medium text-ink/70 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+          className="h-9 rounded-lg border border-ink/10 bg-surface/70 px-3 text-xs font-medium text-content-2 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
         >
           <option value="name">{t.common.nameAZ}</option>
           <option value="price_desc">{t.common.priceDesc}</option>
           <option value="price_asc">{t.common.priceAsc}</option>
         </select>
 
-        <span className="ml-auto rounded-md bg-ink/5 px-2 py-1 text-xs font-medium text-ink/65">
+        <span className="ml-auto rounded-md bg-ink/5 px-2 py-1 text-xs font-medium text-content-3">
           {filtered.length} {filtered.length > 1 ? "services" : "service"}
         </span>
       </div>
@@ -170,10 +170,15 @@ export function ServicesList({ services }: { services: Service[] }) {
           <p className="text-sm font-medium text-ink">
             {t.servicesUi.noResults}
           </p>
-          <p className="text-xs text-ink/55">{t.servicesUi.noResultsHint}</p>
+          <p className="text-xs text-content-3">{t.servicesUi.noResultsHint}</p>
         </div>
       ) : (
-        <Table className="table-fixed">
+        <>
+          <div className="space-y-3 md:hidden">
+            {filtered.map((s) => <ServiceCard key={s.id} svc={s} />)}
+          </div>
+          <div className="hidden md:block">
+          <Table className="table-fixed">
           <colgroup>
             <col className="w-[44%]" />
             <col className="w-[16%]" />
@@ -195,9 +200,52 @@ export function ServicesList({ services }: { services: Service[] }) {
               <Row key={s.id} svc={s} />
             ))}
           </TBody>
-        </Table>
+          </Table>
+          </div>
+        </>
       )}
     </div>
+  );
+}
+
+function ServiceCard({ svc }: { svc: Service }) {
+  const { t, locale } = useI18n();
+  const [pending, startTransition] = useTransition();
+  const name = locale === "en" && svc.name_en ? svc.name_en : svc.name_fr;
+  const description = locale === "en" && svc.description_en ? svc.description_en : svc.description_fr;
+
+  return (
+    <article className="rounded-2xl border border-line bg-surface p-4 shadow-soft">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <Link href={`/dashboard/services/${svc.id}`} className="block truncate font-semibold text-ink hover:text-brand">{name}</Link>
+          {description && <p className="mt-1 line-clamp-2 text-xs text-content-3">{description}</p>}
+        </div>
+        <span className={cn("rounded-full px-2 py-1 text-[11px] font-semibold", svc.active ? "bg-success-weak text-success" : "bg-ink/5 text-content-3")}>
+          {svc.active ? t.filters.active : t.filters.inactive}
+        </span>
+      </div>
+      <dl className="mt-4 grid grid-cols-3 gap-3 border-t border-line pt-3 text-xs">
+        <div><dt className="text-content-3">{t.servicesUi.columns.category}</dt><dd className="mt-1 truncate font-medium text-content-2">{svc.category ?? "—"}</dd></div>
+        <div><dt className="text-content-3">{t.servicesUi.columns.unit}</dt><dd className="mt-1 truncate font-medium text-content-2">{svc.default_unit}</dd></div>
+        <div className="text-right"><dt className="text-content-3">{t.servicesUi.columns.price}</dt><dd className="mt-1 whitespace-nowrap font-semibold text-ink">{formatDt(svc.default_price_dt)}</dd></div>
+      </dl>
+      <div className="mt-3 flex items-center justify-between border-t border-line pt-3">
+        <button
+          type="button"
+          onClick={() => startTransition(async () => { await toggleServiceActiveAction(svc.id, !svc.active); })}
+          disabled={pending}
+          className="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-xs font-medium text-content-2 disabled:opacity-60"
+          aria-pressed={svc.active}
+        >
+          <span className={cn("relative inline-flex h-5 w-9 items-center rounded-full", svc.active ? "bg-brand" : "bg-ink/15")}>
+            <span className={cn("h-4 w-4 rounded-full bg-surface shadow-sm transition-transform", svc.active ? "translate-x-4" : "translate-x-0.5")} />
+          </span>
+          {svc.active ? t.servicesUi.disable : t.servicesUi.enable}
+        </button>
+        <Link href={`/dashboard/services/${svc.id}`} className="inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-medium text-brand hover:bg-brand/8">{t.common.edit}</Link>
+      </div>
+    </article>
   );
 }
 
@@ -226,16 +274,16 @@ function Row({ svc }: { svc: Service }) {
           {displayName}
         </Link>
         {displayDescription && (
-          <p className="mt-0.5 truncate text-xs text-ink/50">
+          <p className="mt-0.5 truncate text-xs text-content-3">
             {displayDescription}
           </p>
         )}
       </TD>
-      <TD className="truncate text-ink/65">{svc.category ?? "—"}</TD>
+      <TD className="truncate text-content-3">{svc.category ?? "—"}</TD>
       <TD className="whitespace-nowrap text-right font-semibold text-ink">
         {formatDt(svc.default_price_dt)}
       </TD>
-      <TD className="truncate text-ink/65">{svc.default_unit}</TD>
+      <TD className="truncate text-content-3">{svc.default_unit}</TD>
       <TD className="text-right">
         <div className="inline-flex items-center gap-2">
           <button
@@ -251,7 +299,7 @@ function Row({ svc }: { svc: Service }) {
             }
           >
             <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform ${
+              className={`inline-block h-4 w-4 transform rounded-full bg-surface shadow-sm transition-transform ${
                 svc.active ? "translate-x-4" : "translate-x-0.5"
               }`}
             />

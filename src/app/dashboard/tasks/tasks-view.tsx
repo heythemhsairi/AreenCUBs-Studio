@@ -21,6 +21,8 @@ import {
   Plus,
   Filter,
 } from "lucide-react";
+import type { UserRole } from "@/lib/utils";
+import { taskDoneMessage, taskOpenMessage } from "@/lib/role-copy";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -58,6 +60,9 @@ export function TasksView({
   isFreelancer,
   isWorker = false,
   defaultQuickFilter = "active",
+  scope = "client",
+  currentRole,
+  canCreate = false,
 }: {
   tasks: TaskCard[];
   projects: Option[];
@@ -68,8 +73,12 @@ export function TasksView({
   isFreelancer: boolean;
   isWorker?: boolean;
   defaultQuickFilter?: QuickFilter;
+  scope?: "client" | "studio";
+  currentRole: UserRole;
+  canCreate?: boolean;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const createHref = scope === "studio" ? "/dashboard/studio-tasks/new" : "/dashboard/tasks/new";
   const [filters, setFilters] = useState<TasksFilters>(DEFAULT_FILTERS);
   const [view, setView] = useState<ViewMode>("kanban");
   const [quickFilter, setQuickFilter] = useState<QuickFilter>(defaultQuickFilter);
@@ -107,22 +116,29 @@ export function TasksView({
     <div className="relative flex flex-col gap-4 pb-20 md:pb-6">
       {/* Page header */}
       <PageHeader
-        title={isFreelancer ? t.tasks.myTitle : t.tasks.title}
+        title={scope === "studio" ? t.studioTasks.title : isFreelancer ? t.tasks.myTitle : t.tasks.title}
         description={
-          isFreelancer
+          scope === "studio"
+            ? t.studioTasks.description
+            : isFreelancer
             ? t.tasksUi.descriptionMine
             : isWorker
               ? t.tasksUi.descriptionWorker
               : t.tasksUi.description
         }
         action={
-          !isFreelancer ? (
-            <Link href="/dashboard/tasks/new">
-              <Button>{t.tasksUi.newTaskCta}</Button>
+          canCreate ? (
+            <Link href={createHref}>
+              <Button>{scope === "studio" ? t.studioTasks.newTask : t.tasksUi.newTaskCta}</Button>
             </Link>
           ) : null
         }
       />
+
+      <div className="rounded-xl border border-brand/20 bg-brand/5 px-4 py-3 text-sm leading-relaxed text-content-2">
+        <span aria-hidden className="mr-2">💙</span>
+        {taskOpenMessage(currentRole, locale)}
+      </div>
 
       {/* Top bar: quick filters + view toggle */}
       <div className="flex items-center gap-3">
@@ -141,10 +157,10 @@ export function TasksView({
                   className={cn(
                     "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all",
                     isActive
-                      ? "border-[#22D3EE]/30 bg-[#22D3EE]/10 text-[#22D3EE]"
+                      ? "border-accent2/30 bg-accent2/10 text-accent2"
                       : isOverdue && count > 0
-                        ? "border-[#F43F5E]/20 bg-[#F43F5E]/5 text-[#F43F5E]/80 hover:border-[#F43F5E]/40 hover:text-[#F43F5E]"
-                        : "border-[#22506F] bg-[#0D2D47] text-[#94A3B8] hover:border-[#22D3EE]/20 hover:text-[#CBD5E1]",
+                        ? "border-danger/20 bg-danger/5 text-danger/80 hover:border-danger/40 hover:text-danger"
+                        : "border-line bg-surface text-content-3 hover:border-accent2/20 hover:text-content-2",
                   )}
                 >
                   <span>{qf.label}</span>
@@ -153,10 +169,10 @@ export function TasksView({
                       className={cn(
                         "rounded-full px-1.5 py-0 text-[10px] font-semibold",
                         isActive
-                          ? "bg-[#22D3EE]/20 text-[#22D3EE]"
+                          ? "bg-accent2/20 text-accent2"
                           : isOverdue
-                            ? "bg-[#F43F5E]/10 text-[#F43F5E]"
-                            : "bg-[#22506F] text-[#64748B]",
+                            ? "bg-danger/10 text-danger"
+                            : "bg-surface-3 text-content-3",
                       )}
                     >
                       {count}
@@ -173,25 +189,31 @@ export function TasksView({
           {/* Filter button */}
           <button
             type="button"
+            // axe `button-name`: the visible label is `hidden sm:inline`, so
+            // below the sm breakpoint this control is icon-only and has no
+            // discernible text. The name is always present; the visible span
+            // still carries it on wider viewports.
+            aria-label={t.tasksUi.filters}
+            aria-expanded={showFilters}
             onClick={() => setShowFilters((v) => !v)}
             className={cn(
               "inline-flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium transition-all",
               showFilters || activeFilterCount > 0
-                ? "border-[#22D3EE]/20 bg-[#22D3EE]/10 text-[#22D3EE]"
-                : "border-[#22506F] bg-[#0D2D47] text-[#94A3B8] hover:border-[#22506F] hover:text-[#CBD5E1]",
+                ? "border-accent2/20 bg-accent2/10 text-accent2"
+                : "border-line bg-surface text-content-3 hover:border-line hover:text-content-2",
             )}
           >
             <Filter size={13} />
             <span className="hidden sm:inline">{t.tasksUi.filters}</span>
             {activeFilterCount > 0 && (
-              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#22D3EE]/20 text-[10px] font-bold text-[#22D3EE]">
+              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-accent2/20 text-[10px] font-bold text-accent2">
                 {activeFilterCount}
               </span>
             )}
           </button>
 
           {/* View toggle: Kanban / List / Calendar */}
-          <div className="inline-flex items-center gap-0.5 rounded-lg border border-[#22506F] bg-[#071B2C]/80 p-0.5">
+          <div className="inline-flex items-center gap-0.5 rounded-lg border border-line bg-canvas/80 p-0.5">
             <ViewToggleBtn
               icon={<LayoutGrid size={14} />}
               label={t.tasksUi.kanbanLabel}
@@ -235,6 +257,7 @@ export function TasksView({
         <DarkKanban
           tasks={filtered}
           tagColors={tagColors}
+          currentRole={currentRole}
         />
       ) : view === "calendar" ? (
         <CalendarPlaceholder />
@@ -243,15 +266,18 @@ export function TasksView({
       )}
 
       {/* Mobile sticky "Add task" button */}
-      {!isFreelancer && (
+      {canCreate && (
         <div className="fixed bottom-6 right-5 z-50 md:hidden">
-          <Link href="/dashboard/tasks/new">
-            <button
-              type="button"
-              className="flex h-12 w-12 items-center justify-center rounded-full bg-[#22D3EE] text-[#071B2C] shadow-lg shadow-[#22D3EE]/25 transition-all hover:scale-105 hover:bg-[#06B6D4] active:scale-95"
-            >
-              <Plus size={20} />
-            </button>
+          {/* axe `link-name`: the anchor's only content was an icon, leaving
+              both the link and the button it wrapped without a name. A button
+              nested inside a link is also invalid — the anchor already is the
+              control, so the wrapper is gone and the styles moved onto it. */}
+          <Link
+            href={createHref}
+            aria-label={scope === "studio" ? t.studioTasks.newTask : t.tasksUi.newTaskCta}
+            className="flex h-12 w-12 items-center justify-center rounded-full bg-accent2 text-accent2-fg shadow-lg shadow-accent2/25 transition-all hover:scale-105 hover:bg-accent2 active:scale-95"
+          >
+            <Plus size={20} aria-hidden="true" />
           </Link>
         </div>
       )}
@@ -284,8 +310,8 @@ function ViewToggleBtn({
       className={cn(
         "inline-flex h-7 w-7 items-center justify-center rounded-md transition-all",
         active
-          ? "bg-[#22D3EE]/10 text-[#22D3EE] border border-[#22D3EE]/20"
-          : "text-[#64748B] hover:text-[#94A3B8]",
+          ? "bg-accent2/10 text-accent2 border border-accent2/20"
+          : "text-content-3 hover:text-content-3",
       )}
     >
       {icon}
@@ -306,11 +332,11 @@ const columnConfig: Record<
   Status,
   { textColor: string; bgColor: string; dotPulse?: boolean }
 > = {
-  todo:        { textColor: "text-[#64748B]", bgColor: "bg-[#64748B]/10" },
-  in_progress: { textColor: "text-[#22D3EE]", bgColor: "bg-[#22D3EE]/10", dotPulse: true },
-  review:      { textColor: "text-[#A78BFA]", bgColor: "bg-[#A78BFA]/10" },
-  done:        { textColor: "text-[#22C55E]", bgColor: "bg-[#22C55E]/10" },
-  cancelled:   { textColor: "text-[#F43F5E]", bgColor: "bg-[#F43F5E]/10" },
+  todo:        { textColor: "text-content-3", bgColor: "bg-[#64748B]/10" },
+  in_progress: { textColor: "text-accent2", bgColor: "bg-accent2/10", dotPulse: true },
+  review:      { textColor: "text-chart-4", bgColor: "bg-chart-4/10" },
+  done:        { textColor: "text-success", bgColor: "bg-success/10" },
+  cancelled:   { textColor: "text-danger", bgColor: "bg-danger/10" },
 };
 
 const priorityTone: Record<Priority, "slate" | "blue" | "amber" | "red"> = {
@@ -327,11 +353,13 @@ import { startTouchDrag } from "@/lib/touch-drag";
 function DarkKanban({
   tasks,
   tagColors,
+  currentRole,
 }: {
   tasks: TaskCard[];
   tagColors?: Record<string, string>;
+  currentRole: UserRole;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [, startTransition] = useTransition();
   const [dragOver, setDragOver] = useState<Status | null>(null);
   const [override, setOverride] = useState<Record<string, Status>>({})
@@ -352,7 +380,7 @@ function DarkKanban({
         });
         toast.error(res.error);
       } else if (to === "done") {
-        toast.success(t.tasksUi.taskCompleted);
+        toast.success(taskDoneMessage(currentRole, locale));
       } else {
         toast.success(t.tasksUi.statusUpdated);
       }
@@ -391,8 +419,8 @@ function DarkKanban({
               if (taskId) moveTask(taskId, status);
             }}
             className={cn(
-              "flex flex-col gap-2 rounded-xl border border-[#22506F] bg-[#071B2C]/50 p-3 transition-all",
-              isOver && "border-[#22D3EE]/40 bg-[#22D3EE]/5 ring-1 ring-[#22D3EE]/20",
+              "flex flex-col gap-2 rounded-xl border border-line bg-canvas/50 p-3 transition-all",
+              isOver && "border-accent2/40 bg-accent2/5 ring-1 ring-accent2/20",
             )}
           >
             {/* Column header */}
@@ -400,8 +428,8 @@ function DarkKanban({
               <div className="flex items-center gap-2">
                 {col.dotPulse ? (
                   <span className="relative flex h-2 w-2">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#22D3EE] opacity-60" />
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-[#22D3EE]" />
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent2 opacity-60" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-accent2" />
                   </span>
                 ) : (
                   <span className={cn("h-2 w-2 rounded-full", col.bgColor)} />
@@ -442,8 +470,8 @@ function DarkKanban({
                   className={cn(
                     "rounded-lg border border-dashed px-3 py-6 text-center text-xs transition-colors",
                     isOver
-                      ? "border-[#22D3EE]/30 bg-[#22D3EE]/5 text-[#22D3EE]/60"
-                      : "border-[#22506F] text-[#374151]",
+                      ? "border-accent2/30 bg-accent2/5 text-accent2/60"
+                      : "border-line text-[#374151]",
                   )}
                 >
                   {isOver ? t.tasksUi.dropHere : "—"}
@@ -498,36 +526,36 @@ function DarkKanbanCard({
         })
       }
       className={cn(
-        "group relative cursor-grab rounded-xl border bg-[#0D2D47] p-3.5 transition-all duration-150",
-        "hover:border-[#22D3EE]/30 hover:-translate-y-px active:cursor-grabbing",
-        isOverdue ? "border-[#F43F5E]/30" : "border-[#22506F]",
+        "group relative cursor-grab rounded-xl border bg-surface p-3.5 transition-all duration-150",
+        "hover:border-accent2/30  active:cursor-grabbing",
+        isOverdue ? "border-danger/30" : "border-line",
         dragging && "opacity-50",
       )}
     >
       {/* Overdue left indicator */}
       {isOverdue && (
-        <span className="absolute left-0 top-3 bottom-3 w-0.5 rounded-full bg-[#F43F5E]/50" />
+        <span className="absolute left-0 top-3 bottom-3 w-0.5 rounded-full bg-danger/50" />
       )}
 
       {/* Title */}
       <Link
         href={`/dashboard/tasks/${task.id}`}
-        className="mb-2 block text-sm font-medium text-[#F8FAFC] transition-colors hover:text-[#22D3EE]"
+        className="mb-2 block text-sm font-medium text-content transition-colors hover:text-accent2"
       >
         {task.title}
       </Link>
 
       {/* Project / client */}
       {task.project && (
-        <p className="mb-2.5 text-xs font-medium text-[#64748B]">
+        <p className="mb-2.5 text-xs font-medium text-content-3">
           <Link
             href={`/dashboard/projects/${task.project.id}`}
-            className="hover:text-[#94A3B8] hover:underline"
+            className="hover:text-content-3 hover:underline"
           >
             {task.project.name}
           </Link>
           {task.client && (
-            <span className="text-[#3D5068]"> · {task.client.name}</span>
+            <span className="text-content-3"> · {task.client.name}</span>
           )}
         </p>
       )}
@@ -548,7 +576,7 @@ function DarkKanbanCard({
             ) : (
               <span
                 key={tag}
-                className="rounded-md bg-[#22D3EE]/8 px-1.5 py-0.5 text-[10px] font-medium text-[#22D3EE]/70"
+                className="rounded-md bg-accent2/8 px-1.5 py-0.5 text-[10px] font-medium text-accent2/70"
               >
                 #{tag}
               </span>
@@ -563,7 +591,7 @@ function DarkKanbanCard({
 
         <div className="flex items-center gap-1.5">
           {task.estimated_minutes != null && (
-            <span className="rounded-md bg-[#1A3E5C] px-1.5 py-0.5 text-[10px] font-medium text-[#64748B]">
+            <span className="rounded-md bg-surface-2 px-1.5 py-0.5 text-[10px] font-medium text-content-3">
               ~{task.estimated_minutes >= 60
                 ? `${Math.round(task.estimated_minutes / 60)}h`
                 : `${task.estimated_minutes}m`}
@@ -574,8 +602,8 @@ function DarkKanbanCard({
               className={cn(
                 "rounded-md px-1.5 py-0.5 text-[10px] font-medium",
                 isOverdue
-                  ? "bg-[#F43F5E]/10 text-[#F43F5E]"
-                  : "bg-[#1A3E5C] text-[#64748B]",
+                  ? "bg-danger/10 text-danger"
+                  : "bg-surface-2 text-content-3",
               )}
             >
               {isOverdue && "⚠ "}
@@ -588,12 +616,12 @@ function DarkKanbanCard({
           {task.assignee && (
             <span className="flex items-center gap-1">
               <span
-                className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#22D3EE]/15 text-[9px] font-bold text-[#22D3EE]"
+                className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent2/15 text-[9px] font-bold text-accent2"
                 aria-hidden="true"
               >
                 {task.assignee.charAt(0).toUpperCase()}
               </span>
-              <span className="max-w-[80px] truncate text-[10px] font-medium text-[#B8D0E4]">
+              <span className="max-w-[80px] truncate text-[10px] font-medium text-content-2">
                 {task.assignee}
               </span>
             </span>
@@ -603,13 +631,16 @@ function DarkKanbanCard({
 
       {/* Status selector */}
       <select
+        // axe `select-name` (critical) — see tasks-kanban.tsx. The name
+        // identifies both the field and the row it mutates.
+        aria-label={`${t.tasks.statusLabel} — ${task.title}`}
         value={effectiveStatus}
         onChange={(e) => {
           const s = e.target.value as Status;
           if (s !== effectiveStatus) onMove(task.id, s);
         }}
         onClick={(e) => e.stopPropagation()}
-        className="mt-2.5 w-full rounded-lg border border-[#22506F] bg-[#071B2C]/70 px-2 py-1.5 text-xs text-[#64748B] transition-colors focus:border-[#22D3EE]/40 focus:outline-none focus:ring-1 focus:ring-[#22D3EE]/20"
+        className="mt-2.5 w-full rounded-lg border border-line bg-canvas/70 px-2 py-1.5 text-xs text-content-3 transition-colors focus:border-accent2/40 focus:outline-none focus:ring-1 focus:ring-accent2/20"
       >
         <option value="todo">{t.tasks.status.todo}</option>
         <option value="in_progress">{t.tasks.status.in_progress}</option>
@@ -655,25 +686,25 @@ function DarkList({
             <div
               key={task.id}
               className={cn(
-                "rounded-xl border bg-[#0D2D47] p-4 transition-all",
-                isOverdue ? "border-[#F43F5E]/20" : "border-[#22506F]",
+                "rounded-xl border bg-surface p-4 transition-all",
+                isOverdue ? "border-danger/20" : "border-line",
               )}
             >
               <div className="mb-2 flex items-start justify-between gap-2">
                 <Link
                   href={`/dashboard/tasks/${task.id}`}
-                  className="text-sm font-medium text-[#F8FAFC] hover:text-[#22D3EE]"
+                  className="text-sm font-medium text-content hover:text-accent2"
                 >
                   {task.title}
                 </Link>
                 <StatusBadge status={task.status} type="task" label={t.tasks.status[task.status as keyof typeof t.tasks.status] ?? task.status} />
               </div>
               <div className="flex flex-wrap items-center gap-2 text-xs">
-                <span className="text-[#64748B]">
+                <span className="text-content-3">
                   {task.project?.name ?? "—"}
                 </span>
                 {task.assignee && (
-                  <span className="text-[#64748B]">· {task.assignee}</span>
+                  <span className="text-content-3">· {task.assignee}</span>
                 )}
                 <Badge tone={pTone}>{t.tasks.priority[task.priority as Priority] ?? task.priority}</Badge>
                 {task.deadline && (
@@ -681,8 +712,8 @@ function DarkList({
                     className={cn(
                       "rounded-md px-1.5 py-0.5 text-[10px] font-medium",
                       isOverdue
-                        ? "bg-[#F43F5E]/10 text-[#F43F5E]"
-                        : "bg-[#1A3E5C] text-[#64748B]",
+                        ? "bg-danger/10 text-danger"
+                        : "bg-surface-2 text-content-3",
                     )}
                   >
                     {isOverdue && "⚠ "}
@@ -699,16 +730,16 @@ function DarkList({
       </div>
 
       {/* Desktop: compact table */}
-      <div className="hidden overflow-hidden rounded-xl border border-[#22506F] bg-[#071B2C]/50 md:block">
+      <div className="hidden overflow-hidden rounded-xl border border-line bg-canvas/50 md:block">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[720px] text-sm">
-            <thead className="sticky top-0 z-10 border-b border-[#22506F] bg-[#071B2C]">
+            <thead className="sticky top-0 z-10 border-b border-line bg-canvas">
               <tr className="text-left">
                 {t.tasksUi.listHeaders.map(
                   (h) => (
                     <th
                       key={h}
-                      className="px-4 py-2.5 text-[10px] font-semibold uppercase tracking-widest text-[#64748B]"
+                      className="px-4 py-2.5 text-[10px] font-semibold uppercase tracking-widest text-content-3"
                     >
                       {h}
                     </th>
@@ -733,13 +764,13 @@ function DarkList({
                 return (
                   <tr
                     key={task.id}
-                    className="h-12 border-b border-[#1A3E5C] transition-colors last:border-0 hover:bg-[#0D2D47]"
+                    className="h-12 border-b border-surface-2 transition-colors last:border-0 hover:bg-surface"
                   >
                     {/* Title */}
                     <td className="max-w-[260px] px-4 py-2 align-middle">
                       <Link
                         href={`/dashboard/tasks/${task.id}`}
-                        className="block truncate font-medium text-[#E2E8F0] hover:text-[#22D3EE]"
+                        className="block truncate font-medium text-content-2 hover:text-accent2"
                       >
                         {task.title}
                       </Link>
@@ -758,7 +789,7 @@ function DarkList({
                             ) : (
                               <span
                                 key={tag}
-                                className="rounded bg-[#22D3EE]/8 px-1 py-0 text-[9px] font-medium text-[#22D3EE]/70"
+                                className="rounded bg-accent2/8 px-1 py-0 text-[9px] font-medium text-accent2/70"
                               >
                                 #{tag}
                               </span>
@@ -772,10 +803,10 @@ function DarkList({
                     <td className="px-4 py-2 align-middle">
                       {task.assignee ? (
                         <div className="flex items-center gap-1.5">
-                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#22D3EE]/15 text-[10px] font-bold text-[#22D3EE]">
+                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent2/15 text-[10px] font-bold text-accent2">
                             {task.assignee.charAt(0).toUpperCase()}
                           </span>
-                          <span className="truncate text-xs text-[#94A3B8]">
+                          <span className="truncate text-xs text-content-3">
                             {task.assignee}
                           </span>
                         </div>
@@ -801,8 +832,8 @@ function DarkList({
                           className={cn(
                             "inline-flex rounded-md px-2 py-0.5 text-xs font-medium",
                             isOverdue
-                              ? "bg-[#F43F5E]/10 text-[#F43F5E]"
-                              : "bg-[#1A3E5C] text-[#64748B]",
+                              ? "bg-danger/10 text-danger"
+                              : "bg-surface-2 text-content-3",
                           )}
                         >
                           {isOverdue && "⚠ "}
@@ -819,11 +850,11 @@ function DarkList({
 
                     {/* Project */}
                     <td className="px-4 py-2 align-middle">
-                      <span className="text-xs text-[#64748B]">
+                      <span className="text-xs text-content-3">
                         {task.project?.name ?? "—"}
                       </span>
                       {task.client && (
-                        <span className="block text-[11px] text-[#3D5068]">
+                        <span className="block text-[11px] text-content-3">
                           {task.client.name}
                         </span>
                       )}
@@ -845,9 +876,9 @@ function DarkList({
 
 function CalendarPlaceholder() {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-[#22506F] bg-[#071B2C]/50 px-6 py-20 text-center">
+    <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-line bg-canvas/50 px-6 py-20 text-center">
       <Calendar size={32} className="text-[#374151]" />
-      <p className="text-sm font-medium text-[#64748B]">Vue calendrier</p>
+      <p className="text-sm font-medium text-content-3">Vue calendrier</p>
       <p className="max-w-sm text-xs text-[#374151]">
         La vue calendrier sera disponible prochainement.
       </p>
@@ -862,13 +893,13 @@ function CalendarPlaceholder() {
 function EmptyState({ isWorkerDefault = false }: { isWorkerDefault?: boolean }) {
   const { t } = useI18n();
   return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-[#22506F] bg-[#071B2C]/50 px-6 py-16 text-center">
+    <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-line bg-canvas/50 px-6 py-16 text-center">
       <span className="text-3xl">{isWorkerDefault ? "✅" : "🔍"}</span>
-      <p className="text-sm font-medium text-[#94A3B8]">
+      <p className="text-sm font-medium text-content-3">
         {isWorkerDefault ? t.tasksUi.noAssignedTasks : t.tasksUi.noResults}
       </p>
       {!isWorkerDefault && (
-        <p className="max-w-sm text-xs text-[#64748B]">{t.tasksUi.noResultsHint}</p>
+        <p className="max-w-sm text-xs text-content-3">{t.tasksUi.noResultsHint}</p>
       )}
     </div>
   );

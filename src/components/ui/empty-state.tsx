@@ -53,7 +53,11 @@ export function EmptyState({
   const cfg = sizeConfig[size];
 
   const ActionButton = () => {
-    const className = `inline-flex items-center justify-center rounded-md bg-[#06B6D4] text-white font-medium transition-colors hover:bg-[#0891B2] focus:outline-none focus:ring-2 focus:ring-[#06B6D4] focus:ring-offset-2 focus:ring-offset-[#0F172A] ${cfg.button}`;
+    // `focus-visible`, not `focus`: a mouse click on the button was painting a
+    // ring that never went away until something else took focus. The offset
+    // colour was the literal #0F172A — a pre-token slate that is invisible on
+    // the dark canvas and wrong on the light one; it is now the surface role.
+    const className = `inline-flex min-h-[44px] items-center justify-center rounded-lg bg-accent2 text-accent2-fg font-semibold transition-colors duration-2 ease-ac hover:bg-accent2-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent2 focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${cfg.button}`;
 
     if (action?.href) {
       return (
@@ -76,18 +80,22 @@ export function EmptyState({
     >
       {icon && (
         <div
-          className={`bg-[#123A5A] rounded-full ${cfg.iconWrapper} flex items-center justify-center`}
+          className={`bg-surface-2 rounded-full ${cfg.iconWrapper} flex items-center justify-center`}
         >
-          <span className={`text-[#64748B] ${cfg.icon} [&>svg]:w-full [&>svg]:h-full`}>
+          <span className={`text-content-3 ${cfg.icon} [&>svg]:w-full [&>svg]:h-full`}>
             {icon}
           </span>
         </div>
       )}
 
       <div className="flex flex-col items-center gap-1.5">
-        <p className={`text-[#94A3B8] ${cfg.title}`}>{title}</p>
+        {/* The title used to be text-content-3, the same tone as the
+            description below it, so an empty state read as one flat grey
+            paragraph. The title carries the state; the description explains
+            it. */}
+        <p className={`text-content ${cfg.title}`}>{title}</p>
         {description && (
-          <p className={`text-[#64748B] max-w-sm ${cfg.description}`}>
+          <p className={`text-content-2 max-w-sm leading-relaxed ${cfg.description}`}>
             {description}
           </p>
         )}

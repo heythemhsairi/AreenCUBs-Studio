@@ -1,9 +1,9 @@
-import { requireWorkerOrAdmin } from "@/lib/auth";
+import { requireClientAccess } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { ClientsListClient } from "./list-client";
 
 export default async function ClientsPage() {
-  await requireWorkerOrAdmin();
+  await requireClientAccess();
   const supabase = await createClient();
   const { data } = await supabase
     .from("clients")

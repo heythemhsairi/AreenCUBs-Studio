@@ -1,10 +1,11 @@
 import { requireAdmin } from "@/lib/auth";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 import { TeamPlanningClient, type TeamMember } from "./planning-client";
+import type { WorkLocation } from "@/lib/work-schedule";
 
 export default async function TeamPlanningPage() {
   await requireAdmin();
-  const admin = createAdminClient();
+  const admin = await createClient();
 
   const now = new Date();
   const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
@@ -60,12 +61,12 @@ export default async function TeamPlanningPage() {
     }
   }
 
-  const scheduleByUser: Record<string, Record<string, "office" | "home">> = {};
+  const scheduleByUser: Record<string, Record<string, WorkLocation>> = {};
   for (const row of schedule ?? []) {
     const u = row.user_id as string;
     const d = row.date as string;
     if (!scheduleByUser[u]) scheduleByUser[u] = {};
-    scheduleByUser[u][d] = row.location as "office" | "home";
+    scheduleByUser[u][d] = row.location as WorkLocation;
   }
 
   const members: TeamMember[] = (profiles ?? []).map((p) => ({

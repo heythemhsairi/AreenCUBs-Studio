@@ -1,6 +1,12 @@
 "use client";
 
-import { useTransition } from "react";
+import {
+  useTransition,
+  useId,
+  cloneElement,
+  isValidElement,
+  type ReactElement,
+} from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -32,11 +38,11 @@ export function SettingsForm({ initial }: { initial: AppSettings }) {
         description={t.settings.subtitle}
       />
 
-      <form onSubmit={onSubmit} className="space-y-6">
-        <Card>
+      <form onSubmit={onSubmit} className="grid gap-6 xl:grid-cols-2 xl:items-start">
+        <Card className="xl:row-span-2">
           <CardHeader>
             <CardTitle>{t.settings.identity}</CardTitle>
-            <p className="text-xs text-ink/55">{t.settings.identityHint}</p>
+            <p className="text-xs text-content-3">{t.settings.identityHint}</p>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -80,7 +86,7 @@ export function SettingsForm({ initial }: { initial: AppSettings }) {
         <Card>
           <CardHeader>
             <CardTitle>{t.settings.bank}</CardTitle>
-            <p className="text-xs text-ink/55">{t.settings.bankHint}</p>
+            <p className="text-xs text-content-3">{t.settings.bankHint}</p>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -149,7 +155,7 @@ export function SettingsForm({ initial }: { initial: AppSettings }) {
           </CardContent>
         </Card>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 xl:col-span-2">
           <Button type="submit" disabled={pending}>
             {pending ? t.common.saving : t.common.save}
           </Button>
@@ -168,12 +174,27 @@ function Field({
   full?: boolean;
   children: React.ReactNode;
 }) {
+  // axe `label` (critical): this rendered a bare <label> with no htmlFor and a
+  // control with no id, so none of the nine settings fields had an accessible
+  // name. Fixed once here rather than nine times at the call sites.
+  //
+  // useId() is React's SSR-safe identifier generator — server and client agree,
+  // so this cannot reintroduce a hydration mismatch the way an ad-hoc random id
+  // would.
+  const id = useId();
+  const control = isValidElement(children)
+    ? cloneElement(children as ReactElement<{ id?: string }>, { id })
+    : children;
+
   return (
     <div className={`space-y-1.5 ${full ? "md:col-span-2" : ""}`}>
-      <label className="text-xs font-semibold uppercase tracking-wider text-ink/55">
+      <label
+        htmlFor={id}
+        className="text-xs font-semibold uppercase tracking-wider text-content-3"
+      >
         {label}
       </label>
-      {children}
+      {control}
     </div>
   );
 }

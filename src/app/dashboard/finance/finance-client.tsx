@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useChartColors } from "@/components/charts/use-chart-colors";
 import { cn } from "@/lib/utils";
 import { formatDt, formatDate } from "@/lib/format";
 import { KpiCard } from "@/components/ui/kpi-card";
@@ -106,17 +107,29 @@ function noData(c: number, _p: number): boolean {
 // Chart palette
 // ---------------------------------------------------------------------------
 
-const CHART_COLORS = {
-  paid:     "#22C55E",
-  invoiced: "#22D3EE",
-  expenses: "#F43F5E",
-  profit:   "#A78BFA",
-};
-
-const PIE_PALETTE = [
-  "#22D3EE", "#22C55E", "#A78BFA", "#F59E0B",
-  "#F43F5E", "#FB923C", "#34D399", "#818CF8",
-];
+/*
+ * Chart colour now comes from the tokens at runtime, via useChartColors().
+ * These constants were theme-blind: the same eight hexes painted in both
+ * themes, so a series that cleared contrast on the dark canvas failed on the
+ * light one, and the "profit" violet was a colour that appears nowhere else in
+ * the product.
+ *
+ * The semantic four keep their MEANING (paid is the success role, expenses the
+ * danger role) rather than being flattened into the categorical ramp — in this
+ * chart the colour is information, not a series index.
+ */
+function useFinanceColors() {
+  const c = useChartColors();
+  return {
+    palette: c,
+    semantic: {
+      paid: c.success,
+      invoiced: c.info,
+      expenses: c.danger,
+      profit: c.accent,
+    },
+  };
+}
 
 // ---------------------------------------------------------------------------
 // Custom Recharts Tooltip
@@ -129,13 +142,13 @@ function DarkTooltip({ active, payload, label }: {
 }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-lg border border-[#22506F] bg-[#123A5A] px-3 py-2 text-xs shadow-xl">
-      {label && <p className="mb-1.5 font-semibold text-[#94A3B8]">{label}</p>}
+    <div className="rounded-lg border border-line bg-surface-2 px-3 py-2 text-xs shadow-xl">
+      {label && <p className="mb-1.5 font-semibold text-content-3">{label}</p>}
       {payload.map((p) => (
         <div key={p.name} className="flex items-center gap-2 py-0.5">
           <span className="h-2 w-2 rounded-full flex-shrink-0" style={{ background: p.color }} />
-          <span className="text-[#94A3B8]">{p.name}:</span>
-          <span className="font-semibold text-[#F8FAFC]">{p.value.toLocaleString("fr-TN")} DT</span>
+          <span className="text-content-3">{p.name}:</span>
+          <span className="font-semibold text-content">{p.value.toLocaleString("fr-TN")} DT</span>
         </div>
       ))}
     </div>
@@ -149,11 +162,11 @@ function PieDarkTooltip({ active, payload }: {
   if (!active || !payload?.length) return null;
   const entry = payload[0];
   return (
-    <div className="rounded-lg border border-[#22506F] bg-[#123A5A] px-3 py-2 text-xs shadow-xl">
+    <div className="rounded-lg border border-line bg-surface-2 px-3 py-2 text-xs shadow-xl">
       <div className="flex items-center gap-2">
         <span className="h-2 w-2 rounded-full flex-shrink-0" style={{ background: entry.payload.color }} />
-        <span className="text-[#94A3B8]">{entry.name}:</span>
-        <span className="font-semibold text-[#F8FAFC]">{entry.value.toLocaleString("fr-TN")} DT</span>
+        <span className="text-content-3">{entry.name}:</span>
+        <span className="font-semibold text-content">{entry.value.toLocaleString("fr-TN")} DT</span>
       </div>
     </div>
   );
@@ -167,10 +180,11 @@ function RevenueAreaChart({ series, labels }: {
   series: MonthlySeries[];
   labels: { collected: string; invoiced: string; expenses: string; profit: string };
 }) {
+  const chart = useFinanceColors();
   const { t } = useI18n();
   if (!series.length) {
     return (
-      <div className="flex h-60 items-center justify-center text-sm text-[#64748B]">
+      <div className="flex h-60 items-center justify-center text-sm text-content-3">
         {t.finance.noData}
       </div>
     );
@@ -189,33 +203,33 @@ function RevenueAreaChart({ series, labels }: {
       <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 8 }}>
         <defs>
           <linearGradient id="gradPaid" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%"  stopColor={CHART_COLORS.paid}     stopOpacity={0.3} />
-            <stop offset="95%" stopColor={CHART_COLORS.paid}     stopOpacity={0} />
+            <stop offset="5%"  stopColor={chart.semantic.paid}     stopOpacity={0.3} />
+            <stop offset="95%" stopColor={chart.semantic.paid}     stopOpacity={0} />
           </linearGradient>
           <linearGradient id="gradInvoiced" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%"  stopColor={CHART_COLORS.invoiced} stopOpacity={0.25} />
-            <stop offset="95%" stopColor={CHART_COLORS.invoiced} stopOpacity={0} />
+            <stop offset="5%"  stopColor={chart.semantic.invoiced} stopOpacity={0.25} />
+            <stop offset="95%" stopColor={chart.semantic.invoiced} stopOpacity={0} />
           </linearGradient>
           <linearGradient id="gradExpenses" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%"  stopColor={CHART_COLORS.expenses} stopOpacity={0.25} />
-            <stop offset="95%" stopColor={CHART_COLORS.expenses} stopOpacity={0} />
+            <stop offset="5%"  stopColor={chart.semantic.expenses} stopOpacity={0.25} />
+            <stop offset="95%" stopColor={chart.semantic.expenses} stopOpacity={0} />
           </linearGradient>
           <linearGradient id="gradProfit" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%"  stopColor={CHART_COLORS.profit}   stopOpacity={0.25} />
-            <stop offset="95%" stopColor={CHART_COLORS.profit}   stopOpacity={0} />
+            <stop offset="5%"  stopColor={chart.semantic.profit}   stopOpacity={0.25} />
+            <stop offset="95%" stopColor={chart.semantic.profit}   stopOpacity={0} />
           </linearGradient>
         </defs>
 
-        <CartesianGrid stroke="#22506F" strokeDasharray="4 2" vertical={false} />
+        <CartesianGrid stroke={chart.palette.grid} strokeDasharray="4 2" vertical={false} />
 
         <XAxis
           dataKey="name"
-          tick={{ fill: "#64748B", fontSize: 11 }}
+          tick={{ fill: chart.palette.text, fontSize: 11 }}
           axisLine={false}
           tickLine={false}
         />
         <YAxis
-          tick={{ fill: "#64748B", fontSize: 11 }}
+          tick={{ fill: chart.palette.text, fontSize: 11 }}
           axisLine={false}
           tickLine={false}
           tickFormatter={(v: number) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`}
@@ -230,10 +244,10 @@ function RevenueAreaChart({ series, labels }: {
           iconSize={8}
         />
 
-        <Area type="monotone" dataKey={labels.collected} stroke={CHART_COLORS.paid}     strokeWidth={2} fill="url(#gradPaid)"      dot={false} activeDot={{ r: 4, fill: CHART_COLORS.paid }} />
-        <Area type="monotone" dataKey={labels.invoiced}  stroke={CHART_COLORS.invoiced} strokeWidth={2} fill="url(#gradInvoiced)"  dot={false} activeDot={{ r: 4, fill: CHART_COLORS.invoiced }} />
-        <Area type="monotone" dataKey={labels.expenses}  stroke={CHART_COLORS.expenses} strokeWidth={2} fill="url(#gradExpenses)"  dot={false} activeDot={{ r: 4, fill: CHART_COLORS.expenses }} />
-        <Area type="monotone" dataKey={labels.profit}    stroke={CHART_COLORS.profit}   strokeWidth={2} fill="url(#gradProfit)"    dot={false} activeDot={{ r: 4, fill: CHART_COLORS.profit }} />
+        <Area type="monotone" dataKey={labels.collected} stroke={chart.semantic.paid}     strokeWidth={2} fill="url(#gradPaid)"      dot={false} activeDot={{ r: 4, fill: chart.semantic.paid }} />
+        <Area type="monotone" dataKey={labels.invoiced}  stroke={chart.semantic.invoiced} strokeWidth={2} fill="url(#gradInvoiced)"  dot={false} activeDot={{ r: 4, fill: chart.semantic.invoiced }} />
+        <Area type="monotone" dataKey={labels.expenses}  stroke={chart.semantic.expenses} strokeWidth={2} fill="url(#gradExpenses)"  dot={false} activeDot={{ r: 4, fill: chart.semantic.expenses }} />
+        <Area type="monotone" dataKey={labels.profit}    stroke={chart.semantic.profit}   strokeWidth={2} fill="url(#gradProfit)"    dot={false} activeDot={{ r: 4, fill: chart.semantic.profit }} />
       </AreaChart>
     </ResponsiveContainer>
   );
@@ -246,7 +260,7 @@ function RevenueAreaChart({ series, labels }: {
 function RechartsDonut({ data }: { data: { label: string; value: number; color: string }[] }) {
   const { t } = useI18n();
   if (!data.length) {
-    return <p className="py-8 text-center text-sm text-[#64748B]">{t.finance.noData}</p>;
+    return <p className="py-8 text-center text-sm text-content-3">{t.finance.noData}</p>;
   }
 
   const pieData = data.map((d) => ({ name: d.label, value: d.value, color: d.color }));
@@ -279,9 +293,9 @@ function RechartsDonut({ data }: { data: { label: string; value: number; color: 
           return (
             <div key={d.label} className="flex items-center gap-2 text-xs">
               <span className="h-2 w-2 flex-shrink-0 rounded-full" style={{ background: d.color }} />
-              <span className="min-w-0 flex-1 truncate text-[#94A3B8]">{d.label}</span>
-              <span className="text-[#64748B]">{pctVal}%</span>
-              <span className="font-semibold text-[#F8FAFC]">{d.value.toLocaleString("fr-TN")}</span>
+              <span className="min-w-0 flex-1 truncate text-content-3">{d.label}</span>
+              <span className="text-content-3">{pctVal}%</span>
+              <span className="font-semibold text-content">{d.value.toLocaleString("fr-TN")}</span>
             </div>
           );
         })}
@@ -300,9 +314,9 @@ function MiniDonutCard({ title, subtitle, data }: {
   data: { label: string; value: number; color: string }[];
 }) {
   return (
-    <div className="rounded-xl border border-[#22506F] bg-[#0D2D47] p-5">
-      <div className="mb-1 text-sm font-semibold text-[#F8FAFC]">{title}</div>
-      <div className="mb-4 text-xs text-[#64748B]">{subtitle}</div>
+    <div className="rounded-xl border border-line bg-surface p-5">
+      <div className="mb-1 text-sm font-semibold text-content">{title}</div>
+      <div className="mb-4 text-xs text-content-3">{subtitle}</div>
       <RechartsDonut data={data} />
     </div>
   );
@@ -316,18 +330,18 @@ export function RiskBadge({ risk }: { risk: "good" | "late" | "risky" }) {
   const { t } = useI18n();
   if (risk === "good")
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-950/60 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
+      <span className="inline-flex items-center gap-1 rounded-full bg-success-weak px-2 py-0.5 text-[10px] font-semibold text-success">
         ● {t.finance.riskGood}
       </span>
     );
   if (risk === "late")
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-amber-950/60 px-2 py-0.5 text-[10px] font-semibold text-amber-400">
+      <span className="inline-flex items-center gap-1 rounded-full bg-warning-weak px-2 py-0.5 text-[10px] font-semibold text-warning">
         ● {t.finance.riskLate}
       </span>
     );
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-rose-950/60 px-2 py-0.5 text-[10px] font-semibold text-rose-400">
+    <span className="inline-flex items-center gap-1 rounded-full bg-danger-weak px-2 py-0.5 text-[10px] font-semibold text-danger">
       ● {t.finance.riskRisky}
     </span>
   );
@@ -339,6 +353,7 @@ export function RiskBadge({ risk }: { risk: "good" | "late" | "risky" }) {
 
 function DashboardTab(props: Props) {
   const { t, locale } = useI18n();
+  const chart = useFinanceColors();
   const tf = t.finance;
 
   // Category labels from i18n
@@ -373,22 +388,22 @@ function DashboardTab(props: Props) {
     ...topSlices.map((s, i) => ({
       label: serviceLabel(s),
       value: s.total_dt,
-      color: PIE_PALETTE[i % PIE_PALETTE.length],
+      color: chart.palette.series[i % 6],
     })),
-    ...(restTotal > 0 ? [{ label: tf.donutOthers, value: restTotal, color: PIE_PALETTE[6 % PIE_PALETTE.length] }] : []),
+    ...(restTotal > 0 ? [{ label: tf.donutOthers, value: restTotal, color: chart.palette.series[6 % 6] }] : []),
   ];
 
   // Expense donut
   const expDonut = Object.entries(props.expByCategory)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 7)
-    .map(([k, v], i) => ({ label: CATEGORY_LABELS[k] ?? k, value: v, color: PIE_PALETTE[i % PIE_PALETTE.length] }));
+    .map(([k, v], i) => ({ label: CATEGORY_LABELS[k] ?? k, value: v, color: chart.palette.series[i % 6] }));
 
   // Top clients donut
   const clientDonut = props.topClients.slice(0, 6).map((c, i) => ({
     label: c.name,
     value: c.paid,
-    color: PIE_PALETTE[i % PIE_PALETTE.length],
+    color: chart.palette.series[i % 6],
   }));
 
   return (
@@ -463,9 +478,9 @@ function DashboardTab(props: Props) {
       </section>
 
       {/* ── MAIN AREA CHART ─────────────────────────────────────── */}
-      <div className="rounded-xl border border-[#22506F] bg-[#0D2D47] p-5">
-        <div className="mb-1 text-sm font-semibold text-[#F8FAFC]">{tf.chartTitle}</div>
-        <div className="mb-4 text-xs text-[#64748B]">{tf.chartSubtitle}</div>
+      <div className="rounded-xl border border-line bg-surface p-5">
+        <div className="mb-1 text-sm font-semibold text-content">{tf.chartTitle}</div>
+        <div className="mb-4 text-xs text-content-3">{tf.chartSubtitle}</div>
         <RevenueAreaChart series={props.monthlySeries} labels={chartLabels} />
       </div>
 
@@ -478,9 +493,9 @@ function DashboardTab(props: Props) {
 
       {/* ── OUTSTANDING + EXPECTED ──────────────────────────────── */}
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-        <div className="rounded-xl border border-[#22506F] bg-[#0D2D47] p-5">
+        <div className="rounded-xl border border-line bg-surface p-5">
           <div className="mb-4 flex items-center justify-between">
-            <div className="text-sm font-semibold text-[#F8FAFC]">{tf.outstandingTitle}</div>
+            <div className="text-sm font-semibold text-content">{tf.outstandingTitle}</div>
             {props.totalOverdue > 0 && (
               <Badge tone="red">{formatDt(props.totalOverdue)} {tf.outstandingInLate}</Badge>
             )}
@@ -488,21 +503,21 @@ function DashboardTab(props: Props) {
           <OutstandingTable rows={props.outstandingRows.slice(0, 10)} />
         </div>
 
-        <div className="rounded-xl border border-[#22506F] bg-[#0D2D47] p-5">
-          <div className="mb-4 text-sm font-semibold text-[#F8FAFC]">{tf.paymentsTitle}</div>
+        <div className="rounded-xl border border-line bg-surface p-5">
+          <div className="mb-4 text-sm font-semibold text-content">{tf.paymentsTitle}</div>
           {props.paymentsSoon.length === 0 ? (
-            <p className="py-6 text-center text-sm text-[#64748B]">{tf.paymentsEmpty}</p>
+            <p className="py-6 text-center text-sm text-content-3">{tf.paymentsEmpty}</p>
           ) : (
-            <ul className="divide-y divide-[#22506F]">
+            <ul className="divide-y divide-line">
               {props.paymentsSoon.map((r) => (
                 <li key={r.devis_id} className="flex items-center justify-between py-2.5">
                   <div>
-                    <p className="text-sm font-medium text-[#F8FAFC]">{r.client_name}</p>
-                    <p className="text-xs text-[#64748B]">
+                    <p className="text-sm font-medium text-content">{r.client_name}</p>
+                    <p className="text-xs text-content-3">
                       {tf.paymentsFacture(r.devis_number)} · {tf.paymentsDue} {formatDate(r.due_date)}
                     </p>
                   </div>
-                  <span className="text-sm font-semibold text-[#22D3EE]">
+                  <span className="text-sm font-semibold text-accent2">
                     {formatDt(r.outstanding_dt)}
                   </span>
                 </li>
@@ -514,26 +529,26 @@ function DashboardTab(props: Props) {
 
       {/* ── TOP CLIENTS TABLE ────────────────────────────────────── */}
       {props.topClients.length > 0 && (
-        <div className="rounded-xl border border-[#22506F] bg-[#0D2D47] p-5">
-          <div className="mb-4 text-sm font-semibold text-[#F8FAFC]">{tf.topClientsTitle}</div>
+        <div className="rounded-xl border border-line bg-surface p-5">
+          <div className="mb-4 text-sm font-semibold text-content">{tf.topClientsTitle}</div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-[#22506F] text-left">
-                  <th className="pb-2.5 text-[10px] font-semibold uppercase tracking-widest text-[#64748B]">{tf.colClient}</th>
-                  <th className="pb-2.5 text-right text-[10px] font-semibold uppercase tracking-widest text-[#64748B]">{tf.colInvoiced}</th>
-                  <th className="pb-2.5 text-right text-[10px] font-semibold uppercase tracking-widest text-[#64748B]">{tf.colCollected}</th>
-                  <th className="pb-2.5 text-right text-[10px] font-semibold uppercase tracking-widest text-[#64748B]">{tf.colUnpaid}</th>
-                  <th className="pb-2.5 text-right text-[10px] font-semibold uppercase tracking-widest text-[#64748B]">{tf.colRisk}</th>
+                <tr className="border-b border-line text-left">
+                  <th className="pb-2.5 text-[10px] font-semibold uppercase tracking-widest text-content-3">{tf.colClient}</th>
+                  <th className="pb-2.5 text-right text-[10px] font-semibold uppercase tracking-widest text-content-3">{tf.colInvoiced}</th>
+                  <th className="pb-2.5 text-right text-[10px] font-semibold uppercase tracking-widest text-content-3">{tf.colCollected}</th>
+                  <th className="pb-2.5 text-right text-[10px] font-semibold uppercase tracking-widest text-content-3">{tf.colUnpaid}</th>
+                  <th className="pb-2.5 text-right text-[10px] font-semibold uppercase tracking-widest text-content-3">{tf.colRisk}</th>
                 </tr>
               </thead>
               <tbody>
                 {props.topClients.map((c) => (
-                  <tr key={c.id} className="border-b border-[#1A3E5C] last:border-0">
-                    <td className="py-2.5 font-medium text-[#F8FAFC]">{c.name}</td>
-                    <td className="py-2.5 text-right text-[#94A3B8]">{formatDt(c.invoiced)}</td>
-                    <td className="py-2.5 text-right font-semibold text-[#22C55E]">{formatDt(c.paid)}</td>
-                    <td className="py-2.5 text-right text-[#94A3B8]">{c.unpaid > 0 ? formatDt(c.unpaid) : "—"}</td>
+                  <tr key={c.id} className="border-b border-surface-2 last:border-0">
+                    <td className="py-2.5 font-medium text-content">{c.name}</td>
+                    <td className="py-2.5 text-right text-content-3">{formatDt(c.invoiced)}</td>
+                    <td className="py-2.5 text-right font-semibold text-success">{formatDt(c.paid)}</td>
+                    <td className="py-2.5 text-right text-content-3">{c.unpaid > 0 ? formatDt(c.unpaid) : "—"}</td>
                     <td className="py-2.5 text-right">
                       <RiskBadge risk={c.risk as "good" | "late" | "risky"} />
                     </td>
@@ -570,7 +585,7 @@ export function FinanceDashboardClient(props: Props) {
       <PageHeader title={t.finance.osTitle} subtitle={t.finance.osSubtitle} />
 
       {/* ── TAB STRIP ───────────────────────────────────────────── */}
-      <div className="bg-[#071B2C] border-b border-[#22506F]">
+      <div className="bg-canvas border-b border-line">
         <div className="flex overflow-x-auto">
           {TABS.map((tabItem) => (
             <button
@@ -580,8 +595,8 @@ export function FinanceDashboardClient(props: Props) {
               className={cn(
                 "flex-shrink-0 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap",
                 tab === tabItem.key
-                  ? "border-b-2 border-[#22D3EE] text-[#22D3EE]"
-                  : "border-b-2 border-transparent text-[#64748B] hover:text-[#94A3B8]",
+                  ? "border-b-2 border-accent2 text-accent2"
+                  : "border-b-2 border-transparent text-content-3 hover:text-content-3",
               )}
             >
               {tabItem.label}

@@ -39,7 +39,7 @@ const paymentTone: Record<PaymentStatus, "amber" | "blue" | "green"> = {
 };
 
 const rowAccent: Record<PaymentStatus, string> = {
-  paid: "before:bg-emerald-400",
+  paid: "before:bg-success",
   partial: "before:bg-brand",
   unpaid: "before:bg-accent",
 };
@@ -87,20 +87,20 @@ export function DevisListTable({
           const payStatus = d.payment_status as PaymentStatus;
           const devStatus = d.status as DevisStatus;
           return (
-            <div key={d.id} className="rounded-xl border border-[#22506F] bg-[#0D2D47] p-4">
+            <div key={d.id} className="rounded-xl border border-line bg-surface p-4">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <Link
                     href={`${baseUrl}/${d.id}`}
-                    className="font-mono text-xs text-[#22D3EE] hover:underline"
+                    className="font-mono text-xs text-accent2 hover:underline"
                   >
                     {formatDevisNumber(d.devis_number, kind)}
                   </Link>
-                  <p className="mt-0.5 font-semibold text-[#F8FAFC] truncate">
+                  <p className="mt-0.5 font-semibold text-content truncate">
                     {client?.name ?? "—"}
                   </p>
                 </div>
-                <p className="shrink-0 font-bold text-[#22C55E] text-sm">
+                <p className="shrink-0 font-bold text-success text-sm">
                   {formatDt(d.total_dt)}
                 </p>
               </div>
@@ -108,7 +108,7 @@ export function DevisListTable({
                 <StatusMenu devisId={d.id} current={devStatus} />
                 <PaymentMenu devisId={d.id} current={payStatus} />
               </div>
-              <div className="mt-2 flex items-center justify-between text-xs text-[#64748B]">
+              <div className="mt-2 flex items-center justify-between text-xs text-content-3">
                 <span>{formatDate(d.date)}</span>
                 <span>{td.dueShort} {formatDate(d.due_date)}</span>
               </div>
@@ -140,23 +140,23 @@ export function DevisListTable({
                 <tr
                   key={d.id}
                   className={cn(
-                    "relative transition-colors duration-150 before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:rounded-r-full hover:bg-[#1A3E5C]",
+                    "relative transition-colors duration-150 before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:rounded-r-full hover:bg-surface-2",
                     accent,
                   )}
                 >
-                  <TD className="pl-5 font-mono text-xs text-[#64748B]">
+                  <TD className="pl-5 font-mono text-xs text-content-3">
                     <Link
                       href={`${baseUrl}/${d.id}`}
-                      className="hover:text-[#22D3EE]"
+                      className="hover:text-accent2"
                     >
                       {formatDevisNumber(d.devis_number, kind)}
                     </Link>
                   </TD>
-                  <TD className="font-medium text-[#F8FAFC]">
+                  <TD className="font-medium text-content">
                     {client?.name ?? "—"}
                   </TD>
-                  <TD className="text-[#94A3B8]">{formatDate(d.date)}</TD>
-                  <TD className="text-[#94A3B8]">{formatDate(d.due_date)}</TD>
+                  <TD className="text-content-3">{formatDate(d.date)}</TD>
+                  <TD className="text-content-3">{formatDate(d.due_date)}</TD>
                   <TD>
                     <StatusMenu
                       devisId={d.id}
@@ -169,7 +169,7 @@ export function DevisListTable({
                       current={d.payment_status as PaymentStatus}
                     />
                   </TD>
-                  <TD className="text-right font-semibold text-[#F8FAFC]">
+                  <TD className="text-right font-semibold text-content">
                     {formatDt(d.total_dt)}
                   </TD>
                 </tr>
@@ -296,9 +296,9 @@ function PaymentMenu({
             <DotSwatch tone="amber" />
             {td.resetPayments}
           </MenuItem>
-          <div className="my-1 h-px bg-[#22506F]" />
+          <div className="my-1 h-px bg-surface-3" />
           <MenuItem asLink href={`/dashboard/devis/${devisId}`}>
-            <span className="text-[#64748B]">{td.detailsAndPartial}</span>
+            <span className="text-content-3">{td.detailsAndPartial}</span>
           </MenuItem>
         </>
       )}
@@ -397,7 +397,7 @@ function Dropdown({
               left: pos.left,
               minWidth: MENU_WIDTH,
             }}
-            className="z-[100] rounded-xl border border-[#22506F] bg-[#0D2D47] p-1 shadow-[0_8px_32px_rgba(0,0,0,0.5)]"
+            className="z-[100] rounded-xl border border-line bg-surface p-1 shadow-[0_8px_32px_rgba(0,0,0,0.5)]"
             role="menu"
           >
             {children(() => setOpen(false))}
@@ -410,7 +410,7 @@ function Dropdown({
 
 function MenuHeader({ children }: { children: React.ReactNode }) {
   return (
-    <p className="px-2.5 pt-1.5 pb-1 text-[10px] font-semibold uppercase tracking-wider text-[#64748B]">
+    <p className="px-2.5 pt-1.5 pb-1 text-[10px] font-semibold uppercase tracking-wider text-content-3">
       {children}
     </p>
   );
@@ -435,8 +435,8 @@ function MenuItem({
     "flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-sm transition-colors",
     disabled
       ? "cursor-not-allowed text-[#3F4C59]"
-      : "text-[#94A3B8] hover:bg-[#1A3E5C] hover:text-[#F8FAFC]",
-    active && "bg-[#22D3EE]/10 text-[#22D3EE]",
+      : "text-content-3 hover:bg-surface-2 hover:text-content",
+    active && "bg-accent2/10 text-accent2",
   );
 
   if (asLink && href) {
@@ -504,13 +504,13 @@ function DotSwatch({
 }) {
   const color =
     tone === "green"
-      ? "bg-emerald-500"
+      ? "bg-success"
       : tone === "blue"
         ? "bg-brand"
         : tone === "amber"
           ? "bg-accent"
           : tone === "red"
-            ? "bg-red-500"
+            ? "bg-danger"
             : "bg-ink/40";
   return <span className={cn("h-2 w-2 shrink-0 rounded-full", color)} />;
 }

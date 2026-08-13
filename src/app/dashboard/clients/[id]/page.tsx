@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { requireWorkerOrAdmin } from "@/lib/auth";
+import { requireClientAccess } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/dashboard/page-header";
@@ -14,7 +14,7 @@ export default async function ClientDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const session = await requireWorkerOrAdmin();
+  const session = await requireClientAccess();
   const { id } = await params;
   const supabase = await createClient();
 
@@ -68,7 +68,7 @@ export default async function ClientDetailPage({
 
         <div className="space-y-3 lg:col-span-2">
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-semibold text-[#F4FAFF]">Projets</h2>
+            <h2 className="text-base font-semibold text-content">Projets</h2>
             <Link href={`/dashboard/projects/new?clientId=${client.id}`}>
               <Button size="sm">+ Nouveau projet</Button>
             </Link>
@@ -109,12 +109,12 @@ function Info({
 }) {
   return (
     <div>
-      <p className="text-xs uppercase tracking-wide text-[#86A8C2]">{label}</p>
+      <p className="text-xs uppercase tracking-wide text-content-3">{label}</p>
       <p
         className={
           multiline
-            ? "mt-0.5 whitespace-pre-wrap text-[#F4FAFF]"
-            : "mt-0.5 text-[#F4FAFF]"
+            ? "mt-0.5 whitespace-pre-wrap text-content"
+            : "mt-0.5 text-content"
         }
       >
         {value ?? "—"}

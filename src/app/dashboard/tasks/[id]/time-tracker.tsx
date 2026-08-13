@@ -71,7 +71,7 @@ export function TimeTracker({
       <CardContent className="space-y-4">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-ink/55">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-content-3">
               {t.taskDetail.totalTime}
             </p>
             <p className="mt-1 font-mono text-2xl font-semibold tracking-tight text-ink">
@@ -88,7 +88,7 @@ export function TimeTracker({
           >
             {isRunning ? (
               <>
-                <span className="h-2 w-2 animate-pulse rounded-full bg-red-400" />
+                <span className="h-2 w-2 animate-pulse rounded-full bg-danger" />
                 Stop · {formatDuration(liveSeconds)}
               </>
             ) : (
@@ -123,14 +123,14 @@ export function TimeTracker({
                         size="xs"
                       />
                     )}
-                    <span className="truncate text-ink/75">
+                    <span className="truncate text-content-2">
                       {e.user
                         ? e.user.full_name ?? `@${e.user.username}`
                         : "—"}
                     </span>
-                    <span className="shrink-0 text-ink/45">· {date}</span>
+                    <span className="shrink-0 text-content-3">· {date}</span>
                   </div>
-                  <span className="shrink-0 font-mono font-semibold text-ink/75">
+                  <span className="shrink-0 font-mono font-semibold text-content-2">
                     {e.ended_at === null
                       ? t.taskDetail.ongoing
                       : formatDuration(e.duration_seconds ?? 0)}

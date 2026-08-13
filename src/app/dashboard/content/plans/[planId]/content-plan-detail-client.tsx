@@ -65,28 +65,28 @@ const ITEM_STATUSES: ContentItemStatus[] = [
 ];
 
 const STATUS_BG: Record<string, string> = {
-  draft: "bg-[var(--c-border)] text-[var(--c-text-3)]",
-  approved: "bg-emerald-500/15 text-emerald-400",
-  archived: "bg-[var(--c-border)] text-[var(--c-text-3)]",
+  draft: "bg-surface-3 text-content-2",
+  approved: "bg-success-weak text-success",
+  archived: "bg-surface-3 text-content-2",
 };
 
 const ITEM_STATUS_BG: Record<string, string> = {
-  idea: "bg-slate-500/15 text-slate-400",
-  copywriting: "bg-blue-500/15 text-blue-400",
+  idea: "bg-surface-3 text-content-3",
+  copywriting: "bg-info-weak text-info",
   design: "bg-violet-500/15 text-violet-400",
-  editing: "bg-orange-500/15 text-orange-400",
-  internal_review: "bg-yellow-500/15 text-yellow-400",
-  client_review: "bg-pink-500/15 text-pink-400",
-  approved: "bg-emerald-500/15 text-emerald-400",
-  scheduled: "bg-cyan-500/15 text-cyan-400",
-  published: "bg-green-500/15 text-green-400",
+  editing: "bg-warning-weak text-warning",
+  internal_review: "bg-warning-weak text-warning",
+  client_review: "bg-danger-weak text-danger",
+  approved: "bg-success-weak text-success",
+  scheduled: "bg-info-weak text-info",
+  published: "bg-success-weak text-success",
 };
 
 const PRIORITY_COLORS: Record<string, string> = {
-  low: "text-slate-400",
-  normal: "text-[var(--c-text-3)]",
-  high: "text-amber-400",
-  urgent: "text-red-400",
+  low: "text-content-3",
+  normal: "text-content-3",
+  high: "text-warning",
+  urgent: "text-danger",
 };
 
 export function ContentPlanDetailClient({ plan, items, members }: Props) {
@@ -174,41 +174,41 @@ export function ContentPlanDetailClient({ plan, items, members }: Props) {
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-[var(--c-text-3)] flex-wrap">
-        <Link href="/dashboard/content" className="hover:text-[var(--c-text-1)] flex items-center gap-1 transition-colors">
+      <div className="flex items-center gap-2 text-sm text-content-3 flex-wrap">
+        <Link href="/dashboard/content" className="hover:text-content flex items-center gap-1 transition-colors">
           <ChevronLeft size={14} />
           {c.title}
         </Link>
         <span>/</span>
         <Link
           href={`/dashboard/content/clients/${plan.client_id}`}
-          className="hover:text-[var(--c-text-1)] transition-colors"
+          className="hover:text-content transition-colors"
         >
           {clientName}
         </Link>
         <span>/</span>
-        <span className="text-[var(--c-text-1)] font-medium">
+        <span className="text-content font-medium">
           {monthLabel} {plan.year}
         </span>
       </div>
 
       {/* Plan header */}
-      <div className="rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] p-5">
+      <div className="rounded-xl border border-line bg-surface p-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-xl font-bold text-[var(--c-text-1)]">
+              <h1 className="text-xl font-bold text-content">
                 {monthLabel} {plan.year}
               </h1>
               {plan.theme && (
-                <span className="text-sm text-[var(--c-text-3)]">— {plan.theme}</span>
+                <span className="text-sm text-content-3">— {plan.theme}</span>
               )}
               <span className={cn("rounded-full px-2.5 py-0.5 text-[11px] font-semibold", STATUS_BG[plan.status] ?? STATUS_BG.draft)}>
                 {c.planStatus[plan.status as keyof typeof c.planStatus] ?? plan.status}
               </span>
             </div>
             {plan.goals && (
-              <p className="mt-2 text-sm text-[var(--c-text-2)] max-w-xl">{plan.goals}</p>
+              <p className="mt-2 text-sm text-content-2 max-w-xl">{plan.goals}</p>
             )}
           </div>
 
@@ -218,7 +218,7 @@ export function ContentPlanDetailClient({ plan, items, members }: Props) {
                 type="button"
                 onClick={handleApprovePlan}
                 disabled={isPending}
-                className="flex items-center gap-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 px-3 py-2 text-sm font-medium hover:bg-emerald-500/20 disabled:opacity-60 transition-colors"
+                className="flex items-center gap-1.5 rounded-lg bg-success-weak border border-success text-success px-3 py-2 text-sm font-medium hover:bg-success-weak disabled:opacity-60 transition-colors"
               >
                 <CheckCircle2 size={14} />
                 {c.approvePlan}
@@ -229,14 +229,14 @@ export function ContentPlanDetailClient({ plan, items, members }: Props) {
                 type="button"
                 onClick={handleArchivePlan}
                 disabled={isPending}
-                className="rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-3 py-2 text-sm text-[var(--c-text-2)] hover:bg-[var(--c-elevated)] disabled:opacity-60 transition-colors"
+                className="rounded-lg border border-line bg-surface px-3 py-2 text-sm text-content-2 hover:bg-surface-2 disabled:opacity-60 transition-colors"
               >
                 {c.archivePlan}
               </button>
             )}
             <Link
               href={`/dashboard/content/calendar?client=${plan.client_id}`}
-              className="flex items-center gap-1.5 rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-3 py-2 text-sm text-[var(--c-text-2)] hover:text-[var(--c-text-1)] hover:bg-[var(--c-elevated)] transition-colors"
+              className="flex items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-2 text-sm text-content-2 hover:text-content hover:bg-surface-2 transition-colors"
             >
               <ExternalLink size={13} />
               {c.calendar}
@@ -257,8 +257,8 @@ export function ContentPlanDetailClient({ plan, items, members }: Props) {
                   className={cn(
                     "flex flex-col items-center gap-1 px-3 py-2 rounded-lg text-xs transition-all",
                     filterStatus === s
-                      ? "bg-[#22D3EE]/15 text-[#22D3EE] ring-1 ring-[#22D3EE]/40"
-                      : "text-[var(--c-text-3)] hover:bg-[var(--c-elevated)]",
+                      ? "bg-accent2/15 text-accent2 ring-1 ring-accent2/40"
+                      : "text-content-3 hover:bg-surface-2",
                   )}
                 >
                   <span className="font-semibold text-base">{count}</span>
@@ -275,13 +275,13 @@ export function ContentPlanDetailClient({ plan, items, members }: Props) {
       {/* Content items */}
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
-          <h2 className="font-semibold text-[var(--c-text-1)]">
+          <h2 className="font-semibold text-content">
             {c.contentItems}
             {filterStatus !== "all" && (
               <button
                 type="button"
                 onClick={() => setFilterStatus("all")}
-                className="ml-2 text-xs text-[#22D3EE] hover:underline"
+                className="ml-2 text-xs text-accent2 hover:underline"
               >
                 {c.showAll}
               </button>
@@ -290,7 +290,7 @@ export function ContentPlanDetailClient({ plan, items, members }: Props) {
           <button
             type="button"
             onClick={() => setShowNewItem(true)}
-            className="flex items-center gap-1.5 rounded-lg bg-[#22D3EE]/10 border border-[#22D3EE]/25 text-[#22D3EE] px-3 py-2 text-sm font-medium hover:bg-[#22D3EE]/20 transition-colors"
+            className="flex items-center gap-1.5 rounded-lg bg-accent2/10 border border-accent2/25 text-accent2 px-3 py-2 text-sm font-medium hover:bg-accent2/20 transition-colors"
           >
             <Plus size={14} />
             {c.newItem}
@@ -301,9 +301,9 @@ export function ContentPlanDetailClient({ plan, items, members }: Props) {
         {showNewItem && (
           <form
             onSubmit={handleCreateItem}
-            className="rounded-xl border border-[#22D3EE]/30 bg-[var(--c-card)] p-4 flex flex-col gap-4"
+            className="rounded-xl border border-accent2/30 bg-surface p-4 flex flex-col gap-4"
           >
-            <h3 className="text-sm font-semibold text-[var(--c-text-1)]">{c.createItem}</h3>
+            <h3 className="text-sm font-semibold text-content">{c.createItem}</h3>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               <FormField label={c.itemFields.title} className="sm:col-span-2 lg:col-span-3">
                 <input
@@ -377,14 +377,14 @@ export function ContentPlanDetailClient({ plan, items, members }: Props) {
               <button
                 type="button"
                 onClick={() => setShowNewItem(false)}
-                className="rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-4 py-2 text-sm text-[var(--c-text-2)] hover:bg-[var(--c-elevated)] transition-colors"
+                className="rounded-lg border border-line bg-surface px-4 py-2 text-sm text-content-2 hover:bg-surface-2 transition-colors"
               >
                 {t.common.cancel}
               </button>
               <button
                 type="submit"
                 disabled={isPending}
-                className="rounded-lg bg-[#22D3EE] px-4 py-2 text-sm font-semibold text-[#071B2C] hover:bg-[#22D3EE]/90 disabled:opacity-60 transition-colors"
+                className="rounded-lg bg-accent2 px-4 py-2 text-sm font-semibold text-accent2-fg hover:bg-accent2/90 disabled:opacity-60 transition-colors"
               >
                 {isPending ? t.common.saving : c.createItem}
               </button>
@@ -393,22 +393,22 @@ export function ContentPlanDetailClient({ plan, items, members }: Props) {
         )}
 
         {filteredItems.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-[var(--c-border)] bg-[var(--c-card)] py-12 text-center">
-            <Layers size={28} className="mx-auto mb-3 text-[var(--c-text-3)]" />
-            <p className="text-sm text-[var(--c-text-3)]">{c.noItems}</p>
+          <div className="rounded-xl border border-dashed border-line bg-surface py-12 text-center">
+            <Layers size={28} className="mx-auto mb-3 text-content-3" />
+            <p className="text-sm text-content-3">{c.noItems}</p>
             <button
               type="button"
               onClick={() => setShowNewItem(true)}
-              className="mt-3 text-sm text-[#22D3EE] hover:underline"
+              className="mt-3 text-sm text-accent2 hover:underline"
             >
               {c.addFirstItem}
             </button>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-[var(--c-border)] bg-[var(--c-card)]">
+          <div className="overflow-x-auto rounded-xl border border-line bg-surface">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-[var(--c-border)] text-xs text-[var(--c-text-3)] bg-[var(--c-elevated)]">
+                <tr className="border-b border-line text-xs text-content-3 bg-surface-2">
                   <th className="px-4 py-3 text-left font-semibold">{c.itemFields.title}</th>
                   <th className="px-4 py-3 text-left font-semibold">{c.itemFields.contentType}</th>
                   <th className="px-4 py-3 text-left font-semibold">{c.itemFields.platform}</th>
@@ -419,33 +419,33 @@ export function ContentPlanDetailClient({ plan, items, members }: Props) {
                   <th className="px-4 py-3"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[var(--c-border)]">
+              <tbody className="divide-y divide-line">
                 {filteredItems.map((item) => (
                   <tr
                     key={item.id}
-                    className="hover:bg-[var(--c-elevated)] transition-colors"
+                    className="hover:bg-surface-2 transition-colors"
                   >
                     <td className="px-4 py-3 max-w-[200px]">
                       <Link
                         href={`/dashboard/content/items/${item.id}`}
-                        className="font-medium text-[var(--c-text-1)] hover:text-[#22D3EE] transition-colors line-clamp-1"
+                        className="font-medium text-content hover:text-accent2 transition-colors line-clamp-1"
                       >
                         {item.title}
                       </Link>
                       {item.pillar && (
-                        <p className="text-[10px] text-[var(--c-text-3)] mt-0.5">{item.pillar}</p>
+                        <p className="text-[10px] text-content-3 mt-0.5">{item.pillar}</p>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-[var(--c-text-2)]">
+                    <td className="px-4 py-3 text-content-2">
                       {c.contentType[item.content_type as keyof typeof c.contentType] ?? item.content_type}
                     </td>
-                    <td className="px-4 py-3 text-[var(--c-text-2)] capitalize">{item.platform}</td>
-                    <td className="px-4 py-3 text-[var(--c-text-2)]">
+                    <td className="px-4 py-3 text-content-2 capitalize">{item.platform}</td>
+                    <td className="px-4 py-3 text-content-2">
                       {item.profiles?.full_name ?? item.profiles?.username ?? (
-                        <em className="text-[var(--c-text-3)]">{t.tasks.form.unassigned}</em>
+                        <em className="text-content-3">{t.tasks.form.unassigned}</em>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-[var(--c-text-2)]">
+                    <td className="px-4 py-3 text-content-2">
                       {item.publish_date
                         ? new Date(item.publish_date).toLocaleDateString(
                             locale === "en" ? "en-US" : "fr-FR",
@@ -459,7 +459,7 @@ export function ContentPlanDetailClient({ plan, items, members }: Props) {
                         onChange={(e) => handleChangeStatus(item.id, e.target.value as ContentItemStatus)}
                         className={cn(
                           "rounded-full px-2 py-0.5 text-[11px] font-semibold border-0 outline-none cursor-pointer",
-                          ITEM_STATUS_BG[item.status] ?? "bg-[var(--c-border)] text-[var(--c-text-3)]",
+                          ITEM_STATUS_BG[item.status] ?? "bg-surface-3 text-content-2",
                         )}
                       >
                         {ITEM_STATUSES.map((s) => (
@@ -478,7 +478,7 @@ export function ContentPlanDetailClient({ plan, items, members }: Props) {
                       <div className="flex items-center gap-1">
                         <Link
                           href={`/dashboard/content/items/${item.id}`}
-                          className="rounded p-1 text-[var(--c-text-3)] hover:text-[#22D3EE] hover:bg-[#22D3EE]/10 transition-colors"
+                          className="rounded p-1 text-content-3 hover:text-accent2 hover:bg-accent2/10 transition-colors"
                         >
                           <ExternalLink size={13} />
                         </Link>
@@ -486,7 +486,7 @@ export function ContentPlanDetailClient({ plan, items, members }: Props) {
                           type="button"
                           onClick={() => handleDeleteItem(item.id)}
                           disabled={isPending}
-                          className="rounded p-1 text-[var(--c-text-3)] hover:text-red-400 hover:bg-red-400/10 transition-colors"
+                          className="rounded p-1 text-content-3 hover:text-danger hover:bg-danger-weak transition-colors"
                         >
                           <Trash2 size={13} />
                         </button>
@@ -514,7 +514,7 @@ function FormField({
 }) {
   return (
     <label className={cn("flex flex-col gap-1.5", className)}>
-      <span className="text-xs font-medium text-[var(--c-text-3)]">{label}</span>
+      <span className="text-xs font-medium text-content-3">{label}</span>
       {children}
     </label>
   );

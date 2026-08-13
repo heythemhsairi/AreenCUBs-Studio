@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireSession, requireWorkerOrAdmin } from "@/lib/auth";
+import { requireAdmin, requireClientAccess, requireSession } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
@@ -27,7 +27,7 @@ function stringOrNull(v: FormDataEntryValue | null): string | null {
 export async function createClientAction(
   formData: FormData,
 ): Promise<ActionResult> {
-  const session = await requireWorkerOrAdmin();
+  const session = await requireClientAccess();
   const fields = pickClientFields(formData);
   if (!fields.name) return { ok: false, error: "Le nom est requis." };
 
@@ -46,7 +46,7 @@ export async function createClientAction(
 export async function updateClientAction(
   formData: FormData,
 ): Promise<ActionResult> {
-  await requireWorkerOrAdmin();
+  await requireClientAccess();
   const id = String(formData.get("id") ?? "");
   if (!id) return { ok: false, error: "ID manquant." };
 
@@ -65,7 +65,7 @@ export async function updateClientAction(
 export async function deleteClientAction(
   formData: FormData,
 ): Promise<ActionResult> {
-  await requireWorkerOrAdmin();
+  await requireAdmin();
   const id = String(formData.get("id") ?? "");
   if (!id) return { ok: false, error: "ID manquant." };
 

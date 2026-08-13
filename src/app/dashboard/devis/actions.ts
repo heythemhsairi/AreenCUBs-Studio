@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireAdmin } from "@/lib/auth";
+import { requireAdmin, requireQuoteAccess } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { notifyMany } from "@/lib/notify";
@@ -11,11 +11,14 @@ export type ActionResult<T = unknown> =
   | { ok: true; data?: T }
   | { ok: false; error: string };
 
-const TVA_RATE = 19.0;
-// Tunisian fiscal stamp (timbre fiscal): a fixed fee added on top of the
-// TVA-inclusive total. The stamp itself is not taxed. Stored per-document in
-// devis.stamp_dt (0 = no stamp).
-const STAMP_DT = 1.0;
+import {
+  computeDocumentTotalsLegacy,
+  DEFAULT_TVA_RATE,
+  isValidTvaRate,
+  STAMP_DT,
+} from "@/lib/money/document-calc";
+import { recordShadowDivergence } from "@/lib/money/shadow";
+
 
 const DEVIS_STATUSES = ["draft", "sent", "accepted", "rejected"] as const;
 const PAYMENT_STATUSES = ["unpaid", "partial", "paid"] as const;
@@ -43,6 +46,10 @@ type DevisInput = {
   discount_dt: number;
   /** Whether the fiscal stamp (timbre fiscal) is applied to this document. */
   apply_stamp: boolean;
+  /** Per-document TVA toggle. Explicit — never inferred from a zero amount. */
+  tva_enabled: boolean;
+  /** Percentage. Retained on the row but inert when the toggle is off. */
+  tva_rate: number;
   /** Optional manual override of the document number. */
   devis_number: number | null;
 };
@@ -86,6 +93,18 @@ function pickDevisInput(formData: FormData): DevisInput {
     kind,
     discount_dt: Math.max(0, Number(formData.get("discount_dt") ?? 0) || 0),
     apply_stamp: formData.get("apply_stamp") === "on",
+    // Absent field means an older form: TVA on at the standard rate, exactly
+    // what every document did before the toggle existed.
+    tva_enabled:
+      formData.get("tva_enabled") === null
+        ? true
+        : formData.get("tva_enabled") === "on",
+    tva_rate: (() => {
+      const raw = formData.get("tva_rate");
+      if (raw === null || String(raw).trim() === "") return DEFAULT_TVA_RATE;
+      const rate = Number(raw);
+      return isValidTvaRate(rate) ? rate : NaN;
+    })(),
     devis_number: parseDevisNumber(formData.get("devis_number")),
   };
 }
@@ -105,24 +124,6 @@ function stringOrNull(v: FormDataEntryValue | null): string | null {
   return s.length === 0 ? null : s;
 }
 
-function computeTotals(items: DevisItemInput[], discountDt = 0, applyStamp = false) {
-  const subtotal = items.reduce(
-    (sum, it) => sum + it.quantity * it.unit_price_dt,
-    0,
-  );
-  const discount = Math.max(0, Math.min(subtotal, discountDt));
-  const net = subtotal - discount;
-  const tva = +((net * TVA_RATE) / 100).toFixed(2);
-  const stamp = applyStamp ? STAMP_DT : 0;
-  const total = +(net + tva + stamp).toFixed(2);
-  return {
-    subtotal: +subtotal.toFixed(2),
-    discount: +discount.toFixed(2),
-    tva,
-    stamp: +stamp.toFixed(2),
-    total,
-  };
-}
 
 async function nextNumber(kind: DevisKind): Promise<number> {
   // The default for devis_number is nextval('devis_number_seq'); for factures
@@ -167,17 +168,41 @@ async function numberTaken(
   return !!data;
 }
 
+/**
+ * Draft authoring is open to a commercial; everything that ISSUES, SETTLES or
+ * REMOVES a document stays with the administrator.
+ *
+ * The split is deliberate and matches docs/audit/PERMISSION-MATRIX.md. Row
+ * scoping is not repeated here because RLS already does it: a commercial's
+ * INSERT is rejected unless the client is theirs and the status is 'draft',
+ * and their UPDATE matches zero rows once a document leaves draft. Duplicating
+ * that in TypeScript would create a second definition of the rule that could
+ * drift from the first.
+ *
+ * Two layers, two jobs: the guard decides who may call the action, the policy
+ * decides which rows the call may touch.
+ */
 export async function createDevisAction(
   formData: FormData,
 ): Promise<ActionResult> {
-  const session = await requireAdmin();
+  const session = await requireQuoteAccess();
   const input = pickDevisInput(formData);
 
   if (!input.client_id) return { ok: false, error: "Client requis." };
   if (input.items.length === 0)
     return { ok: false, error: "Ajoutez au moins une ligne." };
 
-  const totals = computeTotals(input.items, input.discount_dt, input.apply_stamp);
+  if (Number.isNaN(input.tva_rate)) {
+    return { ok: false, error: "Taux de TVA invalide (0 à 100, deux décimales)." };
+  }
+
+  const calcOptions = {
+    tvaEnabled: input.tva_enabled,
+    tvaRate: input.tva_rate,
+    applyStamp: input.apply_stamp,
+    discountDt: input.discount_dt,
+  };
+  const totals = computeDocumentTotalsLegacy(input.items, calcOptions);
   const supabase = await createClient();
 
   // Manual number if the admin set one, otherwise the next in sequence.
@@ -211,10 +236,12 @@ export async function createDevisAction(
       notes: input.notes,
       subtotal_dt: totals.subtotal,
       discount_dt: totals.discount,
-      tva_rate: TVA_RATE,
+      tva_enabled: input.tva_enabled,
+      tva_rate: input.tva_rate,
       tva_dt: totals.tva,
       stamp_dt: totals.stamp,
       total_dt: totals.total,
+      calc_source: "legacy-v1",
       created_by: session.id,
     })
     .select("id, kind")
@@ -240,6 +267,18 @@ export async function createDevisAction(
 
   const baseUrl =
     devis.kind === "facture" ? "/dashboard/factures" : "/dashboard/devis";
+  // Measurement and record, both fire-and-forget: neither may block the
+  // document that was just created.
+  await recordShadowDivergence(supabase, input.kind, input.items, calcOptions);
+  await supabase.from("audit_log").insert({
+    actor_id: session.id,
+    actor_role: session.role,
+    action: "devis.draft_created",
+    entity_type: "devis",
+    entity_id: devis.id,
+    summary: `${input.kind} — ${input.items.length} ligne(s)`,
+  });
+
   revalidatePath(baseUrl);
   redirect(`${baseUrl}/${devis.id}`);
 }
@@ -247,7 +286,7 @@ export async function createDevisAction(
 export async function updateDevisAction(
   formData: FormData,
 ): Promise<ActionResult> {
-  await requireAdmin();
+  const session = await requireQuoteAccess();
   const id = String(formData.get("id") ?? "");
   if (!id) return { ok: false, error: "ID manquant." };
 
@@ -256,8 +295,38 @@ export async function updateDevisAction(
   if (input.items.length === 0)
     return { ok: false, error: "Ajoutez au moins une ligne." };
 
-  const totals = computeTotals(input.items, input.discount_dt, input.apply_stamp);
+  if (Number.isNaN(input.tva_rate)) {
+    return { ok: false, error: "Taux de TVA invalide (0 à 100, deux décimales)." };
+  }
+
+  const calcOptions = {
+    tvaEnabled: input.tva_enabled,
+    tvaRate: input.tva_rate,
+    applyStamp: input.apply_stamp,
+    discountDt: input.discount_dt,
+  };
+  const totals = computeDocumentTotalsLegacy(input.items, calcOptions);
   const supabase = await createClient();
+
+  // Financial columns are frozen once a document is issued — the database
+  // trigger enforces it, and refusing here as well gives the person a usable
+  // message instead of a policy error. The escape hatch is deliberate and
+  // audit-visible: return the document to draft, edit, re-issue.
+  {
+    const { data: current } = await supabase
+      .from("devis")
+      .select("status")
+      .eq("id", id)
+      .maybeSingle();
+    if (!current) return { ok: false, error: "Document introuvable." };
+    if (current.status !== "draft") {
+      return {
+        ok: false,
+        error:
+          "Ce document est émis : ses montants sont figés. Repassez-le en brouillon pour le modifier.",
+      };
+    }
+  }
 
   // Allow editing the document number; reject collisions with a
   // different document of the same kind.
@@ -295,10 +364,12 @@ export async function updateDevisAction(
       notes: input.notes,
       subtotal_dt: totals.subtotal,
       discount_dt: totals.discount,
-      tva_rate: TVA_RATE,
+      tva_enabled: input.tva_enabled,
+      tva_rate: input.tva_rate,
       tva_dt: totals.tva,
       stamp_dt: totals.stamp,
       total_dt: totals.total,
+      calc_source: "legacy-v1",
       ...numberPatch,
     })
     .eq("id", id);
@@ -318,6 +389,16 @@ export async function updateDevisAction(
     })),
   );
   if (itemsError) return { ok: false, error: itemsError.message };
+
+  await recordShadowDivergence(supabase, input.kind, input.items, calcOptions);
+  await supabase.from("audit_log").insert({
+    actor_id: session.id,
+    actor_role: session.role,
+    action: "devis.draft_updated",
+    entity_type: "devis",
+    entity_id: id,
+    summary: `${input.kind} — ${input.items.length} ligne(s)`,
+  });
 
   revalidatePath("/dashboard/devis");
   revalidatePath("/dashboard/factures");

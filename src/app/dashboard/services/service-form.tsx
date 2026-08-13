@@ -139,7 +139,7 @@ export function ServiceForm(props: Props) {
               </Field>
             </div>
 
-            <label className="flex items-center gap-2 text-sm text-ink/75">
+            <label className="flex items-center gap-2 text-sm text-content-2">
               <input
                 type="checkbox"
                 name="active"
@@ -149,8 +149,8 @@ export function ServiceForm(props: Props) {
               {ts.activeLabel}
             </label>
 
-            {error && <p className="text-sm text-red-600">{error}</p>}
-            {saved && <p className="text-sm text-green-700">{ts.saved}</p>}
+            {error && <p className="text-sm text-danger">{error}</p>}
+            {saved && <p className="text-sm text-success">{ts.saved}</p>}
 
             <div className="flex items-center gap-3 pt-2">
               <Button type="submit" disabled={pending}>
@@ -162,7 +162,7 @@ export function ServiceForm(props: Props) {
               </Button>
               <Link
                 href="/dashboard/services"
-                className="text-sm text-ink/55 hover:text-ink"
+                className="text-sm text-content-3 hover:text-ink"
               >
                 {ts.cancel}
               </Link>
@@ -172,16 +172,16 @@ export function ServiceForm(props: Props) {
       </Card>
 
       {props.mode === "edit" && (
-        <Card className="max-w-2xl border-red-200">
+        <Card className="max-w-2xl border-danger">
           <CardHeader>
-            <CardTitle className="text-red-700">{ts.deleteTitle}</CardTitle>
+            <CardTitle className="text-danger">{ts.deleteTitle}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-ink/70">{ts.deleteNote}</p>
+            <p className="text-sm text-content-2">{ts.deleteNote}</p>
             <Button
               type="button"
               variant="outline"
-              className="mt-3 border-red-300 text-red-700 hover:bg-red-50"
+              className="mt-3 border-danger text-danger hover:bg-danger-weak"
               onClick={onDelete}
               disabled={delPending}
             >
@@ -203,7 +203,7 @@ function Field({
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="text-xs font-semibold uppercase tracking-wider text-ink/55">
+      <label className="text-xs font-semibold uppercase tracking-wider text-content-3">
         {label}
       </label>
       {children}

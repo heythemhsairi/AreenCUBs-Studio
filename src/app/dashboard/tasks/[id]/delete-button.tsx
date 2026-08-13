@@ -9,9 +9,11 @@ import { deleteTaskAction } from "../actions";
 export function TaskDeleteButton({
   taskId,
   projectId,
+  workScope,
 }: {
   taskId: string;
-  projectId: string;
+  projectId: string | null;
+  workScope: "client" | "studio";
 }) {
   const { t } = useI18n();
   const [pending, startTransition] = useTransition();
@@ -20,22 +22,23 @@ export function TaskDeleteButton({
     if (!confirm(t.tasks.deleteConfirm)) return;
     const fd = new FormData();
     fd.set("id", taskId);
-    fd.set("project_id", projectId);
+    fd.set("project_id", projectId ?? "");
+    fd.set("work_scope", workScope);
     startTransition(async () => {
       await deleteTaskAction(fd);
     });
   }
 
   return (
-    <Card className="max-w-2xl border-red-200">
+    <Card className="max-w-2xl border-danger">
       <CardHeader>
-        <CardTitle className="text-red-700">{t.common.delete}</CardTitle>
+        <CardTitle className="text-danger">{t.common.delete}</CardTitle>
       </CardHeader>
       <CardContent>
         <Button
           type="button"
           variant="outline"
-          className="border-red-300 text-red-700 hover:bg-red-50"
+          className="border-danger text-danger hover:bg-danger-weak"
           onClick={onDelete}
           disabled={pending}
         >

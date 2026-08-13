@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { requireAdmin } from "@/lib/auth";
+import { requireQuoteAccess } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { DevisBuilder } from "../../devis-builder";
 
@@ -8,7 +8,7 @@ export default async function EditDevisPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireAdmin();
+  await requireQuoteAccess();
   const { id } = await params;
   const supabase = await createClient();
 
@@ -17,7 +17,7 @@ export default async function EditDevisPage({
       supabase
         .from("devis")
         .select(
-          "id, kind, devis_number, client_id, date, due_date, object, notes, discount_dt, stamp_dt, devis_items(service_id, description, quantity, unit_price_dt, is_bonus, position)",
+          "id, kind, devis_number, client_id, date, due_date, object, notes, discount_dt, stamp_dt, tva_enabled, tva_rate, devis_items(service_id, description, quantity, unit_price_dt, is_bonus, position)",
         )
         .eq("id", id)
         .single(),

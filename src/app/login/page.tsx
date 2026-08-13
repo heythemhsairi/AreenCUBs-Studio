@@ -25,7 +25,7 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="relative grid min-h-screen place-items-center bg-[var(--c-bg)] px-4 py-12">
+    <main className="relative grid min-h-screen place-items-center bg-canvas px-4 py-12">
       {/* Animated brand orbs */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -left-32 top-1/4 h-96 w-96 rounded-full bg-brand/15 blur-3xl animate-[float_8s_ease-in-out_infinite]" />
@@ -51,16 +51,16 @@ export default function LoginPage() {
           <LanguageToggle />
         </div>
 
-        <div className="overflow-hidden rounded-2xl border border-[var(--c-border)] bg-[var(--c-card)] shadow-[0_8px_32px_rgba(0,0,0,0.18)]">
+        <div className="overflow-hidden rounded-2xl border border-line bg-surface shadow-[0_8px_32px_rgba(0,0,0,0.18)]">
           {/* Card header */}
-          <div className="border-b border-[var(--c-border)] px-6 pb-4 pt-6">
+          <div className="border-b border-line px-6 pb-4 pt-6">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-brand">
               Espace privé
             </p>
-            <h1 className="mt-1 text-xl font-semibold text-[var(--c-text-1)]">
+            <h1 className="mt-1 text-xl font-semibold text-content">
               {t.login.title}
             </h1>
-            <p className="mt-0.5 text-xs text-[var(--c-text-3)]">{t.tagline}</p>
+            <p className="mt-0.5 text-xs text-content-3">{t.tagline}</p>
           </div>
 
           {/* Card body */}
@@ -69,7 +69,7 @@ export default function LoginPage() {
               <div className="space-y-1.5">
                 <label
                   htmlFor="username"
-                  className="block text-[11px] font-semibold uppercase tracking-wider text-[var(--c-text-2)]"
+                  className="block text-[11px] font-semibold uppercase tracking-wider text-content-2"
                 >
                   {t.login.username}
                 </label>
@@ -82,13 +82,13 @@ export default function LoginPage() {
                   placeholder="heythem"
                   required
                 />
-                <p className="text-xs text-[var(--c-text-3)]">{t.login.usernameHint}</p>
+                <p className="text-xs text-content-3">{t.login.usernameHint}</p>
               </div>
 
               <div className="space-y-1.5">
                 <label
                   htmlFor="password"
-                  className="block text-[11px] font-semibold uppercase tracking-wider text-[var(--c-text-2)]"
+                  className="block text-[11px] font-semibold uppercase tracking-wider text-content-2"
                 >
                   {t.login.password}
                 </label>
@@ -103,7 +103,7 @@ export default function LoginPage() {
 
               {error && (
                 <div
-                  className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2.5 text-sm font-medium text-red-400"
+                  className="rounded-lg border border-danger bg-danger-weak px-3 py-2.5 text-sm font-medium text-danger"
                   role="alert"
                 >
                   {error}
@@ -112,18 +112,18 @@ export default function LoginPage() {
 
               <Button
                 type="submit"
-                className="w-full bg-[#22D3EE] text-[#071B2C] hover:bg-[#06B6D4] font-semibold"
+                className="w-full bg-accent2 text-accent2-fg hover:bg-accent2 font-semibold"
                 disabled={pending}
               >
                 {pending ? "..." : t.login.submit} →
               </Button>
 
-              <p className="pt-1 text-xs text-[var(--c-text-3)]">{t.login.noAccount}</p>
+              <p className="pt-1 text-xs text-content-3">{t.login.noAccount}</p>
             </form>
           </div>
         </div>
 
-        <p className="text-center text-[11px] text-[var(--c-text-3)]">
+        <p className="text-center text-[11px] text-content-3">
           © {new Date().getFullYear()} Areen CUBs · Booster · IT Services
         </p>
       </div>

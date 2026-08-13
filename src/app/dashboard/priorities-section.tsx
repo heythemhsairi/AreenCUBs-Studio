@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/lib/i18n/provider";
+import { useToday } from "@/lib/time/now";
 import { togglePriorityPinAction } from "./priority-actions";
 
 type Pin = {
@@ -37,10 +38,14 @@ export function PriorityPinsSection({ pins }: { pins: Pin[] }) {
   const [items, setItems] = useState(pins);
   const [, startTransition] = useTransition();
 
+  // Hydration-safe: a render-time `new Date()` gives the server's UTC day and
+  // the browser's Africa/Tunis day, so relative deadlines ("45j retard") could
+  // differ by one across hydration and React would discard the subtree (#418).
+  const todayMidnight = useToday();
+
   function relativeDeadline(iso: string | null): string {
     if (!iso) return "";
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const today = todayMidnight;
     const d = new Date(iso);
     const days = Math.floor((d.getTime() - today.getTime()) / 86400000);
     if (days < 0) return t.pins.relativeLate(days);
@@ -65,7 +70,7 @@ export function PriorityPinsSection({ pins }: { pins: Pin[] }) {
             <CardTitle className="flex items-center gap-2">
               <span className="text-accent">⭐</span>
               {t.pins.title}
-              <span className="text-xs font-medium text-ink/40">
+              <span className="text-xs font-medium text-content-3">
                 {items.length}
                 {t.pins.counterMax}
               </span>
@@ -82,7 +87,7 @@ export function PriorityPinsSection({ pins }: { pins: Pin[] }) {
           <ul className="space-y-1.5">
             {items.map((p) => (
               <li key={p.pinId}>
-                <div className="group flex items-center gap-3 rounded-lg border border-white/40 bg-white/70 p-2.5 transition-all hover:shadow-soft dark:border-white/10 dark:bg-white/5">
+                <div className="group flex items-center gap-3 rounded-lg border border-white/40 bg-surface/70 p-2.5 transition-all hover:shadow-soft dark:border-white/10 dark:bg-surface/5">
                   <button
                     type="button"
                     onClick={() => unpin(p)}
@@ -110,7 +115,7 @@ export function PriorityPinsSection({ pins }: { pins: Pin[] }) {
                     <p className="truncate text-sm font-medium text-ink hover:text-brand">
                       {p.title}
                     </p>
-                    <p className="truncate text-xs text-ink/55">
+                    <p className="truncate text-xs text-content-3">
                       {p.client ? `${p.client} · ` : ""}
                       {p.project ?? "—"}
                     </p>
@@ -128,11 +133,9 @@ export function PriorityPinsSection({ pins }: { pins: Pin[] }) {
                     </Badge>
                     {p.deadline &&
                       (() => {
-                        const dToday = new Date();
-                        dToday.setHours(0, 0, 0, 0);
                         const days = Math.floor(
                           (new Date(p.deadline).getTime() -
-                            dToday.getTime()) /
+                            todayMidnight.getTime()) /
                             86400000,
                         );
                         const late = days < 0;
@@ -140,7 +143,7 @@ export function PriorityPinsSection({ pins }: { pins: Pin[] }) {
                           <span
                             className={`rounded-md px-2 py-0.5 font-semibold ${
                               late
-                                ? "bg-red-50 text-red-700"
+                                ? "bg-danger-weak text-danger"
                                 : "bg-accent/15 text-accent-dark"
                             }`}
                           >

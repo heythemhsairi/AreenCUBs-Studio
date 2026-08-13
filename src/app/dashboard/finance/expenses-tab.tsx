@@ -26,18 +26,18 @@ export type ExpenseRow = {
 
 const CATEGORY_COLORS: Record<string, string> = {
   salaries:    "bg-violet-100 text-violet-700",
-  freelancers: "bg-blue-100 text-blue-700",
-  ads:         "bg-pink-100 text-pink-700",
-  software:    "bg-cyan-100 text-cyan-700",
-  hosting:     "bg-teal-100 text-teal-700",
-  transport:   "bg-orange-100 text-orange-700",
-  office:      "bg-amber-100 text-amber-700",
+  freelancers: "bg-info-weak text-info",
+  ads:         "bg-danger-weak text-danger",
+  software:    "bg-info-weak text-info",
+  hosting:     "bg-success-weak text-success",
+  transport:   "bg-warning-weak text-warning",
+  office:      "bg-warning-weak text-warning",
   production:  "bg-brand/10 text-brand-dark",
-  other:       "bg-ink/8 text-ink/55",
+  other:       "bg-ink/8 text-content-3",
 };
 
 const INPUT_CLS =
-  "mt-1 w-full rounded-lg border border-[#22506F] bg-[#0D2D47] px-3 py-2 text-sm text-[#F8FAFC] placeholder:text-[#64748B] focus:border-[#22D3EE] focus:outline-none focus:ring-2 focus:ring-[#22D3EE]/20";
+  "mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-content placeholder:text-content-3 focus:border-accent2 focus:outline-none focus:ring-2 focus:ring-accent2/20";
 
 export function ExpensesTab({
   rows, projects, clients, expByCategory, mtdExpenses,
@@ -106,10 +106,10 @@ export function ExpensesTab({
     <div className="space-y-5">
       {/* KPI strip */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <StatTile label={tf.expensesStatMonth} value={mtdExpenses} color="text-red-600" />
+        <StatTile label={tf.expensesStatMonth} value={mtdExpenses} color="text-danger" />
         <StatTile label={tf.expensesStatTotal} value={totalAll}    color="text-ink" />
         {top2Categories.map(([cat, amt]) => (
-          <StatTile key={cat} label={CATEGORY_LABELS[cat] ?? cat} value={amt} color="text-ink/70" />
+          <StatTile key={cat} label={CATEGORY_LABELS[cat] ?? cat} value={amt} color="text-content-2" />
         ))}
       </div>
 
@@ -133,20 +133,20 @@ export function ExpensesTab({
             <form
               ref={formRef}
               action={handleAdd}
-              className="rounded-xl border border-[#22506F] bg-[#123A5A] p-4 space-y-3"
+              className="rounded-xl border border-line bg-surface-2 p-4 space-y-3"
             >
-              <p className="text-xs font-semibold uppercase tracking-wider text-[#64748B]">{tf.expensesFormTitle}</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-content-3">{tf.expensesFormTitle}</p>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">{tf.expensesLabelTitle}</label>
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-content-3">{tf.expensesLabelTitle}</label>
                   <input name="title" required placeholder="Ex: Abonnement Figma" className={INPUT_CLS} />
                 </div>
                 <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">{tf.expensesLabelAmount}</label>
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-content-3">{tf.expensesLabelAmount}</label>
                   <input name="amount_dt" type="number" step="0.01" min="0" required placeholder="0.00" className={INPUT_CLS} />
                 </div>
                 <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">{tf.expensesLabelCategory}</label>
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-content-3">{tf.expensesLabelCategory}</label>
                   <select name="category" defaultValue="other" className={INPUT_CLS}>
                     {I18N_CATEGORIES.map((c) => (
                       <option key={c.value} value={c.value}>{c.label}</option>
@@ -154,33 +154,33 @@ export function ExpensesTab({
                   </select>
                 </div>
                 <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">{tf.expensesLabelDate}</label>
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-content-3">{tf.expensesLabelDate}</label>
                   <input name="expense_date" type="date" defaultValue={new Date().toISOString().slice(0, 10)} className={INPUT_CLS} />
                 </div>
                 <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">{tf.expensesLabelVendor}</label>
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-content-3">{tf.expensesLabelVendor}</label>
                   <input name="vendor" placeholder="Ex: Adobe" className={INPUT_CLS} />
                 </div>
                 <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">{tf.expensesLabelMethod}</label>
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-content-3">{tf.expensesLabelMethod}</label>
                   <input name="payment_method" placeholder="Virement, carte…" className={INPUT_CLS} />
                 </div>
                 <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">{tf.expensesLabelProject}</label>
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-content-3">{tf.expensesLabelProject}</label>
                   <select name="project_id" className={INPUT_CLS}>
                     <option value="">{t.adminTasks.noRelated}</option>
                     {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">{tf.expensesLabelClient}</label>
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-content-3">{tf.expensesLabelClient}</label>
                   <select name="client_id" className={INPUT_CLS}>
                     <option value="">{t.adminTasks.noRelated}</option>
                     {clients.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">{tf.expensesLabelNotes}</label>
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-content-3">{tf.expensesLabelNotes}</label>
                   <input name="notes" placeholder="…" className={INPUT_CLS} />
                 </div>
               </div>
@@ -202,12 +202,12 @@ export function ExpensesTab({
 
           {/* Table */}
           {filtered.length === 0 ? (
-            <p className="py-8 text-center text-sm text-ink/40">{tf.expensesEmpty}</p>
+            <p className="py-8 text-center text-sm text-content-3">{tf.expensesEmpty}</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-ink/8 text-left text-xs font-semibold uppercase tracking-wider text-ink/40">
+                  <tr className="border-b border-ink/8 text-left text-xs font-semibold uppercase tracking-wider text-content-3">
                     <th className="pb-2">{tf.colDate}</th>
                     <th className="pb-2">{tf.colTitleHeader}</th>
                     <th className="pb-2">{tf.colCategory}</th>
@@ -218,28 +218,28 @@ export function ExpensesTab({
                 </thead>
                 <tbody>
                   {filtered.map((e) => (
-                    <tr key={e.id} className="border-b border-ink/5 last:border-0 hover:bg-[#1A3E5C]">
-                      <td className="py-2.5 text-ink/55">{formatDate(e.expense_date)}</td>
+                    <tr key={e.id} className="border-b border-ink/5 last:border-0 hover:bg-surface-2">
+                      <td className="py-2.5 text-content-3">{formatDate(e.expense_date)}</td>
                       <td className="py-2.5">
                         <p className="font-medium text-ink">{e.title}</p>
-                        {e.vendor && <p className="text-xs text-ink/40">{e.vendor}</p>}
+                        {e.vendor && <p className="text-xs text-content-3">{e.vendor}</p>}
                       </td>
                       <td className="py-2.5">
-                        <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-semibold", CATEGORY_COLORS[e.category] ?? "bg-ink/8 text-ink/55")}>
+                        <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-semibold", CATEGORY_COLORS[e.category] ?? "bg-ink/8 text-content-3")}>
                           {CATEGORY_LABELS[e.category] ?? e.category}
                         </span>
                       </td>
-                      <td className="py-2.5 text-xs text-ink/55">
+                      <td className="py-2.5 text-xs text-content-3">
                         {e.project_name ?? e.client_name ?? "—"}
                       </td>
-                      <td className="py-2.5 text-right font-semibold text-red-600">
+                      <td className="py-2.5 text-right font-semibold text-danger">
                         {formatDt(e.amount_dt)}
                       </td>
                       <td className="py-2.5 pl-2">
                         <button
                           type="button"
                           onClick={() => handleDelete(e.id)}
-                          className="rounded p-1 text-ink/30 hover:bg-red-50/10 hover:text-red-500"
+                          className="rounded p-1 text-content-3 hover:bg-danger-weak hover:text-danger"
                           aria-label={t.common.delete}
                         >
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -252,8 +252,8 @@ export function ExpensesTab({
                 </tbody>
                 <tfoot>
                   <tr className="border-t border-ink/15">
-                    <td colSpan={4} className="pt-2.5 text-xs font-semibold uppercase tracking-wider text-ink/50">{tf.expensesTotal}</td>
-                    <td className="pt-2.5 text-right font-bold text-red-600">{formatDt(filtered.reduce((s, e) => s + e.amount_dt, 0))}</td>
+                    <td colSpan={4} className="pt-2.5 text-xs font-semibold uppercase tracking-wider text-content-3">{tf.expensesTotal}</td>
+                    <td className="pt-2.5 text-right font-bold text-danger">{formatDt(filtered.reduce((s, e) => s + e.amount_dt, 0))}</td>
                     <td></td>
                   </tr>
                 </tfoot>
@@ -268,8 +268,8 @@ export function ExpensesTab({
 
 function StatTile({ label, value, color }: { label: string; value: number; color: string }) {
   return (
-    <div className="rounded-xl border border-[#22506F] bg-[#123A5A] p-4">
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">{label}</p>
+    <div className="rounded-xl border border-line bg-surface-2 p-4">
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-content-3">{label}</p>
       <p className={cn("mt-2 text-xl font-bold", color)}>{formatDt(value)}</p>
     </div>
   );
@@ -282,7 +282,7 @@ function FilterPill({ active, onClick, children }: { active: boolean; onClick: (
       onClick={onClick}
       className={cn(
         "rounded-full px-2.5 py-1 text-xs font-medium transition-colors",
-        active ? "bg-brand text-white" : "bg-ink/6 text-ink/60 hover:bg-ink/10",
+        active ? "bg-brand text-white" : "bg-ink/6 text-content-3 hover:bg-ink/10",
       )}
     >
       {children}

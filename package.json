@@ -8,9 +8,22 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:db": "vitest run --config vitest.db.config.ts",
+    "db:preflight": "node scripts/preflight-staging.mjs",
+    "db:start": "supabase start",
+    "db:stop": "node scripts/stop-staging.mjs",
+    "db:status": "supabase status",
+    "db:reset": "supabase db reset",
+    "db:verify": "node scripts/verify-staging.mjs",
     "db:link": "supabase link --project-ref exdatjsgeomejhdofgvw",
-    "db:push": "supabase db push",
-    "db:diff": "supabase db diff"
+    "db:push": "echo \"REFUSED: db:push targets PRODUCTION. Use 'npm run db:reset' for local staging. To deploy for real, run 'npx supabase db push' deliberately and only with approval.\" && exit 1",
+    "db:diff": "supabase db diff",
+    "test:e2e": "bash scripts/run-e2e.sh",
+    "preview:local": "bash scripts/preview-local.sh",
+    "preview:stop": "bash scripts/preview-stop.sh",
+    "preview:detach": "bash scripts/preview-local.sh --detach"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",
@@ -30,6 +43,8 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
+    "@playwright/test": "^1.62.1",
     "@types/node": "^22.10.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
@@ -37,6 +52,7 @@
     "postcss": "^8.4.49",
     "supabase": "^2.6.8",
     "tailwindcss": "^3.4.16",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "vitest": "^3.2.4"
   }
 }

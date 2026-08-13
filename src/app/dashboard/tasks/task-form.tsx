@@ -12,6 +12,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { MultiAssignee } from "@/components/multi-assignee";
 import { createTaskAction, updateTaskAction } from "./actions";
+import { taskOpenMessage } from "@/lib/role-copy";
+import type { UserRole } from "@/lib/utils";
 
 type Project = { id: string; name: string; client_name: string | null };
 type Assignee = {
@@ -24,7 +26,8 @@ type Assignee = {
 
 type TaskRow = {
   id: string;
-  project_id: string;
+  project_id: string | null;
+  work_scope: "client" | "studio";
   title: string;
   description: string | null;
   status: "todo" | "in_progress" | "review" | "done" | "cancelled";
@@ -38,6 +41,8 @@ type TaskRow = {
   estimated_minutes?: number | null;
   late_reason?: string | null;
   completion_note?: string | null;
+  payroll_task_type_id?: string | null;
+  payroll_credit_user_id?: string | null;
 };
 
 export type TaskTemplateOption = {
@@ -49,10 +54,18 @@ export type TaskTemplateOption = {
   default_deadline_offset_days: number | null;
 };
 
-type Props =
+type PayrollProps = {
+  canManagePayroll?: boolean;
+  payrollTaskTypes?: { id: string; label: string; base_rate_millimes: number; output_points: number }[];
+  payrollWorkers?: { id: string; username: string; full_name: string | null }[];
+};
+
+type Props = (
   | {
       mode: "create";
       defaultProjectId?: string;
+      defaultScope?: "client" | "studio";
+      scopeLocked?: boolean;
       projects: Project[];
       assignees: Assignee[];
       templates?: TaskTemplateOption[];
@@ -65,16 +78,21 @@ type Props =
       assignees: Assignee[];
       projects?: undefined;
       defaultProjectId?: undefined;
+      defaultScope?: undefined;
+      scopeLocked?: undefined;
       templates?: undefined;
       preselectedTemplate?: undefined;
-    };
+    }) & PayrollProps & { currentRole: UserRole };
 
 export function TaskForm(props: Props) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [pending, startTransition] = useTransition();
+  const [workScope, setWorkScope] = useState<"client" | "studio">(
+    props.mode === "create" ? props.defaultScope ?? "client" : props.task.work_scope,
+  );
 
   const tpl = props.mode === "create" ? props.preselectedTemplate : null;
   const templates = props.mode === "create" ? props.templates ?? [] : [];
@@ -124,8 +142,8 @@ export function TaskForm(props: Props) {
             : (tk?.title ?? t.tasks.title)
         }
         subtitle={
-          <Link href="/dashboard/tasks" className="hover:underline">
-            ← {t.tasks.title}
+          <Link href={workScope === "studio" ? "/dashboard/studio-tasks" : "/dashboard/tasks"} className="hover:underline">
+            ← {workScope === "studio" ? t.studioTasks.title : t.tasks.title}
           </Link>
         }
       />
@@ -137,28 +155,50 @@ export function TaskForm(props: Props) {
           </CardTitle>
         </CardHeader>
         <CardContent>
+          {props.mode === "edit" && (
+            <div className="mb-5 rounded-xl border border-brand/20 bg-brand/5 px-4 py-3 text-sm leading-relaxed text-content-2">
+              <span aria-hidden className="mr-2">💙</span>
+              {taskOpenMessage(props.currentRole, locale)}
+            </div>
+          )}
           <form className="space-y-4" onSubmit={onSubmit}>
             {props.mode === "edit" && (
               <input type="hidden" name="id" value={tk?.id} />
             )}
 
             {props.mode === "create" ? (
-              <Field label={t.tasks.form.project}>
-                <Select
-                  name="project_id"
-                  required
-                  defaultValue={props.defaultProjectId ?? ""}
-                >
-                  <option value="">{t.tasks.form.noProject}</option>
-                  {props.projects.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.client_name ? `${p.client_name} — ${p.name}` : p.name}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
+              <>
+                {props.scopeLocked ? (
+                  <>
+                    <input type="hidden" name="work_scope" value={workScope} />
+                    <div className="rounded-xl border border-brand/20 bg-brand/5 px-4 py-3 text-sm font-semibold text-brand">✨ {t.tasksUi.studioWork}</div>
+                  </>
+                ) : (
+                  <Field label={t.tasksUi.workScope}>
+                    <Select name="work_scope" value={workScope} onChange={(event) => setWorkScope(event.target.value === "studio" ? "studio" : "client")}>
+                      <option value="client">{t.tasksUi.clientWork}</option>
+                      <option value="studio">{t.tasksUi.studioWork}</option>
+                    </Select>
+                  </Field>
+                )}
+                {workScope === "client" ? (
+                  <Field label={t.tasks.form.project}>
+                    <Select name="project_id" required defaultValue={props.defaultProjectId ?? ""}>
+                      <option value="">{t.tasks.form.noProject}</option>
+                      {props.projects.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.client_name ? `${p.client_name} — ${p.name}` : p.name}
+                        </option>
+                      ))}
+                    </Select>
+                  </Field>
+                ) : <input type="hidden" name="project_id" value="" />}
+              </>
             ) : (
-              <input type="hidden" name="project_id" value={tk?.project_id} />
+              <>
+                <input type="hidden" name="project_id" value={tk?.project_id ?? ""} />
+                <input type="hidden" name="work_scope" value={tk?.work_scope ?? "client"} />
+              </>
             )}
 
             {props.mode === "create" && templates.length > 0 && (
@@ -170,10 +210,11 @@ export function TaskForm(props: Props) {
                       const params = new URLSearchParams();
                       if (props.defaultProjectId)
                         params.set("projectId", props.defaultProjectId);
+                      params.set("scope", workScope);
                       if (e.target.value)
                         params.set("templateId", e.target.value);
                       router.replace(
-                        `/dashboard/tasks/new${params.toString() ? "?" + params.toString() : ""}`,
+                        `${workScope === "studio" ? "/dashboard/studio-tasks/new" : "/dashboard/tasks/new"}${params.toString() ? "?" + params.toString() : ""}`,
                       );
                     }}
                   >
@@ -194,8 +235,9 @@ export function TaskForm(props: Props) {
               </Field>
             )}
 
-            <Field label={t.tasks.form.title}>
+            <Field label={t.tasks.form.title} htmlFor="task-title">
               <Input
+                id="task-title"
                 key={tpl?.id ?? "no-tpl-title"}
                 name="title"
                 required
@@ -237,9 +279,36 @@ export function TaskForm(props: Props) {
               </Field>
             </div>
 
+            {props.canManagePayroll && (
+              <div className="rounded-xl border border-brand/30 bg-brand/5 p-4">
+                <p className="mb-3 text-sm font-semibold text-ink">Crédit points & salaire</p>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field label="Type de production" htmlFor="payroll-task-type">
+                    <Select id="payroll-task-type" name="payroll_task_type_id" defaultValue={tk?.payroll_task_type_id ?? ""}>
+                      <option value="">Ne pas comptabiliser</option>
+                      {(props.payrollTaskTypes ?? []).map((type) => (
+                        <option key={type.id} value={type.id}>
+                          {type.label} · {type.output_points} pt · {(type.base_rate_millimes / 1000).toFixed(3)} DT
+                        </option>
+                      ))}
+                    </Select>
+                  </Field>
+                  <Field label="Collaborateur crédité" htmlFor="payroll-credit-worker">
+                    <Select id="payroll-credit-worker" name="payroll_credit_user_id" defaultValue={tk?.payroll_credit_user_id ?? ""}>
+                      <option value="">Choisir…</option>
+                      {(props.payrollWorkers ?? []).map((worker) => (
+                        <option key={worker.id} value={worker.id}>{worker.full_name ?? `@${worker.username}`}</option>
+                      ))}
+                    </Select>
+                  </Field>
+                </div>
+                <p className="mt-2 text-xs text-content-3">Le crédit est créé une seule fois lorsque la tâche passe à Terminé. Seul un administrateur peut modifier ces champs.</p>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Field label={t.tasks.form.status}>
-                <Select name="status" defaultValue={tk?.status ?? "todo"}>
+              <Field label={t.tasks.form.status} htmlFor="task-status">
+                <Select id="task-status" name="status" defaultValue={tk?.status ?? "todo"}>
                   <option value="todo">{t.tasks.status.todo}</option>
                   <option value="in_progress">
                     {t.tasks.status.in_progress}
@@ -272,7 +341,7 @@ export function TaskForm(props: Props) {
                   placeholder={t.tags.placeholder}
                   defaultValue={(tk?.tags ?? []).join(", ")}
                 />
-                <p className="text-[11px] text-ink/45">
+                <p className="text-[11px] text-content-3">
                   {t.tasksUi.tagsHint}{" "}
                   <Link
                     href="/dashboard/tasks/tags"
@@ -295,7 +364,7 @@ export function TaskForm(props: Props) {
                   </option>
                   <option value="monthly">{t.tasksUi.recurrenceMonthly}</option>
                 </Select>
-                <p className="text-[11px] text-ink/45">
+                <p className="text-[11px] text-content-3">
                   {t.tasksUi.recurrenceHint}
                 </p>
               </Field>
@@ -320,7 +389,7 @@ export function TaskForm(props: Props) {
                   placeholder={t.tasks.form.estimatedMinutesPlaceholder}
                   defaultValue={tk?.estimated_minutes ?? ""}
                 />
-                <p className="text-[11px] text-ink/45">
+                <p className="text-[11px] text-content-3">
                   {t.tasks.form.estimatedMinutesHint}
                 </p>
               </Field>
@@ -346,8 +415,8 @@ export function TaskForm(props: Props) {
               </Field>
             )}
 
-            {error && <p className="text-sm text-red-600">{error}</p>}
-            {saved && <p className="text-sm text-green-600">{t.common.saved}</p>}
+            {error && <p className="text-sm text-danger">{error}</p>}
+            {saved && <p className="text-sm text-success">{t.common.saved}</p>}
 
             <div className="flex items-center gap-3 pt-2">
               <Button type="submit" disabled={pending}>
@@ -360,10 +429,10 @@ export function TaskForm(props: Props) {
               <Link
                 href={
                   props.mode === "create"
-                    ? "/dashboard/tasks"
+                    ? workScope === "studio" ? "/dashboard/studio-tasks" : "/dashboard/tasks"
                     : `/dashboard/tasks/${tk?.id}`
                 }
-                className="text-sm text-slate-500 hover:text-slate-800"
+                className="text-sm text-content-3 hover:text-content-3"
               >
                 {t.common.cancel}
               </Link>
@@ -377,14 +446,16 @@ export function TaskForm(props: Props) {
 
 function Field({
   label,
+  htmlFor,
   children,
 }: {
   label: string;
+  htmlFor?: string;
   children: React.ReactNode;
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="text-sm font-medium text-slate-700">{label}</label>
+      <label htmlFor={htmlFor} className="text-sm font-medium text-content-3">{label}</label>
       {children}
     </div>
   );

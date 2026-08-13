@@ -35,7 +35,7 @@ export function MonthlyRevenueBars({ series }: { series: Point[] }) {
                 title={`Facturé: ${formatDt(p.invoiced)}`}
               />
               <div
-                className="flex-1 rounded-t bg-green-300 transition-colors data-[hover=true]:bg-green-600"
+                className="flex-1 rounded-t bg-success transition-colors data-[hover=true]:bg-success"
                 data-hover={hoverIdx === i}
                 style={{ height: `${Math.max(ph, p.paid > 0 ? 1 : 0)}%` }}
                 title={`Encaissé: ${formatDt(p.paid)}`}
@@ -45,7 +45,7 @@ export function MonthlyRevenueBars({ series }: { series: Point[] }) {
         })}
       </div>
       <div
-        className="grid gap-1.5 text-xs text-slate-500"
+        className="grid gap-1.5 text-xs text-content-3"
         style={{ gridTemplateColumns: `repeat(${series.length}, minmax(0, 1fr))` }}
       >
         {series.map((p, i) => (
@@ -55,7 +55,7 @@ export function MonthlyRevenueBars({ series }: { series: Point[] }) {
         ))}
       </div>
       {hoverIdx !== null && (
-        <div className="rounded-md bg-slate-50 px-3 py-2 text-xs text-slate-700">
+        <div className="rounded-md bg-surface-2 px-3 py-2 text-xs text-content-3">
           <strong>{series[hoverIdx].label}</strong> · Facturé{" "}
           {formatDt(series[hoverIdx].invoiced)} · Encaissé{" "}
           {formatDt(series[hoverIdx].paid)}

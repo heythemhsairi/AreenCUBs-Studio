@@ -110,7 +110,7 @@ export function PaymentSection({
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-ink/60">
+            <span className="text-content-3">
               {td.collected}{" "}
               <span className="font-semibold text-ink">{formatDt(paidDt)}</span>{" "}
               / {formatDt(totalDt)}
@@ -118,7 +118,7 @@ export function PaymentSection({
             <span
               className={
                 isFullyPaid
-                  ? "text-xs font-semibold uppercase text-green-600"
+                  ? "text-xs font-semibold uppercase text-success"
                   : remaining < totalDt
                     ? "text-xs font-semibold uppercase text-brand"
                     : "text-xs font-semibold uppercase text-accent-dark"
@@ -138,7 +138,7 @@ export function PaymentSection({
             />
           </div>
           {!isFullyPaid && (
-            <p className="text-xs text-ink/50">
+            <p className="text-xs text-content-3">
               {td.remainingToCollect}{" "}
               <span className="font-semibold text-ink">
                 {formatDt(remaining)}
@@ -164,7 +164,7 @@ export function PaymentSection({
 
         <form className="space-y-3" onSubmit={onSubmit}>
           <input type="hidden" name="devis_id" value={devisId} />
-          <p className="text-xs font-medium uppercase tracking-wide text-ink/50">
+          <p className="text-xs font-medium uppercase tracking-wide text-content-3">
             {td.orRecordPartial}
           </p>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -193,9 +193,9 @@ export function PaymentSection({
               <Input name="notes" />
             </Field>
           </div>
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-danger">{error}</p>}
           {done && (
-            <p className="text-sm text-green-600">{td.paymentRecorded}</p>
+            <p className="text-sm text-success">{td.paymentRecorded}</p>
           )}
           <Button type="submit" size="sm" variant="outline" disabled={pending}>
             {pending ? td.saving : td.addPayment}
@@ -258,7 +258,7 @@ export function DeleteDevisButton({
     <Button
       variant="outline"
       size="sm"
-      className="border-red-300 text-red-700 hover:bg-red-50"
+      className="border-danger text-danger hover:bg-danger-weak"
       onClick={onDelete}
       disabled={pending}
     >
@@ -276,7 +276,7 @@ function Field({
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="text-xs font-medium uppercase tracking-wide text-ink/50">
+      <label className="text-xs font-medium uppercase tracking-wide text-content-3">
         {label}
       </label>
       {children}

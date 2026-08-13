@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireSession } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { ProjectSummary } from "./project-summary";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { ProjectDetailActions } from "./detail-actions";
 import { ProjectDetailsCard, TasksSectionHeader } from "./detail-card";
@@ -82,6 +83,13 @@ export default async function ProjectDetailPage({
           ) : null
         }
       />
+
+      {/*
+        Health before detail. The board below answers "what is left"; this
+        answers "is this project all right", which is the question someone
+        actually opens a project with.
+      */}
+      <ProjectSummary tasks={taskCards} endDate={project.end_date} />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <ProjectDetailsCard

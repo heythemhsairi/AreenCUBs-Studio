@@ -1,5 +1,5 @@
 import { requireAdmin } from "@/lib/auth";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { WorkloadView, type MemberStats } from "./workload-view";
 
@@ -7,7 +7,7 @@ export const metadata = { title: "Team Workload — Areen CUBs" };
 
 export default async function WorkloadPage() {
   await requireAdmin();
-  const admin = createAdminClient();
+  const admin = await createClient();
 
   const today = new Date().toISOString().slice(0, 10);
   const startOfMonth = new Date();

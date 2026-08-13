@@ -69,7 +69,7 @@ export function TasksToolbar({
         {/* Search */}
         <div className="relative flex-1 min-w-[200px]">
           <svg
-            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink/40"
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-content-3"
             width="14"
             height="14"
             viewBox="0 0 24 24"
@@ -87,7 +87,7 @@ export function TasksToolbar({
             value={filters.search}
             onChange={(e) => patch("search", e.target.value)}
             placeholder={t.filters.searchTask}
-            className="w-full rounded-lg border border-ink/10 bg-white/70 py-2 pl-9 pr-3 text-sm text-ink placeholder:text-ink/40 transition-colors focus:border-brand focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20"
+            className="w-full rounded-lg border border-ink/10 bg-surface/70 py-2 pl-9 pr-3 text-sm text-ink placeholder:text-content-3 transition-colors focus:border-brand focus:bg-surface focus:outline-none focus:ring-2 focus:ring-brand/20"
           />
         </div>
 
@@ -164,12 +164,12 @@ export function TasksToolbar({
             <button
               type="button"
               onClick={clearAll}
-              className="rounded-md px-2 py-1 text-xs font-medium text-ink/60 transition-colors hover:bg-white/60 hover:text-ink"
+              className="rounded-md px-2 py-1 text-xs font-medium text-content-3 transition-colors hover:bg-surface/60 hover:text-ink"
             >
               {t.common.clear} ({activeCount})
             </button>
           )}
-          <span className="rounded-md bg-ink/5 px-2 py-1 text-xs font-medium text-ink/65">
+          <span className="rounded-md bg-ink/5 px-2 py-1 text-xs font-medium text-content-3">
             {resultCount}{" "}
             {resultCount > 1
               ? t.tasks.title.toLowerCase()
@@ -177,7 +177,7 @@ export function TasksToolbar({
           </span>
 
           {/* View toggle */}
-          <div className="inline-flex items-center rounded-lg border border-ink/10 bg-white/60 p-0.5">
+          <div className="inline-flex items-center rounded-lg border border-ink/10 bg-surface/60 p-0.5">
             <ViewButton
               active={view === "kanban"}
               onClick={() => onViewChange("kanban")}
@@ -219,7 +219,7 @@ function ViewButton({
         "inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-xs font-medium transition-all",
         active
           ? "bg-brand text-white shadow-sm"
-          : "text-ink/60 hover:bg-white/80 hover:text-ink",
+          : "text-content-3 hover:bg-surface/80 hover:text-ink",
       )}
     >
       <svg
@@ -274,17 +274,17 @@ function FilterMenu({
           "inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition-colors",
           isActive
             ? "border-brand/40 bg-brand/10 text-brand-dark"
-            : "border-ink/10 bg-white/70 text-ink/70 hover:border-ink/20 hover:bg-white/95",
+            : "border-ink/10 bg-surface/70 text-content-2 hover:border-ink/20 hover:bg-surface/95",
         )}
       >
-        <span className="text-ink/50">{label}:</span>
+        <span className="text-content-3">{label}:</span>
         <span className="font-semibold">{selected?.label ?? "Tous"}</span>
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="m6 9 6 6 6-6" />
         </svg>
       </button>
       {open && (
-        <div className="absolute left-0 top-full z-40 mt-1.5 min-w-[180px] overflow-hidden rounded-lg border border-ink/8 bg-white/95 shadow-lift backdrop-blur dark:bg-ink/95">
+        <div className="absolute left-0 top-full z-40 mt-1.5 min-w-[180px] overflow-hidden rounded-lg border border-ink/8 bg-surface/95 shadow-lift backdrop-blur dark:bg-ink/95">
           <ul className="max-h-64 overflow-y-auto py-1">
             {options.map((opt) => (
               <li key={opt.value}>
@@ -298,7 +298,7 @@ function FilterMenu({
                     "flex w-full items-center justify-between px-3 py-1.5 text-left text-xs transition-colors",
                     opt.value === value
                       ? "bg-brand/10 font-semibold text-brand-dark"
-                      : "text-ink/75 hover:bg-ink/5",
+                      : "text-content-2 hover:bg-ink/5",
                   )}
                 >
                   <span className="truncate">{opt.label}</span>

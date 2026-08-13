@@ -107,7 +107,7 @@ export function SubtasksCard({
         <div className="flex items-center justify-between">
           <CardTitle>
             {t.taskDetail.subtasks}{" "}
-            <span className="ml-1 text-xs font-medium text-ink/45">
+            <span className="ml-1 text-xs font-medium text-content-3">
               {done}/{total}
             </span>
           </CardTitle>
@@ -127,7 +127,7 @@ export function SubtasksCard({
       </CardHeader>
       <CardContent>
         {items.length === 0 && (
-          <p className="mb-3 text-xs text-ink/45">
+          <p className="mb-3 text-xs text-content-3">
             {t.taskDetail.noSubtasks}
           </p>
         )}
@@ -136,7 +136,7 @@ export function SubtasksCard({
           {items.map((s) => (
             <li
               key={s.id}
-              className="group flex items-center gap-3 rounded-lg border border-white/40 bg-white/60 px-3 py-2 transition-colors hover:bg-white/80"
+              className="group flex items-center gap-3 rounded-lg border border-white/40 bg-surface/60 px-3 py-2 transition-colors hover:bg-surface/80"
             >
               <Checkbox
                 checked={s.status === "done"}
@@ -146,7 +146,7 @@ export function SubtasksCard({
               <span
                 className={`min-w-0 flex-1 truncate text-sm ${
                   s.status === "done"
-                    ? "text-ink/40 line-through"
+                    ? "text-content-3 line-through"
                     : "text-ink"
                 }`}
               >
@@ -163,7 +163,7 @@ export function SubtasksCard({
               <button
                 type="button"
                 onClick={() => onDelete(s.id)}
-                className="shrink-0 text-xs text-ink/30 opacity-0 transition-opacity hover:text-red-600 group-hover:opacity-100"
+                className="shrink-0 text-xs text-content-3 opacity-0 transition-opacity hover:text-danger group-hover:opacity-100"
                 title={t.common.delete}
               >
                 ×
@@ -182,7 +182,7 @@ export function SubtasksCard({
             +
           </Button>
         </form>
-        {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+        {error && <p className="mt-2 text-sm text-danger">{error}</p>}
       </CardContent>
     </Card>
   );
@@ -280,7 +280,7 @@ function SubtaskAssignees({
         title="Assigner"
       >
         {chosen.length === 0 ? (
-          <span className="flex h-6 w-6 items-center justify-center rounded-full border border-dashed border-ink/30 text-[11px] text-ink/40">
+          <span className="flex h-6 w-6 items-center justify-center rounded-full border border-dashed border-ink/30 text-[11px] text-content-3">
             +
           </span>
         ) : (
@@ -296,7 +296,7 @@ function SubtaskAssignees({
             ))
         )}
         {chosen.length > 3 && (
-          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-ink/10 text-[10px] font-semibold text-ink/60 ring-2 ring-white dark:ring-[#15171f]">
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-ink/10 text-[10px] font-semibold text-content-3 ring-2 ring-white dark:ring-[#15171f]">
             +{chosen.length - 3}
           </span>
         )}
@@ -313,7 +313,7 @@ function SubtaskAssignees({
               width: pos.width,
               maxHeight: MENU_MAXH,
             }}
-            className="z-[100] overflow-y-auto rounded-xl border border-ink/10 bg-white p-1 shadow-lift dark:border-white/10 dark:bg-[#1e2029]"
+            className="z-[100] overflow-y-auto rounded-xl border border-ink/10 bg-surface p-1 shadow-lift dark:border-white/10 dark:bg-[#1e2029]"
             role="menu"
           >
             {people.map((p) => {
@@ -327,7 +327,7 @@ function SubtaskAssignees({
                     "flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm transition-colors",
                     on
                       ? "bg-brand/10 text-brand-dark dark:text-brand"
-                      : "text-ink/75 hover:bg-ink/5",
+                      : "text-content-2 hover:bg-ink/5",
                   )}
                 >
                   <Avatar src={p.avatar_url} name={p.label} size="xs" />
@@ -373,7 +373,7 @@ function Checkbox({
       className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-all ${
         checked
           ? "border-brand bg-brand text-white"
-          : "border-ink/20 bg-white hover:border-brand"
+          : "border-ink/20 bg-surface hover:border-brand"
       } ${disabled ? "opacity-60" : ""}`}
       aria-pressed={checked}
     >

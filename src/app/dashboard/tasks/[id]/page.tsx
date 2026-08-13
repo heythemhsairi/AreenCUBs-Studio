@@ -32,11 +32,13 @@ export default async function TaskEditPage({
     { data: pinRow },
     { data: assigneesForTaskRaw },
     { data: linkedPostsRaw },
+    { data: payrollTaskTypes },
+    { data: payrollSettings },
   ] = await Promise.all([
     supabase
       .from("tasks")
       .select(
-        "id, project_id, title, description, status, priority, assignee_id, deadline, deliverable_url, parent_task_id, tags, recurrence, estimated_minutes, late_reason, completion_note, projects:project_id(name, clients:client_id(name))",
+        "id, project_id, work_scope, title, description, status, priority, assignee_id, deadline, deliverable_url, parent_task_id, tags, recurrence, estimated_minutes, late_reason, completion_note, payroll_task_type_id, payroll_credit_user_id, projects:project_id(name, clients:client_id(name))",
       )
       .eq("id", id)
       .single(),
@@ -94,6 +96,12 @@ export default async function TaskEditPage({
       .select("id, title, platforms, status, scheduled_at")
       .eq("task_id", id)
       .order("created_at", { ascending: false }),
+    session.role === "admin"
+      ? supabase.from("payroll_task_types").select("id, label, base_rate_millimes, output_points").eq("active", true).order("position")
+      : Promise.resolve({ data: [] }),
+    session.role === "admin"
+      ? supabase.from("payroll_worker_settings").select("user_id, profiles:user_id(id, username, full_name)").eq("active", true)
+      : Promise.resolve({ data: [] }),
   ]);
 
   if (!task) notFound();
@@ -204,11 +212,15 @@ export default async function TaskEditPage({
   });
 
   const isPinned = !!pinRow;
+  const payrollWorkers = (payrollSettings ?? []).flatMap((row) => {
+    const profile = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
+    return profile ? [profile] : [];
+  });
 
   return (
     <div className="space-y-6">
       {project && (
-        <p className="text-xs text-ink/55">
+        <p className="text-xs text-content-3">
           {client && <>{client.name} · </>}
           <Link
             href={`/dashboard/projects/${task.project_id}`}
@@ -235,8 +247,12 @@ export default async function TaskEditPage({
 
       <TaskForm
         mode="edit"
+        currentRole={session.role}
         task={{ ...task, assignee_ids: taskAssigneeIds }}
         assignees={assignees ?? []}
+        canManagePayroll={session.role === "admin"}
+        payrollTaskTypes={payrollTaskTypes ?? []}
+        payrollWorkers={payrollWorkers}
       />
 
       {!task.parent_task_id && (
@@ -280,7 +296,7 @@ export default async function TaskEditPage({
       <ActivityFeed entries={activity} />
 
       {session.role !== "freelancer" && (
-        <TaskDeleteButton taskId={task.id} projectId={task.project_id} />
+        <TaskDeleteButton taskId={task.id} projectId={task.project_id} workScope={task.work_scope} />
       )}
     </div>
   );

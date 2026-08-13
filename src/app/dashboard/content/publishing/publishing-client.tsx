@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useTransition, useEffect } from "react";
 import { useI18n } from "@/lib/i18n/provider";
+import { formatDateTime, formatDateTimeShort } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
@@ -48,6 +49,14 @@ type Props = {
   tasks: Task[];
   clients: Client[];
   preselectedTaskId?: string;
+  /**
+   * Today's date as `YYYY-MM-DD` in the business timezone, resolved on the
+   * server and passed down so server render and client hydration agree on a
+   * single value. Calling `new Date()` during render instead made the initial
+   * month/year time-dependent and could differ between the two passes — one of
+   * the two causes of hydration error #418 on this page.
+   */
+  todayKey: string;
 };
 
 // ─── Platform config ──────────────────────────────────────────────────────────
@@ -79,10 +88,10 @@ function getPlatform(id: string) {
 }
 
 const STATUS_COLORS: Record<SocialPostStatus, string> = {
-  draft: "bg-[var(--c-border)] text-[var(--c-text-3)]",
-  scheduled: "bg-[#22D3EE]/15 text-[#22D3EE]",
-  published: "bg-emerald-500/15 text-emerald-400",
-  cancelled: "bg-red-500/15 text-red-500",
+  draft: "bg-surface-3 text-content-2",
+  scheduled: "bg-accent2/15 text-accent2",
+  published: "bg-success-weak text-success",
+  cancelled: "bg-danger-weak text-danger",
 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -102,12 +111,35 @@ function toDateKey(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
+/**
+ * Splits a `YYYY-MM-DD` key into `[year, monthIndex0]` using string arithmetic
+ * only — no `Date` construction, so it cannot be perturbed by the ambient
+ * timezone of whichever side of hydration is running it.
+ *
+ * Exported for test coverage.
+ */
+export function parseDateKey(key: string): [number, number] {
+  const [y, m] = key.split("-");
+  const year = Number(y);
+  const month1 = Number(m);
+  if (!Number.isFinite(year) || !Number.isFinite(month1) || month1 < 1 || month1 > 12) {
+    // Defensive: a malformed key must not crash the page. Fall back to the
+    // epoch month; the user can still navigate.
+    return [1970, 0];
+  }
+  return [year, month1 - 1];
+}
+
+// Hydration-safe: locale and timezone are pinned inside the shared formatter.
+// Previously these called `toLocaleString(undefined, …)`, which resolved to
+// en-US/UTC on the server and fr-FR/Africa-Tunis in the browser, producing
+// React hydration error #418 on this page. See src/lib/format.ts.
 function fmtDate(iso: string) {
-  return new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+  return formatDateTime(iso);
 }
 
 function fmtDateShort(iso: string) {
-  return new Date(iso).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" });
+  return formatDateTimeShort(iso);
 }
 
 // ─── PlatformPicker ───────────────────────────────────────────────────────────
@@ -130,7 +162,7 @@ function PlatformPicker({ selected, onChange }: { selected: string[]; onChange: 
               "flex flex-col items-center gap-1 rounded-xl border py-2 text-[10px] font-medium transition-all",
               active
                 ? `bg-gradient-to-b ${p.color} border-transparent text-white shadow-sm`
-                : "border-[var(--c-border)] bg-[var(--c-elevated)] text-[var(--c-text-3)] hover:border-[#22D3EE]/40 hover:text-[var(--c-text-1)]",
+                : "border-line bg-surface-2 text-content-3 hover:border-accent2/40 hover:text-content",
             )}
           >
             <span className="text-base leading-none">{p.icon}</span>
@@ -158,12 +190,12 @@ function CharCounter({
   const minLimit = Math.min(...limits);
   const len = text.length;
   const pct = Math.min(len / minLimit, 1);
-  const color = pct > 0.95 ? "text-red-500" : pct > 0.8 ? "text-amber-500" : "text-[var(--c-text-3)]";
+  const color = pct > 0.95 ? "text-danger" : pct > 0.8 ? "text-warning" : "text-content-3";
   return (
     <span className={cn("text-[10px] tabular-nums", color)}>
       {len} / {minLimit}
       {platforms.length > 1 && (
-        <span className="ml-1 text-[var(--c-text-3)]">{lowestLimitLabel}</span>
+        <span className="ml-1 text-content-3">{lowestLimitLabel}</span>
       )}
     </span>
   );
@@ -277,29 +309,29 @@ function PostForm({
       <div className="space-y-4">
         {/* Title */}
         <div>
-          <label className="mb-1 block text-xs font-medium text-[var(--c-text-3)]">
-            {c.itemFields.title} <span className="text-red-400">*</span>
+          <label className="mb-1 block text-xs font-medium text-content-3">
+            {c.itemFields.title} <span className="text-danger">*</span>
           </label>
           <input
             name="title"
             required
             defaultValue={post?.title}
             placeholder="E.g. Summer launch"
-            className="w-full rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] placeholder-[var(--c-text-3)] focus:border-[#22D3EE] focus:outline-none"
+            className="w-full rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm text-content placeholder-[var(--c-text-3)] focus:border-accent2 focus:outline-none"
           />
         </div>
 
         {/* Platforms */}
         <div>
           <div className="mb-2 flex items-center justify-between">
-            <label className="text-xs font-medium text-[var(--c-text-3)]">
-              {c.pub_platforms} <span className="text-red-400">*</span>
+            <label className="text-xs font-medium text-content-3">
+              {c.pub_platforms} <span className="text-danger">*</span>
             </label>
             {selectedPlatforms.length > 0 && (
               <button
                 type="button"
                 onClick={() => setSelectedPlatforms([])}
-                className="text-[10px] text-[var(--c-text-3)] hover:text-[var(--c-text-1)]"
+                className="text-[10px] text-content-3 hover:text-content"
               >
                 {c.pub_clearAll}
               </button>
@@ -311,7 +343,7 @@ function PostForm({
         {/* Content */}
         <div>
           <div className="mb-1 flex items-center justify-between">
-            <label className="text-xs font-medium text-[var(--c-text-3)]">{c.pub_content}</label>
+            <label className="text-xs font-medium text-content-3">{c.pub_content}</label>
             <CharCounter text={content} platforms={selectedPlatforms} lowestLimitLabel={c.pub_lowestLimit} />
           </div>
           <textarea
@@ -320,24 +352,24 @@ function PostForm({
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="Post text, call to action…"
-            className="w-full resize-none rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] placeholder-[var(--c-text-3)] focus:border-[#22D3EE] focus:outline-none"
+            className="w-full resize-none rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm text-content placeholder-[var(--c-text-3)] focus:border-accent2 focus:outline-none"
           />
         </div>
 
         {/* Hashtags */}
         <div>
-          <label className="mb-1 block text-xs font-medium text-[var(--c-text-3)]">{c.pub_hashtags}</label>
+          <label className="mb-1 block text-xs font-medium text-content-3">{c.pub_hashtags}</label>
           <input
             name="hashtags"
             defaultValue={post?.hashtags}
             placeholder="#marketing #branding"
-            className="w-full rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] placeholder-[var(--c-text-3)] focus:border-[#22D3EE] focus:outline-none"
+            className="w-full rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm text-content placeholder-[var(--c-text-3)] focus:border-accent2 focus:outline-none"
           />
         </div>
 
         {/* Scheduled date & time */}
         <div>
-          <label className="mb-1 block text-xs font-medium text-[var(--c-text-3)]">
+          <label className="mb-1 block text-xs font-medium text-content-3">
             {c.pub_scheduledAt}
           </label>
           <input
@@ -348,18 +380,18 @@ function PostForm({
                 ? new Date(post.scheduled_at).toISOString().slice(0, 16)
                 : defaultDate ? `${defaultDate}T09:00` : ""
             }
-            className="w-full rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] focus:border-[#22D3EE] focus:outline-none"
+            className="w-full rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm text-content focus:border-accent2 focus:outline-none"
           />
         </div>
 
         {/* Project */}
         <div>
-          <label className="mb-1 block text-xs font-medium text-[var(--c-text-3)]">{c.pub_project}</label>
+          <label className="mb-1 block text-xs font-medium text-content-3">{c.pub_project}</label>
           <select
             name="project_id"
             value={selectedProject}
             onChange={(e) => setSelectedProject(e.target.value)}
-            className="w-full rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] focus:border-[#22D3EE] focus:outline-none"
+            className="w-full rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm text-content focus:border-accent2 focus:outline-none"
           >
             <option value="">{c.pub_noProject}</option>
             {projects.map((p) => (
@@ -371,10 +403,10 @@ function PostForm({
         {/* Client (inferred — read-only) */}
         {inferredClient && (
           <div>
-            <label className="mb-1 block text-xs font-medium text-[var(--c-text-3)]">{c.pub_client}</label>
-            <div className="flex items-center gap-2 rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-3 py-2">
-              <span className="text-[10px] text-[var(--c-text-3)]">{c.pub_clientFromProject}:</span>
-              <span className="rounded-full bg-[#22D3EE]/15 px-2 py-0.5 text-xs font-medium text-[#22D3EE]">
+            <label className="mb-1 block text-xs font-medium text-content-3">{c.pub_client}</label>
+            <div className="flex items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2">
+              <span className="text-[10px] text-content-3">{c.pub_clientFromProject}:</span>
+              <span className="rounded-full bg-accent2/15 px-2 py-0.5 text-xs font-medium text-accent2">
                 {inferredClient}
               </span>
             </div>
@@ -383,11 +415,11 @@ function PostForm({
 
         {/* Linked task */}
         <div>
-          <label className="mb-1 block text-xs font-medium text-[var(--c-text-3)]">{c.pub_task}</label>
+          <label className="mb-1 block text-xs font-medium text-content-3">{c.pub_task}</label>
           <select
             name="task_id"
             defaultValue={post?.task_id ?? preselectedTaskId ?? ""}
-            className="w-full rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] focus:border-[#22D3EE] focus:outline-none"
+            className="w-full rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm text-content focus:border-accent2 focus:outline-none"
           >
             <option value="">{c.pub_noTask}</option>
             {filteredTasks.map((tk) => (
@@ -398,61 +430,61 @@ function PostForm({
 
         {/* Media URL */}
         <div>
-          <label className="mb-1 block text-xs font-medium text-[var(--c-text-3)]">{c.pub_mediaUrl}</label>
+          <label className="mb-1 block text-xs font-medium text-content-3">{c.pub_mediaUrl}</label>
           <input
             name="media_url"
             type="url"
             defaultValue={post?.media_url ?? ""}
             placeholder="https://drive.google.com/…"
-            className="w-full rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] placeholder-[var(--c-text-3)] focus:border-[#22D3EE] focus:outline-none"
+            className="w-full rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm text-content placeholder-[var(--c-text-3)] focus:border-accent2 focus:outline-none"
           />
         </div>
 
         {/* First comment */}
         <div>
-          <label className="mb-1 block text-xs font-medium text-[var(--c-text-3)]">
+          <label className="mb-1 block text-xs font-medium text-content-3">
             {c.pub_firstComment}{" "}
-            <span className="ml-1 text-[10px] font-normal text-[var(--c-text-3)]">{c.pub_firstCommentHint}</span>
+            <span className="ml-1 text-[10px] font-normal text-content-3">{c.pub_firstCommentHint}</span>
           </label>
           <textarea
             name="first_comment"
             rows={2}
             defaultValue={post?.first_comment}
             placeholder="Hashtags or CTA as first comment…"
-            className="w-full resize-none rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] placeholder-[var(--c-text-3)] focus:border-[#22D3EE] focus:outline-none"
+            className="w-full resize-none rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm text-content placeholder-[var(--c-text-3)] focus:border-accent2 focus:outline-none"
           />
         </div>
 
         {/* Notes */}
         <div>
-          <label className="mb-1 block text-xs font-medium text-[var(--c-text-3)]">{c.pub_notes}</label>
+          <label className="mb-1 block text-xs font-medium text-content-3">{c.pub_notes}</label>
           <textarea
             name="notes"
             rows={3}
             defaultValue={post?.notes}
             placeholder="Team instructions, reminders, context…"
-            className="w-full resize-none rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] px-3 py-2 text-sm text-[var(--c-text-1)] placeholder-[var(--c-text-3)] focus:border-[#22D3EE] focus:outline-none"
+            className="w-full resize-none rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm text-content placeholder-[var(--c-text-3)] focus:border-accent2 focus:outline-none"
           />
         </div>
       </div>
 
       {error && (
-        <p className="mt-3 rounded-lg bg-red-500/10 px-3 py-2 text-xs text-red-500">{error}</p>
+        <p className="mt-3 rounded-lg bg-danger-weak px-3 py-2 text-xs text-danger">{error}</p>
       )}
 
-      <div className="mt-5 flex justify-end gap-2 border-t border-[var(--c-border)] pt-4">
+      <div className="mt-5 flex justify-end gap-2 border-t border-line pt-4">
         <button
           type="button"
           onClick={onClose}
           disabled={isPending}
-          className="rounded-lg border border-[var(--c-border)] px-4 py-2 text-sm text-[var(--c-text-2)] hover:bg-[var(--c-elevated)] transition-colors disabled:opacity-50"
+          className="rounded-lg border border-line px-4 py-2 text-sm text-content-2 hover:bg-surface-2 transition-colors disabled:opacity-50"
         >
           {t.common.cancel}
         </button>
         <button
           type="submit"
           disabled={isPending}
-          className="rounded-lg bg-[#22D3EE] px-4 py-2 text-sm font-medium text-[#071B2C] hover:bg-[#22D3EE]/90 transition-colors disabled:opacity-50"
+          className="rounded-lg bg-accent2 px-4 py-2 text-sm font-medium text-accent2-fg hover:bg-accent2/90 transition-colors disabled:opacity-50"
         >
           {isPending ? t.common.saving : t.common.save}
         </button>
@@ -533,11 +565,11 @@ function PostDetail({
       </div>
 
       {post.scheduled_at && (
-        <div className="flex items-center gap-2 rounded-xl bg-[#22D3EE]/8 px-3 py-2 text-xs text-[#22D3EE]">
+        <div className="flex items-center gap-2 rounded-xl bg-accent2/8 px-3 py-2 text-xs text-accent2">
           <span>📅</span>
           <span className="font-medium">{fmtDate(post.scheduled_at)}</span>
           {post.published_at && (
-            <span className="ml-auto text-emerald-400">
+            <span className="ml-auto text-success">
               ✓ {c.pub_publishedAt} {fmtDateShort(post.published_at)}
             </span>
           )}
@@ -545,12 +577,12 @@ function PostDetail({
       )}
 
       {post.content && (
-        <div className="group relative rounded-xl bg-[var(--c-elevated)] p-3">
-          <p className="whitespace-pre-wrap text-sm text-[var(--c-text-2)]">{post.content}</p>
+        <div className="group relative rounded-xl bg-surface-2 p-3">
+          <p className="whitespace-pre-wrap text-sm text-content-2">{post.content}</p>
           <button
             type="button"
             onClick={copyContent}
-            className="absolute right-2 top-2 rounded-md px-2 py-0.5 text-[10px] text-[var(--c-text-3)] opacity-0 transition-all group-hover:opacity-100 hover:bg-[var(--c-card)] hover:text-[var(--c-text-1)]"
+            className="absolute right-2 top-2 rounded-md px-2 py-0.5 text-[10px] text-content-3 opacity-0 transition-all group-hover:opacity-100 hover:bg-surface hover:text-content"
           >
             {copied ? c.pub_copied : c.pub_copy}
           </button>
@@ -558,15 +590,15 @@ function PostDetail({
       )}
 
       {post.hashtags && (
-        <p className="rounded-xl bg-[var(--c-card)] px-3 py-2 text-xs text-[#22D3EE]/80">{post.hashtags}</p>
+        <p className="rounded-xl bg-surface px-3 py-2 text-xs text-accent2/80">{post.hashtags}</p>
       )}
 
       {post.first_comment && (
-        <div className="rounded-xl border border-[var(--c-border)] px-3 py-2">
-          <p className="mb-0.5 text-[10px] font-medium uppercase tracking-wider text-[var(--c-text-3)]">
+        <div className="rounded-xl border border-line px-3 py-2">
+          <p className="mb-0.5 text-[10px] font-medium uppercase tracking-wider text-content-3">
             {c.pub_firstCommentLabel}
           </p>
-          <p className="whitespace-pre-wrap text-xs text-[var(--c-text-2)]">{post.first_comment}</p>
+          <p className="whitespace-pre-wrap text-xs text-content-2">{post.first_comment}</p>
         </div>
       )}
 
@@ -575,7 +607,7 @@ function PostDetail({
           href={post.media_url}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-1.5 rounded-xl bg-[var(--c-elevated)] px-3 py-2 text-xs text-[#22D3EE] hover:underline"
+          className="flex items-center gap-1.5 rounded-xl bg-surface-2 px-3 py-2 text-xs text-accent2 hover:underline"
         >
           🖼 <span className="truncate">{post.media_url}</span>
         </a>
@@ -584,12 +616,12 @@ function PostDetail({
       {(post.project_name || post.task_title || inferredClient) && (
         <div className="space-y-1">
           {inferredClient && (
-            <p className="text-xs text-[var(--c-text-3)]">
-              👥 <span className="font-medium text-[var(--c-text-2)]">{inferredClient}</span>
+            <p className="text-xs text-content-3">
+              👥 <span className="font-medium text-content-2">{inferredClient}</span>
             </p>
           )}
           {post.project_name && (
-            <p className="text-xs text-[var(--c-text-3)]">
+            <p className="text-xs text-content-3">
               📁 {post.project_name}
               {post.task_title && <> › ✓ {post.task_title}</>}
             </p>
@@ -598,39 +630,39 @@ function PostDetail({
       )}
 
       {post.notes && (
-        <div className="rounded-xl border border-dashed border-[var(--c-border)] px-3 py-2">
-          <p className="mb-0.5 text-[10px] font-medium uppercase tracking-wider text-[var(--c-text-3)]">
+        <div className="rounded-xl border border-dashed border-line px-3 py-2">
+          <p className="mb-0.5 text-[10px] font-medium uppercase tracking-wider text-content-3">
             {c.pub_internalNotes}
           </p>
-          <p className="whitespace-pre-wrap text-xs text-[var(--c-text-2)]">{post.notes}</p>
+          <p className="whitespace-pre-wrap text-xs text-content-2">{post.notes}</p>
         </div>
       )}
 
       {post.creator_name && (
-        <p className="text-[11px] text-[var(--c-text-3)]">👤 {post.creator_name}</p>
+        <p className="text-[11px] text-content-3">👤 {post.creator_name}</p>
       )}
 
-      <div className="flex flex-wrap items-center gap-2 border-t border-[var(--c-border)] pt-3">
+      <div className="flex flex-wrap items-center gap-2 border-t border-line pt-3">
         {post.status !== "published" && post.status !== "cancelled" && (
           <>
             <button
               onClick={() => handleStatusChange("published")}
               disabled={isPending}
-              className="rounded-lg bg-emerald-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-600 disabled:opacity-50"
+              className="rounded-lg bg-success px-3 py-1.5 text-sm font-medium text-white hover:bg-success disabled:opacity-50"
             >
               ✓ {c.pub_markPublished}
             </button>
             <button
               onClick={() => handleStatusChange("scheduled")}
               disabled={isPending || post.status === "scheduled"}
-              className="rounded-lg border border-[var(--c-border)] px-3 py-1.5 text-sm text-[var(--c-text-2)] hover:bg-[var(--c-elevated)] disabled:opacity-50"
+              className="rounded-lg border border-line px-3 py-1.5 text-sm text-content-2 hover:bg-surface-2 disabled:opacity-50"
             >
               📅 {c.pub_schedule}
             </button>
             <button
               onClick={() => handleStatusChange("cancelled")}
               disabled={isPending}
-              className="rounded-lg border border-[var(--c-border)] px-3 py-1.5 text-sm text-[var(--c-text-2)] hover:bg-[var(--c-elevated)] disabled:opacity-50"
+              className="rounded-lg border border-line px-3 py-1.5 text-sm text-content-2 hover:bg-surface-2 disabled:opacity-50"
             >
               {t.common.cancel}
             </button>
@@ -640,7 +672,7 @@ function PostDetail({
           <button
             onClick={() => handleStatusChange("draft")}
             disabled={isPending}
-            className="rounded-lg border border-[var(--c-border)] px-3 py-1.5 text-sm text-[var(--c-text-2)] hover:bg-[var(--c-elevated)] disabled:opacity-50"
+            className="rounded-lg border border-line px-3 py-1.5 text-sm text-content-2 hover:bg-surface-2 disabled:opacity-50"
           >
             ↩ {c.pub_backToDraft}
           </button>
@@ -649,21 +681,21 @@ function PostDetail({
           <button
             onClick={handleDuplicate}
             disabled={isPending}
-            className="rounded-lg px-2 py-1 text-xs text-[var(--c-text-3)] hover:bg-[var(--c-elevated)] hover:text-[var(--c-text-1)]"
+            className="rounded-lg px-2 py-1 text-xs text-content-3 hover:bg-surface-2 hover:text-content"
           >
             ⧉ {c.pub_duplicate}
           </button>
           <button
             onClick={onEdit}
             disabled={isPending}
-            className="rounded-lg px-2 py-1 text-xs text-[var(--c-text-3)] hover:bg-[var(--c-elevated)] hover:text-[var(--c-text-1)]"
+            className="rounded-lg px-2 py-1 text-xs text-content-3 hover:bg-surface-2 hover:text-content"
           >
             ✏ {t.common.edit}
           </button>
           <button
             onClick={handleDelete}
             disabled={isPending}
-            className="rounded-lg px-2 py-1 text-xs text-red-500 hover:bg-red-500/10"
+            className="rounded-lg px-2 py-1 text-xs text-danger hover:bg-danger-weak"
           >
             {t.common.delete}
           </button>
@@ -696,20 +728,20 @@ function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-canvas/60 p-4 backdrop-blur-sm"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div
         className={cn(
-          "flex max-h-[90vh] flex-col rounded-2xl border border-[var(--c-border)] bg-[var(--c-card)] shadow-2xl",
+          "flex max-h-[90vh] flex-col rounded-2xl border border-line bg-surface shadow-2xl",
           wide ? "w-full max-w-2xl" : "w-full max-w-lg",
         )}
       >
-        <div className="flex shrink-0 items-center justify-between border-b border-[var(--c-border)] px-6 py-4">
-          <h2 className="text-base font-semibold text-[var(--c-text-1)]">{title}</h2>
+        <div className="flex shrink-0 items-center justify-between border-b border-line px-6 py-4">
+          <h2 className="text-base font-semibold text-content">{title}</h2>
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-[var(--c-text-3)] hover:bg-[var(--c-elevated)] hover:text-[var(--c-text-1)]"
+            className="rounded-lg p-1.5 text-content-3 hover:bg-surface-2 hover:text-content"
           >
             ✕
           </button>
@@ -722,7 +754,7 @@ function Modal({
 
 // ─── Main view ────────────────────────────────────────────────────────────────
 
-export function PublishingClient({ posts, projects, tasks, clients, preselectedTaskId }: Props) {
+export function PublishingClient({ posts, projects, tasks, clients, preselectedTaskId, todayKey }: Props) {
   const { t } = useI18n();
   const c = t.contentOS;
 
@@ -735,9 +767,11 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
     }
   }
 
-  const today = new Date();
-  const [year, setYear] = useState(today.getFullYear());
-  const [month, setMonth] = useState(today.getMonth());
+  // Derived by pure string arithmetic from the server-supplied key, so the
+  // initial render is identical on both sides of hydration.
+  const [todayYear, todayMonth0] = parseDateKey(todayKey);
+  const [year, setYear] = useState(todayYear);
+  const [month, setMonth] = useState(todayMonth0);
   // Default to "list" — safe on mobile, no hydration mismatch, user can switch to calendar
   const [view, setView] = useState<"calendar" | "list">("list");
   const [filterPlatform, setFP] = useState("");
@@ -763,7 +797,7 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
   const monthNames = c.months;
 
   const calDays = buildCalendarDays(year, month);
-  const todayKey = toDateKey(today);
+  // `todayKey` now arrives as a prop from the server — see Props.
   const postsByDate: Record<string, SocialPost[]> = {};
   for (const p of posts) {
     if (!p.scheduled_at) continue;
@@ -808,16 +842,16 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
         <div className="flex items-center gap-3">
           <Link
             href="/dashboard/content"
-            className="flex items-center gap-1 text-sm text-[var(--c-text-3)] hover:text-[var(--c-text-1)] transition-colors"
+            className="flex items-center gap-1 text-sm text-content-3 hover:text-content transition-colors"
           >
             <ChevronLeft size={14} />
             {c.title}
           </Link>
-          <h1 className="text-xl font-bold text-[var(--c-text-1)]">{c.publishingTitle}</h1>
+          <h1 className="text-xl font-bold text-content">{c.publishingTitle}</h1>
         </div>
         <button
           onClick={() => openCreate()}
-          className="rounded-lg bg-[#22D3EE] px-3 py-2 text-sm font-medium text-[#071B2C] hover:bg-[#22D3EE]/90 transition-colors"
+          className="rounded-lg bg-accent2 px-3 py-2 text-sm font-medium text-accent2-fg hover:bg-accent2/90 transition-colors"
         >
           {c.newPost}
         </button>
@@ -831,8 +865,8 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
           { label: c.publishedPosts, value: published, accent: "#22C55E" },
           { label: c.draftPosts, value: drafts, accent: "#64748B" },
         ].map((s) => (
-          <div key={s.label} className="flex flex-col gap-2 rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] p-4">
-            <span className="text-xs text-[var(--c-text-3)]">{s.label}</span>
+          <div key={s.label} className="flex flex-col gap-2 rounded-xl border border-line bg-surface p-4">
+            <span className="text-xs text-content-3">{s.label}</span>
             <span className="text-2xl font-bold" style={{ color: s.accent }}>{s.value}</span>
           </div>
         ))}
@@ -841,14 +875,14 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-2">
         {/* View toggle */}
-        <div className="flex rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] p-0.5">
+        <div className="flex rounded-xl border border-line bg-surface p-0.5">
           <button
             onClick={() => setView("list")}
             className={cn(
               "rounded-lg px-4 py-1.5 text-xs font-medium transition-all",
               view === "list"
-                ? "bg-[#22D3EE] text-[#071B2C] shadow-sm"
-                : "text-[var(--c-text-3)] hover:text-[var(--c-text-1)]",
+                ? "bg-accent2 text-accent2-fg shadow-sm"
+                : "text-content-3 hover:text-content",
             )}
           >
             {c.pub_listView}
@@ -858,8 +892,8 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
             className={cn(
               "rounded-lg px-4 py-1.5 text-xs font-medium transition-all",
               view === "calendar"
-                ? "bg-[#22D3EE] text-[#071B2C] shadow-sm"
-                : "text-[var(--c-text-3)] hover:text-[var(--c-text-1)]",
+                ? "bg-accent2 text-accent2-fg shadow-sm"
+                : "text-content-3 hover:text-content",
             )}
           >
             {c.calendar}
@@ -870,13 +904,13 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={t.common.search + "…"}
-          className="h-8 rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-3 text-xs text-[var(--c-text-1)] placeholder-[var(--c-text-3)] focus:border-[#22D3EE] focus:outline-none"
+          className="h-8 rounded-lg border border-line bg-surface px-3 text-xs text-content placeholder-[var(--c-text-3)] focus:border-accent2 focus:outline-none"
         />
 
         <select
           value={filterPlatform}
           onChange={(e) => setFP(e.target.value)}
-          className="h-8 rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-2 text-xs text-[var(--c-text-1)] focus:border-[#22D3EE] focus:outline-none"
+          className="h-8 rounded-lg border border-line bg-surface px-2 text-xs text-content focus:border-accent2 focus:outline-none"
         >
           <option value="">{t.socialMedia.allPlatforms}</option>
           {ALL_PLATFORMS.map((p) => (
@@ -887,7 +921,7 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
         <select
           value={filterStatus}
           onChange={(e) => setFS(e.target.value)}
-          className="h-8 rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-2 text-xs text-[var(--c-text-1)] focus:border-[#22D3EE] focus:outline-none"
+          className="h-8 rounded-lg border border-line bg-surface px-2 text-xs text-content focus:border-accent2 focus:outline-none"
         >
           <option value="">{t.socialMedia.allStatuses}</option>
           {(["draft", "scheduled", "published", "cancelled"] as SocialPostStatus[]).map((s) => (
@@ -899,7 +933,7 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
           <select
             value={filterClient}
             onChange={(e) => setFC(e.target.value)}
-            className="h-8 rounded-lg border border-[var(--c-border)] bg-[var(--c-card)] px-2 text-xs text-[var(--c-text-1)] focus:border-[#22D3EE] focus:outline-none"
+            className="h-8 rounded-lg border border-line bg-surface px-2 text-xs text-content focus:border-accent2 focus:outline-none"
           >
             <option value="">{c.pub_allClients}</option>
             {clients.map((cl) => (
@@ -911,7 +945,7 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
         {hasActiveFilters && (
           <button
             onClick={() => { setFP(""); setFS(""); setFC(""); setSearch(""); }}
-            className="text-xs text-[var(--c-text-3)] hover:text-[var(--c-text-1)]"
+            className="text-xs text-content-3 hover:text-content"
           >
             ✕ {t.common.clear}
           </button>
@@ -920,28 +954,28 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
 
       {/* ── Calendar view ── */}
       {view === "calendar" && (
-        <div className="rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] overflow-hidden">
-          <div className="flex items-center justify-between border-b border-[var(--c-border)] px-5 py-4">
+        <div className="rounded-xl border border-line bg-surface overflow-hidden">
+          <div className="flex items-center justify-between border-b border-line px-5 py-4">
             <button
               onClick={() => month === 0 ? (setMonth(11), setYear((y) => y - 1)) : setMonth((m) => m - 1)}
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--c-border)] text-[var(--c-text-2)] hover:bg-[var(--c-elevated)] transition-colors"
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-line text-content-2 hover:bg-surface-2 transition-colors"
             >
               <ChevronLeft size={14} />
             </button>
-            <h3 className="text-sm font-semibold text-[var(--c-text-1)]">
+            <h3 className="text-sm font-semibold text-content">
               {monthNames[month]} {year}
             </h3>
             <button
               onClick={() => month === 11 ? (setMonth(0), setYear((y) => y + 1)) : setMonth((m) => m + 1)}
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--c-border)] text-[var(--c-text-2)] hover:bg-[var(--c-elevated)] transition-colors"
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-line text-content-2 hover:bg-surface-2 transition-colors"
             >
               <ChevronRight size={14} />
             </button>
           </div>
 
-          <div className="grid grid-cols-7 border-b border-[var(--c-border)]">
+          <div className="grid grid-cols-7 border-b border-line">
             {c.weekdaysShort.map((d) => (
-              <div key={d} className="py-2.5 text-center text-[10px] font-semibold uppercase tracking-wider text-[var(--c-text-3)]">
+              <div key={d} className="py-2.5 text-center text-[10px] font-semibold uppercase tracking-wider text-content-3">
                 {d}
               </div>
             ))}
@@ -950,7 +984,7 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
           <div className="grid grid-cols-7">
             {calDays.map((day, i) => {
               if (!day) {
-                return <div key={`e-${i}`} className="min-h-[88px] border-b border-r border-[var(--c-border)] bg-[var(--c-elevated)]/30" />;
+                return <div key={`e-${i}`} className="min-h-[88px] border-b border-r border-line bg-surface-2/30" />;
               }
               const key = toDateKey(day);
               const dayPosts = (postsByDate[key] ?? []).filter(
@@ -968,14 +1002,14 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
                   key={key}
                   onClick={() => openCreate(key)}
                   className={cn(
-                    "min-h-[88px] cursor-pointer p-1.5 border-b border-[var(--c-border)] flex flex-col gap-1 transition-colors hover:bg-[var(--c-elevated)]/50",
+                    "min-h-[88px] cursor-pointer p-1.5 border-b border-line flex flex-col gap-1 transition-colors hover:bg-surface-2/50",
                     !isLastCol && "border-r",
-                    isToday && "bg-[#22D3EE]/5",
+                    isToday && "bg-accent2/5",
                   )}
                 >
                   <span className={cn(
                     "flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold",
-                    isToday ? "bg-[#22D3EE] text-[#071B2C]" : "text-[var(--c-text-3)]",
+                    isToday ? "bg-accent2 text-accent2-fg" : "text-content-3",
                   )}>
                     {day.getDate()}
                   </span>
@@ -984,7 +1018,7 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
                       <PostChip key={p.id} post={p} onClick={() => openView(p)} />
                     ))}
                     {dayPosts.length > 3 && (
-                      <p className="px-1 text-[9px] text-[var(--c-text-3)]">+{dayPosts.length - 3}</p>
+                      <p className="px-1 text-[9px] text-content-3">+{dayPosts.length - 3}</p>
                     )}
                   </div>
                 </div>
@@ -993,7 +1027,7 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
           </div>
 
           {/* Platform legend */}
-          <div className="flex flex-wrap gap-2 border-t border-[var(--c-border)] px-4 py-3">
+          <div className="flex flex-wrap gap-2 border-t border-line px-4 py-3">
             {ALL_PLATFORMS.map((p) => (
               <button
                 key={p.id}
@@ -1002,7 +1036,7 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
                   "flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] transition-all",
                   filterPlatform === p.id
                     ? `bg-gradient-to-r ${p.color} text-white`
-                    : "text-[var(--c-text-3)] hover:text-[var(--c-text-1)]",
+                    : "text-content-3 hover:text-content",
                 )}
               >
                 {p.icon} {p.label}
@@ -1016,8 +1050,8 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
       {view === "list" && (
         <div className="space-y-2">
           {filtered.length === 0 && (
-            <div className="rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] px-6 py-10 text-center">
-              <p className="text-sm text-[var(--c-text-3)]">{c.noPostsMonth}</p>
+            <div className="rounded-xl border border-line bg-surface px-6 py-10 text-center">
+              <p className="text-sm text-content-3">{c.noPostsMonth}</p>
             </div>
           )}
           {filtered.map((p) => {
@@ -1025,12 +1059,12 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
             return (
               <div
                 key={p.id}
-                className="group rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] px-4 py-3 transition-all hover:border-[#22D3EE]/30"
+                className="group rounded-xl border border-line bg-surface px-4 py-3 transition-all hover:border-accent2/30"
               >
                 <div className="flex items-start gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="truncate text-sm font-medium text-[var(--c-text-1)]">{p.title}</span>
+                      <span className="truncate text-sm font-medium text-content">{p.title}</span>
                       <span className={cn("shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium", STATUS_COLORS[p.status])}>
                         {statusLabel[p.status]}
                       </span>
@@ -1039,12 +1073,12 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
                       <PlatformChips platforms={p.platforms} size="xs" />
                     </div>
                     {p.content && (
-                      <p className="mt-1.5 line-clamp-2 text-xs text-[var(--c-text-3)]">{p.content}</p>
+                      <p className="mt-1.5 line-clamp-2 text-xs text-content-3">{p.content}</p>
                     )}
-                    <div className="mt-1.5 flex flex-wrap items-center gap-3 text-[11px] text-[var(--c-text-3)]">
+                    <div className="mt-1.5 flex flex-wrap items-center gap-3 text-[11px] text-content-3">
                       {p.scheduled_at && <span>📅 {fmtDateShort(p.scheduled_at)}</span>}
                       {clientName && (
-                        <span className="rounded-full bg-[#22D3EE]/10 px-1.5 py-0.5 text-[#22D3EE]">
+                        <span className="rounded-full bg-accent2/10 px-1.5 py-0.5 text-accent2">
                           👥 {clientName}
                         </span>
                       )}
@@ -1056,13 +1090,13 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
                   <div className="flex shrink-0 items-center gap-1 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100">
                     <button
                       onClick={() => openEdit(p)}
-                      className="rounded-lg border border-[var(--c-border)] px-2.5 py-1 text-xs text-[var(--c-text-2)] hover:bg-[var(--c-elevated)] hover:text-[var(--c-text-1)] transition-colors"
+                      className="rounded-lg border border-line px-2.5 py-1 text-xs text-content-2 hover:bg-surface-2 hover:text-content transition-colors"
                     >
                       {t.common.edit}
                     </button>
                     <button
                       onClick={() => openView(p)}
-                      className="rounded-lg border border-[var(--c-border)] px-2.5 py-1 text-xs text-[var(--c-text-2)] hover:bg-[var(--c-elevated)] hover:text-[var(--c-text-1)] transition-colors"
+                      className="rounded-lg border border-line px-2.5 py-1 text-xs text-content-2 hover:bg-surface-2 hover:text-content transition-colors"
                     >
                       View
                     </button>
@@ -1076,28 +1110,28 @@ export function PublishingClient({ posts, projects, tasks, clients, preselectedT
 
       {/* Unscheduled drafts */}
       {unscheduledDrafts.length > 0 && (
-        <div className="rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] p-4">
-          <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-[var(--c-text-3)]">
+        <div className="rounded-xl border border-line bg-surface p-4">
+          <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-content-3">
             {c.pub_unscheduledDrafts} ({unscheduledDrafts.length})
           </h4>
           <div className="space-y-1.5">
             {unscheduledDrafts.map((p) => {
               const clientName = p.project_id ? projectClientMap.get(p.project_id) : undefined;
               return (
-                <div key={p.id} className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-[var(--c-elevated)]">
+                <div key={p.id} className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-surface-2">
                   <div className="min-w-0 flex-1">
-                    <span className="truncate text-sm text-[var(--c-text-2)]">{p.title}</span>
+                    <span className="truncate text-sm text-content-2">{p.title}</span>
                     {p.platforms.length > 0 && (
                       <div className="mt-0.5"><PlatformChips platforms={p.platforms} size="xs" /></div>
                     )}
                   </div>
-                  <div className="flex shrink-0 items-center gap-2 text-xs text-[var(--c-text-3)]">
+                  <div className="flex shrink-0 items-center gap-2 text-xs text-content-3">
                     {clientName && <span>{clientName}</span>}
                     {p.project_name && <span>{p.project_name}</span>}
                   </div>
                   <button
                     onClick={() => openEdit(p)}
-                    className="shrink-0 rounded-md px-2 py-0.5 text-xs text-[#22D3EE] hover:bg-[#22D3EE]/10"
+                    className="shrink-0 rounded-md px-2 py-0.5 text-xs text-accent2 hover:bg-accent2/10"
                   >
                     {c.pub_schedule}
                   </button>

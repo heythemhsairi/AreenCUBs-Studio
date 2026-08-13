@@ -28,10 +28,10 @@ function TableSkeleton({ columns }: { columns: number }) {
   return (
     <>
       {Array.from({ length: 5 }).map((_, rowIndex) => (
-        <tr key={rowIndex} className="border-b border-[#22506F]/60">
+        <tr key={rowIndex} className="border-b border-line/60">
           {Array.from({ length: columns }).map((_, colIndex) => (
             <td key={colIndex} className="px-4 py-3">
-              <div className="h-4 bg-[#1A3E5C] rounded animate-pulse w-full max-w-[120px]" />
+              <div className="h-4 bg-surface-2 rounded animate-pulse w-full max-w-[120px]" />
             </td>
           ))}
         </tr>
@@ -46,11 +46,11 @@ function MobileCardSkeleton() {
       {Array.from({ length: 5 }).map((_, index) => (
         <div
           key={index}
-          className="bg-[#0D2D47] border border-[#22506F] rounded-xl mb-2 p-4 space-y-2"
+          className="bg-surface border border-line rounded-xl mb-2 p-4 space-y-2"
         >
-          <div className="h-4 bg-[#1A3E5C] rounded animate-pulse w-3/4" />
-          <div className="h-3 bg-[#1A3E5C] rounded animate-pulse w-1/2" />
-          <div className="h-3 bg-[#1A3E5C] rounded animate-pulse w-2/3" />
+          <div className="h-4 bg-surface-2 rounded animate-pulse w-3/4" />
+          <div className="h-3 bg-surface-2 rounded animate-pulse w-1/2" />
+          <div className="h-3 bg-surface-2 rounded animate-pulse w-2/3" />
         </div>
       ))}
     </>
@@ -71,8 +71,8 @@ function DefaultMobileCard<T>({
   return (
     <div
       className={[
-        'bg-[#0D2D47] border border-[#22506F] rounded-xl mb-2 p-4',
-        onClick ? 'cursor-pointer active:bg-[#123A5A]' : '',
+        'bg-surface border border-line rounded-xl mb-2 p-4',
+        onClick ? 'cursor-pointer active:bg-surface-2' : '',
       ]
         .filter(Boolean)
         .join(' ')}
@@ -80,7 +80,7 @@ function DefaultMobileCard<T>({
     >
       {columns.map((col) => (
         <div key={col.key} className="flex flex-col mb-2 last:mb-0">
-          <span className="text-[10px] uppercase tracking-widest text-[#64748B] mb-0.5">
+          <span className="text-[10px] uppercase tracking-widest text-content-3 mb-0.5">
             {col.header}
           </span>
           <span className="text-sm text-white">{col.render(row, index)}</span>
@@ -143,7 +143,7 @@ export function DataTable<T extends Record<string, unknown>>({
     if (sortKey !== colKey) {
       return (
         <svg
-          className="inline-block ml-1 w-3 h-3 text-[#64748B] opacity-40"
+          className="inline-block ml-1 w-3 h-3 text-content-3 opacity-40"
           viewBox="0 0 12 12"
           fill="none"
         >
@@ -182,12 +182,12 @@ export function DataTable<T extends Record<string, unknown>>({
       <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-[#22506F]">
+            <tr className="border-b border-line">
               {desktopColumns.map((col) => (
                 <th
                   key={col.key}
                   className={[
-                    'px-4 py-3 text-left text-[10px] uppercase tracking-widest text-[#64748B] font-medium whitespace-nowrap',
+                    'px-4 py-3 text-left text-[10px] uppercase tracking-widest text-content-3 font-medium whitespace-nowrap',
                     col.sortable ? 'cursor-pointer select-none hover:text-white transition-colors' : '',
                     col.className ?? '',
                   ]
@@ -208,7 +208,7 @@ export function DataTable<T extends Record<string, unknown>>({
               <tr>
                 <td
                   colSpan={desktopColumns.length}
-                  className="px-4 py-12 text-center text-[#64748B]"
+                  className="px-4 py-12 text-center text-content-3"
                 >
                   {emptyState ?? (
                     <span className="text-sm">No data available</span>
@@ -220,10 +220,10 @@ export function DataTable<T extends Record<string, unknown>>({
                 <tr
                   key={String(row[keyField])}
                   className={[
-                    'border-b border-[#22506F]/60 transition-colors',
+                    'border-b border-line/60 transition-colors',
                     onRowClick
-                      ? 'cursor-pointer hover:bg-[#123A5A]/60'
-                      : 'hover:bg-[#123A5A]/60',
+                      ? 'cursor-pointer hover:bg-surface-2/60'
+                      : 'hover:bg-surface-2/60',
                   ]
                     .filter(Boolean)
                     .join(' ')}
@@ -254,7 +254,7 @@ export function DataTable<T extends Record<string, unknown>>({
         {loading ? (
           <MobileCardSkeleton />
         ) : isEmpty ? (
-          <div className="py-12 text-center text-[#64748B]">
+          <div className="py-12 text-center text-content-3">
             {emptyState ?? <span className="text-sm">No data available</span>}
           </div>
         ) : (

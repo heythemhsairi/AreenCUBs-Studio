@@ -107,7 +107,7 @@ export function TagsClient({ initial }: { initial: TagRow[] }) {
           </CardHeader>
           <CardContent>
             {tags.length === 0 ? (
-              <p className="py-6 text-center text-sm text-ink/45">
+              <p className="py-6 text-center text-sm text-content-3">
                 {t.tags.empty}
               </p>
             ) : (
@@ -115,7 +115,7 @@ export function TagsClient({ initial }: { initial: TagRow[] }) {
                 {tags.map((tag) => (
                   <li
                     key={tag.id}
-                    className="group inline-flex items-center gap-2 rounded-lg border border-ink/8 bg-white px-2.5 py-1.5 shadow-soft dark:bg-white/5"
+                    className="group inline-flex items-center gap-2 rounded-lg border border-ink/8 bg-surface px-2.5 py-1.5 shadow-soft dark:bg-surface/5"
                   >
                     <input
                       type="color"
@@ -135,7 +135,7 @@ export function TagsClient({ initial }: { initial: TagRow[] }) {
                       type="button"
                       onClick={() => onDelete(tag.id, tag.name)}
                       disabled={pending}
-                      className="opacity-0 transition-opacity hover:text-red-600 group-hover:opacity-100"
+                      className="opacity-0 transition-opacity hover:text-danger group-hover:opacity-100"
                       aria-label={t.common.delete}
                     >
                       ×
@@ -154,7 +154,7 @@ export function TagsClient({ initial }: { initial: TagRow[] }) {
           <CardContent>
             <form className="space-y-3" onSubmit={onCreate}>
               <label className="block space-y-1.5">
-                <span className="text-xs font-medium text-ink/70">
+                <span className="text-xs font-medium text-content-2">
                   {t.tags.name}
                 </span>
                 <Input
@@ -169,7 +169,7 @@ export function TagsClient({ initial }: { initial: TagRow[] }) {
               </label>
 
               <div className="space-y-1.5">
-                <span className="text-xs font-medium text-ink/70">
+                <span className="text-xs font-medium text-content-2">
                   {t.tags.color}
                 </span>
                 <div className="flex flex-wrap gap-1.5">

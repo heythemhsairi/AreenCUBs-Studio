@@ -134,7 +134,7 @@ export function FeaturedEmployeeClient({
                   </span>
                 </h2>
                 {currentRecord.reason && (
-                  <p className="mt-2 max-w-xl text-sm italic leading-relaxed text-ink/75 dark:text-cream/90">
+                  <p className="mt-2 max-w-xl text-sm italic leading-relaxed text-content-2 dark:text-cream/90">
                     « {currentRecord.reason} »
                   </p>
                 )}
@@ -155,7 +155,7 @@ export function FeaturedEmployeeClient({
         <CardContent>
           <form className="space-y-4" onSubmit={onSubmit}>
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-ink/80">Mois</label>
+              <label className="text-sm font-medium text-content-2">Mois</label>
               <Input
                 name="month"
                 type="month"
@@ -164,7 +164,7 @@ export function FeaturedEmployeeClient({
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-ink/80">Membre</label>
+              <label className="text-sm font-medium text-content-2">Membre</label>
               <Select
                 name="user_id"
                 defaultValue={currentRecord?.user_id ?? ""}
@@ -179,7 +179,7 @@ export function FeaturedEmployeeClient({
               </Select>
             </div>
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-ink/80">
+              <label className="text-sm font-medium text-content-2">
                 Raison / Note
               </label>
               <Textarea
@@ -190,9 +190,9 @@ export function FeaturedEmployeeClient({
               />
             </div>
 
-            {error && <p className="text-sm text-red-600">{error}</p>}
+            {error && <p className="text-sm text-danger">{error}</p>}
             {saved && (
-              <p className="text-sm text-green-600">Enregistré ✓</p>
+              <p className="text-sm text-success">Enregistré ✓</p>
             )}
 
             <Button type="submit" disabled={pending}>
@@ -225,7 +225,7 @@ export function FeaturedEmployeeClient({
                         <p className="text-sm font-medium text-ink">
                           {f.full_name ?? f.username}
                         </p>
-                        <p className="text-xs text-ink/50">
+                        <p className="text-xs text-content-3">
                           {formatMonth(f.month)}
                         </p>
                       </div>
