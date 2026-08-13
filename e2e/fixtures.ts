@@ -226,6 +226,36 @@ export function resetPayrollFixture() {
   execFileSync("docker", ["exec", container, "psql", "-U", "postgres", "-d", "postgres", "-v", "ON_ERROR_STOP=1", "-tAc", sql], { encoding: "utf8" });
 }
 
+/**
+ * Restores the issued quote/invoice rows used by the correction workflow.
+ * Browser saves replace line-item rows, so both the parent and children are
+ * reset to their fabricated seed values after every test.
+ */
+export function resetDocumentCorrectionFixtures(prepareIssuedQuote = false) {
+  const container = execFileSync("docker", ["ps", "--format", "{{.Names}}"], {
+    encoding: "utf8",
+  })
+    .split("\n")
+    .map((name) => name.trim())
+    .find((name) => name.startsWith("supabase_db_"));
+  if (!container) throw new Error("no local staging database container");
+
+  const sql = [
+    "begin;",
+    "delete from public.devis_items where devis_id in ('d1000000-0000-4000-8000-000000000001','d1000000-0000-4000-8000-000000000007');",
+    "update public.devis set status='accepted', payment_status='paid', object='FABRICATED — settled invoice left 1 DT short by the stamp heal migration', subtotal_dt=1000, discount_dt=0, tva_enabled=true, tva_rate=19, tva_dt=190, stamp_dt=1, total_dt=1191 where id='d1000000-0000-4000-8000-000000000001';",
+    `update public.devis set status='${prepareIssuedQuote ? "accepted" : "draft"}', payment_status='unpaid', object='FABRICATED — devis sans TVA', subtotal_dt=800, discount_dt=0, tva_enabled=false, tva_rate=19, tva_dt=0, stamp_dt=0, total_dt=800 where id='d1000000-0000-4000-8000-000000000007';`,
+    "insert into public.devis_items (devis_id, description, quantity, unit_price_dt, line_total_dt, position, is_bonus) values ('d1000000-0000-4000-8000-000000000001','Identité visuelle complète',1,1000,1000,0,false), ('d1000000-0000-4000-8000-000000000007','Prestation hors champ TVA',1,800,800,0,false);",
+    "delete from public.audit_log where action='devis.reopened_and_updated' and entity_id in ('d1000000-0000-4000-8000-000000000001','d1000000-0000-4000-8000-000000000007');",
+    "commit;",
+  ].join(" ");
+  execFileSync(
+    "docker",
+    ["exec", container, "psql", "-U", "postgres", "-d", "postgres", "-v", "ON_ERROR_STOP=1", "-tAc", sql],
+    { encoding: "utf8" },
+  );
+}
+
 /** React hydration failures, by the codes React emits in production builds. */
 export function hydrationErrors(errors: string[]): string[] {
   return errors.filter((e) =>

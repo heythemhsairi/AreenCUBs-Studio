@@ -8,7 +8,7 @@ export default async function EditDevisPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireQuoteAccess();
+  const session = await requireQuoteAccess();
   const { id } = await params;
   const supabase = await createClient();
 
@@ -17,7 +17,7 @@ export default async function EditDevisPage({
       supabase
         .from("devis")
         .select(
-          "id, kind, devis_number, client_id, date, due_date, object, notes, discount_dt, stamp_dt, tva_enabled, tva_rate, devis_items(service_id, description, quantity, unit_price_dt, is_bonus, position)",
+          "id, kind, devis_number, client_id, date, due_date, object, notes, status, discount_dt, stamp_dt, tva_enabled, tva_rate, devis_items(service_id, description, quantity, unit_price_dt, is_bonus, position)",
         )
         .eq("id", id)
         .single(),
@@ -53,11 +53,15 @@ export default async function EditDevisPage({
         due_date: devis.due_date,
         object: devis.object,
         notes: devis.notes,
+        status: devis.status as "draft" | "sent" | "accepted" | "rejected",
         devis_number: devis.devis_number ?? undefined,
         discount_dt: Number(devis.discount_dt ?? 0),
         stamp_dt: Number(devis.stamp_dt ?? 0),
+        tva_enabled: devis.tva_enabled ?? true,
+        tva_rate: Number(devis.tva_rate ?? 19),
         items,
       }}
+      canReopenIssued={session.role === "admin"}
       clients={clients ?? []}
       services={services ?? []}
     />

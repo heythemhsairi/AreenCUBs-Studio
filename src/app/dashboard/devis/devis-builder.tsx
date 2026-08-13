@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { useI18n } from "@/lib/i18n/provider";
 import { Button } from "@/components/ui/button";
@@ -44,6 +45,7 @@ type Devis = {
   due_date: string;
   object: string | null;
   notes: string | null;
+  status: "draft" | "sent" | "accepted" | "rejected";
   devis_number?: number;
   discount_dt?: number;
   stamp_dt?: number;
@@ -75,6 +77,7 @@ type Props =
       devis: Devis;
       clients: Client[];
       services: Service[];
+      canReopenIssued: boolean;
       defaultClientId?: undefined;
     };
 
@@ -91,10 +94,12 @@ let keyCounter = 0;
 const nextKey = () => `row-${++keyCounter}`;
 
 export function DevisBuilder(props: Props) {
+  const router = useRouter();
   const { t, locale } = useI18n();
   const db = t.devisBuilder;
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [clientNotified, setClientNotified] = useState(false);
 
   const docLabel =
     props.kind === "facture"
@@ -229,6 +234,14 @@ export function DevisBuilder(props: Props) {
 
     const fd = new FormData();
     if (props.mode === "edit") fd.set("id", props.devis.id);
+    if (
+      props.mode === "edit" &&
+      props.devis.status !== "draft" &&
+      props.canReopenIssued
+    ) {
+      fd.set("reopen_issued", "on");
+      if (clientNotified) fd.set("client_notified", "on");
+    }
     fd.set("client_id", clientId);
     fd.set("kind", props.kind);
     fd.set("date", date);
@@ -238,7 +251,10 @@ export function DevisBuilder(props: Props) {
     fd.set("devis_number", docNumber.trim());
     fd.set("discount_dt", String(discountDt || 0));
     if (applyStamp) fd.set("apply_stamp", "on");
-    if (tvaEnabled) fd.set("tva_enabled", "on");
+    // Send an explicit off value. Omitting an unchecked checkbox is normal
+    // browser FormData behaviour, but the server reserves a missing field for
+    // truly old form versions and therefore defaults it to TVA enabled.
+    fd.set("tva_enabled", tvaEnabled ? "on" : "off");
     fd.set("tva_rate", String(tvaRate));
     fd.set(
       "items_json",
@@ -259,6 +275,10 @@ export function DevisBuilder(props: Props) {
           ? await createDevisAction(fd)
           : await updateDevisAction(fd);
       if (res && !res.ok) setError(res.error);
+      else if (props.mode === "edit") {
+        router.push(`${baseListUrl}/${props.devis.id}`);
+        router.refresh();
+      }
     });
   }
 
@@ -571,17 +591,52 @@ export function DevisBuilder(props: Props) {
           </CardContent>
         </Card>
 
-        {error && <p className="text-sm text-danger xl:col-span-2">{error}</p>}
+        {props.mode === "edit" && props.devis.status !== "draft" && (
+          <div className="rounded-xl border border-warning/40 bg-warning-weak p-4 text-sm xl:col-span-2">
+            {props.canReopenIssued ? (
+              <>
+                <p className="font-semibold text-ink">{db.issuedEditTitle}</p>
+                <p className="mt-1 text-content-2">{db.issuedEditDescription}</p>
+                <label className="mt-3 flex min-h-11 cursor-pointer items-center gap-3 rounded-lg border border-warning/35 bg-surface px-3 py-2 text-ink">
+                  <input
+                    type="checkbox"
+                    checked={clientNotified}
+                    onChange={(e) => setClientNotified(e.target.checked)}
+                    className="h-4 w-4 rounded border-line accent-brand"
+                  />
+                  <span>{db.clientNotifiedConfirmation}</span>
+                </label>
+              </>
+            ) : (
+              <>
+                <p className="font-semibold text-ink">{db.issuedLockedTitle}</p>
+                <p className="mt-1 text-content-2">{db.issuedLockedDescription}</p>
+              </>
+            )}
+          </div>
+        )}
+
+        {error && <p role="alert" className="text-sm text-danger xl:col-span-2">{error}</p>}
 
         <div className="flex items-center gap-3 xl:col-span-2">
-          <Button type="submit" disabled={pending}>
+          <Button
+            type="submit"
+            disabled={
+              pending ||
+              (props.mode === "edit" &&
+                props.devis.status !== "draft" &&
+                (!props.canReopenIssued || !clientNotified))
+            }
+          >
             {pending
               ? t.common.saving
               : props.mode === "create"
                 ? props.kind === "facture"
                   ? db.createFacture
                   : db.createDevis
-                : t.common.save}
+                : props.devis.status !== "draft"
+                  ? db.reopenAndSave
+                  : t.common.save}
           </Button>
           <Link
             href={

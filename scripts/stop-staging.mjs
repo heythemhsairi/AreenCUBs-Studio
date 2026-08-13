@@ -64,9 +64,11 @@ async function listContainers() {
 }
 
 async function runStop() {
-  const bin = existsSync("node_modules/.bin/supabase")
-    ? "node_modules/.bin/supabase"
-    : "npx";
+  const localBin =
+    process.platform === "win32"
+      ? "node_modules/supabase/bin/supabase.exe"
+      : "node_modules/.bin/supabase";
+  const bin = existsSync(localBin) ? localBin : "npx";
   const args = bin === "npx" ? ["--yes", "supabase", "stop", "--no-backup"] : ["stop", "--no-backup"];
   execFileSync(bin, args, { stdio: ["ignore", "pipe", "pipe"], timeout: 180_000 });
 }

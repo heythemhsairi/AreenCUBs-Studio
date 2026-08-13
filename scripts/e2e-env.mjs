@@ -30,7 +30,10 @@ import { join, resolve } from "node:path";
 
 const REPO = resolve(process.cwd());
 const ENV_FILE = join(REPO, ".env.local");
-const SUPABASE_BIN = join(REPO, "node_modules", ".bin", "supabase");
+const SUPABASE_BIN =
+  process.platform === "win32"
+    ? join(REPO, "node_modules", "supabase", "bin", "supabase.exe")
+    : join(REPO, "node_modules", ".bin", "supabase");
 
 const args = process.argv.slice(2);
 const WANT_SERVICE_ROLE = args.includes("--with-service-role");
