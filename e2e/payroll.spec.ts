@@ -18,6 +18,12 @@ test.describe("worker payroll", () => {
     expect(body).toContain("0,00 DT");
     expect(diagnostics.significantErrors()).toEqual([]);
   });
+
+  test("shows the monthly payroll summary directly on the worker dashboard", async ({ page }) => {
+    await page.goto("/dashboard", { waitUntil: "networkidle" });
+    await expect(page.getByRole("heading", { name: "Mes points ce mois" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Voir le détail" })).toHaveAttribute("href", "/dashboard/payroll");
+  });
 });
 
 test.describe("admin payroll controls", () => {

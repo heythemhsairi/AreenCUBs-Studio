@@ -12,6 +12,9 @@ import {
 import { PriorityPinsSection } from "./priorities-section";
 import { QuickActions } from "@/components/dashboard/quick-actions";
 import { TodaySummary } from "@/components/dashboard/today-summary";
+import { loadPayrollPeriod } from "@/lib/payroll-data";
+import { periodBounds } from "@/lib/payroll";
+import { PayrollSummaryCard } from "./payroll/payroll-summary-card";
 
 // Defensive helper so one failing query can't take down the whole page.
 async function safe<T>(
@@ -48,6 +51,10 @@ export default async function DashboardPage() {
   const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const startOfPrevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const payrollBounds = periodBounds(now.getFullYear(), now.getMonth() + 1);
+  const payrollPromise = session.role === "worker"
+    ? loadPayrollPeriod(supabase, session.id, payrollBounds.start, payrollBounds.next)
+    : Promise.resolve(null);
 
   // 12-month window for bars
   const months: { key: string; label: string }[] = [];
@@ -639,6 +646,7 @@ export default async function DashboardPage() {
         "adminTaskCounts",
       )
     : null;
+  const workerPayroll = await payrollPromise;
 
   return (
     <div className="space-y-7">
@@ -652,6 +660,7 @@ export default async function DashboardPage() {
         role={session.role}
       />
       <QuickActions role={session.role} />
+      {workerPayroll && <PayrollSummaryCard calculation={workerPayroll} />}
       {isAdmin && staleDevis.length > 0 && (
         <StaleDevisBanner rows={staleDevis} />
       )}
