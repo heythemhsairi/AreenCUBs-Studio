@@ -13,7 +13,7 @@ test.describe("worker payroll", () => {
     expect(body).toContain("Mes points & salaire");
     expect(body).toContain("50,00 DT"); // 40 DT video + 10 DT manager bonus
     expect(body).toContain("650,00 DT");
-    expect(body).toContain("1\nvolume, sans valeur monétaire");
+    expect(body).toMatch(/Points de production[·\s]+1[·\s]+volume, sans valeur monétaire/);
     expect(body).toContain("Paiement calculé");
     expect(body).toContain("0,00 DT");
     expect(diagnostics.significantErrors()).toEqual([]);

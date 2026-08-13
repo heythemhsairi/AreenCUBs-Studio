@@ -202,8 +202,9 @@ export function TaskForm(props: Props) {
               </Field>
             )}
 
-            <Field label={t.tasks.form.title}>
+            <Field label={t.tasks.form.title} htmlFor="task-title">
               <Input
+                id="task-title"
                 key={tpl?.id ?? "no-tpl-title"}
                 name="title"
                 required
@@ -249,8 +250,8 @@ export function TaskForm(props: Props) {
               <div className="rounded-xl border border-brand/30 bg-brand/5 p-4">
                 <p className="mb-3 text-sm font-semibold text-ink">Crédit points & salaire</p>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <Field label="Type de production">
-                    <Select name="payroll_task_type_id" defaultValue={tk?.payroll_task_type_id ?? ""}>
+                  <Field label="Type de production" htmlFor="payroll-task-type">
+                    <Select id="payroll-task-type" name="payroll_task_type_id" defaultValue={tk?.payroll_task_type_id ?? ""}>
                       <option value="">Ne pas comptabiliser</option>
                       {(props.payrollTaskTypes ?? []).map((type) => (
                         <option key={type.id} value={type.id}>
@@ -259,8 +260,8 @@ export function TaskForm(props: Props) {
                       ))}
                     </Select>
                   </Field>
-                  <Field label="Collaborateur crédité">
-                    <Select name="payroll_credit_user_id" defaultValue={tk?.payroll_credit_user_id ?? ""}>
+                  <Field label="Collaborateur crédité" htmlFor="payroll-credit-worker">
+                    <Select id="payroll-credit-worker" name="payroll_credit_user_id" defaultValue={tk?.payroll_credit_user_id ?? ""}>
                       <option value="">Choisir…</option>
                       {(props.payrollWorkers ?? []).map((worker) => (
                         <option key={worker.id} value={worker.id}>{worker.full_name ?? `@${worker.username}`}</option>
@@ -273,8 +274,8 @@ export function TaskForm(props: Props) {
             )}
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Field label={t.tasks.form.status}>
-                <Select name="status" defaultValue={tk?.status ?? "todo"}>
+              <Field label={t.tasks.form.status} htmlFor="task-status">
+                <Select id="task-status" name="status" defaultValue={tk?.status ?? "todo"}>
                   <option value="todo">{t.tasks.status.todo}</option>
                   <option value="in_progress">
                     {t.tasks.status.in_progress}
@@ -412,14 +413,16 @@ export function TaskForm(props: Props) {
 
 function Field({
   label,
+  htmlFor,
   children,
 }: {
   label: string;
+  htmlFor?: string;
   children: React.ReactNode;
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="text-sm font-medium text-content-3">{label}</label>
+      <label htmlFor={htmlFor} className="text-sm font-medium text-content-3">{label}</label>
       {children}
     </div>
   );
