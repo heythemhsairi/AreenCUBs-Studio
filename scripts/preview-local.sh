@@ -57,13 +57,15 @@ fi
 grep -E "Docker flavour|networking mode|Published port|LAN reachability" /tmp/preview-preflight.log || true
 
 # ── 4. Ephemeral credentials — written to an ignored 0600 file, never shown ─
-node scripts/e2e-env.mjs --write || exit 1
+node scripts/e2e-env.mjs --write --with-service-role || exit 1
 
 # ── 5. Application ──────────────────────────────────────────────────────────
 # Bound to 0.0.0.0 INSIDE the NAT'd VM so WSL's localhost relay forwards it to
 # the Windows host. The VM is NAT'd, so this is still unreachable from the LAN;
 # the preflight above proves that on every start.
-say "starting Next.js (server TZ=UTC)"
+say "building production preview"
+npm run build >/tmp/preview-build.log 2>&1 || { say "build failed"; tail -30 /tmp/preview-build.log; exit 1; }
+say "starting Next.js production server (server TZ=UTC)"
 say ""
 say "    ➜  http://127.0.0.1:3000/dashboard    (internal)"
 say "    ➜  http://127.0.0.1:3000/portal       (client contact)"
@@ -83,7 +85,7 @@ say "    Stop with:  npm run preview:stop"
 say ""
 if [ "$DETACH" = "1" ]; then
   LOG=/tmp/preview-next.log
-  setsid env TZ=UTC npx next dev -H 0.0.0.0 -p 3000 >"$LOG" 2>&1 < /dev/null &
+  setsid env TZ=UTC npx next start -H 0.0.0.0 -p 3000 >"$LOG" 2>&1 < /dev/null &
   disown 2>/dev/null || true
   say "detached (pid $!) — log: $LOG"
   # Do not report success until the port actually answers; a detached process
@@ -95,4 +97,4 @@ if [ "$DETACH" = "1" ]; then
   say "did not start within 180s — see $LOG"
   exit 1
 fi
-exec env TZ=UTC npx next dev -H 0.0.0.0 -p 3000
+exec env TZ=UTC npx next start -H 0.0.0.0 -p 3000

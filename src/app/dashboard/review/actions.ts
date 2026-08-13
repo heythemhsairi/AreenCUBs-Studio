@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireWorkerOrAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
-export type ReviewActionResult = { ok: true } | { ok: false; error: string };
+export type ReviewActionResult = { ok: true; id?: string } | { ok: false; error: string };
 
 /**
  * Staff-side video review actions.
@@ -36,33 +36,71 @@ export async function createReviewAssetAction(
   const session = await requireWorkerOrAdmin();
   const clientId = String(formData.get("client_id") ?? "");
   const title = String(formData.get("title") ?? "").trim();
+  const file = formData.get("file");
 
   if (!clientId) return { ok: false, error: "Client manquant." };
   if (title.length === 0) return { ok: false, error: "Titre obligatoire." };
   if (title.length > 200) return { ok: false, error: "Titre trop long." };
+  if (!(file instanceof File) || file.size === 0) {
+    return { ok: false, error: "Choisissez la vidéo à envoyer." };
+  }
+  if (!file.type.startsWith("video/")) {
+    return { ok: false, error: "Le fichier doit être une vidéo." };
+  }
+  if (file.size > MAX_VIDEO_BYTES) {
+    return { ok: false, error: "Vidéo trop grande (200 Mo maximum)." };
+  }
 
   const supabase = await createClient();
 
   // The insert itself is the authorization: review_assets_staff_all WITH CHECK
   // refuses anyone who is not staff, and the clients FK refuses an id that
   // does not exist. No pre-checks that could drift from the policy.
-  const { error } = await supabase.from("review_assets").insert({
-    client_id: clientId,
-    title,
-    created_by: session.id,
+  const { data: asset, error } = await supabase
+    .from("review_assets")
+    .insert({ client_id: clientId, title, created_by: session.id })
+    .select("id, client_id")
+    .single();
+  if (error || !asset) {
+    return { ok: false, error: error?.message ?? "Création impossible." };
+  }
+
+  const ext = EXT_BY_MIME[file.type] ?? "mp4";
+  const storagePath = `${asset.client_id}/${asset.id}/v1.${ext}`;
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const { error: uploadError } = await supabase.storage
+    .from("review-media")
+    .upload(storagePath, buffer, { contentType: file.type, upsert: false });
+  if (uploadError) {
+    await supabase.from("review_assets").delete().eq("id", asset.id);
+    return { ok: false, error: uploadError.message };
+  }
+
+  const { error: versionError } = await supabase.from("review_versions").insert({
+    asset_id: asset.id,
+    version_number: 1,
+    storage_path: storagePath,
+    mime: file.type,
+    size_bytes: file.size,
+    uploaded_by: session.id,
   });
-  if (error) return { ok: false, error: error.message };
+  if (versionError) {
+    await supabase.storage.from("review-media").remove([storagePath]);
+    await supabase.from("review_assets").delete().eq("id", asset.id);
+    return { ok: false, error: versionError.message };
+  }
 
   await supabase.from("audit_log").insert({
     actor_id: session.id,
     actor_role: session.role,
     action: "review.asset_created",
     entity_type: "review_asset",
+    entity_id: asset.id,
     summary: title,
   });
 
   revalidatePath("/dashboard/review");
-  return { ok: true };
+  return { ok: true, id: asset.id };
 }
 
 export async function uploadReviewVersionAction(

@@ -18,6 +18,8 @@ const ROUTES = [
   "/dashboard/content/publishing",
   "/dashboard/services",
   "/dashboard/team",
+  "/dashboard/team/planning",
+  "/dashboard/team/workload",
   "/dashboard/settings",
 ];
 

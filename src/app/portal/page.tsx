@@ -1,6 +1,6 @@
 import { requireClientContact } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { PortalClient, type PortalItem } from "./portal-client";
+import { PortalClient, type PortalItem, type PortalPlan } from "./portal-client";
 
 /**
  * Client portal.
@@ -19,8 +19,13 @@ export default async function PortalPage() {
   const session = await requireClientContact();
   const supabase = await createClient();
 
-  const [orgRes, itemsRes, reviewsRes] = await Promise.all([
+  const [orgRes, plansRes, itemsRes, reviewsRes] = await Promise.all([
     supabase.from("portal_client_org").select("id, name").maybeSingle(),
+    supabase
+      .from("portal_content_plans")
+      .select("id, month, year, theme, status")
+      .order("year", { ascending: false })
+      .order("month", { ascending: false }),
     supabase
       .from("portal_content_items")
       .select(
@@ -34,7 +39,8 @@ export default async function PortalPage() {
   ]);
 
   const loadError =
-    orgRes.error?.message ?? itemsRes.error?.message ?? reviewsRes.error?.message ?? null;
+    orgRes.error?.message ?? plansRes.error?.message ?? itemsRes.error?.message ??
+    reviewsRes.error?.message ?? null;
 
   const items: PortalItem[] = (itemsRes.data ?? []).map((i) => ({
     id: i.id,
@@ -52,6 +58,7 @@ export default async function PortalPage() {
     <PortalClient
       contactName={(session.full_name ?? session.username).split(" ")[0]}
       orgName={orgRes.data?.name ?? null}
+      plans={(plansRes.data ?? []) as PortalPlan[]}
       items={items}
       reviews={(reviewsRes.data ?? []).map((r) => ({
         id: r.id,

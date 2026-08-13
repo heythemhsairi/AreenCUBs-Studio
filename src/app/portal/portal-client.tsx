@@ -2,7 +2,16 @@
 
 import Link from "next/link";
 import { useState, useTransition } from "react";
-import { AlertCircle, CheckCircle2, Film, Inbox, MessageSquare } from "lucide-react";
+import {
+  AlertCircle,
+  CalendarDays,
+  CheckCircle2,
+  Download,
+  Film,
+  Inbox,
+  MessageSquare,
+  Sparkles,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -32,16 +41,25 @@ export type PortalItem = {
  * reach the browser in the first place.
  */
 export type PortalReview = { id: string; title: string; status: string };
+export type PortalPlan = {
+  id: string;
+  month: number;
+  year: number;
+  theme: string | null;
+  status: string;
+};
 
 export function PortalClient({
   contactName,
   orgName,
+  plans,
   items,
   reviews,
   loadError,
 }: {
   contactName: string;
   orgName: string | null;
+  plans: PortalPlan[];
   items: PortalItem[];
   reviews: PortalReview[];
   loadError: string | null;
@@ -58,9 +76,12 @@ export function PortalClient({
 
   const awaiting = items.filter(isPending);
   const settled = items.filter((i) => !isPending(i));
+  const currentPlan = plans[0] ?? null;
+  const datedItems = items.filter((item) => item.publishDate);
+  const deliveredItems = items.filter((item) => item.assetUrl);
 
   return (
-    <main className="mx-auto w-full max-w-5xl space-y-6 px-4 py-8 sm:px-6 lg:py-12">
+    <main className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8 sm:px-6 lg:py-12">
       <header className="rounded-2xl border border-line bg-surface px-5 py-6 shadow-soft sm:px-7">
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand">Espace client</p>
         <h1 className="mt-2 text-2xl font-semibold text-ink sm:text-3xl">
@@ -70,6 +91,32 @@ export function PortalClient({
           Bonjour {contactName}. Voici vos contenus et ce qui attend votre validation.
         </p>
       </header>
+
+      <section aria-label="Vue d'ensemble" className="grid gap-3 sm:grid-cols-3">
+        <PortalMetric label="Décisions attendues" value={awaiting.length} detail="contenus à valider" />
+        <PortalMetric label="Vidéos en revue" value={reviews.length} detail="montages disponibles" />
+        <PortalMetric label="Contenus partagés" value={items.length} detail="dans votre espace" />
+      </section>
+
+      {currentPlan && (
+        <Card className="overflow-hidden border-brand/30 bg-gradient-to-br from-brand/10 to-surface">
+          <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+            <div className="flex items-start gap-3">
+              <span className="rounded-xl bg-brand/15 p-2.5 text-brand"><Sparkles size={20} aria-hidden="true" /></span>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-brand">Plan éditorial actuel</p>
+                <h2 className="mt-1 text-lg font-semibold text-ink">
+                  {currentPlan.theme || "Votre programmation éditoriale"}
+                </h2>
+                <p className="mt-1 text-sm text-content-2">
+                  {monthLabel(currentPlan.month)} {currentPlan.year} · {datedItems.length} publication{datedItems.length === 1 ? "" : "s"} visible{datedItems.length === 1 ? "" : "s"}
+                </p>
+              </div>
+            </div>
+            <Badge tone="blue">{planStatusLabel(currentPlan.status)}</Badge>
+          </CardContent>
+        </Card>
+      )}
 
       {loadError && (
         <div
@@ -171,8 +218,90 @@ export function PortalClient({
         </CardContent>
       </Card>
       </div>
+
+      <section className="grid items-start gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CalendarDays size={18} className="text-brand" aria-hidden="true" />
+              Calendrier de publication
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {datedItems.length === 0 ? (
+              <EmptyState icon={<CalendarDays />} title="Aucune date partagée" description="Les prochaines publications apparaîtront ici." size="sm" />
+            ) : (
+              <ol className="space-y-1">
+                {datedItems.map((item) => (
+                  <li key={item.id} className="flex gap-4 rounded-lg px-2 py-3 hover:bg-surface-2">
+                    <time className="w-20 shrink-0 text-xs font-semibold uppercase text-brand" dateTime={item.publishDate ?? undefined}>
+                      {formatPortalDate(item.publishDate)}
+                    </time>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium text-ink">{item.title}</p>
+                      <p className="text-xs text-content-3">{item.platform} · {item.contentType}</p>
+                    </div>
+                    <Badge tone={badgeTone(item)}>{settledLabel(item)}</Badge>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Download size={18} className="text-brand" aria-hidden="true" />
+              Livrables disponibles
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {deliveredItems.length === 0 ? (
+              <EmptyState icon={<Download />} title="Aucun livrable final" description="Les fichiers validés seront centralisés ici dès qu'ils seront prêts." size="sm" />
+            ) : (
+              <ul className="divide-y divide-line">
+                {deliveredItems.map((item) => (
+                  <li key={item.id}>
+                    <a href={item.assetUrl ?? "#"} target="_blank" rel="noreferrer" className="flex items-center justify-between gap-4 py-3 text-sm font-medium text-ink hover:text-brand">
+                      <span className="truncate">{item.title}</span>
+                      <span className="flex shrink-0 items-center gap-1 text-xs text-brand"><Download size={14} aria-hidden="true" /> Ouvrir</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+      </section>
     </main>
   );
+}
+
+function PortalMetric({ label, value, detail }: { label: string; value: number; detail: string }) {
+  return (
+    <div className="rounded-xl border border-line bg-surface p-4 shadow-soft">
+      <p className="text-xs font-medium text-content-3">{label}</p>
+      <p className="mt-1 text-2xl font-semibold text-ink">{value}</p>
+      <p className="text-xs text-content-3">{detail}</p>
+    </div>
+  );
+}
+
+function monthLabel(month: number) {
+  return new Intl.DateTimeFormat("fr-FR", { month: "long", timeZone: "UTC" }).format(new Date(Date.UTC(2026, month - 1, 1)));
+}
+
+function formatPortalDate(value: string | null) {
+  if (!value) return "À définir";
+  return new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "short", timeZone: "UTC" }).format(new Date(`${value}T00:00:00Z`));
+}
+
+function planStatusLabel(status: string) {
+  if (status === "approved") return "Validé";
+  if (status === "active") return "En cours";
+  if (status === "draft") return "En préparation";
+  return status;
 }
 
 /**

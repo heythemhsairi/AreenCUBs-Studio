@@ -187,8 +187,13 @@ export function resetReviewFixture() {
     // the review-table deletes above, whose ON DELETE CASCADE is itself
     // implemented as system triggers and must stay enabled.
     "set local session_replication_role = replica;",
+    "delete from storage.objects where bucket_id = 'review-media' and exists (" +
+      "select 1 from public.review_assets ra where ra.title like 'PROBE-%' " +
+      "and split_part(storage.objects.name, '/', 2) = ra.id::text);",
     "delete from storage.objects where bucket_id = 'review-media' " +
       "and name like 'c1000000-0000-4000-8000-000000000002/%';",
+    "set local session_replication_role = origin;",
+    "delete from public.review_assets where title like 'PROBE-%';",
     "update public.review_assets set status = 'in_review' " +
       "where id in ('f1000000-0000-4000-8000-000000000001', 'f1000000-0000-4000-8000-000000000002');",
     "commit;",

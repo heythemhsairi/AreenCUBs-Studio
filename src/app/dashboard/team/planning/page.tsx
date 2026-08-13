@@ -1,10 +1,10 @@
 import { requireAdmin } from "@/lib/auth";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 import { TeamPlanningClient, type TeamMember } from "./planning-client";
 
 export default async function TeamPlanningPage() {
   await requireAdmin();
-  const admin = createAdminClient();
+  const admin = await createClient();
 
   const now = new Date();
   const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;

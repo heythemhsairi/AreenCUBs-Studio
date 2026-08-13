@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { requireSession } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 
 export type WorkLocation = "office" | "home" | null;
 
@@ -32,10 +31,9 @@ export async function setWorkLocationAction(
     return { ok: false, error: "Action réservée à l'administrateur." };
   }
 
-  // Use the admin client when editing someone else (still gated above).
-  // Self-edits stay on the user-scoped supabase client (RLS-safe).
-  const supabase =
-    userId === session.id ? await createClient() : createAdminClient();
+  // Admin editing of another member is explicitly allowed by the table's RLS
+  // policy, so keep this on the session client and let that policy enforce it.
+  const supabase = await createClient();
 
   if (location === null) {
     const { error } = await supabase

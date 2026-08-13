@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar } from "@/components/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -21,7 +21,7 @@ export default async function MemberPlanningPage({
 }) {
   await requireAdmin();
   const { id } = await params;
-  const admin = createAdminClient();
+  const admin = await createClient();
 
   // 3-month window centered on the current month (same as worker overview)
   const now = new Date();

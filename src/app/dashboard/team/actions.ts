@@ -97,8 +97,8 @@ export async function updateTeamMemberAction(
     };
   }
 
-  const admin = createAdminClient();
-  const { error } = await admin
+  const supabase = await createClient();
+  const { error } = await supabase
     .from("profiles")
     .update({ role, full_name: fullName || null, job_title: jobTitle })
     .eq("id", id);

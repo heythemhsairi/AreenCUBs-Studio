@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { AlertCircle, Clapperboard, Plus } from "lucide-react";
+import { AlertCircle, Clapperboard, Plus, Upload } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge, type Tone } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -45,6 +46,7 @@ export function ReviewListClient({
   canCreate: boolean;
   loadError: string | null;
 }) {
+  const router = useRouter();
   const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -54,7 +56,7 @@ export function ReviewListClient({
     startTransition(async () => {
       const result = await createReviewAssetAction(formData);
       if (!result.ok) setError(result.error);
-      else setShowForm(false);
+      else if (result.id) router.push(`/dashboard/review/${result.id}`);
     });
   }
 
@@ -89,8 +91,8 @@ export function ReviewListClient({
                 <CardTitle>Nouveau montage</CardTitle>
               </CardHeader>
               <CardContent>
-                <form action={submit} className="flex flex-col gap-3 sm:flex-row sm:items-end">
-                  <div className="flex-1 space-y-1">
+                <form action={submit} className="grid gap-4 lg:grid-cols-2">
+                  <div className="space-y-1">
                     <label htmlFor="review-title" className="text-xs font-medium text-content-2">
                       Titre
                     </label>
@@ -109,9 +111,23 @@ export function ReviewListClient({
                       ))}
                     </Select>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="space-y-1 lg:col-span-2">
+                    <label htmlFor="review-file" className="text-xs font-medium text-content-2">
+                      Vidéo source
+                    </label>
+                    <Input
+                      id="review-file"
+                      name="file"
+                      type="file"
+                      accept="video/mp4,video/webm,video/quicktime,video/x-matroska"
+                      required
+                    />
+                    <p className="text-xs text-content-3">MP4, WebM, MOV ou MKV · 200 Mo maximum</p>
+                  </div>
+                  <div className="flex gap-2 lg:col-span-2">
                     <Button type="submit" disabled={pending}>
-                      Créer
+                      <Upload size={16} aria-hidden="true" />
+                      {pending ? "Téléversement…" : "Créer et téléverser"}
                     </Button>
                     <Button type="button" variant="ghost" onClick={() => setShowForm(false)}>
                       Annuler

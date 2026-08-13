@@ -33,6 +33,23 @@ test.describe("staff workspace", () => {
     expect(diagnostics.significantErrors()).toEqual([]);
   });
 
+  test("creates a review and uploads its first video in one step", async ({ page }) => {
+    await page.goto("/dashboard/review", { waitUntil: "networkidle" });
+    await page.getByRole("button", { name: "Nouveau montage" }).click();
+    await page.getByLabel("Titre").fill("PROBE-nouveau montage complet");
+    await page.getByLabel("Client").selectOption("c1000000-0000-4000-8000-000000000001");
+    await page.getByLabel("Vidéo source").setInputFiles({
+      name: "first-cut.mp4",
+      mimeType: "video/mp4",
+      buffer: Buffer.from("PROBE first review video ".repeat(32)),
+    });
+    await page.getByRole("button", { name: "Créer et téléverser" }).click();
+
+    await expect(page).toHaveURL(/\/dashboard\/review\/[0-9a-f-]+$/, { timeout: 20_000 });
+    await expect(page.getByText("PROBE-nouveau montage complet")).toBeVisible();
+    await expect(page.getByText("Atlas Foods SARL · v1")).toBeVisible();
+  });
+
   test("shows the conversation and resolves a client comment", async ({ page }) => {
     await page.goto(`/dashboard/review/${ATLAS_ASSET}`, { waitUntil: "networkidle" });
 
