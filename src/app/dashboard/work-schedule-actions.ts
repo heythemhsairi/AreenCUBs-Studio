@@ -3,8 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { requireSession } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { isWorkLocation, type WorkLocation } from "@/lib/work-schedule";
 
-export type WorkLocation = "office" | "home" | null;
+export type WorkLocationInput = WorkLocation | null;
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -18,12 +19,15 @@ export type ActionResult = { ok: true } | { ok: false; error: string };
  */
 export async function setWorkLocationAction(
   date: string,
-  location: WorkLocation,
+  location: WorkLocationInput,
   targetUserId?: string,
 ): Promise<ActionResult> {
   const session = await requireSession();
   if (!ISO_DATE.test(date)) {
     return { ok: false, error: "Date invalide." };
+  }
+  if (location !== null && !isWorkLocation(location)) {
+    return { ok: false, error: "Statut de planning invalide." };
   }
 
   const userId = targetUserId ?? session.id;

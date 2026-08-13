@@ -124,6 +124,10 @@ test.describe("service-role degradation", () => {
     const day = workerRow.locator('button[title^="2026-"]').first();
     const before = await day.getAttribute("title");
     expect(before).toBeTruthy();
+
+    const toolbar = page.getByRole("toolbar", { name: /statut|status/i });
+    const targetLabel = /congé|vacation/i.test(before!) ? /absence/i : /congé|vacation/i;
+    await toolbar.getByRole("button", { name: targetLabel }).click();
     await day.click();
     await page.waitForTimeout(500);
 
@@ -134,13 +138,21 @@ test.describe("service-role degradation", () => {
       .locator('button[title^="2026-"]')
       .first();
     await expect(persisted).not.toHaveAttribute("title", before!);
+    await expect(persisted).toHaveAttribute("title", targetLabel);
 
-    // Three states cycle empty → office → home → empty. Restore the original.
-    for (let attempt = 0; attempt < 2; attempt++) {
-      if ((await persisted.getAttribute("title")) === before) break;
-      await persisted.click();
-      await page.waitForTimeout(400);
-    }
+    // Restore the fabricated seed value so the suite remains repeatable.
+    const restoreLabel = /bureau|office/i.test(before!)
+      ? /bureau|office/i
+      : /maison|home/i.test(before!)
+        ? /maison|home/i
+        : /absence/i.test(before!)
+          ? /absence/i
+          : /congé|vacation/i.test(before!)
+            ? /congé|vacation/i
+            : /effacer|clear/i;
+    await page.getByRole("toolbar", { name: /statut|status/i }).getByRole("button", { name: restoreLabel }).click();
+    await persisted.click();
+    await page.waitForTimeout(500);
   });
 });
 

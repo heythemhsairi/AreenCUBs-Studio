@@ -2,6 +2,7 @@ import { requireInternal } from "@/lib/auth";
 import { CommercialDashboard } from "./commercial-dashboard";
 import { InternDashboard } from "./intern-dashboard";
 import { createClient } from "@/lib/supabase/server";
+import type { WorkLocation } from "@/lib/work-schedule";
 import { DashboardGreeting } from "@/components/dashboard/dashboard-greeting";
 import { OverviewClient } from "./overview-client";
 import { getDonutPalette } from "@/components/charts/palette";
@@ -481,7 +482,7 @@ export default async function DashboardPage() {
   );
 
   // ---- My work schedule (3-month window around current) ----
-  const myWorkSchedule: Record<string, "office" | "home"> = await safe(
+  const myWorkSchedule: Record<string, WorkLocation> = await safe(
     async () => {
       const { data } = await supabase
         .from("work_schedule")
@@ -489,13 +490,13 @@ export default async function DashboardPage() {
         .eq("user_id", session.id)
         .gte("date", scheduleStart)
         .lte("date", scheduleEnd);
-      const out: Record<string, "office" | "home"> = {};
+        const out: Record<string, WorkLocation> = {};
       for (const row of data ?? []) {
-        out[row.date as string] = row.location as "office" | "home";
+          out[row.date as string] = row.location as WorkLocation;
       }
       return out;
     },
-    {} as Record<string, "office" | "home">,
+    {} as Record<string, WorkLocation>,
     "workSchedule",
   );
 

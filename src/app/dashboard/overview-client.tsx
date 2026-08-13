@@ -15,6 +15,7 @@ import { TrendPill } from "@/components/charts/trend-pill";
 import { Donut, DonutLegend, type DonutSlice } from "@/components/charts/donut";
 import { MonthlyBars, type BarPoint } from "@/components/charts/bars";
 import { WorkCalendar } from "@/components/work-calendar";
+import type { WorkLocation } from "@/lib/work-schedule";
 import { formatDevisNumber, formatDt, formatDate } from "@/lib/format";
 import type { UserRole } from "@/lib/utils";
 
@@ -92,7 +93,7 @@ type Props = {
   recentDevis: RecentDevis[];
   upcomingTasks: UpcomingTask[];
   featuredEmployee: Featured;
-  workSchedule: Record<string, "office" | "home">;
+  workSchedule: Record<string, WorkLocation>;
   adminTaskCounts?: AdminTaskCounts;
 };
 

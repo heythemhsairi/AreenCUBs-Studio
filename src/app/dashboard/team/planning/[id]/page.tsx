@@ -9,6 +9,7 @@ import { PageHeader } from "@/components/dashboard/page-header";
 import { WorkCalendar } from "@/components/work-calendar";
 import type { UserRole } from "@/lib/utils";
 import { ROLE_TONE, ROLE_LABEL_FR } from "@/lib/roles";
+import type { WorkLocation } from "@/lib/work-schedule";
 
 
 
@@ -48,9 +49,9 @@ export default async function MemberPlanningPage({
 
   if (!profile) notFound();
 
-  const scheduleMap: Record<string, "office" | "home"> = {};
+  const scheduleMap: Record<string, WorkLocation> = {};
   for (const r of schedule ?? []) {
-    scheduleMap[r.date as string] = r.location as "office" | "home";
+    scheduleMap[r.date as string] = r.location as WorkLocation;
   }
 
   // Current-month totals for the summary stats
@@ -63,11 +64,15 @@ export default async function MemberPlanningPage({
 
   let officeMonth = 0;
   let homeMonth = 0;
+  let absenceMonth = 0;
+  let vacationMonth = 0;
   for (const r of schedule ?? []) {
     const d = r.date as string;
     if (d < monthStart || d > monthEnd) continue;
     if (r.location === "office") officeMonth++;
     else if (r.location === "home") homeMonth++;
+    else if (r.location === "absence") absenceMonth++;
+    else if (r.location === "vacation") vacationMonth++;
   }
 
   const role = profile.role as UserRole;
@@ -107,10 +112,12 @@ export default async function MemberPlanningPage({
 
             <div className="mt-4 flex flex-wrap justify-center gap-3 sm:justify-start">
               <Stat label="🏢 Bureau (ce mois)" value={officeMonth} tone="brand" />
-              <Stat label="🏠 Maison (ce mois)" value={homeMonth} tone="accent" />
+              <Stat label="🏠 Maison (ce mois)" value={homeMonth} tone="info" />
+              <Stat label="⛔ Absence (ce mois)" value={absenceMonth} tone="warning" />
+              <Stat label="🌴 Congé (ce mois)" value={vacationMonth} tone="success" />
               <Stat
                 label="Total enregistré"
-                value={officeMonth + homeMonth}
+                value={officeMonth + homeMonth + absenceMonth + vacationMonth}
                 tone="neutral"
               />
             </div>
@@ -123,8 +130,8 @@ export default async function MemberPlanningPage({
           <CardTitle>Calendrier mensuel</CardTitle>
           <p className="text-xs text-content-3">
             En tant qu&apos;administrateur, vous pouvez modifier les jours
-            de {profile.full_name ?? profile.username}. Cliquez un jour pour
-            basculer entre Bureau, Maison et vide.
+            de {profile.full_name ?? profile.username}. Sélectionnez Bureau,
+            Maison, Absence, Congé ou Effacer, puis appliquez ce statut aux jours voulus.
           </p>
         </CardHeader>
         <CardContent>
@@ -145,14 +152,15 @@ function Stat({
 }: {
   label: string;
   value: number;
-  tone: "brand" | "accent" | "neutral";
+  tone: "brand" | "info" | "warning" | "success" | "neutral";
 }) {
-  const cls =
-    tone === "brand"
-      ? "bg-brand/10 text-brand-dark ring-brand/20"
-      : tone === "accent"
-        ? "bg-accent/15 text-accent-dark ring-accent/30"
-        : "bg-ink/5 text-content-2 ring-ink/10";
+  const cls = {
+    brand: "bg-brand/10 text-brand ring-brand/20",
+    info: "bg-info-weak text-info ring-info/20",
+    warning: "bg-warning-weak text-warning ring-warning/20",
+    success: "bg-success-weak text-success ring-success/20",
+    neutral: "bg-ink/5 text-content-2 ring-ink/10",
+  }[tone];
   return (
     <span
       className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold ring-1 ${cls}`}
