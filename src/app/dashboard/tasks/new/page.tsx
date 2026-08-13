@@ -7,7 +7,7 @@ export default async function NewTaskPage({
 }: {
   searchParams: Promise<{ projectId?: string; templateId?: string }>;
 }) {
-  await requireWorkerOrAdmin();
+  const session = await requireWorkerOrAdmin();
   const { projectId, templateId } = await searchParams;
   const supabase = await createClient();
 
@@ -45,6 +45,18 @@ export default async function NewTaskPage({
     ? tplList.find((t) => t.id === templateId) ?? null
     : null;
 
+  const [{ data: payrollTaskTypes }, { data: payrollSettings }] =
+    session.role === "admin"
+      ? await Promise.all([
+          supabase.from("payroll_task_types").select("id, label, base_rate_millimes, output_points").eq("active", true).order("position"),
+          supabase.from("payroll_worker_settings").select("user_id, profiles:user_id(id, username, full_name)").eq("active", true),
+        ])
+      : [{ data: [] }, { data: [] }];
+  const payrollWorkers = (payrollSettings ?? []).flatMap((row) => {
+    const profile = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
+    return profile ? [profile] : [];
+  });
+
   return (
     <TaskForm
       mode="create"
@@ -60,6 +72,9 @@ export default async function NewTaskPage({
       assignees={members ?? []}
       templates={tplList}
       preselectedTemplate={chosen}
+      canManagePayroll={session.role === "admin"}
+      payrollTaskTypes={payrollTaskTypes ?? []}
+      payrollWorkers={payrollWorkers}
     />
   );
 }

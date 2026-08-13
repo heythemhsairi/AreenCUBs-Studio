@@ -38,6 +38,8 @@ type TaskRow = {
   estimated_minutes?: number | null;
   late_reason?: string | null;
   completion_note?: string | null;
+  payroll_task_type_id?: string | null;
+  payroll_credit_user_id?: string | null;
 };
 
 export type TaskTemplateOption = {
@@ -49,7 +51,13 @@ export type TaskTemplateOption = {
   default_deadline_offset_days: number | null;
 };
 
-type Props =
+type PayrollProps = {
+  canManagePayroll?: boolean;
+  payrollTaskTypes?: { id: string; label: string; base_rate_millimes: number; output_points: number }[];
+  payrollWorkers?: { id: string; username: string; full_name: string | null }[];
+};
+
+type Props = (
   | {
       mode: "create";
       defaultProjectId?: string;
@@ -67,7 +75,7 @@ type Props =
       defaultProjectId?: undefined;
       templates?: undefined;
       preselectedTemplate?: undefined;
-    };
+    }) & PayrollProps;
 
 export function TaskForm(props: Props) {
   const { t } = useI18n();
@@ -236,6 +244,33 @@ export function TaskForm(props: Props) {
                 />
               </Field>
             </div>
+
+            {props.canManagePayroll && (
+              <div className="rounded-xl border border-brand/30 bg-brand/5 p-4">
+                <p className="mb-3 text-sm font-semibold text-ink">Crédit points & salaire</p>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field label="Type de production">
+                    <Select name="payroll_task_type_id" defaultValue={tk?.payroll_task_type_id ?? ""}>
+                      <option value="">Ne pas comptabiliser</option>
+                      {(props.payrollTaskTypes ?? []).map((type) => (
+                        <option key={type.id} value={type.id}>
+                          {type.label} · {type.output_points} pt · {(type.base_rate_millimes / 1000).toFixed(3)} DT
+                        </option>
+                      ))}
+                    </Select>
+                  </Field>
+                  <Field label="Collaborateur crédité">
+                    <Select name="payroll_credit_user_id" defaultValue={tk?.payroll_credit_user_id ?? ""}>
+                      <option value="">Choisir…</option>
+                      {(props.payrollWorkers ?? []).map((worker) => (
+                        <option key={worker.id} value={worker.id}>{worker.full_name ?? `@${worker.username}`}</option>
+                      ))}
+                    </Select>
+                  </Field>
+                </div>
+                <p className="mt-2 text-xs text-content-3">Le crédit est créé une seule fois lorsque la tâche passe à Terminé. Seul un administrateur peut modifier ces champs.</p>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field label={t.tasks.form.status}>

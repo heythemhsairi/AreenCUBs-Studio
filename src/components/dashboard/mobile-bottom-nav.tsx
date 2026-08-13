@@ -22,6 +22,7 @@ import {
   Settings,
   Share2,
   ClipboardList,
+  Banknote,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/lib/utils";
@@ -105,6 +106,12 @@ const ALL_NAV_ITEMS: NavItem[] = [
     label: "Planning",
     icon: CalendarDays,
     roles: ["admin"],
+  },
+  {
+    href: "/dashboard/payroll",
+    label: "Points & salaires",
+    icon: Banknote,
+    roles: ["admin", "worker"],
   },
   {
     href: "/dashboard/content/publishing",

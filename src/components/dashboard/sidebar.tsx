@@ -26,6 +26,7 @@ import {
   Clapperboard,
   FileBarChart,
   ScrollText,
+  Banknote,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -147,6 +148,13 @@ function buildNav(
       label: t.nav.planning,
       icon: CalendarDays,
       rolesAllowed: ["admin"],
+      group: "team",
+    },
+    {
+      href: "/dashboard/payroll",
+      label: role === "admin" ? "Points & salaires" : "Mes points & salaire",
+      icon: Banknote,
+      rolesAllowed: ["admin", "worker"],
       group: "team",
     },
     {

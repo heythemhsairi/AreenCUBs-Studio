@@ -509,6 +509,31 @@ values
    '2026-08-05 10:00:00+01', 'e1000000-0000-4000-8000-000000000001', null,
    '11111111-1111-4111-8111-111111111111', '#atlas', 'Control: genuinely published.');
 
+-- ═══ 8. Worker payroll — fabricated task-linked compensation ══════════════
+insert into public.payroll_worker_settings
+  (user_id, target_millimes, baseline_percent, active)
+values ('22222222-2222-4222-8222-222222222222', 650000, 80, true)
+on conflict (user_id) do update set
+  target_millimes = excluded.target_millimes,
+  baseline_percent = excluded.baseline_percent,
+  active = excluded.active;
+
+-- Updating an already-completed weekday task exercises the same trigger used
+-- when an administrator classifies real work. It creates exactly one credit.
+update public.tasks
+set payroll_task_type_id = (select id from public.payroll_task_types where code = 'video'),
+    payroll_credit_user_id = '22222222-2222-4222-8222-222222222222',
+    completed_at = '2026-08-05 15:00:00+01'
+where id = '7a000000-0000-4000-8000-000000000005';
+
+insert into public.payroll_bonuses
+  (user_id, bonus_date, amount_millimes, reason, created_by)
+values (
+  '22222222-2222-4222-8222-222222222222', '2026-08-06', 10000,
+  'FABRICATED — qualité de livraison',
+  '11111111-1111-4111-8111-111111111111'
+);
+
 commit;
 
 -- ── Summary ────────────────────────────────────────────────────────────────

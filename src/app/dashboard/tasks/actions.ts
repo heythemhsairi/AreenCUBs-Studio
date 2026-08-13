@@ -79,6 +79,8 @@ function pickTaskFields(formData: FormData) {
     estimated_minutes,
     late_reason: stringOrNull(formData.get("late_reason")),
     completion_note: stringOrNull(formData.get("completion_note")),
+    payroll_task_type_id: stringOrNull(formData.get("payroll_task_type_id")),
+    payroll_credit_user_id: stringOrNull(formData.get("payroll_credit_user_id")),
   };
 }
 
@@ -186,10 +188,21 @@ export async function createTaskAction(
   if (!fields.title) return { ok: false, error: "Le titre est requis." };
 
   const supabase = await createClient();
-  const { assignee_ids, late_reason, completion_note, ...taskCols } = fields;
+  const {
+    assignee_ids,
+    late_reason,
+    completion_note,
+    payroll_task_type_id,
+    payroll_credit_user_id,
+    ...taskCols
+  } = fields;
   const { data, error } = await supabase
     .from("tasks")
-    .insert({ ...taskCols, created_by: session.id })
+    .insert({
+      ...taskCols,
+      created_by: session.id,
+      ...(session.role === "admin" ? { payroll_task_type_id, payroll_credit_user_id } : {}),
+    })
     .select("id, project_id")
     .single();
   if (error) return { ok: false, error: error.message };
@@ -236,7 +249,7 @@ export async function updateTaskAction(
   const { data: before } = await supabase
     .from("tasks")
     .select(
-      "status, priority, assignee_id, deadline, project_id, parent_task_id, title, description, deliverable_url, tags, recurrence, created_by, started_at",
+      "status, priority, assignee_id, deadline, project_id, parent_task_id, title, description, deliverable_url, tags, recurrence, created_by, started_at, payroll_task_type_id, payroll_credit_user_id",
     )
     .eq("id", id)
     .single();
@@ -261,6 +274,10 @@ export async function updateTaskAction(
       estimated_minutes: fields.estimated_minutes,
       late_reason: fields.late_reason,
       completion_note: fields.completion_note,
+      ...(session.role === "admin" ? {
+        payroll_task_type_id: fields.payroll_task_type_id,
+        payroll_credit_user_id: fields.payroll_credit_user_id,
+      } : {}),
       ...(goingActive && !before?.started_at ? { started_at: now } : {}),
       ...(goingDone ? { completed_at: now } : {}),
     })
@@ -360,6 +377,8 @@ export async function updateTaskAction(
         tags: fields.tags,
         recurrence: fields.recurrence,
         created_by: session.id,
+        payroll_task_type_id: fields.payroll_task_type_id,
+        payroll_credit_user_id: fields.payroll_credit_user_id,
       })
       .select("id")
       .single();
@@ -390,7 +409,7 @@ export async function changeTaskStatusAction(
   const { data: before } = await supabase
     .from("tasks")
     .select(
-      "status, project_id, parent_task_id, title, description, priority, assignee_id, deadline, deliverable_url, tags, recurrence, created_by, started_at",
+      "status, project_id, parent_task_id, title, description, priority, assignee_id, deadline, deliverable_url, tags, recurrence, created_by, started_at, payroll_task_type_id, payroll_credit_user_id",
     )
     .eq("id", taskId)
     .single();
@@ -462,6 +481,8 @@ export async function changeTaskStatusAction(
         tags: before.tags ?? [],
         recurrence: before.recurrence,
         created_by: session.id,
+        payroll_task_type_id: before.payroll_task_type_id,
+        payroll_credit_user_id: before.payroll_credit_user_id,
       })
       .select("id")
       .single();
