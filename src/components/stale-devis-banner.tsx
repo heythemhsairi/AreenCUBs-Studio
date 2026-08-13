@@ -31,14 +31,14 @@ export function StaleDevisBanner({ rows }: { rows: StaleDevisRow[] }) {
   if (rows.length === 0 || dismissed) return null;
 
   return (
-    <div className="rounded-2xl border border-accent/40 bg-gradient-to-r from-accent/15 via-white/85 to-accent/10 p-4 dark:from-accent/25 dark:via-[#1c1f29]/85 dark:to-accent/15 dark:border-accent/30">
+    <div className="rounded-2xl border border-warning/35 bg-warning-weak p-4 shadow-ac-sm">
       <div className="flex items-start gap-3">
-        <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent/25 text-lg">
+        <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-warning/25 bg-warning/10 text-lg">
           ⏰
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-semibold text-ink dark:text-cream">
+            <p className="text-sm font-semibold text-content">
               {rows.length === 1
                 ? t.devisUi.staleBannerOne
                 : t.devisUi.staleBannerMany(rows.length)}
@@ -60,13 +60,13 @@ export function StaleDevisBanner({ rows }: { rows: StaleDevisRow[] }) {
               >
                 <Link
                   href={`/dashboard/${d.kind === "facture" ? "factures" : "devis"}/${d.id}`}
-                  className="truncate font-medium text-content-2 hover:text-brand dark:text-cream/90"
+                  className="truncate font-medium text-content-2 hover:text-accent2"
                 >
                   {num(d.devis_number)} · {d.client_name}
                 </Link>
-                <span className="shrink-0 text-content-3 dark:text-cream/55">
+                <span className="shrink-0 text-content-3">
                   {formatDt(d.total_dt)}
-                  <span className="ml-2 rounded-md bg-accent/20 px-1.5 py-0.5 font-semibold text-accent-dark dark:text-accent">
+                  <span className="ml-2 rounded-md bg-warning/15 px-1.5 py-0.5 font-semibold text-warning">
                     {t.devisUi.daysSuffix(d.days_since_sent)}
                   </span>
                 </span>
