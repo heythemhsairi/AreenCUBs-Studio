@@ -206,6 +206,25 @@ export function resetReviewFixture() {
   );
 }
 
+/** Restores task/rate rows written by payroll browser tests. */
+export function resetPayrollFixture() {
+  const container = execFileSync("docker", ["ps", "--format", "{{.Names}}"], {
+    encoding: "utf8",
+  })
+    .split("\n")
+    .map((name) => name.trim())
+    .find((name) => name.startsWith("supabase_db_"));
+  if (!container) throw new Error("no local staging database container");
+  const sql = [
+    "begin;",
+    "delete from public.payroll_task_credits where task_id in (select id from public.tasks where title like 'PROBE-payroll%');",
+    "delete from public.tasks where title like 'PROBE-payroll%';",
+    "update public.payroll_task_types set base_rate_millimes=40000, above_rate_millimes=60000 where code='video';",
+    "commit;",
+  ].join(" ");
+  execFileSync("docker", ["exec", container, "psql", "-U", "postgres", "-d", "postgres", "-v", "ON_ERROR_STOP=1", "-tAc", sql], { encoding: "utf8" });
+}
+
 /** React hydration failures, by the codes React emits in production builds. */
 export function hydrationErrors(errors: string[]): string[] {
   return errors.filter((e) =>
