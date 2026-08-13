@@ -160,17 +160,86 @@ input to phases 4-8.
   table, `TVA (19%)`, `Timbre fiscal`, `Total TTC` and the signature block,
   correctly OUTSIDE the app shell.
 
-### Defects to fix in the remaining phases
+### Defects found by review — status
 
-| # | Surface | Finding | Phase |
-|---|---|---|---|
-| 1 | every route | The "Nouveautés disponibles" banner renders ABOVE the page header on every single route, so the first thing on every page is not what the page is. | 4 |
-| 2 | `/dashboard` | Alert cards and a decorative gradient panel render BEFORE the "ESPACE ADMIN / Bonsoir..." page header. The header sits mid-page. | 4 |
-| 3 | 404 — all three paths | `/dashboard/this-route-does-not-exist`, `/dashboard/clients/<bad-id>` and `/portal/review/<bad-id>` all render **Next's raw unstyled default 404** — black page, tiny "404 This page could not be found.", no brand, no shell, no way back. The portal one does not even get the root layout title. **There is no `not-found.tsx` anywhere in the app.** | 8 |
-| 4 | devis/factures builders | The form occupies a narrow left column with a large empty right side at 1280px. Line items and totals could sit side by side. | 5 |
-| 5 | `/dashboard/profile` | Single narrow column of cards against a large empty right side. | 8 |
-| 6 | `/dashboard/projects/<id>` | Sparse: a small details card plus a mostly-empty task board, using little of the width. | 4 |
-| 7 | `admin-tasks`, `audit` | Empty states are a centred icon and one line inside a large bordered box; they do not offer the action that would resolve the emptiness. | 4 |
+| # | Surface | Finding | Phase | Status |
+|---|---|---|---|---|
+| 1 | every route | "Nouveautés disponibles" rendered ABOVE the page header on every route | 4 | **CLOSED** `PHASE4` |
+| 2 | `/dashboard` | Alerts and panels rendered BEFORE the page header | 4 | **CLOSED** `PHASE4` |
+| 3 | 404 — all three paths | Next's raw unstyled default | 8 | **CLOSED** `98db605` |
+| 4 | devis/factures builders | Narrow left column, empty right at 1280px | 5 | open |
+| 5 | `/dashboard/profile` | Single narrow column against a large empty right side | 8 | open |
+| 6 | `/dashboard/projects/<id>` | Sparse; little use of the width | 4 | **CLOSED** `PHASE4` |
+| 7 | `admin-tasks`, `audit` | Empty states offered no next action | 4 | **CLOSED** `PHASE4` |
+
+### Phase 4 — what changed, and what it uncovered
+
+**1. The release banner left the content column.** It is now a top-bar
+affordance beside the notification bell: same modal, same per-version
+localStorage dismissal, same `markUpdateSeenAction`. Verified across twelve
+admin routes in both themes — every page now opens with its own header.
+
+The modal also gained the dialog semantics it never had: `role="dialog"`,
+`aria-modal`, a labelled title, Escape to close, focus moved to the close
+button and returned on exit, and the background locked from scrolling.
+
+**2. `/dashboard` opens with identity.** Order is now greeting → quick actions
+→ exceptions → sections. The greeting was a bespoke 30/36px `<h1>`; it is now
+the same `PageHeader` as the other twenty-four routes, so the biggest heading
+in the product no longer sits on the page with the least specific content.
+
+**3. `/dashboard/projects/<id>` gained a health summary** — progress bar,
+open / in-progress / late / done counts, and deadline proximity. Everything is
+derived from the tasks already fetched for the board and the project's own end
+date: no new query, no invented data. "Late" counts only unfinished tasks with
+a deadline in the past, because counting undated tasks as late is what makes a
+health indicator worth ignoring.
+
+**4. Empty states.** `admin-tasks` now distinguishes "no admin tasks exist"
+from "your filters match nothing" — the same sentence was serving both, and
+offering *create* to someone who merely has a status tab selected sends them
+to make a record they did not need. The create action is unconditional because
+the route is behind `requireAdmin()`.
+
+`EmptyState` itself (12 call sites) had `focus:` instead of `focus-visible:`,
+a hard-coded `#0F172A` focus offset, no 44px minimum, and a title in
+`text-content-3` — the same tone as its own description, so every empty state
+read as one flat grey paragraph.
+
+**Audit deliberately has no action.** Its entries are written by the system;
+there is nothing an administrator can do to populate it. The copy now states
+that the log is append-only instead of implying something is missing.
+
+### Two defects this work uncovered
+
+**The app shell's scroll container was never keyboard-operable.** The document
+does not scroll — `<main className="overflow-y-auto">` does — and a scrollable
+region that cannot be focused cannot be scrolled by keyboard at all. It had
+been passing axe only because the release banner rendered inside it and its two
+buttons gave the region focusable descendants. Moving the banner out exposed it
+immediately on `/dashboard/reports`, a page with no interactive content of its
+own. `main` is now `tabIndex={0}` with an inset focus ring.
+
+**The screenshot harness was manufacturing a responsive defect.** The matrix
+captured `/dashboard` at 484px on a 390px viewport, which reads as a 94px
+horizontal overflow. It was the capture: releasing `overflow` to make
+`fullPage` work also switched off horizontal clipping. The running page does
+not overflow. The release is now `overflow-x: clip` with `overflow-y: visible`
+(`hidden` cannot be used — a `visible` axis paired with a `hidden` one computes
+back to `auto` and re-creates the scroll container), and every mobile capture
+now measures exactly 390px.
+
+`e2e/overflow.spec.ts` now asserts the real thing directly, at real viewport
+widths, naming the offending elements rather than only the page width. 16 admin
+routes plus the portal, currently green at 390px.
+
+### Still open in phase 4
+
+- Genuine per-role information hierarchy for commercial, intern, worker and
+  freelancer — what each should see FIRST, based only on what they may act on.
+- Intentional table-to-mobile-card conversion per route. `clients` already
+  converts; the rest are unverified. Note that `overflow.spec.ts` is green, so
+  whatever remains is a density and scanability problem, not a broken layout.
 
 ### Not yet exercised
 

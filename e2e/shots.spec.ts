@@ -192,16 +192,34 @@ async function setTheme(page: Page, theme: Theme): Promise<void> {
  * So the height and overflow constraints are lifted from `main` and every
  * ancestor of it for the duration of the shot, and restored afterwards.
  *
+ * Only the VERTICAL axis is released. The first version used `overflow:
+ * visible`, which also switched off horizontal clipping, and the matrix then
+ * captured /dashboard at 484px on a 390px viewport — reported and chased as a
+ * responsive defect until `overflow.spec.ts` proved the running page does not
+ * overflow at all. The width was manufactured by the capture. `overflow-x:
+ * clip` keeps the horizontal clipping intact while leaving the vertical axis
+ * `visible`; `hidden` would not work, because a `visible` axis paired with a
+ * `hidden` one computes back to `auto` and re-creates the scroll container.
+ *
+ * Horizontal overflow is therefore NOT this file's job. `overflow.spec.ts`
+ * asserts it directly, at real viewport widths, and names the offending
+ * elements.
+ *
  * Known artefact, not worth correcting: the rail is `h-screen` and stays that
  * height, so on a tall page it occupies only the top band of the image. The
  * rail is reviewed on its own at the fold.
  */
 const RELEASE_SCROLL = `
-  html, body { height: auto !important; overflow: visible !important; }
+  html, body {
+    height: auto !important;
+    overflow-x: clip !important;
+    overflow-y: visible !important;
+  }
   body *:has(main), main {
     height: auto !important;
     max-height: none !important;
-    overflow: visible !important;
+    overflow-x: clip !important;
+    overflow-y: visible !important;
   }
 `;
 

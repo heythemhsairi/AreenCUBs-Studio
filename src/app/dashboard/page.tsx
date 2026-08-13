@@ -2,6 +2,7 @@ import { requireInternal } from "@/lib/auth";
 import { CommercialDashboard } from "./commercial-dashboard";
 import { InternDashboard } from "./intern-dashboard";
 import { createClient } from "@/lib/supabase/server";
+import { DashboardGreeting } from "@/components/dashboard/dashboard-greeting";
 import { OverviewClient } from "./overview-client";
 import { getDonutPalette } from "@/components/charts/palette";
 import {
@@ -641,10 +642,19 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-7">
+      {/*
+        Order is deliberate: identity, then what you can do, then what needs
+        attention. The exception panels used to come first, so the page opened
+        on an alert about a quote before saying whose workspace it was.
+      */}
+      <DashboardGreeting
+        fullName={session.full_name ?? session.username}
+        role={session.role}
+      />
+      <QuickActions role={session.role} />
       {isAdmin && staleDevis.length > 0 && (
         <StaleDevisBanner rows={staleDevis} />
       )}
-      <QuickActions role={session.role} />
       <TodaySummary
         overdueCount={summaryOverdue}
         dueTodayCount={summaryDueToday}

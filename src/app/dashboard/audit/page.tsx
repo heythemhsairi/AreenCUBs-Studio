@@ -60,8 +60,7 @@ export default async function AuditPage() {
             <EmptyState
               icon={<ScrollText />}
               title="Aucune entrée"
-              description="Les actions importantes — validations client, versions de montage, brouillons financiers — apparaîtront ici."
-              size="sm"
+              description="Les actions importantes — validations client, versions de montage, brouillons financiers — apparaîtront ici dès qu'elles se produisent. Le journal est en ajout seul : rien ne peut y être modifié ni supprimé."
             />
           ) : (
             <ul className="divide-y divide-line">

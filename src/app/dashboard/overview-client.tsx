@@ -4,8 +4,7 @@ import Link from "next/link";
 import { SectionHeading } from "@/components/dashboard/section-heading";
 import { AlertTriangle, CheckCircle2, Clock, TrendingUp, Users, FileText, CalendarDays } from "lucide-react";
 import { useI18n } from "@/lib/i18n/provider";
-import { useNow, useToday } from "@/lib/time/now";
-import { APP_TIME_ZONE } from "@/lib/format";
+import { useToday } from "@/lib/time/now";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge, StatusBadge } from "@/components/ui/badge";
 import { KpiCard } from "@/components/ui/kpi-card";
@@ -152,13 +151,6 @@ export function OverviewClient({
     label: locale === "en" && s.labelEn ? s.labelEn : s.label,
   }));
 
-  const subtitle =
-    role === "admin"
-      ? t.dashboard.admin.title
-      : role === "worker"
-        ? t.dashboard.worker.title
-        : t.dashboard.freelancer.title;
-
   // Compute today helpers used by multiple sections
   // Hydration-safe midnight. A render-time `new Date()` resolved to the UTC
   // day on the server and the Africa/Tunis day in the browser, so overdue
@@ -233,9 +225,6 @@ export function OverviewClient({
 
     return (
       <div className="space-y-7">
-        {/* Greeting */}
-        <Greeting fullName={fullName} subtitle={subtitle} role={role} />
-
         {/* Today's Work hero banner */}
         <section>
           <SectionHeading>{t.overview.workerTodayWork}</SectionHeading>
@@ -440,11 +429,6 @@ export function OverviewClient({
   // Admin / freelancer layout
   return (
     <div className="space-y-8">
-      {/* ------------------------------------------------------------------ */}
-      {/* GREETING                                                            */}
-      {/* ------------------------------------------------------------------ */}
-      <Greeting fullName={fullName} subtitle={subtitle} role={role} />
-
       {/* ================================================================== */}
       {/* 1. TODAY'S PRIORITIES                                               */}
       {/* ================================================================== */}
@@ -951,53 +935,6 @@ export function OverviewClient({
 // ---------------------------------------------------------------------------
 // Greeting
 // ---------------------------------------------------------------------------
-
-function Greeting({
-  fullName,
-  subtitle,
-  role,
-}: {
-  fullName: string;
-  subtitle: string;
-  role: UserRole;
-}) {
-  const { t } = useI18n();
-  // Africa/Tunis hour, not the runtime's. Reading getHours() from a
-  // render-time `new Date()` gave the UTC hour on the server and the Tunis
-  // hour in the browser, so the greeting text differed and hydration failed
-  // (#418). The greeting itself is unchanged — it is still the local hour.
-  const hour = Number(
-    new Intl.DateTimeFormat("en-GB", {
-      hour: "2-digit",
-      hour12: false,
-      timeZone: APP_TIME_ZONE,
-    }).format(useNow()),
-  );
-  const time =
-    hour < 5
-      ? t.greeting.goodNight
-      : hour < 12
-        ? t.greeting.goodMorning
-        : hour < 18
-          ? t.greeting.goodAfternoon
-          : t.greeting.goodEvening;
-
-  return (
-    <section className="reveal flex flex-col gap-2">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand">
-        {role === "admin"
-          ? t.greeting.spaceAdmin
-          : role === "worker"
-            ? t.greeting.spaceTeam
-            : t.greeting.spaceFreelance}
-      </p>
-      <h1 className="text-3xl font-semibold tracking-tight text-content md:text-4xl">
-        {time}, {fullName.split(" ")[0]} 👋
-      </h1>
-      <p className="text-sm text-content-3">{subtitle}</p>
-    </section>
-  );
-}
 
 // ---------------------------------------------------------------------------
 // HeroRevenueCard — kept exactly as before

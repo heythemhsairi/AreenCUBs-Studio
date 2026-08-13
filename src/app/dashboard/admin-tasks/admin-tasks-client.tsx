@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { PageHeader } from "@/components/dashboard/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useI18n } from "@/lib/i18n/provider";
@@ -10,7 +12,7 @@ import { changeAdminTaskStatusAction } from "./actions";
 import { toast } from "@/components/toast";
 import type { AdminTask, AdminTaskStatus } from "./types";
 import { ADMIN_TASK_STATUSES } from "./types";
-import { AlertTriangle, Clock, CheckCircle2, Pause, Ban, Plus } from "lucide-react";
+import { Clock, CheckCircle2, Pause, Ban, Plus, ClipboardList, Search } from "lucide-react";
 
 const statusIcon: Record<AdminTaskStatus, React.ReactNode> = {
   todo:        <Clock size={13} className="text-content-3" />,
@@ -130,20 +132,22 @@ export function AdminTasksClient({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-content">{at.title}</h1>
-          <p className="mt-0.5 text-sm text-content-3">{at.description}</p>
-        </div>
-        <Link
-          href="/dashboard/admin-tasks/new"
-          className="inline-flex items-center gap-2 rounded-lg bg-accent2/10 border border-accent2/30 px-4 py-2 text-sm font-semibold text-accent2 hover:bg-accent2/20 transition-colors"
-        >
-          <Plus size={14} />
-          {at.new}
-        </Link>
-      </div>
+      {/* The page identity, through the same PageHeader every other route
+          uses. This was a bespoke 24px <h1> with the action floated beside it,
+          which is the fourth distinct header treatment in the product. */}
+      <PageHeader
+        title={at.title}
+        description={at.description}
+        action={
+          <Link
+            href="/dashboard/admin-tasks/new"
+            className="inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-accent2/30 bg-accent2-weak px-4 text-sm font-semibold text-accent2 transition-colors duration-2 ease-ac hover:bg-accent2/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent2 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
+          >
+            <Plus size={14} />
+            {at.new}
+          </Link>
+        }
+      />
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3">
@@ -193,9 +197,39 @@ export function AdminTasksClient({
 
       {/* Task list */}
       {filtered.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-line bg-surface py-16 text-center">
-          <AlertTriangle size={28} className="mx-auto mb-3 text-content-3" />
-          <p className="text-sm text-content-3">{at.empty}</p>
+        /*
+          Two different states were showing the same sentence. "No admin tasks
+          exist" and "your filters match nothing" need opposite responses:
+          the first wants a create action, the second wants the filters
+          cleared — offering "create" to someone who simply has a status tab
+          selected sends them to make a record they did not need.
+
+          The create action is unconditional because the route is behind
+          requireAdmin(), so anyone who can see this can also create.
+        */
+        <div className="rounded-xl border border-dashed border-line bg-surface">
+          {tasks.length === 0 ? (
+            <EmptyState
+              icon={<ClipboardList />}
+              title={at.empty}
+              description={at.emptyHint}
+              action={{ label: at.new, href: "/dashboard/admin-tasks/new" }}
+            />
+          ) : (
+            <EmptyState
+              icon={<Search />}
+              title={t.common.noResults}
+              description={at.emptyFiltered}
+              action={{
+                label: t.common.resetFilters,
+                onClick: () => {
+                  setFilter("all");
+                  setPriorityFilter("all");
+                  setSearch("");
+                },
+              }}
+            />
+          )}
         </div>
       ) : (
         <div className="rounded-xl border border-line bg-surface overflow-hidden">

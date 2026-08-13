@@ -6,6 +6,8 @@ import { Plus, Search, LogOut, ChevronDown } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
 import { Avatar } from "@/components/avatar";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { WhatsNewButton } from "@/components/dashboard/whats-new";
+import type { AppUpdate } from "@/lib/updates";
 import { NotificationBell, type NotificationRow } from "./notification-bell";
 import { useI18n } from "@/lib/i18n/provider";
 import type { Locale } from "@/lib/i18n/dictionary";
@@ -22,6 +24,8 @@ type Props = {
   avatarUrl?: string | null;
   jobTitle?: string | null;
   notifications: NotificationRow[];
+  /** Unseen release note, if any. Rendered beside the bell, never in the page. */
+  update?: AppUpdate | null;
 };
 
 
@@ -229,6 +233,7 @@ export function Topbar({
   username,
   avatarUrl,
   notifications,
+  update,
 }: Props) {
   const { t } = useI18n();
   const router = useRouter();
@@ -303,6 +308,7 @@ export function Topbar({
             <LanguageSwitcher />
           </div>
           <QuickCreateButton role={role} />
+          {update && <WhatsNewButton update={update} />}
           <NotificationBell initial={notifications} />
           <ProfileMenu
             username={username}

@@ -4,7 +4,6 @@ import { Sidebar } from "@/components/dashboard/sidebar";
 import { Topbar } from "@/components/dashboard/topbar";
 import { CommandPalette } from "@/components/command-palette";
 import type { NotificationRow } from "@/components/dashboard/notification-bell";
-import { WhatsNewBanner } from "@/components/dashboard/whats-new-banner";
 import { getUnseenUpdate } from "@/lib/updates";
 import { MobileBottomNav } from "@/components/dashboard/mobile-bottom-nav";
 import { NowProvider } from "@/lib/time/now";
@@ -69,8 +68,25 @@ export default async function DashboardLayout({
           avatarUrl={session.avatar_url}
           jobTitle={session.job_title}
           notifications={notifications}
+          update={unseenUpdate}
         />
-        <main className="flex-1 overflow-y-auto pb-20 md:pb-0">
+        {/*
+          tabIndex={0} because this element is the application's scroll
+          container — the document itself never scrolls. A scrollable region
+          that cannot be focused cannot be scrolled by keyboard at all, which
+          axe reports as scrollable-region-focusable.
+
+          It passed for as long as it did by accident: the release banner used
+          to render inside here and its two buttons gave the region focusable
+          descendants. Moving that banner to the top bar exposed the real
+          defect on /dashboard/reports, a page with no interactive content of
+          its own. The ring is inset because an outline on a full-height
+          region would otherwise be drawn off-screen.
+        */}
+        <main
+          tabIndex={0}
+          className="flex-1 overflow-y-auto pb-20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent2 md:pb-0"
+        >
           {/*
             Content measure: 1280px is wide enough for a dense table and narrow
             enough that a paragraph never runs past a comfortable line length.
@@ -78,7 +94,6 @@ export default async function DashboardLayout({
             fixed, so a phone is not padded like a desktop.
           */}
           <div className="mx-auto max-w-[1280px] space-y-6 px-4 py-5 md:px-6 md:py-7 lg:px-8 lg:py-9">
-            {unseenUpdate && <WhatsNewBanner update={unseenUpdate} />}
             {children}
           </div>
         </main>
