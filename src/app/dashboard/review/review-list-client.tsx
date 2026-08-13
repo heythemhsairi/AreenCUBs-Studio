@@ -11,7 +11,15 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/dashboard/page-header";
-import { createReviewAssetAction } from "./actions";
+import {
+  appendReviewFileMetadata,
+  uploadReviewVideoToTicket,
+} from "@/lib/review-upload-client";
+import {
+  abandonReviewUploadAction,
+  finalizeReviewUploadAction,
+  prepareReviewAssetUploadAction,
+} from "./upload-actions";
 
 export type ReviewAssetRow = {
   id: string;
@@ -49,14 +57,64 @@ export function ReviewListClient({
   const router = useRouter();
   const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [uploadStatus, setUploadStatus] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   function submit(formData: FormData) {
+    const file = formData.get("file");
+    if (!(file instanceof File) || file.size === 0) {
+      setError("Choisissez la vidéo à envoyer.");
+      return;
+    }
+
+    const prepareData = new FormData();
+    prepareData.set("title", String(formData.get("title") ?? ""));
+    prepareData.set("client_id", String(formData.get("client_id") ?? ""));
+    appendReviewFileMetadata(prepareData, file);
+
     setError(null);
     startTransition(async () => {
-      const result = await createReviewAssetAction(formData);
-      if (!result.ok) setError(result.error);
-      else if (result.id) router.push(`/dashboard/review/${result.id}`);
+      let cleanupData: FormData | null = null;
+      try {
+        setUploadStatus("Préparation…");
+        const prepared = await prepareReviewAssetUploadAction(prepareData);
+        if (!prepared.ok) {
+          setError(prepared.error);
+          return;
+        }
+        cleanupData = new FormData();
+        cleanupData.set("asset_id", prepared.ticket.assetId);
+        cleanupData.set("storage_path", prepared.ticket.storagePath);
+        cleanupData.set("version_number", String(prepared.ticket.versionNumber));
+
+        setUploadStatus("Envoi de la vidéo…");
+        const uploadError = await uploadReviewVideoToTicket(prepared.ticket, file);
+        if (uploadError) {
+          await abandonReviewUploadAction(cleanupData);
+          setError(uploadError);
+          return;
+        }
+
+        setUploadStatus("Finalisation…");
+        const finalizeData = new FormData();
+        finalizeData.set("asset_id", prepared.ticket.assetId);
+        finalizeData.set("storage_path", prepared.ticket.storagePath);
+        finalizeData.set("version_number", String(prepared.ticket.versionNumber));
+        appendReviewFileMetadata(finalizeData, file);
+        const finalized = await finalizeReviewUploadAction(finalizeData);
+        if (!finalized.ok) {
+          setError(finalized.error);
+          return;
+        }
+        router.push(`/dashboard/review/${finalized.id}`);
+      } catch {
+        if (cleanupData) {
+          await abandonReviewUploadAction(cleanupData).catch(() => undefined);
+        }
+        setError("Le téléversement a été interrompu. Réessayez.");
+      } finally {
+        setUploadStatus(null);
+      }
     });
   }
 
@@ -127,7 +185,7 @@ export function ReviewListClient({
                   <div className="flex gap-2 lg:col-span-2">
                     <Button type="submit" disabled={pending}>
                       <Upload size={16} aria-hidden="true" />
-                      {pending ? "Téléversement…" : "Créer et téléverser"}
+                      {pending ? uploadStatus ?? "Téléversement…" : "Créer et téléverser"}
                     </Button>
                     <Button type="button" variant="ghost" onClick={() => setShowForm(false)}>
                       Annuler

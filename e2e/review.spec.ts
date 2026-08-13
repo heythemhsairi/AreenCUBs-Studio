@@ -33,7 +33,10 @@ test.describe("staff workspace", () => {
     expect(diagnostics.significantErrors()).toEqual([]);
   });
 
-  test("creates a review and uploads its first video in one step", async ({ page }) => {
+  test("uploads a video larger than Vercel's function limit without proxying it", async ({
+    page,
+    diagnostics,
+  }) => {
     await page.goto("/dashboard/review", { waitUntil: "networkidle" });
     await page.getByRole("button", { name: "Nouveau montage" }).click();
     await page.getByLabel("Titre").fill("PROBE-nouveau montage complet");
@@ -41,13 +44,18 @@ test.describe("staff workspace", () => {
     await page.getByLabel("Vidéo source").setInputFiles({
       name: "first-cut.mp4",
       mimeType: "video/mp4",
-      buffer: Buffer.from("PROBE first review video ".repeat(32)),
+      // Above Vercel's immutable 4.5 MB function payload limit and Next's
+      // default Server Action limit. This can pass only when the browser sends
+      // the bytes directly to Supabase through the signed upload ticket.
+      buffer: Buffer.alloc(6 * 1024 * 1024, 0x61),
     });
     await page.getByRole("button", { name: "Créer et téléverser" }).click();
 
     await expect(page).toHaveURL(/\/dashboard\/review\/[0-9a-f-]+$/, { timeout: 20_000 });
     await expect(page.getByText("PROBE-nouveau montage complet")).toBeVisible();
     await expect(page.getByText("Atlas Foods SARL · v1")).toBeVisible();
+    expect(diagnostics.significantErrors()).toEqual([]);
+    expect(diagnostics.failedRequests).toEqual([]);
   });
 
   test("shows the conversation and resolves a client comment", async ({ page }) => {
@@ -105,7 +113,7 @@ test.describe("staff workspace", () => {
     await page.getByRole("button", { name: "Téléverser" }).click();
 
     // Refused server-side — the accept attribute is a convenience, not a check.
-    await expect(page.getByText("Le fichier doit être une vidéo.")).toBeVisible();
+    await expect(page.getByText(/Format non pris en charge/)).toBeVisible();
     const body = await page.locator("body").innerText();
     expect(body).not.toContain("· v2");
   });
