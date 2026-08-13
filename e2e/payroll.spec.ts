@@ -43,6 +43,31 @@ test.describe("admin payroll controls", () => {
     await expect(page.locator("body")).toContainText("51,00 DT");
   });
 
+  test("adds and deletes an unused task type", async ({ page }) => {
+    await page.goto("/dashboard/payroll", { waitUntil: "networkidle" });
+    await page.getByRole("button", { name: "Ajouter un type" }).click();
+    const newType = page.locator("form").filter({ hasText: "Nouveau type de tâche" });
+    await newType.getByLabel("Type").fill("PROBE-payroll Animation");
+    await newType.getByLabel("Tarif de base (DT)").fill("12.500");
+    await newType.getByLabel("Au-dessus du seuil (DT)").fill("18.750");
+    await newType.getByLabel("Points").fill("3");
+    await newType.getByRole("button", { name: "Créer le type" }).click();
+    await expect(page.getByRole("status")).toContainText("enregistrées");
+
+    const savedType = page.locator("form").filter({ has: page.locator('input[value="PROBE-payroll Animation"]') });
+    await expect(savedType).toBeVisible();
+    page.once("dialog", (dialog) => dialog.accept());
+    await savedType.getByRole("button", { name: "Supprimer PROBE-payroll Animation" }).click();
+    await expect(page.getByRole("status")).toContainText("enregistrées");
+    await expect(page.locator('input[value="PROBE-payroll Animation"]')).toHaveCount(0);
+
+    const usedType = page.locator("form").filter({ has: page.locator('input[value="Vidéo"]') });
+    page.once("dialog", (dialog) => dialog.accept());
+    await usedType.getByRole("button", { name: "Supprimer Vidéo" }).click();
+    await expect(page.getByRole("status")).toContainText("Désactivez-le au lieu de le supprimer");
+    await expect(usedType).toBeVisible();
+  });
+
   test("classifies a completed task and credits it to the selected worker", async ({ page }) => {
     await page.goto("/dashboard/tasks/new?projectId=e1000000-0000-4000-8000-000000000003", { waitUntil: "networkidle" });
     await page.getByLabel("Titre").fill("PROBE-payroll post terminé");

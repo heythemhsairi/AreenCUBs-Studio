@@ -219,6 +219,7 @@ export function resetPayrollFixture() {
     "begin;",
     "delete from public.payroll_task_credits where task_id in (select id from public.tasks where title like 'PROBE-payroll%');",
     "delete from public.tasks where title like 'PROBE-payroll%';",
+    "delete from public.payroll_task_types where label like 'PROBE-payroll%';",
     "update public.payroll_task_types set base_rate_millimes=40000, above_rate_millimes=60000 where code='video';",
     "commit;",
   ].join(" ");

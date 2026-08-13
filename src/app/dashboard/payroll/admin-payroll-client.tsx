@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Banknote, Gift, Settings2, UsersRound } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Banknote, Gift, Plus, Settings2, Trash2, UsersRound, X } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +13,8 @@ import { formatDate } from "@/lib/format";
 import { formatPayrollDt, type PayrollCalculation } from "@/lib/payroll";
 import {
   addPayrollBonusAction,
+  createPayrollTaskTypeAction,
+  deletePayrollTaskTypeAction,
   deletePayrollBonusAction,
   savePayrollPaymentAction,
   savePayrollTaskTypeAction,
@@ -41,14 +44,29 @@ export function AdminPayrollClient({ today, previousPeriodStart, workers, taskTy
   payments: Payment[];
 }) {
   const [message, setMessage] = useState<string | null>(null);
+  const [addingTaskType, setAddingTaskType] = useState(false);
   const [pending, startTransition] = useTransition();
+  const router = useRouter();
 
-  function run(action: (formData: FormData) => Promise<ActionResult>, formData: FormData) {
+  function run(action: (formData: FormData) => Promise<ActionResult>, formData: FormData, onSuccess?: () => void) {
     setMessage(null);
     startTransition(async () => {
       const result = await action(formData);
-      setMessage(result.ok ? "Modifications enregistrées." : result.error);
+      if (result.ok) {
+        setMessage("Modifications enregistrées.");
+        onSuccess?.();
+        router.refresh();
+      } else {
+        setMessage(result.error);
+      }
     });
+  }
+
+  function deleteTaskType(id: string, label: string) {
+    if (!window.confirm(`Supprimer définitivement « ${label} » ?`)) return;
+    const formData = new FormData();
+    formData.set("id", id);
+    run(deletePayrollTaskTypeAction, formData);
   }
 
   return (
@@ -107,8 +125,26 @@ export function AdminPayrollClient({ today, previousPeriodStart, workers, taskTy
       </Card>
 
       <Card>
-        <CardHeader><CardTitle className="flex items-center gap-2"><Settings2 size={18} /> Tarifs et points par type de tâche</CardTitle></CardHeader>
+        <CardHeader className="flex-row items-center justify-between gap-3">
+          <CardTitle className="flex items-center gap-2"><Settings2 size={18} /> Tarifs et points par type de tâche</CardTitle>
+          <Button type="button" size="sm" variant={addingTaskType ? "ghost" : "outline"} onClick={() => setAddingTaskType((open) => !open)} disabled={pending}>
+            {addingTaskType ? <X size={16} /> : <Plus size={16} />} {addingTaskType ? "Annuler" : "Ajouter un type"}
+          </Button>
+        </CardHeader>
         <CardContent className="space-y-3">
+          {addingTaskType ? (
+            <form action={(fd) => run(createPayrollTaskTypeAction, fd, () => setAddingTaskType(false))} className="grid gap-3 rounded-xl border border-info/40 bg-info/5 p-4 sm:grid-cols-2 lg:grid-cols-6 lg:items-end">
+              <div className="sm:col-span-2 lg:col-span-6">
+                <p className="font-medium text-ink">Nouveau type de tâche</p>
+                <p className="text-xs text-content-3">Il sera immédiatement disponible dans les tâches et actif par défaut.</p>
+              </div>
+              <Field label="Type"><Input name="label" required autoFocus /></Field>
+              <Field label="Tarif de base (DT)"><Input name="base_rate_dt" type="number" min="0.001" step="0.001" required /></Field>
+              <Field label="Au-dessus du seuil (DT)"><Input name="above_rate_dt" type="number" min="0.001" step="0.001" required /></Field>
+              <Field label="Points"><Input name="output_points" type="number" min="0" step="1" required /></Field>
+              <Button type="submit" disabled={pending} className="sm:col-span-2 lg:col-span-2"><Plus size={16} /> Créer le type</Button>
+            </form>
+          ) : null}
           {taskTypes.map((type) => (
             <form key={type.id} action={(fd) => run(savePayrollTaskTypeAction, fd)} className="grid gap-3 rounded-xl border border-line p-4 sm:grid-cols-2 lg:grid-cols-6 lg:items-end">
               <input type="hidden" name="id" value={type.id} />
@@ -117,7 +153,12 @@ export function AdminPayrollClient({ today, previousPeriodStart, workers, taskTy
               <Field label="Au-dessus du seuil (DT)"><Input name="above_rate_dt" type="number" min="0.001" step="0.001" required defaultValue={type.above_rate_millimes / 1000} /></Field>
               <Field label="Points"><Input name="output_points" type="number" min="0" step="1" required defaultValue={type.output_points} /></Field>
               <label className="flex min-h-11 items-center gap-2 text-sm text-ink"><input name="active" type="checkbox" defaultChecked={type.active} /> Actif</label>
-              <Button type="submit" disabled={pending}>Enregistrer</Button>
+              <div className="flex gap-2 sm:col-span-2 lg:col-span-1">
+                <Button type="submit" disabled={pending} className="flex-1">Enregistrer</Button>
+                <Button type="button" variant="ghost" size="sm" className="h-9 w-9 shrink-0 px-0" disabled={pending} aria-label={`Supprimer ${type.label}`} onClick={() => deleteTaskType(type.id, type.label)}>
+                  <Trash2 size={16} />
+                </Button>
+              </div>
             </form>
           ))}
         </CardContent>
