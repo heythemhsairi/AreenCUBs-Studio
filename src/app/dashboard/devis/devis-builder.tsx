@@ -280,8 +280,11 @@ export function DevisBuilder(props: Props) {
         }
       />
 
-      <form onSubmit={onSubmit} className="space-y-6">
-        <Card>
+      <form
+        onSubmit={onSubmit}
+        className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(340px,0.55fr)] xl:items-start"
+      >
+        <Card className="xl:col-start-1 xl:row-start-1">
           <CardHeader>
             <CardTitle>{db.infoCard}</CardTitle>
           </CardHeader>
@@ -342,7 +345,7 @@ export function DevisBuilder(props: Props) {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="xl:col-start-1 xl:row-start-2">
           <CardHeader>
             <CardTitle>{db.linesCard}</CardTitle>
           </CardHeader>
@@ -459,7 +462,7 @@ export function DevisBuilder(props: Props) {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="xl:sticky xl:top-24 xl:col-start-2 xl:row-start-1">
           <CardHeader>
             <CardTitle>{db.totalsCard}</CardTitle>
           </CardHeader>
@@ -555,7 +558,7 @@ export function DevisBuilder(props: Props) {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="xl:col-start-2 xl:row-start-2">
           <CardHeader>
             <CardTitle>{db.notesCard}</CardTitle>
           </CardHeader>
@@ -568,9 +571,9 @@ export function DevisBuilder(props: Props) {
           </CardContent>
         </Card>
 
-        {error && <p className="text-sm text-danger">{error}</p>}
+        {error && <p className="text-sm text-danger xl:col-span-2">{error}</p>}
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 xl:col-span-2">
           <Button type="submit" disabled={pending}>
             {pending
               ? t.common.saving

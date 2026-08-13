@@ -49,7 +49,7 @@ function key(userId: string, date: string): CellKey {
 export function TeamPlanningClient({ members, today }: { members: TeamMember[]; today?: string }) {
   const { t } = useI18n();
   const [viewedMonth, setViewedMonth] = useState(() => {
-    const d = new Date();
+    const d = today ? new Date(`${today}T12:00:00`) : new Date();
     return new Date(d.getFullYear(), d.getMonth(), 1);
   });
   const days = useMemo(() => buildMonthDays(viewedMonth), [viewedMonth]);
@@ -92,7 +92,7 @@ export function TeamPlanningClient({ members, today }: { members: TeamMember[]; 
     setViewedMonth(new Date(d.getFullYear(), d.getMonth(), 1));
   }
 
-  const todayStr = ymd(new Date());
+  const todayStr = today ?? ymd(new Date());
 
   const totals = members.map((m) => {
     let office = 0,
@@ -203,8 +203,66 @@ export function TeamPlanningClient({ members, today }: { members: TeamMember[]; 
             </div>
           </div>
 
-          {/* Grid */}
-          <div className="overflow-x-auto">
+          {/* Compact member cards preserve every editable day without forcing a
+              900px matrix into a phone viewport. */}
+          <div className="space-y-3 md:hidden">
+            {members.map((m) => {
+              const totalsRow = totals.find((x) => x.id === m.id)!;
+              return (
+                <details key={m.id} className="group rounded-xl border border-line bg-surface">
+                  <summary className="flex min-h-14 cursor-pointer list-none items-center gap-3 px-3 py-2 marker:content-none">
+                    <Avatar src={m.avatar_url} name={m.full_name ?? m.username} size="sm" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-content">{m.full_name ?? m.username}</p>
+                      <p className="truncate text-xs text-content-3">{m.job_title ?? t.planning.member}</p>
+                    </div>
+                    <div className="shrink-0 text-right text-xs font-semibold">
+                      <span className="text-accent2">{totalsRow.office}</span>
+                      <span className="mx-1 text-content-3">/</span>
+                      <span className="text-brand">{totalsRow.home}</span>
+                    </div>
+                    <ChevronIndicator />
+                  </summary>
+                  <div className="border-t border-line p-3">
+                    <div className="mb-2 grid grid-cols-7 gap-1 text-center text-[10px] font-semibold uppercase text-content-3">
+                      {t.planning.weekdaysShort.map((day: string) => <span key={day}>{day}</span>)}
+                    </div>
+                    <div className="grid grid-cols-7 gap-1">
+                      {days.map((d, index) => {
+                        const loc = locFor(m.id, d.date);
+                        const cellKey = key(m.id, d.date);
+                        return (
+                          <button
+                            key={d.date}
+                            type="button"
+                            onClick={() => onCellClick(m.id, d.date)}
+                            title={`${d.date} - ${loc === "office" ? t.planning.office : loc === "home" ? t.planning.home : t.planning.unset}`}
+                            style={index === 0 ? { gridColumnStart: ((new Date(d.date).getDay() + 6) % 7) + 1 } : undefined}
+                            className={cn(
+                              "flex h-11 flex-col items-center justify-center rounded-lg text-[10px] font-semibold transition-colors",
+                              loc === "office" ? "bg-brand text-white" : loc === "home" ? "bg-accent2 text-accent2-fg" : "bg-surface-3 text-content-3",
+                              d.date === todayStr && "ring-2 ring-brand ring-offset-1 ring-offset-surface",
+                              d.isWeekend && "opacity-60",
+                              pendingKey === cellKey && "opacity-40",
+                            )}
+                          >
+                            <span>{d.dayNum}</span>
+                            <span aria-hidden="true">{loc === "office" ? "O" : loc === "home" ? "M" : "-"}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <Link href={`/dashboard/team/planning/${m.id}`} className="mt-3 inline-flex min-h-11 items-center rounded-lg px-2 text-xs font-semibold text-brand hover:bg-brand/8">
+                      {t.planning.member}
+                    </Link>
+                  </div>
+                </details>
+              );
+            })}
+          </div>
+
+          {/* Desktop matrix */}
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full min-w-[900px] border-separate border-spacing-y-1.5">
               <thead>
                 <tr className="text-[10px] font-semibold uppercase tracking-[0.08em] text-content-3">
@@ -362,6 +420,14 @@ function NavButton({
     >
       {label}
     </button>
+  );
+}
+
+function ChevronIndicator() {
+  return (
+    <svg className="h-4 w-4 shrink-0 text-content-3 transition-transform group-open:rotate-180" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+      <path d="m5 7.5 5 5 5-5" />
+    </svg>
   );
 }
 

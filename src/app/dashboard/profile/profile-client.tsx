@@ -37,9 +37,13 @@ export function ProfileClient({ profile }: { profile: Profile }) {
         description={t.profile.subtitle}
       />
 
-      <ProfileSummary profile={profile} />
-      <NameForm initial={profile.full_name ?? ""} />
-      <PasswordForm />
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)] lg:items-start">
+        <ProfileSummary profile={profile} />
+        <div className="space-y-6">
+          <NameForm initial={profile.full_name ?? ""} />
+          <PasswordForm />
+        </div>
+      </div>
     </div>
   );
 }
@@ -72,7 +76,7 @@ function ProfileSummary({ profile }: { profile: Profile }) {
   }
 
   return (
-    <Card className="max-w-2xl">
+    <Card>
       <CardHeader>
         <CardTitle>{t.profile.photo}</CardTitle>
       </CardHeader>
@@ -153,7 +157,7 @@ function NameForm({ initial }: { initial: string }) {
   }
 
   return (
-    <Card className="max-w-2xl">
+    <Card>
       <CardHeader>
         <CardTitle>{t.profile.fullName}</CardTitle>
       </CardHeader>
@@ -195,7 +199,7 @@ function PasswordForm() {
   }
 
   return (
-    <Card className="max-w-2xl">
+    <Card>
       <CardHeader>
         <CardTitle>{t.profile.changePassword}</CardTitle>
       </CardHeader>

@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useI18n } from "@/lib/i18n/provider";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { formatDate } from "@/lib/format";
+import { useNow } from "@/lib/time/now";
 import type { TaskCard } from "./tasks-kanban";
 
 type Status = "todo" | "in_progress" | "review" | "done" | "cancelled";
@@ -32,10 +34,51 @@ export function TasksList({
   tagColors?: Record<string, string>;
 }) {
   const { t } = useI18n();
+  const now = useNow();
 
   return (
     <div className="glass overflow-hidden rounded-2xl">
-      <div className="overflow-x-auto">
+      <div className="space-y-3 p-3 md:hidden">
+        {tasks.map((task) => {
+          const overdueDays = task.deadline
+            ? Math.floor((now.getTime() - new Date(task.deadline).getTime()) / 86_400_000)
+            : null;
+          const isOverdue = overdueDays !== null && overdueDays > 0 && task.status !== "done";
+          return (
+            <article key={task.id} className="rounded-xl border border-line bg-surface p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <Link href={`/dashboard/tasks/${task.id}`} className="block truncate font-semibold text-ink hover:text-brand">
+                    {task.title}
+                  </Link>
+                  <p className="mt-1 truncate text-xs text-content-3">
+                    {task.project?.name ?? "—"}{task.client ? ` · ${task.client.name}` : ""}
+                  </p>
+                </div>
+                <Badge tone={statusTone[task.status]}>{t.tasks.status[task.status]}</Badge>
+              </div>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <Badge tone={priorityTone[task.priority]}>{t.tasks.priority[task.priority]}</Badge>
+                {task.tags?.slice(0, 3).map((tag) => (
+                  <span key={tag} className="rounded-md bg-brand/8 px-1.5 py-0.5 text-[10px] font-medium text-brand-dark">#{tag}</span>
+                ))}
+              </div>
+              <dl className="mt-4 grid grid-cols-2 gap-3 border-t border-line pt-3 text-xs">
+                <div>
+                  <dt className="text-content-3">Assigné</dt>
+                  <dd className="mt-1 font-medium text-content-2">{task.assignee ?? t.tasks.form.unassigned}</dd>
+                </div>
+                <div className="text-right">
+                  <dt className="text-content-3">Échéance</dt>
+                  <dd className={cn("mt-1 font-medium", isOverdue ? "text-danger" : "text-content-2")}>{formatDate(task.deadline)}</dd>
+                  {isOverdue && <span className="text-[10px] font-semibold text-danger">+{overdueDays}j de retard</span>}
+                </div>
+              </dl>
+            </article>
+          );
+        })}
+      </div>
+      <div className="hidden overflow-x-auto md:block">
         <table className="w-full min-w-[760px] text-sm">
           <thead>
             <tr className="border-b border-ink/8 bg-surface/40 text-left">
@@ -52,7 +95,7 @@ export function TasksList({
             {tasks.map((task) => {
               const overdueDays = task.deadline
                 ? Math.floor(
-                    (Date.now() - new Date(task.deadline).getTime()) /
+                    (now.getTime() - new Date(task.deadline).getTime()) /
                       (1000 * 60 * 60 * 24),
                   )
                 : null;
@@ -147,11 +190,7 @@ export function TasksList({
                               : "bg-ink/5 text-content-3",
                           )}
                         >
-                          {new Date(task.deadline).toLocaleDateString("fr-FR", {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          })}
+                          {formatDate(task.deadline)}
                         </span>
                         {isOverdue && (
                           <span className="text-[10px] font-semibold text-danger">

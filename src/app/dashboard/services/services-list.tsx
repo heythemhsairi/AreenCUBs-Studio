@@ -173,7 +173,12 @@ export function ServicesList({ services }: { services: Service[] }) {
           <p className="text-xs text-content-3">{t.servicesUi.noResultsHint}</p>
         </div>
       ) : (
-        <Table className="table-fixed">
+        <>
+          <div className="space-y-3 md:hidden">
+            {filtered.map((s) => <ServiceCard key={s.id} svc={s} />)}
+          </div>
+          <div className="hidden md:block">
+          <Table className="table-fixed">
           <colgroup>
             <col className="w-[44%]" />
             <col className="w-[16%]" />
@@ -195,9 +200,52 @@ export function ServicesList({ services }: { services: Service[] }) {
               <Row key={s.id} svc={s} />
             ))}
           </TBody>
-        </Table>
+          </Table>
+          </div>
+        </>
       )}
     </div>
+  );
+}
+
+function ServiceCard({ svc }: { svc: Service }) {
+  const { t, locale } = useI18n();
+  const [pending, startTransition] = useTransition();
+  const name = locale === "en" && svc.name_en ? svc.name_en : svc.name_fr;
+  const description = locale === "en" && svc.description_en ? svc.description_en : svc.description_fr;
+
+  return (
+    <article className="rounded-2xl border border-line bg-surface p-4 shadow-soft">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <Link href={`/dashboard/services/${svc.id}`} className="block truncate font-semibold text-ink hover:text-brand">{name}</Link>
+          {description && <p className="mt-1 line-clamp-2 text-xs text-content-3">{description}</p>}
+        </div>
+        <span className={cn("rounded-full px-2 py-1 text-[11px] font-semibold", svc.active ? "bg-success-weak text-success" : "bg-ink/5 text-content-3")}>
+          {svc.active ? t.filters.active : t.filters.inactive}
+        </span>
+      </div>
+      <dl className="mt-4 grid grid-cols-3 gap-3 border-t border-line pt-3 text-xs">
+        <div><dt className="text-content-3">{t.servicesUi.columns.category}</dt><dd className="mt-1 truncate font-medium text-content-2">{svc.category ?? "—"}</dd></div>
+        <div><dt className="text-content-3">{t.servicesUi.columns.unit}</dt><dd className="mt-1 truncate font-medium text-content-2">{svc.default_unit}</dd></div>
+        <div className="text-right"><dt className="text-content-3">{t.servicesUi.columns.price}</dt><dd className="mt-1 whitespace-nowrap font-semibold text-ink">{formatDt(svc.default_price_dt)}</dd></div>
+      </dl>
+      <div className="mt-3 flex items-center justify-between border-t border-line pt-3">
+        <button
+          type="button"
+          onClick={() => startTransition(async () => { await toggleServiceActiveAction(svc.id, !svc.active); })}
+          disabled={pending}
+          className="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-xs font-medium text-content-2 disabled:opacity-60"
+          aria-pressed={svc.active}
+        >
+          <span className={cn("relative inline-flex h-5 w-9 items-center rounded-full", svc.active ? "bg-brand" : "bg-ink/15")}>
+            <span className={cn("h-4 w-4 rounded-full bg-surface shadow-sm transition-transform", svc.active ? "translate-x-4" : "translate-x-0.5")} />
+          </span>
+          {svc.active ? t.servicesUi.disable : t.servicesUi.enable}
+        </button>
+        <Link href={`/dashboard/services/${svc.id}`} className="inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-medium text-brand hover:bg-brand/8">{t.common.edit}</Link>
+      </div>
+    </article>
   );
 }
 

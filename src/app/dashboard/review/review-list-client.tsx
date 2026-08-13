@@ -63,6 +63,12 @@ export function ReviewListClient({
       <PageHeader
         title="Révision vidéo"
         description="Montages partagés avec les clients pour validation, version par version."
+        action={canCreate && !showForm ? (
+          <Button type="button" onClick={() => setShowForm(true)}>
+            <Plus size={16} aria-hidden="true" />
+            Nouveau montage
+          </Button>
+        ) : undefined}
       />
 
       {loadError && (
@@ -77,12 +83,7 @@ export function ReviewListClient({
 
       {canCreate && (
         <div>
-          {!showForm ? (
-            <Button type="button" onClick={() => setShowForm(true)}>
-              <Plus size={16} aria-hidden="true" />
-              Nouveau montage
-            </Button>
-          ) : (
+          {showForm && (
             <Card>
               <CardHeader>
                 <CardTitle>Nouveau montage</CardTitle>

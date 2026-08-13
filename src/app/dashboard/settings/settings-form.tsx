@@ -38,8 +38,8 @@ export function SettingsForm({ initial }: { initial: AppSettings }) {
         description={t.settings.subtitle}
       />
 
-      <form onSubmit={onSubmit} className="space-y-6">
-        <Card>
+      <form onSubmit={onSubmit} className="grid gap-6 xl:grid-cols-2 xl:items-start">
+        <Card className="xl:row-span-2">
           <CardHeader>
             <CardTitle>{t.settings.identity}</CardTitle>
             <p className="text-xs text-content-3">{t.settings.identityHint}</p>
@@ -155,7 +155,7 @@ export function SettingsForm({ initial }: { initial: AppSettings }) {
           </CardContent>
         </Card>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 xl:col-span-2">
           <Button type="submit" disabled={pending}>
             {pending ? t.common.saving : t.common.save}
           </Button>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/utils";
 import { Layers, Users, CalendarDays, BarChart2, ChevronRight, CheckCircle2, Clock, PenTool, Share2 } from "lucide-react";
+import { PageHeader } from "@/components/dashboard/page-header";
 
 type Client = { id: string; name: string; email: string | null };
 type ContentItem = { id: string; status: string };
@@ -53,20 +54,13 @@ export function ContentHubClient({ clients, plans, profiles, publishingCount }: 
   const totalPlans = plans.length;
   const approvedPlans = plans.filter((p) => p.status === "approved").length;
   const totalItems = plans.reduce((sum, p) => sum + p.content_items.length, 0);
-  const publishedItems = plans.reduce(
-    (sum, p) => sum + p.content_items.filter((i) => i.status === "published").length,
-    0,
-  );
-
   return (
-    <div className="flex flex-col gap-6 p-4 md:p-6">
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-content">{c.title}</h1>
-          <p className="mt-0.5 text-sm text-content-3">{c.description}</p>
-        </div>
-        <div className="flex items-center gap-2">
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title={c.title}
+        description={c.description}
+        action={
+          <nav aria-label="Content OS" className="flex flex-wrap items-center gap-2">
           <Link
             href="/dashboard/content/calendar"
             className="flex items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-2 text-sm text-content-2 hover:text-content hover:bg-surface-2 transition-colors"
@@ -88,23 +82,24 @@ export function ContentHubClient({ clients, plans, profiles, publishingCount }: 
             <BarChart2 size={14} />
             {c.reportsTitle}
           </Link>
-        </div>
-      </div>
+          </nav>
+        }
+      />
 
       {/* KPI strip */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
-          { icon: Layers, label: c.kpiTotalPlans, value: totalPlans, accent: "#22D3EE" },
-          { icon: CheckCircle2, label: c.kpiApprovedPlans, value: approvedPlans, accent: "#22C55E" },
-          { icon: PenTool, label: c.kpiTotalContent, value: totalItems, accent: "#A78BFA" },
-          { icon: Share2, label: c.totalPosts, value: publishingCount, accent: "#F59E0B" },
-        ].map(({ icon: Icon, label, value, accent }) => (
+          { icon: Layers, label: c.kpiTotalPlans, value: totalPlans, tone: "text-brand" },
+          { icon: CheckCircle2, label: c.kpiApprovedPlans, value: approvedPlans, tone: "text-success" },
+          { icon: PenTool, label: c.kpiTotalContent, value: totalItems, tone: "text-accent2" },
+          { icon: Share2, label: c.totalPosts, value: publishingCount, tone: "text-warning" },
+        ].map(({ icon: Icon, label, value, tone }) => (
           <div
             key={label}
             className="flex flex-col gap-2 rounded-xl border border-line bg-surface p-4"
           >
             <div className="flex items-center gap-2">
-              <Icon size={14} style={{ color: accent }} />
+              <Icon size={14} className={tone} />
               <span className="text-xs text-content-3">{label}</span>
             </div>
             <span className="text-2xl font-bold text-content">{value}</span>

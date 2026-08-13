@@ -47,6 +47,10 @@ function StatusCell({
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    setStatus(initial);
+  }, [initial]);
+
+  useEffect(() => {
     if (!open) return;
     function handleClick(e: MouseEvent) {
       if (!ref.current?.contains(e.target as Node)) setOpen(false);
@@ -138,7 +142,42 @@ export function ProjectsTable({
   }
 
   return (
-    <Table>
+    <>
+      <div className="space-y-3 md:hidden">
+        {projects.map((p) => (
+          <article key={p.id} className="rounded-2xl border border-line bg-surface p-4 shadow-soft">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <Link href={`/dashboard/projects/${p.id}`} className="block truncate font-semibold text-content hover:text-accent2">
+                  {p.name}
+                </Link>
+                {showClient && p.client && (
+                  <Link href={`/dashboard/clients/${p.client.id}`} className="mt-1 block truncate text-xs text-content-3 hover:text-accent2">
+                    {p.client.name}
+                  </Link>
+                )}
+              </div>
+              <StatusCell projectId={p.id} initial={p.status} isAdmin={isAdmin ?? false} />
+            </div>
+            <dl className="mt-4 grid grid-cols-3 gap-3 border-t border-line pt-3 text-xs">
+              <div className="min-w-0">
+                <dt className="text-content-3">{t.projects.columns.owner}</dt>
+                <dd className="mt-1 truncate font-medium text-content-2">{p.owner}</dd>
+              </div>
+              <div>
+                <dt className="text-content-3">{t.projects.columns.deadline}</dt>
+                <dd className="mt-1 font-medium text-content-2">{formatDate(p.end_date)}</dd>
+              </div>
+              <div className="text-right">
+                <dt className="text-content-3">{t.projects.columns.tasks}</dt>
+                <dd className="mt-1 font-semibold text-content">{p.tasks_count}</dd>
+              </div>
+            </dl>
+          </article>
+        ))}
+      </div>
+      <div className="hidden md:block">
+        <Table>
       <THead>
         <TR>
           <TH>{t.projects.columns.name}</TH>
@@ -193,6 +232,8 @@ export function ProjectsTable({
           </TR>
         ))}
       </TBody>
-    </Table>
+        </Table>
+      </div>
+    </>
   );
 }

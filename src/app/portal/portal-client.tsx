@@ -60,12 +60,13 @@ export function PortalClient({
   const settled = items.filter((i) => !isPending(i));
 
   return (
-    <main className="mx-auto w-full max-w-3xl space-y-6 px-4 py-8 sm:px-6">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-semibold text-ink">
+    <main className="mx-auto w-full max-w-5xl space-y-6 px-4 py-8 sm:px-6 lg:py-12">
+      <header className="rounded-2xl border border-line bg-surface px-5 py-6 shadow-soft sm:px-7">
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand">Espace client</p>
+        <h1 className="mt-2 text-2xl font-semibold text-ink sm:text-3xl">
           {orgName ?? "Espace client"}
         </h1>
-        <p className="text-sm text-content-2">
+        <p className="mt-2 max-w-2xl text-sm text-content-2">
           Bonjour {contactName}. Voici vos contenus et ce qui attend votre validation.
         </p>
       </header>
@@ -82,7 +83,8 @@ export function PortalClient({
         </div>
       )}
 
-      <Card>
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(280px,0.65fr)]">
+      <Card className="lg:row-span-2">
         <CardHeader>
           <CardTitle>À valider</CardTitle>
         </CardHeader>
@@ -168,6 +170,7 @@ export function PortalClient({
           )}
         </CardContent>
       </Card>
+      </div>
     </main>
   );
 }
