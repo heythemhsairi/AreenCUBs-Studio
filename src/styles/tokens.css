@@ -141,7 +141,10 @@ html.light {
   --ac-rail-2:      var(--ac-brand-800);
   --ac-rail-border: var(--ac-brand-700);
   --ac-on-rail:     248 250 252;
-  --ac-on-rail-muted: var(--ac-support);   /* 4.9:1 on #0A336F */
+  /* Inactive navigation remains quieter than white while staying readable on
+     the permanent navy rail. This must never reuse --ac-support: support is
+     also the rail background, which made every inactive label disappear. */
+  --ac-on-rail-muted: var(--ac-brand-200); /* 7.6:1 on #0A336F */
 
   /* Measured on --ac-surface (#FFF) and --ac-canvas (#E8EBEC) */
   --ac-text:         var(--ac-neutral-900);  /* 16.1:1 / 13.9:1 */
