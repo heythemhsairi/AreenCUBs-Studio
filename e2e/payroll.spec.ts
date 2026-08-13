@@ -43,7 +43,7 @@ test.describe("admin payroll controls", () => {
     await page.getByLabel("Statut").selectOption("done");
     await page.getByLabel("Type de production").selectOption({ label: "Post · 1 pt · 8.000 DT" });
     await page.getByLabel("Collaborateur crédité").selectOption("22222222-2222-4222-8222-222222222222");
-    await page.getByRole("button", { name: "Créer" }).click();
+    await page.getByRole("button", { name: "Créer", exact: true }).click();
     await expect(page).toHaveURL(/\/dashboard\/projects\//);
 
     await page.goto("/dashboard/payroll", { waitUntil: "networkidle" });
