@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/dashboard/page-header";
+import { ActionRequired } from "@/components/dashboard/action-required";
 import { useI18n } from "@/lib/i18n/provider";
 import { displayLocaleFor, formatDate } from "@/lib/format";
 
@@ -61,6 +62,25 @@ export function InternDashboardClient({
           </div>
         </div>
       )}
+
+      {/*
+        Overdue tasks first. An intern's whole dashboard is "what should I be
+        doing", and the answer was previously a count in a tile with the actual
+        list below three summary cards.
+      */}
+      <ActionRequired
+        title={c.actionTitle}
+        allClearLabel={c.actionAllClear}
+        items={overdue.map((k) => ({
+          id: k.id,
+          href: `/dashboard/tasks/${k.id}`,
+          primary: k.title,
+          secondary: [k.projectName, k.clientName].filter(Boolean).join(" · ") || undefined,
+          trailing: k.deadline ? (
+            <span className="num text-xs text-danger">{formatDate(k.deadline)}</span>
+          ) : undefined,
+        }))}
+      />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <KpiCard

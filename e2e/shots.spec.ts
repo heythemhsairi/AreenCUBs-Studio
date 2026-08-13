@@ -165,6 +165,30 @@ function noteShellless(role: string, name: string, detail: string | null) {
   console.log(`[shell] outside the app shell — ${line}`);
 }
 
+/**
+ * Did we land where we asked?
+ *
+ * A role that may not reach a route is redirected, and the shot was being
+ * saved under the name of the route that was REQUESTED. The commercial sheet
+ * had a cell labelled `devis-print` that was a photograph of the commercial
+ * dashboard — evidence of a working guard, filed as evidence of a print view.
+ *
+ * A redirect is worth recording (it demonstrates the guard) but it is not
+ * design evidence for the route that was asked for, so it is annotated and the
+ * shutter is not fired.
+ */
+function landedElsewhere(page: Page, requested: string): string | null {
+  const actual = new URL(page.url()).pathname;
+  if (actual === requested || actual === requested.replace(/\/$/, "")) return null;
+  return actual;
+}
+
+function noteRedirect(role: string, requested: string, landed: string) {
+  const line = `${role} · ${requested} → ${landed}`;
+  test.info().annotations.push({ type: "redirected", description: line });
+  console.log(`[redirect] not photographed — ${line}`);
+}
+
 /** Applies the theme the same way the app does, then lets the transition land. */
 async function setTheme(page: Page, theme: Theme): Promise<void> {
   await page.evaluate((t) => {
@@ -310,6 +334,11 @@ for (const role of Object.keys(BY_ROLE) as (keyof typeof ACCOUNTS)[]) {
       try {
         await page.goto(stop.path, { waitUntil: "domcontentloaded", timeout: 20_000 });
         noteShellless(role, stop.name, (await ready(page)).outsideShell);
+        const moved = landedElsewhere(page, stop.path);
+        if (moved) {
+          noteRedirect(role, stop.path, moved);
+          continue;
+        }
         await shoot(page, info, role, stop.name);
       } catch (err) {
         record(stop.path, (err as Error).message.split("\n")[0]);
@@ -333,6 +362,10 @@ for (const role of Object.keys(BY_ROLE) as (keyof typeof ACCOUNTS)[]) {
 
         await page.goto(detail, { waitUntil: "domcontentloaded", timeout: 20_000 });
         noteShellless(role, `${stop.name}-detail`, (await ready(page)).outsideShell);
+        if (landedElsewhere(page, detail)) {
+          noteRedirect(role, detail, new URL(page.url()).pathname);
+          continue;
+        }
         await shoot(page, info, role, `${stop.name}-detail`);
 
         for (const suffix of ["/edit", "/print"]) {
@@ -340,6 +373,10 @@ for (const role of Object.keys(BY_ROLE) as (keyof typeof ACCOUNTS)[]) {
           if (!onward) continue;
           await page.goto(onward, { waitUntil: "domcontentloaded", timeout: 20_000 });
           noteShellless(role, `${stop.name}${suffix}`, (await ready(page)).outsideShell);
+          if (landedElsewhere(page, onward)) {
+            noteRedirect(role, onward, new URL(page.url()).pathname);
+            continue;
+          }
           await shoot(page, info, role, `${stop.name}${suffix.replace("/", "-")}`);
           await page.goBack({ waitUntil: "domcontentloaded" }).catch(() => {});
           await ready(page).catch(() => {});

@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { MoneyAmount } from "@/components/ui/money-amount";
 import { PageHeader } from "@/components/dashboard/page-header";
+import { ActionRequired } from "@/components/dashboard/action-required";
 import { useI18n } from "@/lib/i18n/provider";
 import { displayLocaleFor, formatDate, formatDevisNumber } from "@/lib/format";
 
@@ -75,6 +76,24 @@ export function CommercialDashboardClient({
           </div>
         </div>
       )}
+
+      {/*
+        Overdue quotes lead the page. They were reaching the screen only as a
+        KPI tooltip and a badge partway down the follow-up list, so the role
+        whose job is chasing quotes opened on four summary tiles that said
+        nothing about which quote to chase.
+      */}
+      <ActionRequired
+        title={c.actionTitle}
+        allClearLabel={c.actionAllClear}
+        items={overdue.map((d) => ({
+          id: d.id,
+          href: `/dashboard/${d.kind === "facture" ? "factures" : "devis"}/${d.id}`,
+          primary: d.clientName,
+          secondary: formatDevisNumber(d.number, d.kind),
+          trailing: <MoneyAmount amount={d.total} size="sm" />,
+        }))}
+      />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard
