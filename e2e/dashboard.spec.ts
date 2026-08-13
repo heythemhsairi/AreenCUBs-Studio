@@ -98,6 +98,50 @@ test.describe("service-role degradation", () => {
     expect(body).not.toContain("Staging Client Contact");
     expect(diagnostics.significantErrors()).toEqual([]);
   });
+
+  test("an admin can edit a team profile through RLS", async ({ page }) => {
+    const memberId = "22222222-2222-4222-8222-222222222222";
+    await page.goto(`/dashboard/team/${memberId}`, { waitUntil: "networkidle" });
+    const profileForm = page.locator('form:has(input[name="full_name"])');
+    await profileForm.locator('input[name="full_name"]').fill("PROBE Staging Worker");
+    await profileForm.locator('input[name="job_title"]').fill("PROBE Editor");
+    await profileForm.getByRole("button", { name: /save|enregistrer/i }).click();
+    await expect(profileForm.locator('input[name="full_name"]')).toHaveValue("PROBE Staging Worker");
+
+    await page.reload({ waitUntil: "networkidle" });
+    const reloadedForm = page.locator('form:has(input[name="full_name"])');
+    await expect(reloadedForm.locator('input[name="full_name"]')).toHaveValue("PROBE Staging Worker");
+
+    // Restore the fabricated seed value so the suite remains repeatable.
+    await reloadedForm.locator('input[name="full_name"]').fill("Staging Worker");
+    await reloadedForm.locator('input[name="job_title"]').fill("");
+    await reloadedForm.getByRole("button", { name: /save|enregistrer/i }).click();
+  });
+
+  test("an admin can persist another member's planning", async ({ page }) => {
+    await page.goto("/dashboard/team/planning", { waitUntil: "networkidle" });
+    const workerRow = page.locator("tbody tr").filter({ hasText: "Staging Worker" });
+    const day = workerRow.locator('button[title^="2026-"]').first();
+    const before = await day.getAttribute("title");
+    expect(before).toBeTruthy();
+    await day.click();
+    await page.waitForTimeout(500);
+
+    await page.reload({ waitUntil: "networkidle" });
+    const persisted = page
+      .locator("tbody tr")
+      .filter({ hasText: "Staging Worker" })
+      .locator('button[title^="2026-"]')
+      .first();
+    await expect(persisted).not.toHaveAttribute("title", before!);
+
+    // Three states cycle empty → office → home → empty. Restore the original.
+    for (let attempt = 0; attempt < 2; attempt++) {
+      if ((await persisted.getAttribute("title")) === before) break;
+      await persisted.click();
+      await page.waitForTimeout(400);
+    }
+  });
 });
 
 test.describe("Publishing hydration — the #418 regression", () => {
