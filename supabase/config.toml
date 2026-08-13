@@ -26,7 +26,7 @@ port = 54322
 shadow_port = 54320
 # Must match the hosted project's major version so migrations behave
 # identically here and there.
-major_version = 15
+major_version = 17
 
 [studio]
 enabled = true
