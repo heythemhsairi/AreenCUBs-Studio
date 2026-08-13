@@ -233,6 +233,12 @@ now measures exactly 390px.
 widths, naming the offending elements rather than only the page width. 16 admin
 routes plus the portal, currently green at 390px.
 
+### Route inventory correction
+
+`/dashboard/social-media` is **not a distinct surface**. Every run redirects it
+to `/dashboard/content/publishing`; the harness records this and does not
+photograph it. It was counted as an unreviewed route in earlier inventories.
+
 ### Still open in phase 4
 
 - Genuine per-role information hierarchy for commercial, intern, worker and
