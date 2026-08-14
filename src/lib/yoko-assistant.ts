@@ -1,4 +1,4 @@
-export const YOKO_ASSISTANT_ACCOUNT_USERNAME = "aichatgptadmin";
+export const YOKO_ASSISTANT_ACCOUNT_USERNAME = "yokoakiyama";
 
 export const YOKO_ASSISTANT = {
   fullName: "Yoko Akiyama",
