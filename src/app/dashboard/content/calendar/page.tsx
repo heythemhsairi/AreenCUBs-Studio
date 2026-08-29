@@ -28,7 +28,6 @@ export default async function ContentCalendarPage({
       id, title, content_type, platform, status, priority, publish_date,
       client_id,
       assigned_to,
-      profiles:assigned_to(id, full_name, username),
       clients(id, name)
     `)
     .gte("publish_date", startDate)

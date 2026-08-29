@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/utils";
 import { toast } from "@/components/toast";
@@ -9,7 +9,6 @@ import { updateContentItemAction } from "../../actions";
 import type { ContentItemStatus, ContentType, ContentPlatform, ContentPriority } from "../../actions";
 import { ChevronLeft, ExternalLink } from "lucide-react";
 
-type ProfileRef = { id: string; full_name: string | null; username: string } | null;
 type PlanRef = {
   id: string;
   month: number;
@@ -37,7 +36,6 @@ type ContentItem = {
   task_id: string | null;
   assigned_to: string | null;
   plan_id: string;
-  profiles: ProfileRef;
   monthly_content_plans: PlanRef;
 };
 type Member = { id: string; full_name: string | null; username: string; avatar_url: string | null };
@@ -67,6 +65,10 @@ const ITEM_STATUS_BG: Record<string, string> = {
 export function ContentItemDetailClient({ item, members }: Props) {
   const { t, locale } = useI18n();
   const c = t.contentOS;
+  const assignee = useMemo(
+    () => (item.assigned_to ? members.find((m) => m.id === item.assigned_to) : undefined),
+    [members, item.assigned_to],
+  );
   const monthNames = c.months;
   const [isPending, startTransition] = useTransition();
   const [editing, setEditing] = useState(false);
@@ -371,7 +373,7 @@ export function ContentItemDetailClient({ item, members }: Props) {
             </MetaRow>
             <MetaRow label={c.itemFields.assignedTo}>
               <span className="text-sm text-content">
-                {item.profiles?.full_name ?? item.profiles?.username ?? (
+                {assignee?.full_name ?? assignee?.username ?? (
                   <em className="text-content-3">{t.tasks.form.unassigned}</em>
                 )}
               </span>

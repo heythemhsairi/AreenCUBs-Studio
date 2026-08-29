@@ -33,8 +33,7 @@ export default async function ContentPlanDetailPage({
       id, title, content_type, platform, pillar, caption,
       visual_direction, publish_date, deadline, status, priority,
       client_feedback, approval_status, final_asset_url, task_id,
-      assigned_to,
-      profiles:assigned_to(id, full_name, username)
+      assigned_to
     `)
     .eq("plan_id", planId)
     .order("publish_date", { ascending: true, nullsFirst: false });

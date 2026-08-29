@@ -23,7 +23,6 @@ export default async function ContentItemDetailPage({
       client_feedback, approval_status, final_asset_url, task_id,
       assigned_to, created_at, updated_at,
       plan_id,
-      profiles:assigned_to(id, full_name, username),
       monthly_content_plans(id, month, year, theme, client_id,
         clients(id, name)
       )
