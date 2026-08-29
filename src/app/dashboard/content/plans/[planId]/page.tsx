@@ -27,7 +27,7 @@ export default async function ContentPlanDetailPage({
 
   if (!plan) notFound();
 
-  const { data: items } = await supabase
+  const { data: items, error: itemsError } = await supabase
     .from("content_items")
     .select(`
       id, title, content_type, platform, pillar, caption,
@@ -38,6 +38,12 @@ export default async function ContentPlanDetailPage({
     `)
     .eq("plan_id", planId)
     .order("publish_date", { ascending: true, nullsFirst: false });
+
+  if (itemsError) {
+    // Never swallow this silently: an empty items array is indistinguishable
+    // from "RLS denied the read", and the latter has bitten this table before.
+    console.error(`[content plan ${planId}] content_items query failed:`, itemsError);
+  }
 
   const { data: members } = await supabase
     .from("profiles")
@@ -50,6 +56,7 @@ export default async function ContentPlanDetailPage({
       plan={plan as any}
       items={(items ?? []) as any}
       members={members ?? []}
+      loadError={itemsError?.message ?? null}
     />
   );
 }

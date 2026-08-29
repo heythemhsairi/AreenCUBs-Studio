@@ -328,28 +328,35 @@ export async function createContentItemAction(
   const rawPriority = str(formData, "priority") as ContentPriority;
   const priority: ContentPriority = PRIORITIES.includes(rawPriority) ? rawPriority : "normal";
 
-  const { error } = await supabase.from("content_items").insert({
-    plan_id,
-    client_id,
-    title,
-    content_type,
-    platform,
-    pillar: strOrNull(formData, "pillar"),
-    caption: strOrNull(formData, "caption"),
-    visual_direction: strOrNull(formData, "visual_direction"),
-    publish_date: strOrNull(formData, "publish_date"),
-    deadline: strOrNull(formData, "deadline"),
-    assigned_to: strOrNull(formData, "assigned_to"),
-    status: "idea",
-    priority,
-    created_by: session.id,
-  });
+  const { data, error } = await supabase
+    .from("content_items")
+    .insert({
+      plan_id,
+      client_id,
+      title,
+      content_type,
+      platform,
+      pillar: strOrNull(formData, "pillar"),
+      caption: strOrNull(formData, "caption"),
+      visual_direction: strOrNull(formData, "visual_direction"),
+      publish_date: strOrNull(formData, "publish_date"),
+      deadline: strOrNull(formData, "deadline"),
+      assigned_to: strOrNull(formData, "assigned_to"),
+      status: "idea",
+      priority,
+      created_by: session.id,
+    })
+    .select("id")
+    .single();
 
-  if (error) return { ok: false, error: error.message };
+  if (error) {
+    console.error(`[content plan ${plan_id}] content_items insert failed:`, error);
+    return { ok: false, error: error.message };
+  }
 
   revalidatePath(`/dashboard/content/plans/${plan_id}`);
   revalidatePath("/dashboard/content/calendar");
-  return { ok: true };
+  return { ok: true, ...(data ? { itemId: data.id } : {}) };
 }
 
 export async function updateContentItemAction(
