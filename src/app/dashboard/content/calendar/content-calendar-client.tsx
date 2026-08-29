@@ -6,7 +6,6 @@ import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-type Profile = { id: string; full_name: string | null; username: string } | null;
 type ClientRef = { id: string; name: string } | null;
 type ContentItem = {
   id: string;
@@ -18,7 +17,6 @@ type ContentItem = {
   publish_date: string | null;
   client_id: string;
   assigned_to: string | null;
-  profiles: Profile;
   clients: ClientRef;
 };
 type Client = { id: string; name: string };

@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { useMemo, useState, useTransition } from "react";
 import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/utils";
 import { toast } from "@/components/toast";
@@ -17,7 +18,6 @@ import {
   ChevronLeft, Plus, CheckCircle2, Trash2, ExternalLink, Layers,
 } from "lucide-react";
 
-type AssigneeProfile = { id: string; full_name: string | null; username: string } | null;
 type ContentItem = {
   id: string;
   title: string;
@@ -35,7 +35,6 @@ type ContentItem = {
   final_asset_url: string | null;
   task_id: string | null;
   assigned_to: string | null;
-  profiles: AssigneeProfile;
 };
 type Plan = {
   id: string;
@@ -54,6 +53,7 @@ type Props = {
   plan: Plan;
   items: ContentItem[];
   members: Member[];
+  loadError?: string | null;
 };
 
 const CONTENT_TYPES: ContentType[] = ["post", "reel", "story", "carousel", "video", "article"];
@@ -89,12 +89,17 @@ const PRIORITY_COLORS: Record<string, string> = {
   urgent: "text-danger",
 };
 
-export function ContentPlanDetailClient({ plan, items, members }: Props) {
+export function ContentPlanDetailClient({ plan, items, members, loadError }: Props) {
   const { t, locale } = useI18n();
   const c = t.contentOS;
   const monthNames = c.months;
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [showNewItem, setShowNewItem] = useState(false);
+  const membersById = useMemo(
+    () => new Map(members.map((m) => [m.id, m])),
+    [members],
+  );
   const [filterStatus, setFilterStatus] = useState<string>("all");
 
   const clientName = plan.clients?.name ?? "";
@@ -110,6 +115,7 @@ export function ContentPlanDetailClient({ plan, items, members }: Props) {
             ? c.autoTasksCreated(tasksCreated)
             : c.planApproved,
         );
+        router.refresh();
       } else {
         toast.error(res.error);
       }
@@ -121,6 +127,7 @@ export function ContentPlanDetailClient({ plan, items, members }: Props) {
       const res = await archiveContentPlanAction(plan.id);
       if (res.ok) {
         toast.success(c.planArchived);
+        router.refresh();
       } else {
         toast.error(res.error);
       }
@@ -138,6 +145,7 @@ export function ContentPlanDetailClient({ plan, items, members }: Props) {
         toast.success(c.itemCreated);
         setShowNewItem(false);
         (e.target as HTMLFormElement).reset();
+        router.refresh();
       } else {
         toast.error(res.error);
       }
@@ -150,6 +158,7 @@ export function ContentPlanDetailClient({ plan, items, members }: Props) {
       const res = await deleteContentItemAction(itemId);
       if (res.ok) {
         toast.success(c.itemDeleted);
+        router.refresh();
       } else {
         toast.error(res.error);
       }
@@ -159,7 +168,11 @@ export function ContentPlanDetailClient({ plan, items, members }: Props) {
   function handleChangeStatus(itemId: string, status: ContentItemStatus) {
     startTransition(async () => {
       const res = await changeContentItemStatusAction(itemId, status);
-      if (!res.ok) toast.error(res.error);
+      if (res.ok) {
+        router.refresh();
+      } else {
+        toast.error(res.error);
+      }
     });
   }
 
@@ -392,7 +405,24 @@ export function ContentPlanDetailClient({ plan, items, members }: Props) {
           </form>
         )}
 
-        {filteredItems.length === 0 ? (
+        {loadError ? (
+          <div className="rounded-xl border border-dashed border-danger/40 bg-danger-weak py-12 text-center">
+            <Layers size={28} className="mx-auto mb-3 text-danger" />
+            <p className="text-sm text-danger font-medium">
+              {locale === "en"
+                ? "Couldn't load this plan's content items."
+                : "Impossible de charger les contenus de ce plan."}
+            </p>
+            <p className="text-xs text-content-3 mt-1">{loadError}</p>
+            <button
+              type="button"
+              onClick={() => router.refresh()}
+              className="mt-3 text-sm text-accent2 hover:underline"
+            >
+              {locale === "en" ? "Retry" : "Réessayer"}
+            </button>
+          </div>
+        ) : filteredItems.length === 0 ? (
           <div className="rounded-xl border border-dashed border-line bg-surface py-12 text-center">
             <Layers size={28} className="mx-auto mb-3 text-content-3" />
             <p className="text-sm text-content-3">{c.noItems}</p>
@@ -441,9 +471,12 @@ export function ContentPlanDetailClient({ plan, items, members }: Props) {
                     </td>
                     <td className="px-4 py-3 text-content-2 capitalize">{item.platform}</td>
                     <td className="px-4 py-3 text-content-2">
-                      {item.profiles?.full_name ?? item.profiles?.username ?? (
-                        <em className="text-content-3">{t.tasks.form.unassigned}</em>
-                      )}
+                      {(() => {
+                        const assignee = item.assigned_to ? membersById.get(item.assigned_to) : undefined;
+                        return assignee?.full_name ?? assignee?.username ?? (
+                          <em className="text-content-3">{t.tasks.form.unassigned}</em>
+                        );
+                      })()}
                     </td>
                     <td className="px-4 py-3 text-content-2">
                       {item.publish_date
