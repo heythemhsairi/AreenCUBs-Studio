@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ClientDetailActions } from "./detail-actions";
 import { ProjectsTable } from "../../projects/projects-table";
+import { ClientAccountCard } from "./client-account-card";
 
 export default async function ClientDetailPage({
   params,
@@ -34,6 +35,15 @@ export default async function ClientDetailPage({
     )
     .eq("client_id", id)
     .order("created_at", { ascending: false });
+
+  const { data: clientContacts } = session.role === "admin"
+    ? await supabase
+        .from("client_members")
+        .select("profile_id, profiles:profile_id(username, full_name)")
+        .eq("client_id", id)
+        .eq("relation", "client_contact")
+        .order("created_at", { ascending: true })
+    : { data: [] };
 
   return (
     <div className="space-y-8">
@@ -86,6 +96,20 @@ export default async function ClientDetailPage({
           />
         </div>
       </div>
+
+      {session.role === "admin" && (
+        <ClientAccountCard
+          clientId={client.id}
+          contacts={(clientContacts ?? []).map((row) => {
+            const profile = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
+            return {
+              id: row.profile_id,
+              username: profile?.username ?? "client",
+              fullName: profile?.full_name ?? profile?.username ?? "Client",
+            };
+          })}
+        />
+      )}
     </div>
   );
 }
