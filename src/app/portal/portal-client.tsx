@@ -10,6 +10,7 @@ import {
   Film,
   Inbox,
   MessageSquare,
+  ListChecks,
   Sparkles,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,6 +42,16 @@ export type PortalItem = {
  * reach the browser in the first place.
  */
 export type PortalReview = { id: string; title: string; status: string };
+export type PortalTask = {
+  id: string;
+  projectId: string;
+  parentTaskId: string | null;
+  projectName: string;
+  title: string;
+  description: string | null;
+  status: string;
+  deadline: string | null;
+};
 export type PortalPlan = {
   id: string;
   month: number;
@@ -55,6 +66,7 @@ export function PortalClient({
   plans,
   items,
   reviews,
+  tasks,
   loadError,
 }: {
   contactName: string;
@@ -62,6 +74,7 @@ export function PortalClient({
   plans: PortalPlan[];
   items: PortalItem[];
   reviews: PortalReview[];
+  tasks: PortalTask[];
   loadError: string | null;
 }) {
   // Split on the client's own DECISION, not on the internal workflow status.
@@ -97,6 +110,51 @@ export function PortalClient({
         <PortalMetric label="Vidéos en revue" value={reviews.length} detail="montages disponibles" />
         <PortalMetric label="Contenus partagés" value={items.length} detail="dans votre espace" />
       </section>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ListChecks size={18} className="text-brand" aria-hidden="true" />
+            Suivi des tâches
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {tasks.filter((task) => !task.parentTaskId).length === 0 ? (
+            <EmptyState icon={<ListChecks />} title="Aucune tâche partagée" description="Vos prochaines étapes apparaîtront ici." size="sm" />
+          ) : (
+            <ul className="space-y-4">
+              {tasks.filter((task) => !task.parentTaskId).map((task) => {
+                const subtasks = tasks.filter((candidate) => candidate.parentTaskId === task.id);
+                return (
+                  <li key={task.id} className="rounded-xl border border-line p-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-xs text-content-3">{task.projectName}</p>
+                        <h3 className="mt-0.5 text-sm font-semibold text-ink">{task.title}</h3>
+                        {task.description && <p className="mt-2 text-sm text-content-2">{task.description}</p>}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {task.deadline && <time className="text-xs text-content-3" dateTime={task.deadline}>{formatPortalDate(task.deadline)}</time>}
+                        <Badge tone={taskStatusTone(task.status)}>{taskStatusLabel(task.status)}</Badge>
+                      </div>
+                    </div>
+                    {subtasks.length > 0 && (
+                      <ul className="mt-4 space-y-2 border-t border-line pt-3">
+                        {subtasks.map((subtask) => (
+                          <li key={subtask.id} className="flex items-center justify-between gap-3 text-sm">
+                            <span className={subtask.status === "done" ? "text-content-3 line-through" : "text-content-2"}>{subtask.title}</span>
+                            <Badge tone={taskStatusTone(subtask.status)}>{taskStatusLabel(subtask.status)}</Badge>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
 
       {currentPlan && (
         <Card className="overflow-hidden border-brand/30 bg-gradient-to-br from-brand/10 to-surface">
@@ -332,6 +390,22 @@ function badgeTone(item: PortalItem) {
   if (item.approvalStatus === "revision_requested") return "amber" as const;
   if (item.status === "published") return "green" as const;
   return "blue" as const;
+}
+
+function taskStatusLabel(status: string) {
+  if (status === "todo") return "À faire";
+  if (status === "in_progress") return "En cours";
+  if (status === "review") return "En validation";
+  if (status === "done") return "Terminé";
+  if (status === "cancelled") return "Annulé";
+  return status;
+}
+
+function taskStatusTone(status: string) {
+  if (status === "done") return "green" as const;
+  if (status === "in_progress" || status === "review") return "blue" as const;
+  if (status === "cancelled") return "slate" as const;
+  return "amber" as const;
 }
 
 /** One item awaiting a decision, with the two actions a client may take. */
