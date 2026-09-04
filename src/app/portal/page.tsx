@@ -46,6 +46,14 @@ export default async function PortalPage() {
     orgRes.error?.message ?? plansRes.error?.message ?? itemsRes.error?.message ??
     reviewsRes.error?.message ?? tasksRes.error?.message ?? null;
 
+  // Passed as a prop rather than read via `new Date()` on the client: the
+  // dashboard hit exactly this hydration mismatch (server and client clocks
+  // disagree by however long the request took), which is why it carries its
+  // own NowProvider. The portal only needs one fixed reference instant for
+  // "is this overdue" and "which month opens first", so a plain prop is
+  // enough — no context needed for a value nothing here ever advances.
+  const serverNowIso = new Date().toISOString();
+
   const items: PortalItem[] = (itemsRes.data ?? []).map((i) => ({
     id: i.id,
     title: i.title,
@@ -80,6 +88,7 @@ export default async function PortalPage() {
         deadline: task.deadline,
       }))}
       loadError={loadError}
+      nowIso={serverNowIso}
     />
   );
 }
