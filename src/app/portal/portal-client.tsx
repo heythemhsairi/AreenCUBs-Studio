@@ -23,6 +23,7 @@ import { setContentApprovalAction } from "./actions";
 import { PortalSidebar, PortalMobileNav, type PortalSection } from "@/components/portal/portal-nav";
 import { TaskWorkspace } from "@/components/portal/task-workspace";
 import { MiniCalendar } from "@/components/portal/mini-calendar";
+import { StatusDonut, type DonutSlice } from "@/components/portal/portal-charts";
 import { groupPortalTasks, isClosedStatus, type PortalTaskLike } from "@/lib/portal/tasks";
 import type { PortalCalendarEntry } from "@/lib/portal/calendar";
 
@@ -207,6 +208,7 @@ export function PortalClient({
               <OverviewPanel
                 spotlightProject={spotlightProject}
                 awaiting={awaiting}
+                items={items}
                 onGoToTasks={() => setActive("tasks")}
                 onGoToContent={() => setActive("content")}
               />
@@ -296,14 +298,35 @@ function PortalHeader({
 function OverviewPanel({
   spotlightProject,
   awaiting,
+  items,
   onGoToTasks,
   onGoToContent,
 }: {
   spotlightProject: ReturnType<typeof groupPortalTasks>[number] | null;
   awaiting: PortalItem[];
+  items: PortalItem[];
   onGoToTasks: () => void;
   onGoToContent: () => void;
 }) {
+  const spotlightTasks = spotlightProject
+    ? [...spotlightProject.parents, ...Object.values(spotlightProject.subtasksByParent).flat()]
+    : [];
+  const countStatus = (status: string) => spotlightTasks.filter((t) => t.status === status).length;
+  const taskDonutData: DonutSlice[] = [
+    { label: "À faire", value: countStatus("todo"), tone: "warning" },
+    { label: "En cours", value: countStatus("in_progress") + countStatus("review"), tone: "info" },
+    { label: "Terminé", value: countStatus("done"), tone: "success" },
+    { label: "Annulé", value: countStatus("cancelled"), tone: "neutral" },
+  ];
+
+  const publishedCount = items.filter((i) => i.status === "published").length;
+  const otherSettledCount = Math.max(items.length - awaiting.length - publishedCount, 0);
+  const contentDonutData: DonutSlice[] = [
+    { label: "À valider", value: awaiting.length, tone: "warning" },
+    { label: "Publié", value: publishedCount, tone: "success" },
+    { label: "Autres validés", value: otherSettledCount, tone: "info" },
+  ];
+
   return (
     <div className="space-y-6">
       {spotlightProject && (
@@ -328,16 +351,24 @@ function OverviewPanel({
               <ArrowRight size={14} aria-hidden="true" />
             </button>
           </div>
-          <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-surface-3">
-            <div
-              className="h-full rounded-full bg-brand transition-[width] duration-3 ease-ac"
-              style={{
-                width: `${spotlightProject.totalCount === 0 ? 0 : Math.round((spotlightProject.doneCount / spotlightProject.totalCount) * 100)}%`,
-              }}
-            />
-          </div>
         </section>
       )}
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <StatusDonut
+          title="Répartition des tâches"
+          subtitle={spotlightProject?.projectName}
+          centerLabel="tâches"
+          emptyLabel="Aucune tâche pour le moment."
+          data={taskDonutData}
+        />
+        <StatusDonut
+          title="Répartition des contenus"
+          centerLabel="contenus"
+          emptyLabel="Aucun contenu pour le moment."
+          data={contentDonutData}
+        />
+      </div>
 
       <section>
         <div className="flex items-center justify-between">

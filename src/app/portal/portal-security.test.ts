@@ -28,6 +28,7 @@ const PORTAL_SOURCE_FILES = [
   "src/components/portal/portal-nav.tsx",
   "src/components/portal/task-workspace.tsx",
   "src/components/portal/mini-calendar.tsx",
+  "src/components/portal/portal-charts.tsx",
   "src/lib/portal/tasks.ts",
   "src/lib/portal/calendar.ts",
 ];

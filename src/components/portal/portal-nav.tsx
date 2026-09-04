@@ -15,6 +15,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { Avatar } from "@/components/avatar";
 import { BrandLogo } from "@/components/brand-logo";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { cn } from "@/lib/utils";
 
 export type PortalSection =
@@ -128,7 +129,11 @@ function SignOutRow({
   signingOut: boolean;
 }) {
   return (
-    <div className="space-y-2 border-t border-line px-1 pt-3">
+    <div className="space-y-3 border-t border-line px-1 pt-3">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[11px] font-medium text-content-3">Apparence</span>
+        <ThemeToggle />
+      </div>
       <div className="flex min-w-0 items-center gap-2">
         <Avatar name={contactName} size="xs" />
         <span className="truncate text-xs font-medium text-content-2">{contactName}</span>
